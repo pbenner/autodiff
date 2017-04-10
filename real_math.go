@@ -227,6 +227,8 @@ func (c *Real) LogSub(a, b, t Scalar) Scalar {
     c.Set(a)
     return c
   }
+  //   log(exp(a) - exp(b))
+  // = log(1 - exp(b-a)) + a
   t.Sub(b, a)
   t.Exp(t)
   t.Neg(t)
