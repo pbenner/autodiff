@@ -151,6 +151,30 @@ func Variables(order int, reals ...Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
+func CopyGradien(g Vector, x Scalar) error {
+  n := x.GetN()
+  if len(g) != n {
+    return fmt.Errorf("vector has invalid length")
+  }
+  for i := 0; i < n; i++ {
+    g[i].SetValue(x.GetDerivative(i))
+  }
+  return nil
+}
+
+func CopyHessian(H Matrix, x Scalar) error {
+  n := x.GetN()
+  if n1, n2 := H.Dims(); n1 != n || n2 != n {
+    return fmt.Errorf("matrix has invalid dimensions")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < n; j++ {
+      H.At(i, j).SetValue(x.GetHessian(i,j))
+    }
+  }
+  return nil
+}
+
 func GetGradient(t ScalarType, x Scalar) Vector {
   n := x.GetN()
   g := NullVector(t, n)
