@@ -19,6 +19,7 @@ package newton
 /* -------------------------------------------------------------------------- */
 
 import   "fmt"
+import   "math"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/matrixInverse"
@@ -53,6 +54,10 @@ type HessianModification struct {
 
 type Constraints struct {
   Value func(x Vector) bool
+}
+
+type MaxIterations struct {
+  Value int
 }
 
 type InSitu struct {
@@ -136,6 +141,7 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
 // J: Jacobian
 func newton_root(f objective_root, x Vector,
   epsilon Epsilon,
+  maxIterations MaxIterations,
   hook HookRoot,
   constraints Constraints,
   hessianModification HessianModification,
@@ -166,7 +172,7 @@ func newton_root(f objective_root, x Vector,
   t1 := inSitu.T1
   t2 := inSitu.T2
 
-  for {
+  for i := 0; i < maxIterations.Value; i++ {
     // execute hook if available
     if hook.Value != nil && hook.Value(x1, J, y) {
       break
@@ -175,6 +181,9 @@ func newton_root(f objective_root, x Vector,
     t2.Vnorm(y)
     if t2.GetValue() < epsilon.Value {
       break
+    }
+    if math.IsNaN(t2.GetValue()) {
+      return x1, fmt.Errorf("NaN value detected")
     }
     if err := getDirection(t1, y, J, hessianModification, inSitu); err != nil {
       return nil, err
@@ -218,6 +227,7 @@ func newton_min(
   x Vector,
   getPhi func(x, p Vector) objective_line,
   epsilon Epsilon,
+  maxIterations MaxIterations,
   hook HookMin,
   constraints Constraints,
   hessianModification HessianModification,
@@ -264,7 +274,7 @@ func newton_min(
     }
   }
 
-  for {
+  for i := 0; i < maxIterations.Value; i++ {
     // execute hook if available
     if hook.Value != nil && hook.Value(x1, g, H, y1) {
       break
@@ -273,6 +283,9 @@ func newton_min(
     t2.Vnorm(g)
     if t2.GetValue() < epsilon.Value {
       break
+    }
+    if math.IsNaN(t2.GetValue()) {
+      return x1, fmt.Errorf("NaN value detected")
     }
     if err := getDirection(t1, g, H, hessianModification, inSitu); err != nil {
       return nil, err
@@ -320,11 +333,12 @@ func newton_min(
 
 func run_root(f objective_root, x Vector, args ...interface{}) (Vector, error) {
 
-  hook                := HookRoot   {  nil}
-  epsilon             := Epsilon    { 1e-8}
-  constraints         := Constraints{  nil}
+  hook                := HookRoot           {   nil}
+  epsilon             := Epsilon            {  1e-8}
+  constraints         := Constraints        {   nil}
   hessianModification := HessianModification{"None"}
-  inSitu              := &InSitu    {}
+  maxIterations       := MaxIterations      {int(^uint(0) >> 1)}
+  inSitu              := &InSitu            {}
   options             := make([]interface{}, 0)
 
   for _, arg := range args {
@@ -339,6 +353,8 @@ func run_root(f objective_root, x Vector, args ...interface{}) (Vector, error) {
       constraints = a
     case HessianModification:
       hessianModification = a
+    case MaxIterations:
+      maxIterations = a
     case *InSitu:
       inSitu = a
     case InSitu:
@@ -348,16 +364,17 @@ func run_root(f objective_root, x Vector, args ...interface{}) (Vector, error) {
     }
   }
 
-  return newton_root(f, x, epsilon, hook, constraints, hessianModification, inSitu, options)
+  return newton_root(f, x, epsilon, maxIterations, hook, constraints, hessianModification, inSitu, options)
 }
 
 func run_min(f objective_min, x Vector, getPhi func(x, p Vector) objective_line, args ...interface{}) (Vector, error) {
 
-  hook                := HookMin    {  nil}
-  epsilon             := Epsilon    { 1e-8}
-  constraints         := Constraints{  nil}
+  hook                := HookMin            {   nil}
+  epsilon             := Epsilon            {  1e-8}
+  constraints         := Constraints        {   nil}
   hessianModification := HessianModification{"None"}
-  inSitu              := &InSitu    {}
+  maxIterations       := MaxIterations      {int(^uint(0) >> 1)}
+  inSitu              := &InSitu            {}
   options             := make([]interface{}, 0)
 
   for _, arg := range args {
@@ -370,6 +387,8 @@ func run_min(f objective_min, x Vector, getPhi func(x, p Vector) objective_line,
       constraints = a
     case HessianModification:
       hessianModification = a
+    case MaxIterations:
+      maxIterations = a
     case *InSitu:
       inSitu = a
     case InSitu:
@@ -379,7 +398,7 @@ func run_min(f objective_min, x Vector, getPhi func(x, p Vector) objective_line,
     }
   }
 
-  return newton_min(f, x, getPhi, epsilon, hook, constraints, hessianModification, inSitu, options)
+  return newton_min(f, x, getPhi, epsilon, maxIterations, hook, constraints, hessianModification, inSitu, options)
 }
 
 /* -------------------------------------------------------------------------- */

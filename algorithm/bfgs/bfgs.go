@@ -43,6 +43,10 @@ type Epsilon struct {
   Value float64
 }
 
+type MaxIterations struct {
+  Value int
+}
+
 type Hook struct {
   Value func(x, gradient Vector, y Scalar) bool
 }
@@ -175,7 +179,7 @@ func bfgs_updateH(g1, g2, p2 Vector, H1, H2, I Matrix, t1, t2 Scalar, t3, t4 Vec
   return true
 }
 
-func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon, hook Hook, constraints Constraints) (Vector, error) {
+func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon, maxIterations MaxIterations, hook Hook, constraints Constraints) (Vector, error) {
 
   // nomenclature:
   // B: Hessian
@@ -231,7 +235,7 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
 
   // keep track of whether H has been updated before
   first_update := true
-  for {
+  for i := 0; i < maxIterations.Value; i++ {
     bgfs_computeDirection(x1, y1, g1, H1, p1)
     // line search objective
     phi := func(alpha Scalar) (Scalar, error) {
@@ -302,10 +306,11 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
 
 func Run(f Objective, x0 Vector, args ...interface{}) (Vector, error) {
 
-  hessian     := Hessian{ nil}
-  hook        := Hook   { nil}
-  epsilon     := Epsilon{1e-8}
-  constraints := Constraints{ nil}
+  hessian       := Hessian      { nil}
+  hook          := Hook         { nil}
+  epsilon       := Epsilon      {1e-8}
+  maxIterations := MaxIterations{int(^uint(0) >> 1)}
+  constraints   := Constraints  { nil}
 
   n := len(x0)
 
@@ -317,6 +322,8 @@ func Run(f Objective, x0 Vector, args ...interface{}) (Vector, error) {
       hook = a
     case Epsilon:
       epsilon = a
+    case MaxIterations:
+      maxIterations = a
     case Constraints:
       constraints = a
     default:
@@ -335,5 +342,5 @@ func Run(f Objective, x0 Vector, args ...interface{}) (Vector, error) {
   if err != nil {
     return nil, err
   }
-  return bfgs(f, newObjectiveInSitu(f), x0, H, epsilon, hook, constraints)
+  return bfgs(f, newObjectiveInSitu(f), x0, H, epsilon, maxIterations, hook, constraints)
 }
