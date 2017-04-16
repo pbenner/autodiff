@@ -36,8 +36,11 @@ func TestGevDistribution1(t *testing.T) {
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
   x := NewVector(RealType, []float64{100})
-  y := gev.LogPdf(x)
-  z := gev.Cdf(x)
+  y := NewReal(0.0)
+  z := NewReal(0.0)
+
+  gev.LogPdf(y, x)
+  gev.Cdf(z, x)
 
   if math.Abs(y.GetValue() - -99.0) > 1e-4 {
     t.Error("Gev LogPdf failed!")
@@ -56,8 +59,11 @@ func TestGevDistribution2(t *testing.T) {
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
   x := NewVector(RealType, []float64{10})
-  y := gev.LogPdf(x)
-  z := gev.Cdf(x)
+  y := NewReal(0.0)
+  z := NewReal(0.0)
+
+  gev.LogPdf(y, x)
+  gev.Cdf(z, x)
 
   if math.Abs(y.GetValue() - -9.000123) > 1e-4 {
     t.Error("Gev LogPdf failed!")
@@ -76,8 +82,11 @@ func TestGevDistribution3(t *testing.T) {
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
   x := NewVector(RealType, []float64{100})
-  y := gev.LogPdf(x)
-  z := gev.Cdf(x)
+  y := NewReal(0.0)
+  z := NewReal(0.0)
+
+  gev.LogPdf(y, x)
+  gev.Cdf(z, x)
 
   if math.Abs(y.GetValue() - -8.010845) > 1e-4 {
     t.Error("Gev LogPdf failed!")

@@ -32,6 +32,7 @@ type GevDistribution struct {
   c1    Scalar
   cx    Scalar
   cy    Scalar
+  t     Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -55,7 +56,8 @@ func NewGevDistribution(mu, sigma, xi Scalar) (*GevDistribution, error) {
     Xi    : xi   .Clone(),
     c1    : c1,
     cx    : cx,
-    cy    : cy, }
+    cy    : cy,
+    t     : NewScalar(xi.Type(), 0.0) }
 
   return &result, nil
 
@@ -70,23 +72,23 @@ func (dist *GevDistribution) Clone() *GevDistribution {
     Xi    : dist.Xi   .Clone(),
     c1    : dist.c1   .Clone(),
     cx    : dist.cx   .Clone(),
-    cy    : dist.cy   .Clone() }
+    cy    : dist.cy   .Clone(),
+    t     : dist.t    .Clone() }
 }
 
 func (dist *GevDistribution) Dim() int {
   return 1
 }
 
-func (dist *GevDistribution) LogPdf(x_ Vector) Scalar {
+func (dist *GevDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := NewScalar(x.Type(), 0.0)
 
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
-    return r
+    return nil
   }
-  t := x.Clone()
-  t.Sub(t, dist.Mu)
+  t := dist.t
+  t.Sub(x, dist.Mu)
   t.Div(t, dist.Sigma)
 
   if dist.Xi.GetValue() == 0.0 {
@@ -112,20 +114,23 @@ func (dist *GevDistribution) LogPdf(x_ Vector) Scalar {
   t.Log(dist.Sigma)
   r.Sub(r, t)
 
-  return r
+  return nil
 }
 
-func (dist *GevDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *GevDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *GevDistribution) LogCdf(x_ Vector) Scalar {
+func (dist *GevDistribution) LogCdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := NewScalar(x.Type(), 0.0)
 
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
-    return r
+    return nil
   }
   r.Set(x)
   r.Sub(r, dist.Mu)
@@ -142,11 +147,15 @@ func (dist *GevDistribution) LogCdf(x_ Vector) Scalar {
     r.Neg(r)
   }
 
-  return r
+  return nil
 }
 
-func (dist *GevDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *GevDistribution) Cdf(r Scalar, x Vector) error {
+  if err := dist.LogCdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

@@ -20,6 +20,7 @@ package distribution
 
 //import   "fmt"
 //import   "math"
+
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/determinant"
 import   "github.com/pbenner/autodiff/algorithm/matrixInverse"
@@ -30,12 +31,21 @@ type InverseWishartDistribution struct {
   Nu   Scalar
   S    Matrix
   SDet Scalar
-  n    int    // dimension
+  d    Scalar
+  z    Scalar
+  c1   Scalar
+  c2   Scalar
+  // state
+  t    Scalar
+  inSituDet   determinant.InSitu
+  inSituInv matrixInverse.InSitu
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribution, error) {
+
+  t := nu.Type()
 
   n, m := s.Dims()
 
@@ -46,7 +56,23 @@ func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribu
   if err != nil {
     return nil, err
   }
-  result := InverseWishartDistribution{nu, s, sDet, n}
+  d  := NewScalar(t, float64(n))
+  c1 := NewBareReal(1.0)
+  c2 := NewBareReal(2.0)
+  // negative log partition function
+  z := Mul(Div(nu, c2), Log(sDet))            // |S|^(nu/2)
+  z.Sub(z, Mul(Mul(nu, Div(d, c2)), Log(c2))) // 2^(nu n/2)
+  z.Sub(z, Mlgamma(Div(nu, c2), n))           // Gamma_n(nu/2)
+
+  result := InverseWishartDistribution{
+    Nu  : nu,
+    S   : s,
+    SDet: sDet,
+    d   : d,
+    c1  : c1,
+    c2  : c2,
+    z   : z,
+    t   : NewScalar(t, 0.0) }
 
   return &result, nil
 
@@ -59,11 +85,16 @@ func (dist *InverseWishartDistribution) Clone() *InverseWishartDistribution {
     Nu  : dist.Nu  .Clone(),
     S   : dist.S   .Clone(),
     SDet: dist.SDet.Clone(),
-    n   : dist.n }
+    d   : dist.d   .Clone(),
+    c1  : dist.c1  .Clone(),
+    c2  : dist.c2  .Clone(),
+    z   : dist.z   .Clone(),
+    t   : dist.t   .Clone() }
 }
 
 func (dist *InverseWishartDistribution) Dim() int {
-  return dist.n
+  n, _ := dist.S.Dims()
+  return n
 }
 
 func (dist *InverseWishartDistribution) Mean() Matrix {
@@ -71,8 +102,7 @@ func (dist *InverseWishartDistribution) Mean() Matrix {
   if dist.Nu.GetValue() <= float64(n) - 1.0 {
     panic("mean is not defined for the given parameters")
   }
-  d := NewReal(float64(n))
-  return MdivS(dist.S, Sub(Sub(dist.Nu, d), NewReal(1.0)))
+  return MdivS(dist.S, Sub(Sub(dist.Nu, dist.d), NewReal(1.0)))
 }
 
 func (dist *InverseWishartDistribution) Variance() Matrix {
@@ -81,9 +111,8 @@ func (dist *InverseWishartDistribution) Variance() Matrix {
     panic("variance is not defined for the given parameters")
   }
   m := NullMatrix(RealType, n, n)
-  d := NewReal(float64(n))
   // some constants
-  c1 := Sub(dist.Nu, d)                // (nu - d)
+  c1 := Sub(dist.Nu, dist.d)           // (nu - d)
   c2 := Add(c1, NewReal(1.0))          // (nu - d + 1)
   c3 := Sub(c1, NewReal(1.0))          // (nu - d - 1)
   c4 := Sub(c1, NewReal(3.0))          // (nu - d - 3)
@@ -99,35 +128,33 @@ func (dist *InverseWishartDistribution) Variance() Matrix {
   return m
 }
 
-func (dist *InverseWishartDistribution) LogPdf(x Matrix) Scalar {
-  t := dist.Nu.Type()
-  d := NewScalar(t, float64(dist.n))
-  xInv, err1 := matrixInverse.Run(x, matrixInverse.PositiveDefinite{true})
-  xDet, err2 := determinant  .Run(x, determinant  .PositiveDefinite{true})
-  if err1 != nil { panic(err1) }
-  if err2 != nil { panic(err2) }
-  trace := Mtrace(MmulM(dist.S, xInv))
-  c := NewBareReal(2.0)
-  // negative log partition function
-  z := Mul(Div(dist.Nu, c), Log(dist.SDet))         // |S|^(nu/2)
-  z  = Sub(z, Mul(Mul(dist.Nu, Div(d, c)), Log(c))) // 2^(nu n/2)
-  z  = Sub(z, Mlgamma(Div(dist.Nu, c), dist.n))     // Gamma_n(nu/2)
+func (dist *InverseWishartDistribution) LogPdf(r Scalar, x Matrix) error {
+  xInv, err1 := matrixInverse.Run(x, matrixInverse.PositiveDefinite{true}, &dist.inSituInv)
+  xDet, err2 := determinant  .Run(x, determinant  .PositiveDefinite{true}, &dist.inSituDet)
+  if err1 != nil { return err1 }
+  if err2 != nil { return err2 }
+  xDet.Log(xDet)
+  xInv.MmulM(dist.S, xInv)
+  t := dist.t
+  t.Mtrace(xInv)
+  t.Div(t, dist.c2)
   // density
-  f := Neg(Mul(Div(Add(Add(dist.Nu, d), NewBareReal(1.0)), c), Log(xDet)))
-  f  = Sub(f, Div(trace, c))
-  return Add(f, z)
+  r.Add(dist.Nu, dist.d)
+  r.Add(r, dist.c1)
+  r.Div(r, dist.c2)
+  r.Mul(r, xDet)
+  r.Neg(r)
+  r.Sub(r, t)
+  r.Add(r, dist.z)
+  return nil
 }
 
-func (dist *InverseWishartDistribution) Pdf(x Matrix) Scalar {
-  return Exp(dist.LogPdf(x))
-}
-
-func (dist *InverseWishartDistribution) LogCdf(x Matrix) Scalar {
-  return Log(dist.Cdf(x))
-}
-
-func (dist *InverseWishartDistribution) Cdf(x Matrix) Scalar {
-  panic("Not implemented!")
+func (dist *InverseWishartDistribution) Pdf(r Scalar, x Matrix) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

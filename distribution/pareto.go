@@ -77,13 +77,12 @@ func (dist *ParetoDistribution) Dim() int {
   return 1
 }
 
-func (dist *ParetoDistribution) LogPdf(x_ Vector) Scalar {
+func (dist *ParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := NewScalar(x.Type(), 0.0)
 
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
-    return r
+    return nil
   }
 
   r.Add(x, dist.Epsilon)
@@ -92,20 +91,23 @@ func (dist *ParetoDistribution) LogPdf(x_ Vector) Scalar {
   r.Neg(r)
   r.Add(r, dist.z)
 
-  return r
+  return nil
 }
 
-func (dist *ParetoDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *ParetoDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *ParetoDistribution) LogCdf(x_ Vector) Scalar {
+func (dist *ParetoDistribution) LogCdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := NewScalar(x.Type(), 0.0)
 
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
-    return r
+    return nil
   }
 
   r.Add(x, dist.Epsilon)
@@ -114,11 +116,15 @@ func (dist *ParetoDistribution) LogCdf(x_ Vector) Scalar {
   r.Neg(r)
   r.Log1p(r)
 
-  return r
+  return nil
 }
 
-func (dist *ParetoDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *ParetoDistribution) Cdf(r Scalar, x Vector) error {
+  if err := dist.LogCdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

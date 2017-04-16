@@ -35,8 +35,11 @@ func TestTDistribution1(t *testing.T) {
   distribution, _ := NewTDistribution(nu, mu, sigma)
 
   x := NewVector(RealType, []float64{1,2})
+  y := NewReal(0.0)
 
-  if math.Abs(distribution.LogPdf(x).GetValue() - -3.153422e+00) > 1e-4 {
-    t.Error("Normal LogPdf failed!")
+  distribution.LogPdf(y, x)
+
+  if math.Abs(y.GetValue() - -3.153422e+00) > 1e-4 {
+    t.Error("T LogPdf failed!")
   }
 }

@@ -368,18 +368,9 @@ func Outer(a, b Vector) Matrix {
 
 // Returns the trace of a.
 func Mtrace(a Matrix) Scalar {
-  n, m := a.Dims()
-  if n != m {
-    panic("not a square matrix")
-  }
-  if n == 0 {
-    return nil
-  }
-  t := a.At(0, 0).Clone()
-  for i := 1; i < n; i++ {
-    t.Add(t, a.At(i,i))
-  }
-  return t
+  r := a.At(0, 0).Clone()
+  r.Mtrace(a)
+  return r
 }
 
 /* -------------------------------------------------------------------------- */

@@ -58,25 +58,33 @@ func (dist *ChiSquaredDistribution) Dim() int {
   return 1
 }
 
-func (dist *ChiSquaredDistribution) LogPdf(x Vector) Scalar {
-  r := Log(x[0])
+func (dist *ChiSquaredDistribution) LogPdf(r Scalar, x Vector) error {
+  r.Log(x[0])
   r.Mul(r, dist.E)
   t := Div(x[0], dist.C)
   r.Sub(r, t)
   r.Sub(r, dist.Z)
-  return r
+  return nil
 }
 
-func (dist *ChiSquaredDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *ChiSquaredDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *ChiSquaredDistribution) LogCdf(x Vector) Scalar {
-  return Log(dist.Cdf(x))
+func (dist *ChiSquaredDistribution) LogCdf(r Scalar, x Vector) error {
+  if err := dist.Cdf(r, x); err != nil {
+    return err
+  }
+  r.Log(r)
+  return nil
 }
 
-func (dist *ChiSquaredDistribution) Cdf(x Vector) Scalar {
-  r := Div(x[0], dist.C)
+func (dist *ChiSquaredDistribution) Cdf(r Scalar, x Vector) error {
+  r.Div(x[0], dist.C)
   r.GammaP(dist.L.GetValue(), r)
-  return r
+  return nil
 }

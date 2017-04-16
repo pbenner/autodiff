@@ -93,8 +93,10 @@ type Scalar interface {
   Mlgamma   (Scalar, int)     Scalar // multivariate log gamma
   GammaP    (float64, Scalar) Scalar // regularized lower incomplete gamma
   // vector operations
+  Vmean     (a    Vector)     Scalar
   VdotV     (a, b Vector)     Scalar
   Vnorm     (a    Vector)     Scalar
+  Mtrace    (a    Matrix)     Scalar
   // nice printing
   fmt.Stringer
 }

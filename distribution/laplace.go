@@ -27,6 +27,8 @@ import . "github.com/pbenner/autodiff"
 type LaplaceDistribution struct {
   Mu    Scalar
   Sigma Scalar
+  c1    Scalar
+  c2    Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -36,6 +38,8 @@ func NewLaplaceDistribution(mu, sigma Scalar) (*LaplaceDistribution, error) {
   result := LaplaceDistribution{}
   result.Mu    = mu   .Clone()
   result.Sigma = sigma.Clone()
+  result.c1    = NewScalar(mu.Type(), 1.0)
+  result.c2    = NewScalar(mu.Type(), 2.0)
 
   return &result, nil
 
@@ -45,56 +49,59 @@ func NewLaplaceDistribution(mu, sigma Scalar) (*LaplaceDistribution, error) {
 
 func (dist *LaplaceDistribution) Clone() *LaplaceDistribution {
   return &LaplaceDistribution{
-    Mu      : dist.Mu.Clone(),
-    Sigma   : dist.Sigma.Clone() }
+    Mu      : dist.Mu   .Clone(),
+    Sigma   : dist.Sigma.Clone(),
+    c1      : dist.c1   .Clone(),
+    c2      : dist.c2   .Clone() }
 }
 
 func (dist *LaplaceDistribution) Dim() int {
   return 1
 }
 
-func (dist *LaplaceDistribution) LogPdf(x Vector) Scalar {
+func (dist *LaplaceDistribution) LogPdf(r Scalar, x Vector) error {
 
-  t := x.ElementType()
-  c := NewScalar(t, 2.0)
-
-  r := Sub(x[0], dist.Mu)
+  r.Sub(x[0], dist.Mu)
   r.Abs(r)
   r.Div(r, dist.Sigma)
   r.Neg(r)
   r.Exp(r)
   r.Div(r, dist.Sigma)
-  r.Div(r, c)
-  
-  return r
+  r.Div(r, dist.c2)
+
+  return nil
 }
 
-func (dist *LaplaceDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *LaplaceDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *LaplaceDistribution) LogCdf(x Vector) Scalar {
+func (dist *LaplaceDistribution) LogCdf(r Scalar, x Vector) error {
 
-  t  := x.ElementType()
-  c1 := NewScalar(t, 1.0)
-  c2 := NewScalar(t, 2.0)
-
-  r := Sub(x[0], dist.Mu)
+  r.Sub(x[0], dist.Mu)
   r.Abs(r)
   r.Div(r, dist.Sigma)
   r.Neg(r)
   r.Exp(r)
-  r.Div(r, c2)
+  r.Div(r, dist.c2)
 
   if x[0].Greater(dist.Mu) {
     r.Neg(r)
-    r.Add(r, c1)
+    r.Add(r, dist.c1)
   }
-  return r
+  return nil
 }
 
-func (dist *LaplaceDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *LaplaceDistribution) Cdf(r Scalar, x Vector) error {
+  if err := dist.LogCdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

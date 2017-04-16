@@ -31,7 +31,8 @@ func TestChiSquaredDistribution1(t *testing.T) {
   d, _ := NewChiSquaredDistribution(2.0)
 
   x := NewVector(RealType, []float64{10.214}); Variables(2,x[0])
-  y := d.LogPdf(x)
+  y := NewReal(0.0)
+  d.LogPdf(y, x)
 
   if math.Abs(y.GetValue() - -5.800147) > 1e-4 {
     t.Error("Chi-Squared LogPdf failed!")
@@ -49,7 +50,8 @@ func TestChiSquaredDistribution2(t *testing.T) {
   d, _ := NewChiSquaredDistribution(2.0)
 
   x := NewVector(RealType, []float64{4.817}); Variables(2,x[0])
-  y := d.Cdf(x)
+  y := NewReal(0.0)
+  d.Cdf(y, x)
 
   if math.Abs(y.GetValue() - 0.91005) > 1e-4 {
     t.Error("Chi-Squared Cdf failed!")

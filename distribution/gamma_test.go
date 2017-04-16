@@ -31,7 +31,9 @@ func TestGammaDistribution1(t *testing.T) {
   dist,_ := NewGammaDistribution(alpha, beta)
 
   x := NewVector(BareRealType, []float64{0.2})
-  y := dist.LogPdf(x)
+  y := NewReal(0.0)
+
+  dist.LogPdf(y, x)
   r := NewBareReal(0.3631508)
 
   if Abs(Sub(r, y)).GetValue() > 1e-4 {

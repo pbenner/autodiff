@@ -25,26 +25,26 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type DensityFunction interface {
-     Pdf(Vector) Scalar
-  LogPdf(Vector) Scalar
+     Pdf(Scalar, Vector) error
+  LogPdf(Scalar, Vector) error
   Dim() int
   GetParameters() Vector
   SetParameters(parameters Vector) error
 }
 
 type DistributionFunction interface {
-     Cdf(Vector) Scalar
-  LogCdf(Vector) Scalar
+     Cdf(Scalar, Vector) error
+  LogCdf(Scalar, Vector) error
   Dim() int
   GetParameters() Vector
   SetParameters(parameters Vector) error
 }
 
 type Distribution interface {
-     Pdf(Vector) Scalar
-  LogPdf(Vector) Scalar
-     Cdf(Vector) Scalar
-  LogCdf(Vector) Scalar
+     Pdf(Scalar, Vector) error
+  LogPdf(Scalar, Vector) error
+     Cdf(Scalar, Vector) error
+  LogCdf(Scalar, Vector) error
   Dim() int
   GetParameters() Vector
   SetParameters(parameters Vector) error

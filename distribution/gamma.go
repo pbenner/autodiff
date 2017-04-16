@@ -30,6 +30,7 @@ type GammaDistribution struct {
   Beta  Scalar // rate
   Omega Scalar
   Z     Scalar
+  t     Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -38,12 +39,14 @@ func NewGammaDistribution(alpha, beta Scalar) (*GammaDistribution, error) {
   if alpha.GetValue() <= 0.0 || beta.GetValue() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
+  t := alpha.Type()
   dist := GammaDistribution{}
   dist.Alpha = alpha.Clone()
   dist.Beta  = beta .Clone()
   dist.Omega = alpha.Clone()
-  dist.Omega.Sub(dist.Omega, NewScalar(alpha.Type(), 1.0))
+  dist.Omega.Sub(dist.Omega, NewScalar(t, 1.0))
   dist.Z     = Sub(Mul(alpha, Log(beta)), Lgamma(alpha))
+  dist.t     = NewScalar(t, 0.0)
   return &dist, nil
 }
 
@@ -62,33 +65,41 @@ func (dist *GammaDistribution) Mean() Scalar {
   return Div(dist.Alpha, dist.Beta)
 }
 
-func (dist *GammaDistribution) LogPdf(x Vector) Scalar {
-  if r := x[0].GetValue(); r <= 0.0 || math.IsInf(r, 1) {
-    return NewScalar(x.ElementType(), math.Inf(-1))
+func (dist *GammaDistribution) LogPdf(r Scalar, x Vector) error {
+  if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+    r.SetValue(math.Inf(-1))
+    return nil
   }
-  t1 := Log(x[0])
-  t1.Mul(t1, dist.Omega)
-  t2 := Mul(x[0], dist.Beta)
-  t1.Sub(t1, t2)
-  t1.Add(t1, dist.Z)
-  return t1
+  t := dist.t
+  t.Mul(x[0], dist.Beta)
+
+  r.Log(x[0])
+  r.Mul(r, dist.Omega)
+  r.Sub(r, t)
+  r.Add(r, dist.Z)
+  return nil
 }
 
-func (dist *GammaDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *GammaDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *GammaDistribution) LogCdf(x Vector) Scalar {
-  y := dist.Cdf(x)
-  y.Log(y)
-  return y
+func (dist *GammaDistribution) LogCdf(r Scalar, x Vector) error {
+  if err := dist.Cdf(r, x); err != nil {
+    return err
+  }
+  r.Log(r)
+  return nil
 }
 
-func (dist *GammaDistribution) Cdf(x Vector) Scalar {
-  y := x[0].Clone()
-  y.Mul(y, dist.Beta)
-  y.GammaP(dist.Alpha.GetValue(), y)
-  return y
+func (dist *GammaDistribution) Cdf(r Scalar, x Vector) error {
+  r.Mul(x[0], dist.Beta)
+  r.GammaP(dist.Alpha.GetValue(), r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

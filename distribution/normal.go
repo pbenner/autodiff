@@ -18,7 +18,7 @@ package distribution
 
 /* -------------------------------------------------------------------------- */
 
-//import   "fmt"
+import   "fmt"
 import   "math"
 
 import . "github.com/pbenner/autodiff"
@@ -33,6 +33,13 @@ type NormalDistribution struct {
   SigmaInv Matrix
   SigmaDet Scalar
   logH     Scalar
+  c1       Scalar
+  c2       Scalar
+  c3       Scalar
+  // state
+  t1       Vector
+  t2       Vector
+  t3       Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -63,7 +70,13 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
     Sigma   : sigma,
     SigmaInv: sigmaInv,
     SigmaDet: sigmaDet,
-    logH    : h}
+    logH    : h,
+    c1      : NewScalar(t, 1.0),
+    c2      : NewScalar(t, 2.0),
+    c3      : NewScalar(t, math.Log(2.0)),
+    t1      : NullVector(t, n),
+    t2      : NullVector(t, n),
+    t3      : NullScalar(t) }
 
   return &result, nil
 
@@ -77,7 +90,13 @@ func (dist *NormalDistribution) Clone() *NormalDistribution {
     Sigma   : dist.Sigma   .Clone(),
     SigmaInv: dist.SigmaInv.Clone(),
     SigmaDet: dist.SigmaDet.Clone(),
-    logH    : dist.logH    .Clone() }
+    logH    : dist.logH    .Clone(),
+    c1      : dist.c1      .Clone(),
+    c2      : dist.c2      .Clone(),
+    c3      : dist.c3      .Clone(),
+    t1      : dist.t1      .Clone(),
+    t2      : dist.t2      .Clone(),
+    t3      : dist.t3      .Clone() }
 }
 
 func (dist *NormalDistribution) Dim() int {
@@ -96,29 +115,45 @@ func (dist *NormalDistribution) LogH(x Vector) Scalar {
   return dist.logH
 }
 
-func (dist *NormalDistribution) LogPdf(x Vector) Scalar {
-  t := x.ElementType()
-  c := NewScalar(t, -0.5)
+func (dist *NormalDistribution) LogPdf(r Scalar, x Vector) error {
+  if len(x) != dist.Dim() {
+    return fmt.Errorf("input vector has invalid dimension")
+  }
   // -1/2 [ p log(2pi) + log|Sigma| ]
   h := dist.LogH(x)
   // -1/2 (x-mu)^T Sigma^-1 (x-mu)
-  y := VsubV(x, dist.Mu)
-  s := Mul(c, VdotV(VdotM(y, dist.SigmaInv), y))
+  y := dist.t1
+  s := dist.t2
+  y.VsubV(x, dist.Mu)
+  s.VdotM(y, dist.SigmaInv)
+  r.VdotV(s, y)
+  r.Div(r, dist.c2)
+  r.Sub(h, r)
 
-  return Add(h, s)
+  return nil
 }
 
-func (dist *NormalDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *NormalDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *NormalDistribution) LogCdf(x Vector) Scalar {
+func (dist *NormalDistribution) LogCdf(r Scalar, x Vector) error {
   if len(x) != 1 {
     panic("LogCdf(): not supported for more than one dimension.")
   }
-  c := NewBareReal(2.0)
-  y := Div(Sub(x[0], dist.Mu[0]), Sqrt(Mul(dist.Sigma.At(0,0), c)))
-  r := Sub(LogErfc(Neg(y)), Log(c))
+  t := dist.t3
+  t.Mul(dist.c2, dist.Sigma.At(0,0))
+  t.Sqrt(t)
+
+  r.Sub(x[0], dist.Mu[0])
+  r.Div(r, t)
+  r.Neg(r)
+  r.LogErfc(r)
+  r.Sub(r, dist.c3)
 
   // if computation of derivatives failed, return an approximation
   if r.GetOrder() >= 1 {
@@ -128,21 +163,28 @@ func (dist *NormalDistribution) LogCdf(x Vector) Scalar {
       }
     }
   }
-  return r
+  return nil
 }
 
-func (dist *NormalDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *NormalDistribution) Cdf(r Scalar, x Vector) error {
+  if err := dist.LogCdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-
-func (dist *NormalDistribution) EllipticCdf(x Vector) Scalar {
+func (dist *NormalDistribution) EllipticCdf(r Scalar, x Vector) error {
   d, _ := NewChiSquaredDistribution(2)
-  // s = T(x) = (x-mu)^T Sigma^-1 (x-mu)
-  y := VsubV(x, dist.Mu)
-  s := VdotV(VdotM(y, dist.SigmaInv), y)
+  y := dist.t1
+  s := dist.t2
+  t := dist.t3
+  // t = T(x) = (x-mu)^T Sigma^-1 (x-mu)
+  y.VsubV(x, dist.Mu)
+  s.VdotM(y, dist.SigmaInv)
+  t.VdotV(s, y)
   // T(x) ~ chi^2_2
-  return d.Cdf([]Scalar{s})
+  return d.Cdf(r, Vector{t})
 }
 
 /* -------------------------------------------------------------------------- */

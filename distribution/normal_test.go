@@ -35,8 +35,11 @@ func TestNormalDistribution1(t *testing.T) {
   normal, _ := NewNormalDistribution(mu, sigma)
 
   x := NewVector(RealType, []float64{1,2})
+  y := NewReal(0.0)
+
   Variables(1,x[0],x[1])
-  y := normal.LogPdf(x)
+
+  normal.LogPdf(y, x)
 
   if math.Abs(y.GetValue() - -2.720517) > 1e-4 {
     t.Error("Normal LogPdf failed!")
@@ -57,8 +60,11 @@ func TestNormalDistribution2(t *testing.T) {
   normal, _ := NewNormalDistribution(mu, sigma)
 
   x := NewVector(RealType, []float64{1,2})
+  y := NewReal(0.0)
 
-  if math.Abs(normal.LogPdf(x).GetValue() - -4.172134e+00) > 1e-4 {
+  normal.LogPdf(y, x)
+
+  if math.Abs(y.GetValue() - -4.172134e+00) > 1e-4 {
     t.Error("Normal LogPdf failed!")
   }
 }
@@ -71,8 +77,11 @@ func TestNormalDistribution3(t *testing.T) {
   normal, _ := NewNormalDistribution(mu, sigma)
 
   x := NewVector(RealType, []float64{2.2})
+  y := NewReal(0.0)
 
-  if math.Abs(normal.LogCdf(x).GetValue() - -1.2524496) > 1e-4 {
+  normal.LogCdf(y, x)
+
+  if math.Abs(y.GetValue() - -1.2524496) > 1e-4 {
     t.Error("Normal LogCdf failed!")
   }
 }
@@ -85,10 +94,13 @@ func TestNormalDistribution4(t *testing.T) {
   normal, _ := NewNormalDistribution(mu, sigma)
 
   x := NewVector(RealType, []float64{2.2})
+  y := NewReal(0.0)
 
   Variables(1,x[0])
 
-  if math.Abs(normal.LogPdf(x).GetDerivative(0) - 0.4) > 1e-4 {
+  normal.LogPdf(y, x)
+
+  if math.Abs(y.GetDerivative(0) - 0.4) > 1e-4 {
     t.Error("Normal LogPdf failed!")
   }
 }
@@ -109,7 +121,9 @@ func TestNormalDistribution5(t *testing.T) {
   normal, _ := NewNormalDistribution(mu, sigma)
 
   x := NewVector(RealType, []float64{0.32094})
-  y := normal.LogPdf(x)
+  y := NewReal(0.0)
+
+  normal.LogPdf(y, x)
 
   if math.Abs(y.GetDerivative(0) - -0.669765) > 1e-4 {
     t.Error("Normal LogPdf failed!")
@@ -136,6 +150,7 @@ func TestNormalFit1(t *testing.T) {
     1.2257446,  3.3113684,  5.1801388,  2.2084823,  1.4010860,  3.7119648,
     6.1073776,  7.1421863,  1.0146286,  3.7467156,  1.4064666,  2.3686035,
     4.3714954,  4.0999415,  2.2389224,  6.1477621 }
+  y := NewReal(0.0)
   // define the (negative) likelihood function (here as a function of the
   // variables that we want to optimize)
   objective := func(variables Vector) (Scalar, error) {
@@ -148,7 +163,8 @@ func TestNormalFit1(t *testing.T) {
     normal, _ := NewNormalDistribution(mu, sigma)
     result := NewScalar(RealType, 0.0)
     for i := 0; i < len(x); i++ {
-      result = Add(result, normal.LogPdf(NewVector(RealType, []float64{x[i]})))
+      normal.LogPdf(y, NewVector(RealType, []float64{x[i]}))
+      result.Add(result, y)
     }
     return Neg(result), nil
   }
@@ -275,6 +291,7 @@ func TestNormalFit2(t *testing.T) {
     1.0723826,  2.14096739,
    -0.4872921, -0.07513201,
     0.6451411,  3.54314968 })
+  y := NewReal(0.0)
   // number of data points
   n, _ := x.Dims()
   // define the (negative) likelihood function (here as a function of the
@@ -293,7 +310,8 @@ func TestNormalFit2(t *testing.T) {
     normal, _ := NewNormalDistribution(mu, sigma)
     result := NewScalar(RealType, 0.0)
     for i := 0; i < n; i++ {
-      result = Add(result, normal.LogPdf(x.Row(i)))
+      normal.LogPdf(y, x.Row(i))
+      result.Add(result, y)
     }
     return Neg(result), nil
   }
@@ -327,10 +345,11 @@ func TestNormalCdf(t *testing.T) {
   normal, _ := NewNormalDistribution(mu, sigma)
 
   x := NewVector(RealType, []float64{-4.238237e+01})
+  y := NewReal(0.0)
 
   Variables(2,x[0])
 
-  y := normal.LogCdf(x)
+  normal.LogCdf(y, x)
 
   if math.Abs(y.GetValue() - -9.027989e+02) > 1e-4 {
     t.Error("TestNormalCdf failed!")

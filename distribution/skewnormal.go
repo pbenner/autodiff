@@ -33,6 +33,12 @@ type SkewNormalDistribution struct {
   Omega   Matrix
   Alpha   Vector
   Scale   Vector
+  l2      Scalar
+  // state
+  r1      Scalar
+  r2      Scalar
+  t       Vector
+  z       Vector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -41,6 +47,7 @@ type SkewNormalDistribution struct {
 // distribution." Biometrika 83.4 (1996): 715-726.
 
 func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vector) (*SkewNormalDistribution, error) {
+  t := xi.ElementType()
   // dimension
   n, m := omega.Dims()
   // check parameter dimensions
@@ -71,9 +78,14 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
     Normal1: *normal1,
     Normal2: *normal2,
     Xi     : xi,
-    Omega  : omega,
-    Alpha  : alpha,
-    Scale  : scale}
+    Omega  : omega.Clone(),
+    Alpha  : alpha.Clone(),
+    Scale  : scale.Clone(),
+    l2     : NewScalar(t, math.Log(2)),
+    r1     : NewScalar(t, 0.0),
+    r2     : NewScalar(t, 0.0),
+    t      : NullVector(t, 1),
+    z      : NullVector(t, n) }
 
   return &result, nil
 
@@ -88,38 +100,46 @@ func (dist *SkewNormalDistribution) Clone() *SkewNormalDistribution {
     Xi     :  dist.Xi     .Clone(),
     Omega  :  dist.Omega  .Clone(),
     Alpha  :  dist.Alpha  .Clone(),
-    Scale  :  dist.Scale  .Clone() }
+    Scale  :  dist.Scale  .Clone(),
+    l2     :  dist.l2     .Clone(),
+    r1     :  dist.r1     .Clone(),
+    r2     :  dist.r2     .Clone(),
+    t      :  dist.t      .Clone(),
+    z      :  dist.z      .Clone() }
 }
 
 func (dist *SkewNormalDistribution) Dim() int {
   return len(dist.Alpha)
 }
 
-func (dist *SkewNormalDistribution) LogPdf(x Vector) Scalar {
+func (dist *SkewNormalDistribution) LogPdf(r0 Scalar, x Vector) error {
   n := dist.Normal1.Dim()
-  c := NewScalar(RealType, math.Log(2))
-  z := NullVector(RealType, n)
-  t := NullVector(RealType, 1)
+  z := dist.z
+  t := dist.t
   for i := 0; i < n; i++ {
     t[0].Sub(x[i], dist.Normal1.Mu[i])
     z[i].Div(t[0], dist.Scale[i])
   }
-  t[0] = VdotV(dist.Alpha, z)
+  t[0].VdotV(dist.Alpha, z)
 
-  return Add(c,
-    Add(dist.Normal1.LogPdf(x), dist.Normal2.LogCdf(t)))
+  r1 := dist.r1
+  r2 := dist.r2
+
+  dist.Normal1.LogPdf(r1, x)
+  dist.Normal2.LogCdf(r2, t)
+
+  r0.Add(r1, r2)
+  r0.Add(r0, dist.l2)
+
+  return nil
 }
 
-func (dist *SkewNormalDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
-}
-
-func (dist *SkewNormalDistribution) Cdf(x Vector) Scalar {
-  panic("Method not implemented!")
-}
-
-func (dist *SkewNormalDistribution) LogCdf(x Vector) Scalar {
-  panic("Method not implemented!")
+func (dist *SkewNormalDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

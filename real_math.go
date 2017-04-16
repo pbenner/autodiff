@@ -476,6 +476,14 @@ func (c *Real) GammaP(a float64, b Scalar) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
+func (r *Real) Vmean(a Vector) Scalar {
+  r.Reset()
+  for i := 0; i < len(a); i++ {
+    r.Add(r, a[i])
+  }
+  return r.Div(r, NewBareReal(float64(len(a))))
+}
+
 func (r *Real) VdotV(a, b Vector) Scalar {
   if len(a) != len(b) {
     panic("vector dimensions do not match")
@@ -498,5 +506,20 @@ func (r *Real) Vnorm(a Vector) Scalar {
     r.Add(r, t)
   }
   r.Sqrt(r)
+  return r
+}
+
+func (r *Real) Mtrace(a Matrix) Scalar {
+  n, m := a.Dims()
+  if n != m {
+    panic("not a square matrix")
+  }
+  if n == 0 {
+    return nil
+  }
+  r.Reset()
+  for i := 0; i < n; i++ {
+    r.Add(r, a.At(i,i))
+  }
   return r
 }

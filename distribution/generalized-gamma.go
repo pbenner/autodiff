@@ -31,6 +31,7 @@ type GeneralizedGammaDistribution struct {
   P   Scalar
   dm1 Scalar
   z   Scalar
+  t   Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -47,6 +48,7 @@ func NewGeneralizedGammaDistribution(a, d, p Scalar) (*GeneralizedGammaDistribut
   dist.z   = Log(p)
   dist.z   = Sub(dist.z, Mul(d, Log(a)))
   dist.z   = Sub(dist.z, Lgamma(Div(d, p)))
+  dist.t   = NewScalar(a.Type(), 0.0)
   return &dist, nil
 }
 
@@ -61,29 +63,28 @@ func (dist *GeneralizedGammaDistribution) Dim() int {
   return 1
 }
 
-func (dist *GeneralizedGammaDistribution) LogPdf(x Vector) Scalar {
-  if r := x[0].GetValue(); r <= 0.0 || math.IsInf(r, 1) {
-    return NewScalar(x.ElementType(), math.Inf(-1))
+func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x Vector) error {
+  if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+    r.SetValue(math.Inf(-1))
+    return nil
   }
-  t1 := Log(x[0])
-  t1.Mul(t1, dist.dm1)
-  t2 := Div(x[0], dist.A)
-  t2.Pow(t2, dist.P)
-  t1.Sub(t1, t2)
-  t1.Add(t1, dist.z)
-  return t1
+  t := dist.t
+  t.Div(x[0], dist.A)
+  t.Pow(t, dist.P)
+
+  r.Log(x[0])
+  r.Mul(r, dist.dm1)
+  r.Sub(r, t)
+  r.Add(r, dist.z)
+  return nil
 }
 
-func (dist *GeneralizedGammaDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
-}
-
-func (dist *GeneralizedGammaDistribution) LogCdf(x Vector) Scalar {
-  panic("not implemented")
-}
-
-func (dist *GeneralizedGammaDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

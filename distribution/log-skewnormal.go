@@ -84,7 +84,7 @@ func (dist LogSkewNormalDistribution) Dim() int {
   return len(dist.Alpha)
 }
 
-func (dist LogSkewNormalDistribution) LogPdf(x Vector) Scalar {
+func (dist LogSkewNormalDistribution) LogPdf(r Scalar, x Vector) error {
   n := dist.Normal1.Dim()
   c := NewScalar(RealType, math.Log(2))
   y := NullVector(RealType, n)
@@ -100,20 +100,24 @@ func (dist LogSkewNormalDistribution) LogPdf(x Vector) Scalar {
     c = Add(c, Neg(Log(y[i])))
   }
 
-  return Add(c,
-    Add(dist.Normal1.LogPdf(y), dist.Normal2.LogCdf(t)))
+  r1 := r.Clone()
+  r2 := r.Clone()
+
+  dist.Normal1.LogPdf(r1, x)
+  dist.Normal2.LogCdf(r2, t)
+
+  r.Add(r1, r2)
+  r.Add(r, c)
+
+  return nil
 }
 
-func (dist LogSkewNormalDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
-}
-
-func (dist LogSkewNormalDistribution) Cdf(x Vector) Scalar {
-  panic("Method not implemented!")
-}
-
-func (dist LogSkewNormalDistribution) LogCdf(x Vector) Scalar {
-  panic("Method not implemented!")
+func (dist LogSkewNormalDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

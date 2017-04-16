@@ -32,11 +32,18 @@ type TDistribution struct {
   Sigma    Matrix
   SigmaInv Matrix
   SigmaDet Scalar
+  c1       Scalar
+  np       Scalar
+  t1       Vector
+  t2       Vector
+  z        Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error) {
+
+  t := nu.Type()
 
   n, m := sigma.Dims()
 
@@ -51,7 +58,31 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   sigmaDet, err := determinant  .Run(sigma, determinant  .PositiveDefinite{true})
   if err != nil { return nil, err }
 
-  result := TDistribution{nu, mu, sigma, sigmaInv, sigmaDet}
+  c1 := NewScalar(t, 1.0)
+  c2 := NewScalar(t, 2.0)
+  d2 := NewScalar(t, float64(n)/2.0)
+  n2 := Div(nu, c2)
+  np := Add(n2, d2)
+  // +log Gamma(nu/2 + d/2)
+  z  := Lgamma(np)
+  // -log Gamma(nu/2)
+  z.Sub(z, Lgamma(n2))
+  // -1/2 log |Sigma|
+  z.Sub(z, Div(Log(sigmaDet), c2))
+  // -d/2 log nu*pi
+  z.Sub(z, Mul(d2, Log(Mul(nu, NewReal(math.Pi)))))
+
+  result := TDistribution{
+    Nu      : nu.Clone(),
+    Mu      : mu.Clone(),
+    Sigma   : sigma,
+    SigmaInv: sigmaInv,
+    SigmaDet: sigmaDet,
+    c1      : c1,
+    np      : np,
+    t1      : NullVector(t, n),
+    t2      : NullVector(t, n),
+    z       : z }
 
   return &result, nil
 }
@@ -60,8 +91,16 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
 
 func (dist *TDistribution) Clone() *TDistribution {
   return &TDistribution{
-    dist.Nu.Clone(), dist.Mu.Clone(), dist.Sigma.Clone(),
-    dist.SigmaInv.Clone(), dist.SigmaDet.Clone()}
+    Nu      : dist.Nu      .Clone(),
+    Mu      : dist.Mu      .Clone(),
+    Sigma   : dist.Sigma   .Clone(),
+    SigmaInv: dist.SigmaInv.Clone(),
+    SigmaDet: dist.SigmaDet.Clone(),
+    c1      : dist.c1      .Clone(),
+    np      : dist.np      .Clone(),
+    t1      : dist.t1      .Clone(),
+    t2      : dist.t2      .Clone(),
+    z       : dist.z       .Clone() }
 }
 
 func (dist *TDistribution) Dim() int {
@@ -84,35 +123,27 @@ func (dist *TDistribution) Variance() Vector {
   return m.Diag()
 }
 
-func (dist *TDistribution) LogPdf(x Vector) Scalar {
-  t  := x.ElementType()
-  d2 := NewScalar(t, float64(dist.Dim())/2.0)
-  n2 := Div(dist.Nu, NewReal(2.0))
-  // +log Gamma(nu/2 + d/2)
-  c  := Lgamma(Add(n2, d2))
-  // -log Gamma(nu/2)
-  c  = Sub(c, Lgamma(n2))
-  // -1/2 log |Sigma|
-  c  = Sub(c, Div(Log(dist.SigmaDet), NewReal(2.0)))
-  // -d/2 log nu*pi
-  c  = Sub(c, Mul(d2, Log(Mul(dist.Nu, NewReal(math.Pi)))))
-  //////////////////
-  y := VsubV(x, dist.Mu)
-  // 1/nu (x-mu)^T Sigma^-1 (x-mu)
-  r := Add(NewReal(1.0), Div(VdotV(VdotM(y, dist.SigmaInv), y), dist.Nu))
-  r  = Mul(Add(n2, d2), Log(r))
+func (dist *TDistribution) LogPdf(r Scalar, x Vector) error {
+  y := dist.t1
+  s := dist.t2
+  // 1 + 1/nu (x-mu)^T Sigma^-1 (x-mu)
+  y.VsubV(x, dist.Mu)
+  s.VdotM(y, dist.SigmaInv)
+  r.VdotV(s, y)
+  r.Div(r, dist.Nu)
+  r.Add(r, dist.c1)
+  // log r^[(v+p)/2]
+  r.Log(r)
+  r.Mul(r, dist.np)
+  r.Sub(dist.z, r)
 
-  return Sub(c, r)
+  return nil
 }
 
-func (dist *TDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
-}
-
-func (dist *TDistribution) LogCdf(x Vector) Scalar {
-  return Log(dist.Cdf(x))
-}
-
-func (dist *TDistribution) Cdf(x Vector) Scalar {
-  panic("not implemented")
+func (dist *TDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }

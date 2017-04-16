@@ -85,7 +85,7 @@ func determinantNaive(a Matrix) Scalar {
   return det
 }
 
-func determinantPD(a Matrix, logScale bool, inSitu InSitu) (Scalar, error) {
+func determinantPD(a Matrix, logScale bool, inSitu *InSitu) (Scalar, error) {
   n, m := a.Dims()
   r := NullScalar(a.ElementType())
   t := NullScalar(a.ElementType())
@@ -113,7 +113,7 @@ func determinantPD(a Matrix, logScale bool, inSitu InSitu) (Scalar, error) {
   return r, nil
 }
 
-func determinant(a Matrix, positiveDefinite, logScale bool, inSitu InSitu) (Scalar, error) {
+func determinant(a Matrix, positiveDefinite, logScale bool, inSitu *InSitu) (Scalar, error) {
   if positiveDefinite {
     return determinantPD(a, logScale, inSitu)
   } else {
@@ -126,7 +126,7 @@ func determinant(a Matrix, positiveDefinite, logScale bool, inSitu InSitu) (Scal
 func Run(a Matrix, args ...interface{}) (Scalar, error) {
   positiveDefinite := false
   logScale         := false
-  inSitu           := InSitu{}
+  inSitu           := &InSitu{}
 
   // loop over optional arguments
   for _, arg := range args {
@@ -135,8 +135,10 @@ func Run(a Matrix, args ...interface{}) (Scalar, error) {
       positiveDefinite = a.Value
     case LogScale:
       logScale = a.Value
-    case InSitu:
+    case *InSitu:
       inSitu = a
+    case InSitu:
+      panic("InSitu must be passed by reference")
     default:
       panic("Determinant(): Invalid optional argument!")
     }

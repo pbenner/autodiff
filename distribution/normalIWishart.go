@@ -19,6 +19,7 @@ package distribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
+
 import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
@@ -27,11 +28,15 @@ type NormalIWishartDistribution struct {
   InverseWishartDistribution
   Kappa  Scalar
   Mu     Vector
+  r1     Scalar
+  r2     Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (*NormalIWishartDistribution, error) {
+
+  t := kappa.Type()
 
   n, m := lambda.Dims()
 
@@ -44,7 +49,12 @@ func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (
     return nil, err
   }
 
-  result := NormalIWishartDistribution{*iw, kappa, mu}
+  result := NormalIWishartDistribution{
+    InverseWishartDistribution: *iw,
+    Kappa: kappa,
+    Mu   : mu,
+    r1   : NewScalar(t, 0.0),
+    r2   : NewScalar(t, 0.0) }
 
   return &result, nil
 
@@ -54,8 +64,11 @@ func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (
 
 func (dist *NormalIWishartDistribution) Clone() *NormalIWishartDistribution {
   return &NormalIWishartDistribution{
-    *dist.InverseWishartDistribution.Clone(),
-    dist.Kappa.Clone(), dist.Mu.Clone()}
+    InverseWishartDistribution: *dist.InverseWishartDistribution.Clone(),
+    Kappa: dist.Kappa.Clone(),
+    Mu   : dist.Mu   .Clone(),
+    r1   : dist.r1   .Clone(),
+    r2   : dist.r2   .Clone() }
 }
 
 func (dist *NormalIWishartDistribution) Dim() int {
@@ -95,23 +108,28 @@ func (dist *NormalIWishartDistribution) Variance() (Vector, Matrix) {
   return t.Variance(), w.Variance()
 }
 
-func (dist *NormalIWishartDistribution) LogPdf(mu Vector, sigma Matrix) Scalar {
+func (dist *NormalIWishartDistribution) LogPdf(r Scalar, mu Vector, sigma Matrix) error {
   sigmap := MmulS(sigma, Div(NewReal(1.0), dist.Kappa))
-  normal, err := NewNormalDistribution(dist.Mu, sigmap)
-  if err != nil {
-    panic(err)
+  if normal, err := NewNormalDistribution(dist.Mu, sigmap); err != nil {
+    return err
+  } else {
+    r1 := dist.r1
+    r2 := dist.r2
+    if err := normal.LogPdf(r1, mu); err != nil {
+      return err
+    }
+    if err := dist.InverseWishartDistribution.LogPdf(r2, sigma); err != nil {
+      return err
+    }
+    r.Add(r1, r2)
   }
-  return Add(normal.LogPdf(mu), dist.InverseWishartDistribution.LogPdf(sigma))
+  return nil
 }
 
-func (dist *NormalIWishartDistribution) Pdf(mu Vector, sigma Matrix) Scalar {
-  return Exp(dist.LogPdf(mu, sigma))
-}
-
-func (dist *NormalIWishartDistribution) LogCdf(x Vector) Scalar {
-  return Log(dist.Cdf(x))
-}
-
-func (dist *NormalIWishartDistribution) Cdf(x Vector) Scalar {
-  panic("not implemented")
+func (dist *NormalIWishartDistribution) Pdf(r Scalar, mu Vector, sigma Matrix) error {
+  if err := dist.LogPdf(r, mu, sigma); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }

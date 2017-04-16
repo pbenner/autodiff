@@ -76,14 +76,13 @@ func (dist *PowerLawDistribution) Dim() int {
   return 1
 }
 
-func (dist *PowerLawDistribution) LogPdf(x_ Vector) Scalar {
+func (dist *PowerLawDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := NewScalar(x.Type(), 0.0)
   r.Add(x, dist.Epsilon)
 
   if r.GetValue() < dist.Xmin.GetValue() {
     r.SetValue(math.Inf(-1))
-    return r
+    return nil
   }
   r.Div(r, dist.Xmin)
   r.Log(r)
@@ -91,31 +90,38 @@ func (dist *PowerLawDistribution) LogPdf(x_ Vector) Scalar {
   r.Neg(r)
   r.Add(r, dist.cz)
 
-  return r
+  return nil
 }
 
-func (dist *PowerLawDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *PowerLawDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *PowerLawDistribution) LogCdf(x_ Vector) Scalar {
+func (dist *PowerLawDistribution) LogCdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := NewScalar(x.Type(), 0.0)
   r.Add(x, dist.Epsilon)
 
   if r.GetValue() <= 0 {
     r.SetValue(math.Inf(-1))
-    return r
+    return nil
   }
   r.Div(r, dist.Xmin)
   r.Log(r)
   r.Mul(r, dist.ca)
 
-  return r
+  return nil
 }
 
-func (dist *PowerLawDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *PowerLawDistribution) Cdf(r Scalar, x Vector) error {
+  if err := dist.LogCdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

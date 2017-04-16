@@ -19,7 +19,6 @@ package distribution
 /* -------------------------------------------------------------------------- */
 
 import   "fmt"
-import   "math"
 
 import . "github.com/pbenner/autodiff"
 
@@ -27,22 +26,26 @@ import . "github.com/pbenner/autodiff"
 
 type CategoricalDistribution struct {
   Theta Vector
+  t     Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
-func NewCategoricalDistribution(theta Vector) (*CategoricalDistribution, error) {
+func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error) {
+  if len(theta_) == 0 {
+    return nil, fmt.Errorf("theta has invalid length")
+  }
+  theta := theta_.Clone()
 
-  t := theta.Clone()
-
-  for i := 0; i < len(t); i++ {
-    if t[i].GetValue() < 0 {
+  for i := 0; i < len(theta); i++ {
+    if theta[i].GetValue() < 0 {
       return nil, fmt.Errorf("invalid negative probability")
     }
-    t[i].Log(t[i])
+    theta[i].Log(theta[i])
   }
   result := CategoricalDistribution{
-    Theta: t }
+    Theta: theta,
+    t    : theta[0].Clone() }
 
   return &result, nil
 
@@ -52,39 +55,48 @@ func NewCategoricalDistribution(theta Vector) (*CategoricalDistribution, error) 
 
 func (dist *CategoricalDistribution) Clone() *CategoricalDistribution {
   return &CategoricalDistribution{
-    Theta : dist.Theta.Clone() }
+    Theta : dist.Theta.Clone(),
+    t     : dist.t    .Clone() }
 }
 
 func (dist *CategoricalDistribution) Dim() int {
   return 1
 }
 
-func (dist *CategoricalDistribution) LogPdf(x Vector) Scalar {
+func (dist *CategoricalDistribution) LogPdf(r Scalar, x Vector) error {
   if len(x) != 1 {
-    panic("x has invalid dimension")
+    return fmt.Errorf("x has invalid dimension")
   }
-  return dist.Theta[int(x[0].GetValue())]
+  r.Set(dist.Theta[int(x[0].GetValue())])
+  return nil
 }
 
-func (dist *CategoricalDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *CategoricalDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *CategoricalDistribution) LogCdf(x Vector) Scalar {
+func (dist *CategoricalDistribution) LogCdf(r Scalar, x Vector) error {
   if len(x) != 1 {
-    panic("x has invalid dimension")
+    return fmt.Errorf("x has invalid dimension")
   }
-  r := NewScalar(x.ElementType(), math.Inf(-1))
-  t := NewScalar(x.ElementType(), 0.0)
+  r.Reset()
 
   for i := 0; i <= int(x[0].GetValue()); i++ {
-    r.LogAdd(r, dist.Theta[i], t)
+    r.LogAdd(r, dist.Theta[i], dist.t)
   }
-  return r
+  return nil
 }
 
-func (dist *CategoricalDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *CategoricalDistribution) Cdf(r Scalar, x Vector) error {
+  if err := dist.LogCdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

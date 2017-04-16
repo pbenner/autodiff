@@ -81,21 +81,20 @@ func (dist *GParetoDistribution) Dim() int {
   return 1
 }
 
-func (dist *GParetoDistribution) LogPdf(x_ Vector) Scalar {
+func (dist *GParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := x.Clone()
 
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
     if x.GetValue() < dist.Mu.GetValue() {
       r.SetValue(math.Inf(-1))
-      return r
+      return nil
     }
   } else {
     // xi < 0
     if x.GetValue() < dist.Mu.GetValue() || x.GetValue() > dist.Mu.GetValue() - dist.Sigma.GetValue()/dist.Xi.GetValue() {
       r.SetValue(math.Inf(-1))
-      return r
+      return nil
     }
   }
 
@@ -111,28 +110,31 @@ func (dist *GParetoDistribution) LogPdf(x_ Vector) Scalar {
     r.Sub(r, dist.cs)  // cs  = log sigma
   }
 
-  return r
+  return nil
 }
 
-func (dist *GParetoDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
+func (dist *GParetoDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
-func (dist *GParetoDistribution) LogCdf(x_ Vector) Scalar {
+func (dist *GParetoDistribution) LogCdf(r Scalar, x_ Vector) error {
   x := x_[0]
-  r := x.Clone()
 
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
     if x.GetValue() < dist.Mu.GetValue() {
       r.SetValue(math.Inf(-1))
-      return r
+      return nil
     }
   } else {
     // xi < 0
     if x.GetValue() < dist.Mu.GetValue() || x.GetValue() > dist.Mu.GetValue() - dist.Sigma.GetValue()/dist.Xi.GetValue() {
       r.SetValue(math.Inf(-1))
-      return r
+      return nil
     }
   }
   r.Sub(r, dist.Mu)
@@ -149,11 +151,15 @@ func (dist *GParetoDistribution) LogCdf(x_ Vector) Scalar {
   r.Neg(r)
   r.Log1p(r)
 
-  return r
+  return nil
 }
 
-func (dist *GParetoDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *GParetoDistribution) Cdf(r Scalar, x Vector) error {
+  if err := dist.LogCdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

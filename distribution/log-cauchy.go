@@ -30,6 +30,7 @@ type LogCauchyDistribution struct {
   Sigma Scalar
   s2    Scalar
   z     Scalar
+  t     Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -57,33 +58,31 @@ func (dist *LogCauchyDistribution) Dim() int {
   return 1
 }
 
-func (dist *LogCauchyDistribution) LogPdf(x Vector) Scalar {
-  if r := x[0].GetValue(); r <= 0.0 || math.IsInf(r, 1) {
-    return NewScalar(x.ElementType(), math.Inf(-1))
+func (dist *LogCauchyDistribution) LogPdf(r Scalar, x Vector) error {
+  if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+    r.SetValue(math.Inf(-1))
+    return nil
   }
-  t1 := Log(x[0])
-  t1.Neg(t1)
-  t2 := Log(x[0])
-  t2.Sub(t2, dist.Mu)
-  t2.Mul(t2, t2)
-  t2.Add(t2, dist.s2)
-  t2.Log(t2)
+  t := dist.t
+  r.Log(x[0])
+  t.Set(r)
+  r.Neg(r)
+  t.Sub(t, dist.Mu)
+  t.Mul(t, t)
+  t.Add(t, dist.s2)
+  t.Log(t)
   // sum up partial results
-  t1.Sub(t1, t2)
-  t1.Add(t1, dist.z)
-  return t1
+  r.Sub(r, t)
+  r.Add(r, dist.z)
+  return nil
 }
 
-func (dist *LogCauchyDistribution) Pdf(x Vector) Scalar {
-  return Exp(dist.LogPdf(x))
-}
-
-func (dist *LogCauchyDistribution) LogCdf(x Vector) Scalar {
-  panic("not implemented")
-}
-
-func (dist *LogCauchyDistribution) Cdf(x Vector) Scalar {
-  return Exp(dist.LogCdf(x))
+func (dist *LogCauchyDistribution) Pdf(r Scalar, x Vector) error {
+  if err := dist.LogPdf(r, x); err != nil {
+    return err
+  }
+  r.Exp(r)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

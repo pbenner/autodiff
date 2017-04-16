@@ -37,8 +37,11 @@ func TestSkewNormalDistribution1(t *testing.T) {
   normal, _ := NewSkewNormalDistribution(xi, omega, alpha, scale)
 
   x := NewVector(RealType, []float64{1,2})
+  y := NewReal(0.0)
 
-  if math.Abs(normal.LogPdf(x).GetValue() - -1.025062e+01) > 1e-4 {
+  normal.LogPdf(y, x)
+
+  if math.Abs(y.GetValue() - -1.025062e+01) > 1e-4 {
     t.Error("TestSkewNormalDistribution1 failed!")
   }
 }
@@ -53,8 +56,11 @@ func TestSkewNormalDistribution2(t *testing.T) {
   normal, _ := NewSkewNormalDistribution(xi, omega, alpha, scale)
 
   x := NewVector(RealType, []float64{2.75594661,  4.700348})
+  y := NewReal(0.0)
 
-  if math.Abs(normal.LogPdf(x).GetValue() - -3.615468e+02) > 1e-4 {
+  normal.LogPdf(y, x)
+
+  if math.Abs(y.GetValue() - -3.615468e+02) > 1e-4 {
     t.Error("TestSkewNormalDistribution2 failed!")
   }
 }
@@ -162,6 +168,7 @@ func TestSkewNormalFit1(t *testing.T) {
     3.91245029,  6.756676,
     2.10852175,  5.465862,
     9.47711202,  7.435752 })
+  y := NewReal(0.0)
   // number of data points
   n, _ := x.Dims()
   // define the (negative) likelihood function (here as a function of the
@@ -186,7 +193,8 @@ func TestSkewNormalFit1(t *testing.T) {
     normal, _ := NewSkewNormalDistribution(xi, omega, alpha, scale)
     result := NewScalar(RealType, 0.0)
     for i := 0; i < n; i++ {
-      result = Add(result, normal.LogPdf(x.Row(i)))
+      normal.LogPdf(y, x.Row(i))
+      result.Add(result, y)
     }
     return Neg(Sub(result, NewReal(math.Log(float64(n))))), nil
   }
