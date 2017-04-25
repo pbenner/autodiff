@@ -81,6 +81,10 @@ func (dist *GParetoDistribution) Dim() int {
   return 1
 }
 
+func (dist *GParetoDistribution) ScalarType() ScalarType {
+  return dist.Mu.Type()
+}
+
 func (dist *GParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
 

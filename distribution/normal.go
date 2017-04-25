@@ -103,6 +103,10 @@ func (dist *NormalDistribution) Dim() int {
   return len(dist.Mu)
 }
 
+func (dist *NormalDistribution) ScalarType() ScalarType {
+  return dist.Mu.ElementType()
+}
+
 func (dist *NormalDistribution) Mean() Vector {
   return dist.Mu.Clone()
 }

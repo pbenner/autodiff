@@ -62,6 +62,10 @@ func (dist *ExponentialDistribution) Dim() int {
   return 1
 }
 
+func (dist *ExponentialDistribution) ScalarType() ScalarType {
+  return dist.Lambda.Type()
+}
+
 func (dist *ExponentialDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
 

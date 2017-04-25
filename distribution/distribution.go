@@ -30,6 +30,7 @@ type DensityFunction interface {
   Dim() int
   GetParameters() Vector
   SetParameters(parameters Vector) error
+  ScalarType() ScalarType
 }
 
 type DistributionFunction interface {
@@ -38,6 +39,7 @@ type DistributionFunction interface {
   Dim() int
   GetParameters() Vector
   SetParameters(parameters Vector) error
+  ScalarType() ScalarType
 }
 
 type Distribution interface {
@@ -48,4 +50,5 @@ type Distribution interface {
   Dim() int
   GetParameters() Vector
   SetParameters(parameters Vector) error
+  ScalarType() ScalarType
 }

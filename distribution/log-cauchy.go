@@ -58,6 +58,10 @@ func (dist *LogCauchyDistribution) Dim() int {
   return 1
 }
 
+func (dist *LogCauchyDistribution) ScalarType() ScalarType {
+  return dist.Mu.Type()
+}
+
 func (dist *LogCauchyDistribution) LogPdf(r Scalar, x Vector) error {
   if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))

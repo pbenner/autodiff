@@ -63,6 +63,10 @@ func (dist *GeneralizedGammaDistribution) Dim() int {
   return 1
 }
 
+func (dist *GeneralizedGammaDistribution) ScalarType() ScalarType {
+  return dist.A.Type()
+}
+
 func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x Vector) error {
   if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))

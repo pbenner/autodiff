@@ -59,6 +59,10 @@ func (dist *CategoricalDistribution) Clone() *CategoricalDistribution {
     t     : dist.t    .Clone() }
 }
 
+func (dist *CategoricalDistribution) ScalarType() ScalarType {
+  return dist.Theta.ElementType()
+}
+
 func (dist *CategoricalDistribution) Dim() int {
   return 1
 }

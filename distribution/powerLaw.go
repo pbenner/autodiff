@@ -76,6 +76,10 @@ func (dist *PowerLawDistribution) Dim() int {
   return 1
 }
 
+func (dist *PowerLawDistribution) ScalarType() ScalarType {
+  return dist.Alpha.Type()
+}
+
 func (dist *PowerLawDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
   r.Add(x, dist.Epsilon)

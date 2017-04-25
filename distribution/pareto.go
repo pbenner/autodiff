@@ -77,6 +77,10 @@ func (dist *ParetoDistribution) Dim() int {
   return 1
 }
 
+func (dist *ParetoDistribution) ScalarType() ScalarType {
+  return dist.Lambda.Type()
+}
+
 func (dist *ParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
 

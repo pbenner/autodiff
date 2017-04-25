@@ -61,6 +61,10 @@ func (dist *GammaDistribution) Dim() int {
   return 1
 }
 
+func (dist *GammaDistribution) ScalarType() ScalarType {
+  return dist.Alpha.Type()
+}
+
 func (dist *GammaDistribution) Mean() Scalar {
   return Div(dist.Alpha, dist.Beta)
 }

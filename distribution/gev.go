@@ -80,6 +80,10 @@ func (dist *GevDistribution) Dim() int {
   return 1
 }
 
+func (dist *GevDistribution) ScalarType() ScalarType {
+  return dist.Mu.Type()
+}
+
 func (dist *GevDistribution) LogPdf(r Scalar, x_ Vector) error {
   x := x_[0]
 
