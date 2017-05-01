@@ -110,6 +110,6 @@ func (dist *CategoricalDistribution) GetParameters() Vector {
 }
 
 func (dist *CategoricalDistribution) SetParameters(parameters Vector) error {
-  dist.Theta = parameters
+  dist.Theta.Set(parameters)
   return nil
 }
