@@ -1,6 +1,6 @@
 ## Documentation
 
-Autodiff is a numerical and linear algebra library for the Go / Golang programming language. It implements basic automatic differentation for many mathematical routines. The documentation of this package can be found [here](https://godoc.org/github.com/pbenner/autodiff).
+Autodiff is a numerical optimization and linear algebra library for the Go / Golang programming language. It implements basic automatic differentation for many mathematical routines. The documentation of this package can be found [here](https://godoc.org/github.com/pbenner/autodiff).
 
 ## Scalars
 
@@ -75,7 +75,7 @@ The algorithms package contains more complex linear algebra and optimization rou
 
 | Package             | Description                                             |
 | ------------------- | ------------------------------------------------------- |
-| bfgs                | Broyden-Fletcher-Goldfarb-Shanno algorithm              |
+| bfgs                | Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm       |
 | blahut              | Blahut algorithm (channel capacity)                     |
 | cholesky            | Cholesky and LDL factorization                          |
 | determinant         | Matrix determinants                                     |
