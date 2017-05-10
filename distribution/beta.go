@@ -28,6 +28,8 @@ import . "github.com/pbenner/autodiff"
 type BetaDistribution struct {
   Alpha Scalar
   Beta  Scalar
+  as1   Scalar
+  bs1   Scalar
   z     Scalar
   c1    Scalar
   t1    Scalar
@@ -43,9 +45,11 @@ func NewBetaDistribution(alpha, beta Scalar) (*BetaDistribution, error) {
   t := alpha.Type()
   dist := BetaDistribution{}
   dist.Alpha = alpha.Clone()
-  dist.Alpha.Sub(dist.Alpha, NewBareReal(1.0))
   dist.Beta  = beta .Clone()
-  dist.Beta .Sub(dist.Beta,  NewBareReal(1.0))
+  dist.as1 = alpha.Clone()
+  dist.bs1 = beta .Clone()
+  dist.as1.Sub(alpha, NewBareReal(1.0))
+  dist.bs1.Sub(beta,  NewBareReal(1.0))
 
   t1 := alpha.Clone()
   t1.Add(t1, beta)
@@ -87,11 +91,11 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
   t2 := dist.t2
 
   t1.Log(x[0])
-  t1.Mul(t1, dist.Alpha)
+  t1.Mul(t1, dist.as1)
 
   t2.Sub(dist.c1, x[0])
   t2.Log(t2)
-  t2.Mul(t2, dist.Beta)
+  t2.Mul(t2, dist.bs1)
 
   r.Add(t1, t2)
   r.Add(r, dist.z)
