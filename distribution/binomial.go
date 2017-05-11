@@ -25,12 +25,13 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type BetaDistribution struct {
+type BinomialDistribution struct {
   Theta Scalar
   n     Scalar
   np1   Scalar
   z     Scalar
   c1    Scalar
+  ct    Scalar
   t1    Scalar
   t2    Scalar
 }
@@ -67,7 +68,7 @@ func NewBinomialDistribution(theta Scalar, n int) (*BinomialDistribution, error)
 /* -------------------------------------------------------------------------- */
 
 func (dist *BinomialDistribution) Clone() *BinomialDistribution {
-  r, _ := NewBinomialDistribution(Exp(dist.Theta))
+  r, _ := NewBinomialDistribution(Exp(dist.Theta), int(dist.n.GetValue()))
   return r
 }
 
@@ -77,6 +78,16 @@ func (dist *BinomialDistribution) Dim() int {
 
 func (dist *BinomialDistribution) ScalarType() ScalarType {
   return dist.Theta.Type()
+}
+
+func (dist *BinomialDistribution) SetN(n int) error {
+  if n < 0 {
+    return fmt.Errorf("invalid parameter")
+  }
+  dist.n  .SetValue(float64(n+0))
+  dist.np1.SetValue(float64(n+1))
+  dist.z  .Lgamma(dist.np1)
+  return nil
 }
 
 func (dist *BinomialDistribution) LogPdf(r Scalar, x Vector) error {
@@ -130,7 +141,7 @@ func (dist *BinomialDistribution) GetParameters() Vector {
 }
 
 func (dist *BinomialDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewBinomialDistribution(Exp(parameters[0])); err != nil {
+  if tmp, err := NewBinomialDistribution(Exp(parameters[0]), int(dist.n.GetValue())); err != nil {
     return err
   } else {
     *dist = *tmp
