@@ -80,6 +80,10 @@ func (dist *BinomialDistribution) ScalarType() ScalarType {
   return dist.Theta.Type()
 }
 
+func (dist *BinomialDistribution) GetN() int {
+  return int(dist.n.GetValue())
+}
+
 func (dist *BinomialDistribution) SetN(n int) error {
   if n < 0 {
     return fmt.Errorf("invalid parameter")
