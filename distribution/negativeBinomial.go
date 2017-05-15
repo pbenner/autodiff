@@ -25,10 +25,12 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
+// Gamma(r+k)/Gamma(k+1)/Gamma(r) p^k (1-p)^r
+
 type NegativeBinomialDistribution struct {
   R     Scalar
   P     Scalar
-  q     Scalar // q = log(1-p)
+  p     Scalar // q = log(p)
   z     Scalar
   c1    Scalar
   t1    Scalar
@@ -43,8 +45,9 @@ func NewNegativeBinomialDistribution(r, p Scalar) (*NegativeBinomialDistribution
   }
   t := r.Type()
 
-  // p^r
+  // (1-p)^r
   t1 := p.Clone()
+  t1.Sub(NewBareReal(1.0), t1)
   t1.Log(t1)
   t1.Mul(t1, r)
 
@@ -58,7 +61,7 @@ func NewNegativeBinomialDistribution(r, p Scalar) (*NegativeBinomialDistribution
   dist := NegativeBinomialDistribution{}
   dist.R  = r.Clone()
   dist.P  = p.Clone()
-  dist.q  = Log(Sub(NewReal(1.0), p))
+  dist.p  = Log(p)
   dist.z  = t1
   dist.c1 = NewScalar(t, 1.0)
   dist.t1 = NewScalar(t, 0.0)
@@ -93,11 +96,11 @@ func (dist *NegativeBinomialDistribution) LogPdf(r Scalar, x Vector) error {
   t1.Add(dist.R, x[0])
   t1.Lgamma(t1)
 
-  // Gamma(k - 1)
-  t2.Sub(x[0], dist.c1)
+  // Gamma(k + 1)
+  t2.Add(x[0], dist.c1)
   t2.Lgamma(t2)
 
-  r.Mul(x[0], dist.q)
+  r.Mul(x[0], dist.p)
   r.Add(r, t1)
   r.Sub(r, t2)
   r.Add(r, dist.z)
