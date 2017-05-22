@@ -34,11 +34,12 @@ type BetaDistribution struct {
   c1    Scalar
   t1    Scalar
   t2    Scalar
+  logScale bool
 }
 
 /* -------------------------------------------------------------------------- */
 
-func NewBetaDistribution(alpha, beta Scalar) (*BetaDistribution, error) {
+func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, error) {
   if alpha.GetValue() <= 0.0 || beta.GetValue() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
@@ -50,6 +51,7 @@ func NewBetaDistribution(alpha, beta Scalar) (*BetaDistribution, error) {
   dist.bs1 = beta .Clone()
   dist.as1.Sub(alpha, NewBareReal(1.0))
   dist.bs1.Sub(beta,  NewBareReal(1.0))
+  dist.logScale = logScale
 
   t1 := alpha.Clone()
   t1.Add(t1, beta)
@@ -70,7 +72,7 @@ func NewBetaDistribution(alpha, beta Scalar) (*BetaDistribution, error) {
 /* -------------------------------------------------------------------------- */
 
 func (dist *BetaDistribution) Clone() *BetaDistribution {
-  r, _ := NewBetaDistribution(dist.Alpha, dist.Beta)
+  r, _ := NewBetaDistribution(dist.Alpha, dist.Beta, dist.logScale)
   return r
 }
 
@@ -90,9 +92,12 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
   t1 := dist.t1
   t2 := dist.t2
 
-  t1.Log(x[0])
-  t1.Mul(t1, dist.as1)
-
+  if dist.logScale {
+    t1.Mul(x[0], dist.as1)
+  } else {
+    t1.Log(x[0])
+    t1.Mul(t1, dist.as1)
+  }
   t2.Sub(dist.c1, x[0])
   t2.Log(t2)
   t2.Mul(t2, dist.bs1)
@@ -121,7 +126,7 @@ func (dist *BetaDistribution) GetParameters() Vector {
 }
 
 func (dist *BetaDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewBetaDistribution(parameters[0], parameters[1]); err != nil {
+  if tmp, err := NewBetaDistribution(parameters[0], parameters[1], dist.logScale); err != nil {
     return err
   } else {
     *dist = *tmp
