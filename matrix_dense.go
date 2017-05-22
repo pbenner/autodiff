@@ -272,12 +272,19 @@ func (matrix *DenseMatrix) SetIdentity() {
 /* implement ScalarContainer
  * -------------------------------------------------------------------------- */
 
-func (matrix *DenseMatrix) Map(f func(Scalar) Scalar) {
+func (matrix *DenseMatrix) Map(f func(Scalar)) {
   n, m := matrix.Dims()
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      // set reference here to have identical behaviour to
-      // vectors
+      f(matrix.At(i, j))
+    }
+  }
+}
+
+func (matrix *DenseMatrix) MapSet(f func(Scalar) Scalar) {
+  n, m := matrix.Dims()
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
       matrix.At(i,j).Set(f(matrix.At(i, j)))
     }
   }
@@ -307,25 +314,13 @@ func (matrix *DenseMatrix) ElementType() ScalarType {
 }
 
 func (matrix *DenseMatrix) ConvertElementType(t ScalarType) {
-  matrix.Map(func(x Scalar) Scalar {
-    return NewScalar(t, x.GetValue())
-  })
+  for i := 0; i < len(matrix.Values); i++ {
+    matrix.Values[i] = NewScalar(t, matrix.Values[i].GetValue())
+  }
 }
 
 func (matrix *DenseMatrix) Variables(order int) {
   Variables(order, matrix.Values...)
-}
-
-func (matrix *DenseMatrix) AllSet(v Scalar) {
-  for i := 0; i < len(matrix.Values); i++ {
-    matrix.Values[i].Set(v)
-  }
-}
-
-func (matrix *DenseMatrix) AllSetValue(v float64) {
-  for i := 0; i < len(matrix.Values); i++ {
-    matrix.Values[i].SetValue(v)
-  }
 }
 
 /* type conversion

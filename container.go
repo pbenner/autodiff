@@ -23,13 +23,12 @@ import "fmt"
 /* -------------------------------------------------------------------------- */
 
 type ScalarContainer interface {
-  Map(f func(Scalar) Scalar)
+  Map   (f func(Scalar))
+  MapSet(f func(Scalar) Scalar)
   Reduce(f func(Scalar, Scalar) Scalar) Scalar
   ElementType() ScalarType
   ConvertElementType(ScalarType)
   Variables(int)
-  AllSet(Scalar)
-  AllSetValue(float64)
   // nice printing
   fmt.Stringer
 }

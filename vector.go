@@ -126,7 +126,13 @@ func (v Vector) ReverseOrder() {
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 
-func (v Vector) Map(f func(Scalar) Scalar) {
+func (v Vector) Map(f func(Scalar)) {
+  for i := 0; i < len(v); i++ {
+    f(v[i])
+  }
+}
+
+func (v Vector) MapSet(f func(Scalar) Scalar) {
   for i := 0; i < len(v); i++ {
     v[i] = f(v[i])
   }
@@ -148,25 +154,13 @@ func (v Vector) ElementType() ScalarType {
 }
 
 func (v Vector) ConvertElementType(t ScalarType) {
-  v.Map(func(x Scalar) Scalar {
-    return NewScalar(t, x.GetValue())
-  })
+  for i := 0; i < len(v); i++ {
+    v[i] = NewScalar(t, v[i].GetValue())
+  }
 }
 
 func (v Vector) Variables(order int) {
   Variables(order, v...)
-}
-
-func (v Vector) AllSet(a Scalar) {
-  for i := 0; i < len(v); i++ {
-    v[i].Set(a)
-  }
-}
-
-func (v Vector) AllSetValue(a float64) {
-  for i := 0; i < len(v); i++ {
-    v[i].SetValue(a)
-  }
 }
 
 /* sorting

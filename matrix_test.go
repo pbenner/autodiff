@@ -163,7 +163,7 @@ func TestMatrixMapReduce(t *testing.T) {
   r1 := NewMatrix(RealType, 2, 2, []float64{2.718282e+00, 7.389056e+00, 2.008554e+01, 5.459815e+01})
   r2 := 84.79103
   m := NewMatrix(RealType, 2, 2, []float64{1, 2,3,4})
-  m.Map(Exp)
+  m.MapSet(Exp)
   a := m.Reduce(Add)
 
   if Mnorm(MsubM(m, r1)).GetValue() > 1e-8  {

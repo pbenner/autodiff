@@ -99,7 +99,7 @@ func TestVectorMapReduce(t *testing.T) {
   r1 := NewVector(RealType, []float64{2.718282e+00, 7.389056e+00, 2.008554e+01, 5.459815e+01})
   r2 := 84.79103
   a := NewVector(RealType, []float64{1, 2,3,4})
-  a.Map(Exp)
+  a.MapSet(Exp)
   b := a.Reduce(Add)
 
   if Vnorm(VsubV(a,r1)).GetValue() > 1e-2 {

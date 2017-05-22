@@ -34,8 +34,8 @@ func TestContainer(t *testing.T) {
   c1 = v
   c2 = m
 
-  c1.Map(func(x Scalar) Scalar { return Mul(x,x) })
-  c2.Map(func(x Scalar) Scalar { return Mul(x,x) })
+  c1.MapSet(func(x Scalar) Scalar { return Mul(x,x) })
+  c2.MapSet(func(x Scalar) Scalar { return Mul(x,x) })
 
   if v.At(1).GetValue() != 4.0 {
     t.Error("Vector initialization failed!")
