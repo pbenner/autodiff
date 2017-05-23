@@ -63,7 +63,11 @@ func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, 
   t1.Sub(t1, t2)
   t1.Sub(t1, t3)
   dist.z  = t1
-  dist.c1 = NewScalar(t, 1.0)
+  if logScale {
+    dist.c1 = NewScalar(t, 0.0)
+  } else {
+    dist.c1 = NewScalar(t, 1.0)
+  }
   dist.t1 = NewScalar(t, 0.0)
   dist.t2 = NewScalar(t, 0.0)
   return &dist, nil
@@ -85,26 +89,46 @@ func (dist *BetaDistribution) ScalarType() ScalarType {
 }
 
 func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
-    r.SetValue(math.Inf(-1))
-    return nil
+  if dist.logScale {
+    if v := x[0].GetValue(); v > 0.0 {
+      r.SetValue(math.Inf(-1))
+      return nil
+    }
+  } else {
+    if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+      r.SetValue(math.Inf(-1))
+      return nil
+    }
   }
   t1 := dist.t1
   t2 := dist.t2
 
   if dist.logScale {
-    t1.Mul(x[0], dist.as1)
+    // t2 = log(1-theta)
+    t2.LogSub(dist.c1, x[0], t1)
+    // t2 = beta*log(1-theta)
+    t2.Mul(t2, dist.bs1)
+    // t1 = alpha*log(theta)
+    t1.Mul(dist.as1, x[0])
   } else {
+    // t1 = log(theta)
     t1.Log(x[0])
+    // t1 = alpha*log(theta)
     t1.Mul(t1, dist.as1)
+    // t2 = 1-theta
+    t2.Sub(dist.c1, x[0])
+    // t2 = log(1-theta)
+    t2.Log(t2)
+    // t2 = beta*log(1-theta)
+    t2.Mul(t2, dist.bs1)
   }
-  t2.Sub(dist.c1, x[0])
-  t2.Log(t2)
-  t2.Mul(t2, dist.bs1)
 
   r.Add(t1, t2)
   r.Add(r, dist.z)
-  
+
+  if math.IsNaN(r.GetValue()) {
+    return fmt.Errorf("NaN value detected for input `%v'", x[0])
+  }
   return nil
 }
 
