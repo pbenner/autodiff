@@ -127,7 +127,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
   r.Add(r, dist.z)
 
   if math.IsNaN(r.GetValue()) {
-    return fmt.Errorf("NaN value detected for input `%v'", x[0])
+    return fmt.Errorf("NaN value detected for input value `%v' and parameters `%v'", x, dist.GetParameters())
   }
   return nil
 }
