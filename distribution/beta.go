@@ -104,23 +104,39 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
   t2 := dist.t2
 
   if dist.logScale {
-    // t2 = log(1-theta)
-    t2.LogSub(dist.c1, x[0], t1)
-    // t2 = beta*log(1-theta)
-    t2.Mul(t2, dist.bs1)
-    // t1 = alpha*log(theta)
-    t1.Mul(dist.as1, x[0])
+    if v := dist.bs1.GetValue(); v == 0.0 {
+      t2.SetValue(0.0)
+    } else {
+      // t2 = log(1-theta)
+      t2.LogSub(dist.c1, x[0], t1)
+      // t2 = beta*log(1-theta)
+      t2.Mul(t2, dist.bs1)
+    }
+    if v := dist.as1.GetValue(); v == 0.0 {
+      t1.SetValue(0.0)
+    } else {
+      // t1 = alpha*log(theta)
+      t1.Mul(dist.as1, x[0])
+    }
   } else {
-    // t1 = log(theta)
-    t1.Log(x[0])
-    // t1 = alpha*log(theta)
-    t1.Mul(t1, dist.as1)
-    // t2 = 1-theta
-    t2.Sub(dist.c1, x[0])
-    // t2 = log(1-theta)
-    t2.Log(t2)
-    // t2 = beta*log(1-theta)
-    t2.Mul(t2, dist.bs1)
+    if v := dist.bs1.GetValue(); v == 0.0 {
+      t2.SetValue(0.0)
+    } else {
+      // t2 = 1-theta
+      t2.Sub(dist.c1, x[0])
+      // t2 = log(1-theta)
+      t2.Log(t2)
+      // t2 = beta*log(1-theta)
+      t2.Mul(t2, dist.bs1)
+    }
+    if v := dist.as1.GetValue(); v == 0.0 {
+      t1.SetValue(0.0)
+    } else {
+      // t1 = log(theta)
+      t1.Log(x[0])
+      // t1 = alpha*log(theta)
+      t1.Mul(t1, dist.as1)
+    }
   }
 
   r.Add(t1, t2)

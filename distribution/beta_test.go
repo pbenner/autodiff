@@ -51,3 +51,16 @@ func TestBeta2(t *testing.T) {
     t.Error("test failed")
   }
 }
+
+func TestBeta3(t *testing.T) {
+  d, _ := NewBetaDistribution(NewReal(1), NewReal(1), true)
+  x := NewVector(RealType, []float64{0.0})
+  r := NewReal(0.0)
+
+  if err := d.LogPdf(r, x); err != nil {
+    t.Error(err)
+  }
+  if math.Abs(r.GetValue() - 0.0) > 1e-4 {
+    t.Error("test failed")
+  }
+}
