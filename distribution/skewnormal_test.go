@@ -180,16 +180,16 @@ func TestSkewNormalFit1(t *testing.T) {
     alpha  := NullVector(RealType, 2)
     scale  := NullVector(RealType, 2)
     // copy the variables
-    xi   .At(  0).Set(variables[0])
-    xi   .At(  1).Set(variables[1])
-    omega.At(0,0).Set(variables[2])
-    omega.At(0,1).Set(variables[3])
-    omega.At(1,0).Set(variables[3])
-    omega.At(1,1).Set(variables[5])
-    alpha.At(  0).Set(variables[6])
-    alpha.At(  1).Set(variables[7])
-    scale.At(  0).Set(variables[8])
-    scale.At(  1).Set(variables[9])
+    xi   .At(  0).Set(variables.At(0))
+    xi   .At(  1).Set(variables.At(1))
+    omega.At(0,0).Set(variables.At(2))
+    omega.At(0,1).Set(variables.At(3))
+    omega.At(1,0).Set(variables.At(3))
+    omega.At(1,1).Set(variables.At(5))
+    alpha.At(  0).Set(variables.At(6))
+    alpha.At(  1).Set(variables.At(7))
+    scale.At(  0).Set(variables.At(8))
+    scale.At(  1).Set(variables.At(9))
     normal, _ := NewSkewNormalDistribution(xi, omega, alpha, scale)
     result := NewScalar(RealType, 0.0)
     for i := 0; i < n; i++ {
@@ -212,16 +212,16 @@ func TestSkewNormalFit1(t *testing.T) {
     //rprop.Hook{hook},
     rprop.Epsilon{1e-12})
   // check result
-  if math.Abs(vn[0].GetValue() - 2.583188e+00) > 1e-4 ||
-     math.Abs(vn[1].GetValue() - 2.920335e+00) > 1e-4 ||
-     math.Abs(vn[2].GetValue() - 2.948274e+00) > 1e-4 ||
-     math.Abs(vn[3].GetValue() - 1.646367e+00) > 1e-4 ||
-     math.Abs(vn[4].GetValue() - 1.0000000+00) > 1e-4 || // unused!
-     math.Abs(vn[5].GetValue() - 3.030302e+00) > 1e-4 ||
-     math.Abs(vn[6].GetValue() - 8.881898e-01) > 1e-4 ||
-     math.Abs(vn[7].GetValue() - 5.275696e+00) > 1e-4 ||
-     math.Abs(vn[8].GetValue() - 2.146501e+00) > 1e-4 ||
-     math.Abs(vn[9].GetValue() - 2.081685e+00) > 1e-4 {
+  if math.Abs(vn.At(0).GetValue() - 2.583188e+00) > 1e-4 ||
+     math.Abs(vn.At(1).GetValue() - 2.920335e+00) > 1e-4 ||
+     math.Abs(vn.At(2).GetValue() - 2.948274e+00) > 1e-4 ||
+     math.Abs(vn.At(3).GetValue() - 1.646367e+00) > 1e-4 ||
+     math.Abs(vn.At(4).GetValue() - 1.0000000+00) > 1e-4 || // unused!
+     math.Abs(vn.At(5).GetValue() - 3.030302e+00) > 1e-4 ||
+     math.Abs(vn.At(6).GetValue() - 8.881898e-01) > 1e-4 ||
+     math.Abs(vn.At(7).GetValue() - 5.275696e+00) > 1e-4 ||
+     math.Abs(vn.At(8).GetValue() - 2.146501e+00) > 1e-4 ||
+     math.Abs(vn.At(9).GetValue() - 2.081685e+00) > 1e-4 {
     t.Error("TestSkewNormalFit2 failed!")
   }
 }

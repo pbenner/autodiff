@@ -68,15 +68,15 @@ func (dist *GeneralizedGammaDistribution) ScalarType() ScalarType {
 }
 
 func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+  if v := x.At(0).GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
   }
   t := dist.t
-  t.Div(x[0], dist.A)
+  t.Div(x.At(0), dist.A)
   t.Pow(t, dist.P)
 
-  r.Log(x[0])
+  r.Log(x.At(0))
   r.Mul(r, dist.dm1)
   r.Sub(r, t)
   r.Add(r, dist.z)
@@ -94,7 +94,7 @@ func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GeneralizedGammaDistribution) GetParameters() Vector {
-  p   := NilVector(3)
+  p   := NilDenseVector(3)
   p[0] = dist.A
   p[1] = dist.D
   p[2] = dist.P
@@ -102,7 +102,7 @@ func (dist *GeneralizedGammaDistribution) GetParameters() Vector {
 }
 
 func (dist *GeneralizedGammaDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewGeneralizedGammaDistribution(parameters[0], parameters[1], parameters[2]); err != nil {
+  if tmp, err := NewGeneralizedGammaDistribution(parameters.At(0), parameters.At(1), parameters.At(2)); err != nil {
     return err
   } else {
     *dist = *tmp

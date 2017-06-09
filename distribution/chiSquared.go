@@ -59,9 +59,9 @@ func (dist *ChiSquaredDistribution) Dim() int {
 }
 
 func (dist *ChiSquaredDistribution) LogPdf(r Scalar, x Vector) error {
-  r.Log(x[0])
+  r.Log(x.At(0))
   r.Mul(r, dist.E)
-  t := Div(x[0], dist.C)
+  t := Div(x.At(0), dist.C)
   r.Sub(r, t)
   r.Sub(r, dist.Z)
   return nil
@@ -84,7 +84,7 @@ func (dist *ChiSquaredDistribution) LogCdf(r Scalar, x Vector) error {
 }
 
 func (dist *ChiSquaredDistribution) Cdf(r Scalar, x Vector) error {
-  r.Div(x[0], dist.C)
+  r.Div(x.At(0), dist.C)
   r.GammaP(dist.L.GetValue(), r)
   return nil
 }

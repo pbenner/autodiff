@@ -42,10 +42,10 @@ func normalizeSlice(p []float64) {
 
 func normalizeVector(p Vector) {
   sum := NewScalar(p.ElementType(), 0.0)
-  for _, v := range p {
-    sum = Add(sum, v)
+  for i := 0; i < p.Dim(); i++ {
+    sum = Add(sum, p.At(i))
   }
-  for i, _ := range p {
+  for i := 0; i < p.Dim(); i++ {
     p.At(i).Div(p.At(i), sum)
   }
 }

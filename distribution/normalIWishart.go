@@ -40,7 +40,7 @@ func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (
 
   n, m := lambda.Dims()
 
-  if n != m || n != len(mu) {
+  if n != m || n != mu.Dim() {
     panic("invalid parameters")
   }
 
@@ -66,13 +66,13 @@ func (dist *NormalIWishartDistribution) Clone() *NormalIWishartDistribution {
   return &NormalIWishartDistribution{
     InverseWishartDistribution: *dist.InverseWishartDistribution.Clone(),
     Kappa: dist.Kappa.Clone(),
-    Mu   : dist.Mu   .Clone(),
+    Mu   : dist.Mu   .CloneVector(),
     r1   : dist.r1   .Clone(),
     r2   : dist.r2   .Clone() }
 }
 
 func (dist *NormalIWishartDistribution) Dim() int {
-  return len(dist.Mu)
+  return dist.Mu.Dim()
 }
 
 func (dist *NormalIWishartDistribution) MarginalMu() *TDistribution {

@@ -155,11 +155,11 @@ func Variables(order int, reals ...Scalar) {
 
 func CopyGradien(g Vector, x Scalar) error {
   n := x.GetN()
-  if len(g) != n {
+  if g.Dim() != n {
     return fmt.Errorf("vector has invalid length")
   }
   for i := 0; i < n; i++ {
-    g[i].SetValue(x.GetDerivative(i))
+    g.At(i).SetValue(x.GetDerivative(i))
   }
   return nil
 }
@@ -181,7 +181,7 @@ func GetGradient(t ScalarType, x Scalar) Vector {
   n := x.GetN()
   g := NullVector(t, n)
   for i := 0; i < n; i++ {
-    g[i].SetValue(x.GetDerivative(i))
+    g.At(i).SetValue(x.GetDerivative(i))
   }
   return g
 }

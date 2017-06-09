@@ -32,12 +32,12 @@ import "os"
  * -------------------------------------------------------------------------- */
 
 type DenseMatrix struct {
-  Values     Vector
+  Values     DenseVector
   Rows       int
   Cols       int
   Transposed bool
-  Tmp1       Vector
-  Tmp2       Vector
+  Tmp1       DenseVector
+  Tmp2       DenseVector
 }
 
 /* constructors
@@ -57,7 +57,7 @@ func NilMatrix(rows, cols int) Matrix {
 
 func NewDenseMatrix(t ScalarType, rows, cols int, values []float64) *DenseMatrix {
   m := NilDenseMatrix(rows, cols)
-  v := m.Vector()
+  v := m.Values
   f := ScalarConstructor(t)
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
@@ -77,7 +77,7 @@ func NewDenseMatrix(t ScalarType, rows, cols int, values []float64) *DenseMatrix
 
 func NullDenseMatrix(t ScalarType, rows, cols int) *DenseMatrix {
   m := DenseMatrix{}
-  m.Values = NullVector(t, rows*cols)
+  m.Values = NullDenseVector(t, rows*cols)
   m.Rows   = rows
   m.Cols   = cols
   m.initTmp()
@@ -86,7 +86,7 @@ func NullDenseMatrix(t ScalarType, rows, cols int) *DenseMatrix {
 
 func NilDenseMatrix(rows, cols int) *DenseMatrix {
   m := DenseMatrix{}
-  m.Values = NilVector(rows*cols)
+  m.Values = NilDenseVector(rows*cols)
   m.Rows   = rows
   m.Cols   = cols
   return &m
@@ -95,10 +95,10 @@ func NilDenseMatrix(rows, cols int) *DenseMatrix {
 func (matrix *DenseMatrix) initTmp() {
   t := matrix.ElementType()
   if len(matrix.Tmp1) == 0 {
-    matrix.Tmp1 = NullVector(t, matrix.Rows)
+    matrix.Tmp1 = NullDenseVector(t, matrix.Rows)
   }
   if len(matrix.Tmp2) == 0 {
-    matrix.Tmp2 = NullVector(t, matrix.Cols)
+    matrix.Tmp2 = NullDenseVector(t, matrix.Cols)
   }
 }
 
@@ -106,7 +106,7 @@ func (matrix *DenseMatrix) initTmp() {
  * -------------------------------------------------------------------------- */
 
 // Clone matrix including data.
-func (matrix *DenseMatrix) Clone() Matrix {
+func (matrix *DenseMatrix) Clone() *DenseMatrix {
   return &DenseMatrix{
     Values    : matrix.Values.Clone(),
     Rows      : matrix.Rows,
@@ -114,6 +114,10 @@ func (matrix *DenseMatrix) Clone() Matrix {
     Transposed: matrix.Transposed,
     Tmp1      : matrix.Tmp1.Clone(),
     Tmp2      : matrix.Tmp2.Clone() }
+}
+
+func (matrix *DenseMatrix) CloneMatrix() Matrix {
+  return matrix.Clone()
 }
 
 func (a *DenseMatrix) Set(b Matrix) {
@@ -160,9 +164,9 @@ func (matrix *DenseMatrix) Dims() (int, int) {
 }
 
 func (matrix *DenseMatrix) Row(i int) Vector {
-  var v Vector
+  var v DenseVector
   if matrix.Transposed {
-    v = NilVector(matrix.Cols)
+    v = NilDenseVector(matrix.Cols)
     for j := 0; j < matrix.Cols; j++ {
       v[j] = matrix.Values[matrix.index(i, j)]
     }
@@ -174,12 +178,12 @@ func (matrix *DenseMatrix) Row(i int) Vector {
 }
 
 func (matrix *DenseMatrix) Col(j int) Vector {
-  var v Vector
+  var v DenseVector
   if matrix.Transposed {
     j = matrix.index(0, j)
     v = matrix.Values[j:j + matrix.Rows]
   } else {
-    v = NilVector(matrix.Rows)
+    v = NilDenseVector(matrix.Rows)
     for i := 0; i < matrix.Rows; i++ {
       v[i] = matrix.Values[matrix.index(i, j)]
     }
@@ -194,7 +198,7 @@ func (matrix *DenseMatrix) Diag() Vector {
   }
   v := NilVector(n)
   for i := 0; i < n; i++ {
-    v[i] = matrix.Values[matrix.index(i, i)]
+    v.SetReferenceAt(matrix.Values[matrix.index(i, i)], i)
   }
   return v
 }
@@ -222,6 +226,10 @@ func (matrix *DenseMatrix) Reshape(rows, cols int) error {
 }
 
 func (matrix *DenseMatrix) Vector() Vector {
+  return matrix.Values
+}
+
+func (matrix *DenseMatrix) DenseVector() DenseVector {
   return matrix.Values
 }
 
@@ -368,7 +376,7 @@ func (a *DenseMatrix) Table() string {
   return buffer.String()
 }
 
-func (m *DenseMatrix) WriteMatrix(filename string) error {
+func (m *DenseMatrix) Export(filename string) error {
   f, err := os.Create(filename)
   if err != nil {
     return err
@@ -378,8 +386,9 @@ func (m *DenseMatrix) WriteMatrix(filename string) error {
   w := bufio.NewWriter(f)
   defer w.Flush()
 
-  fmt.Fprintf(w, "%s\n", m.Table())
-
+  if _, err := fmt.Fprintf(w, "%s\n", m.Table()); err != nil {
+    return err
+  }
   return nil
 }
 

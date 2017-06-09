@@ -82,7 +82,7 @@ func (dist *ParetoDistribution) ScalarType() ScalarType {
 }
 
 func (dist *ParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
@@ -107,7 +107,7 @@ func (dist *ParetoDistribution) Pdf(r Scalar, x Vector) error {
 }
 
 func (dist *ParetoDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
@@ -134,15 +134,15 @@ func (dist *ParetoDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist ParetoDistribution) GetParameters() Vector {
-  p   := NilVector(2)
+  p   := NilDenseVector(2)
   p[0] = dist.Lambda
   p[1] = dist.Kappa
   return p
 }
 
 func (dist *ParetoDistribution) SetParameters(parameters Vector) error {
-  lambda  := parameters[0]
-  kappa   := parameters[1]
+  lambda  := parameters.At(0)
+  kappa   := parameters.At(1)
   if tmp, err := NewParetoDistribution(lambda, kappa, dist.Epsilon); err != nil {
     return err
   } else {

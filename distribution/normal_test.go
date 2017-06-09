@@ -37,7 +37,7 @@ func TestNormalDistribution1(t *testing.T) {
   x := NewVector(RealType, []float64{1,2})
   y := NewReal(0.0)
 
-  Variables(1,x[0],x[1])
+  Variables(1,x.At(0),x.At(1))
 
   normal.LogPdf(y, x)
 
@@ -96,7 +96,7 @@ func TestNormalDistribution4(t *testing.T) {
   x := NewVector(RealType, []float64{2.2})
   y := NewReal(0.0)
 
-  Variables(1,x[0])
+  Variables(1,x.At(0))
 
   normal.LogPdf(y, x)
 
@@ -158,8 +158,8 @@ func TestNormalFit1(t *testing.T) {
     mu     := NullVector(RealType, 1)
     sigma  := NullMatrix(RealType, 1, 1)
     // copy the variables
-    mu   .At(  0).Set(variables[0])
-    sigma.At(0,0).Set(variables[1])
+    mu   .At(  0).Set(variables.At(0))
+    sigma.At(0,0).Set(variables.At(1))
     normal, _ := NewNormalDistribution(mu, sigma)
     result := NewScalar(RealType, 0.0)
     for i := 0; i < len(x); i++ {
@@ -182,8 +182,8 @@ func TestNormalFit1(t *testing.T) {
     //rprop.Hook{hook},
     rprop.Epsilon{1e-8})
   // check result
-  if math.Abs(vn[0].GetValue() - 3.238471) > 1e-4 ||
-     math.Abs(vn[1].GetValue() - 4.502649) > 1e-4 {
+  if math.Abs(vn.At(0).GetValue() - 3.238471) > 1e-4 ||
+     math.Abs(vn.At(1).GetValue() - 4.502649) > 1e-4 {
     t.Error("TestNormalFit1 failed!")
   }
 }
@@ -301,12 +301,12 @@ func TestNormalFit2(t *testing.T) {
     mu     := NullVector(RealType, 2)
     sigma  := NullMatrix(RealType, 2, 2)
     // copy the variables
-    mu   .At(  0).Set(variables[0])
-    mu   .At(  1).Set(variables[1])
-    sigma.At(0,0).Set(variables[2])
-    sigma.At(0,1).Set(variables[3])
-    sigma.At(1,0).Set(variables[3])
-    sigma.At(1,1).Set(variables[4])
+    mu   .At(  0).Set(variables.At(0))
+    mu   .At(  1).Set(variables.At(1))
+    sigma.At(0,0).Set(variables.At(2))
+    sigma.At(0,1).Set(variables.At(3))
+    sigma.At(1,0).Set(variables.At(3))
+    sigma.At(1,1).Set(variables.At(4))
     normal, _ := NewNormalDistribution(mu, sigma)
     result := NewScalar(RealType, 0.0)
     for i := 0; i < n; i++ {
@@ -328,11 +328,11 @@ func TestNormalFit2(t *testing.T) {
     //rprop.Hook{hook},
     rprop.Epsilon{1e-8})
   // check result
-  if math.Abs(vn[0].GetValue() - 2.069545e+00) > 1e-4 ||
-     math.Abs(vn[1].GetValue() - 3.100224e+00) > 1e-4 ||
-     math.Abs(vn[2].GetValue() - 1.969915e+00) > 1e-4 ||
-     math.Abs(vn[3].GetValue() - 7.598206e-01) > 1e-4 ||
-     math.Abs(vn[4].GetValue() - 2.089113e+00) > 1e-4 {
+  if math.Abs(vn.At(0).GetValue() - 2.069545e+00) > 1e-4 ||
+     math.Abs(vn.At(1).GetValue() - 3.100224e+00) > 1e-4 ||
+     math.Abs(vn.At(2).GetValue() - 1.969915e+00) > 1e-4 ||
+     math.Abs(vn.At(3).GetValue() - 7.598206e-01) > 1e-4 ||
+     math.Abs(vn.At(4).GetValue() - 2.089113e+00) > 1e-4 {
     t.Error("TestNormalFit2 failed!")
   }
 }
@@ -347,7 +347,7 @@ func TestNormalCdf(t *testing.T) {
   x := NewVector(RealType, []float64{-4.238237e+01})
   y := NewReal(0.0)
 
-  Variables(2,x[0])
+  Variables(2,x.At(0))
 
   normal.LogCdf(y, x)
 

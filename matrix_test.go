@@ -66,9 +66,9 @@ func TestMatrixDiag(t *testing.T) {
   m := NewMatrix(RealType, 3, 3, []float64{1,2,3,4,5,6,7,8,9})
   v := m.Diag()
 
-  if v[0].GetValue() != 1 ||
-     v[1].GetValue() != 5 ||
-     v[2].GetValue() != 9 {
+  if v.At(0).GetValue() != 1 ||
+     v.At(1).GetValue() != 5 ||
+     v.At(2).GetValue() != 9 {
     t.Error("Matrix diag failed!")
   }
 }
@@ -192,14 +192,14 @@ func TestOuter(t *testing.T) {
 func TestMatrixJacobian(t *testing.T) {
 
   f := func(x Vector) Vector {
-    if len(x) != 2 {
+    if x.Dim() != 2 {
       panic("Invalid input vector!")
     }
-    y := NullVector(RealType, 3)
+    y := NullDenseVector(RealType, 3)
     // x1^2 + y^2 - 6
-    y[0] = Sub(Add(Pow(x[0], NewBareReal(2)), Pow(x[1], NewBareReal(2))), NewBareReal(6))
+    y[0] = Sub(Add(Pow(x.At(0), NewBareReal(2)), Pow(x.At(1), NewBareReal(2))), NewBareReal(6))
     // x^3 - y^2
-    y[1] = Sub(Pow(x[0], NewBareReal(3)), Pow(x[1], NewBareReal(2)))
+    y[1] = Sub(Pow(x.At(0), NewBareReal(3)), Pow(x.At(1), NewBareReal(2)))
     y[2] = NewReal(2)
 
     return y
@@ -220,11 +220,11 @@ func TestMatrixHessian(t *testing.T) {
   x := NewVector(RealType, []float64{1.5, 2.5})
   k := NewReal(3.0)
 
-  Variables(2, x[0], x[1])
+  Variables(2, x.At(0), x.At(1))
 
   // y = x^3 + y^3 + 3xy
   f := func(x Vector) Scalar {
-    return Sub(Add(Pow(x[0], k), Pow(x[1], k)), Mul(NewReal(3.0), Mul(x[0], x[1])))
+    return Sub(Add(Pow(x.At(0), k), Pow(x.At(1), k)), Mul(NewReal(3.0), Mul(x.At(0), x.At(1))))
   }
   r1 := NullMatrix(RealType, 2, 2)
   r2 :=  NewMatrix(RealType, 2, 2, []float64{
@@ -258,7 +258,7 @@ func TestSymmetricPermutation(t *testing.T) {
      5,  6,  7,  8,
      9, 10, 11, 12,
     13, 14, 15, 16 })
-  m2 := m1.Clone()
+  m2 := m1.CloneMatrix()
 
   // define permutation
   pi := make([]int, 4)

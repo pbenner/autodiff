@@ -29,10 +29,10 @@ import   "github.com/pbenner/autodiff/algorithm/rprop"
 func sumOfSquares(x, y Vector, l *Line) Scalar {
 
   s := NewScalar(RealType, 0)
-  n := NewScalar(RealType, float64(len(x)))
+  n := NewScalar(RealType, float64(x.Dim()))
 
-  for i,_ := range x {
-    s = Add(s, Pow(Sub(l.Eval(x[i]), y[i]), NewBareReal(2)))
+  for i := 0; i < x.Dim(); i++ {
+    s = Add(s, Pow(Sub(l.Eval(x.At(i)), y.At(i)), NewBareReal(2)))
   }
   return Div(s, n)
 }
@@ -45,14 +45,14 @@ func gradientDescent(x, y Vector, l *Line) *Line {
   const step    = 0.1
 
   // get a vector of variables
-  variables := NullVector(RealType, 2)
+  variables := NullDenseVector(RealType, 2)
   variables[0] = l.Slope()
   variables[1] = l.Intercept()
 
   // create the objective function
   f := func(v Vector) (Scalar, error) {
-    l.SetSlope    (v[0])
-    l.SetIntercept(v[1])
+    l.SetSlope    (v.At(0))
+    l.SetIntercept(v.At(1))
     return sumOfSquares(x, y, l), nil
   }
 //  GradientDescent(f, variables, step, epsilon)
@@ -67,8 +67,8 @@ func gradientDescent(x, y Vector, l *Line) *Line {
 func main() {
 
   const n = 1000
-  x := NullVector(RealType, n)
-  y := NullVector(RealType, n)
+  x := NilDenseVector(n)
+  y := NilDenseVector(n)
 
   // random number generator
   r := rand.New(rand.NewSource(42))

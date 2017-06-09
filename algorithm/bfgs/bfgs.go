@@ -72,7 +72,7 @@ func newObjectiveInSitu(f Objective) ObjectiveInSitu {
     y.Set(z)
     // copy gradient
     for i := 0; i < z.GetN(); i++ {
-      g[i].SetValue(z.GetDerivative(i))
+      g.At(i).SetValue(z.GetDerivative(i))
     }
     return nil
   }
@@ -81,7 +81,7 @@ func newObjectiveInSitu(f Objective) ObjectiveInSitu {
 
 func (f ObjectiveInSitu) Differentiate(x, g Vector, y Scalar) error {
   if f.X == nil {
-    f.X = NullVector(RealType, len(x))
+    f.X = NullDenseVector(RealType, x.Dim())
   }
   f.X.Set(x)
   f.X.Variables(1)
@@ -98,8 +98,8 @@ func (f ObjectiveInSitu) Differentiate(x, g Vector, y Scalar) error {
 
 func bgfs_computeDirection(x Vector, y Scalar, g Vector, B Matrix, p Vector) {
   p.MdotV(B, g)
-  for i := 0; i < len(x); i++ {
-    p[i].Neg(p[i])
+  for i := 0; i < x.Dim(); i++ {
+    p.At(i).Neg(p.At(i))
   }
 }
 
@@ -184,20 +184,20 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
   // nomenclature:
   // B: Hessian
   // H: inverse Hessian
-  n := len(x0)
+  n := x0.Dim()
   t := BareRealType
 
   p1 := NullVector(t, n)
   p2 := NullVector(t, n)
   P2 := NullVector(RealType, n)
-  x1 := x0.Clone()
-  x2 := x1.Clone()
-  X2 := x1.Clone()
+  x1 := x0.CloneVector()
+  x2 := x1.CloneVector()
+  X2 := x1.CloneVector()
   y1 := NullScalar(t)
   y2 := NullScalar(t)
   g1 := NullVector(t, n)
   g2 := NullVector(t, n)
-  H1 := H0.Clone()
+  H1 := H0.CloneMatrix()
   H2 := NullMatrix(t, n, n)
   // some temporary variables
   t1 := NullScalar(t)
@@ -209,8 +209,8 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
   I  := IdentityMatrix(t, n)
 
   equals := func(x1, x2 Vector) bool {
-    for i := 0; i < len(x1); i++ {
-      if x1[i].GetValue() != x2[i].GetValue() {
+    for i := 0; i < x1.Dim(); i++ {
+      if x1.At(i).GetValue() != x2.At(i).GetValue() {
         return false
       }
     }
@@ -312,7 +312,7 @@ func Run(f Objective, x0 Vector, args ...interface{}) (Vector, error) {
   maxIterations := MaxIterations{int(^uint(0) >> 1)}
   constraints   := Constraints  { nil}
 
-  n := len(x0)
+  n := x0.Dim()
 
   for _, arg := range args {
     switch a := arg.(type) {

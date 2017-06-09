@@ -26,7 +26,7 @@ type Matrix interface {
   Reset           ()
   ResetDerivatives()
   // basic methods
-  Clone           ()                   Matrix
+  CloneMatrix     ()                   Matrix
   Set             (Matrix)
   Dims            ()                   (int, int)
   Row             (i int)              Vector
@@ -34,7 +34,7 @@ type Matrix interface {
   Diag            ()                   Vector
   T               ()                   Matrix
   Table           ()                   string
-  WriteMatrix     (string)             error
+  Export          (string)             error
   Submatrix       (rfrom, rto, cfrom, cto int) Matrix
   SwapRows        (int, int) error
   SwapColumns     (int, int) error
@@ -46,6 +46,7 @@ type Matrix interface {
   // returns all elements of the matrix as
   // a vector, the order is unspecified
   Vector          ()                   Vector
+  DenseVector     ()                   DenseVector
   // math operations
   MaddM(a, b Matrix) Matrix
   MaddS(a Matrix, b Scalar) Matrix

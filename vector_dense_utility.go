@@ -23,7 +23,7 @@ import "errors"
 
 /* -------------------------------------------------------------------------- */
 
-func (v Vector) Permute(pi []int) error {
+func (v DenseVector) Permute(pi []int) error {
   if len(pi) != len(v) {
     return errors.New("Permute(): permutation vector has invalid length!")
   }

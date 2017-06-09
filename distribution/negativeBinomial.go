@@ -85,7 +85,7 @@ func (dist *NegativeBinomialDistribution) ScalarType() ScalarType {
 }
 
 func (dist *NegativeBinomialDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x[0].GetValue(); v < 0.0 || math.Floor(v) != v {
+  if v := x.At(0).GetValue(); v < 0.0 || math.Floor(v) != v {
     r.SetValue(math.Inf(-1))
     return nil
   }
@@ -93,14 +93,14 @@ func (dist *NegativeBinomialDistribution) LogPdf(r Scalar, x Vector) error {
   t2 := dist.t2
 
   // Gamma(r + k)
-  t1.Add(dist.R, x[0])
+  t1.Add(dist.R, x.At(0))
   t1.Lgamma(t1)
 
   // Gamma(k + 1)
-  t2.Add(x[0], dist.c1)
+  t2.Add(x.At(0), dist.c1)
   t2.Lgamma(t2)
 
-  r.Mul(x[0], dist.p)
+  r.Mul(x.At(0), dist.p)
   r.Add(r, t1)
   r.Sub(r, t2)
   r.Add(r, dist.z)
@@ -119,14 +119,14 @@ func (dist *NegativeBinomialDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *NegativeBinomialDistribution) GetParameters() Vector {
-  p   := NilVector(2)
+  p   := NilDenseVector(2)
   p[0] = dist.R
   p[1] = dist.P
   return p
 }
 
 func (dist *NegativeBinomialDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewNegativeBinomialDistribution(parameters[0], parameters[1]); err != nil {
+  if tmp, err := NewNegativeBinomialDistribution(parameters.At(0), parameters.At(1)); err != nil {
     return err
   } else {
     *dist = *tmp

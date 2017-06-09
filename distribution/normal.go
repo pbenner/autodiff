@@ -52,7 +52,7 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
   if n != m {
     panic("NewNormalDistribution(): sigma is not a square matrix!")
   }
-  if n != len(mu) {
+  if n != mu.Dim() {
     panic("NewNormalDistribution(): dimensions of mu and sigma do not match!")
   }
   sigmaInv, err := matrixInverse.Run(sigma, matrixInverse.PositiveDefinite{true})
@@ -86,21 +86,21 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
 
 func (dist *NormalDistribution) Clone() *NormalDistribution {
   return &NormalDistribution{
-    Mu      : dist.Mu      .Clone(),
-    Sigma   : dist.Sigma   .Clone(),
-    SigmaInv: dist.SigmaInv.Clone(),
+    Mu      : dist.Mu      .CloneVector(),
+    Sigma   : dist.Sigma   .CloneMatrix(),
+    SigmaInv: dist.SigmaInv.CloneMatrix(),
     SigmaDet: dist.SigmaDet.Clone(),
     logH    : dist.logH    .Clone(),
     c1      : dist.c1      .Clone(),
     c2      : dist.c2      .Clone(),
     c3      : dist.c3      .Clone(),
-    t1      : dist.t1      .Clone(),
-    t2      : dist.t2      .Clone(),
+    t1      : dist.t1      .CloneVector(),
+    t2      : dist.t2      .CloneVector(),
     t3      : dist.t3      .Clone() }
 }
 
 func (dist *NormalDistribution) Dim() int {
-  return len(dist.Mu)
+  return dist.Mu.Dim()
 }
 
 func (dist *NormalDistribution) ScalarType() ScalarType {
@@ -108,7 +108,7 @@ func (dist *NormalDistribution) ScalarType() ScalarType {
 }
 
 func (dist *NormalDistribution) Mean() Vector {
-  return dist.Mu.Clone()
+  return dist.Mu.CloneVector()
 }
 
 func (dist *NormalDistribution) Variance() Vector {
@@ -120,7 +120,7 @@ func (dist *NormalDistribution) LogH(x Vector) Scalar {
 }
 
 func (dist *NormalDistribution) LogPdf(r Scalar, x Vector) error {
-  if len(x) != dist.Dim() {
+  if x.Dim() != dist.Dim() {
     return fmt.Errorf("input vector has invalid dimension")
   }
   // -1/2 [ p log(2pi) + log|Sigma| ]
@@ -146,14 +146,14 @@ func (dist *NormalDistribution) Pdf(r Scalar, x Vector) error {
 }
 
 func (dist *NormalDistribution) LogCdf(r Scalar, x Vector) error {
-  if len(x) != 1 {
+  if x.Dim() != 1 {
     panic("LogCdf(): not supported for more than one dimension.")
   }
   t := dist.t3
   t.Mul(dist.c2, dist.Sigma.At(0,0))
   t.Sqrt(t)
 
-  r.Sub(x[0], dist.Mu[0])
+  r.Sub(x.At(0), dist.Mu.At(0))
   r.Div(r, t)
   r.Neg(r)
   r.LogErfc(r)
@@ -162,8 +162,8 @@ func (dist *NormalDistribution) LogCdf(r Scalar, x Vector) error {
   // if computation of derivatives failed, return an approximation
   if r.GetOrder() >= 1 {
     for i := 0; i < r.GetN(); i++ {
-      if math.IsNaN(r.GetDerivative(i)) && x[0].GetValue() < 0.0 {
-        r.SetDerivative(i, -x[0].GetValue()*x[0].GetDerivative(i))
+      if math.IsNaN(r.GetDerivative(i)) && x.At(0).GetValue() < 0.0 {
+        r.SetDerivative(i, -x.At(0).GetValue()*x.At(0).GetDerivative(i))
       }
     }
   }
@@ -188,21 +188,21 @@ func (dist *NormalDistribution) EllipticCdf(r Scalar, x Vector) error {
   s.VdotM(y, dist.SigmaInv)
   t.VdotV(s, y)
   // T(x) ~ chi^2_2
-  return d.Cdf(r, Vector{t})
+  return d.Cdf(r, DenseVector{t})
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *NormalDistribution) GetParameters() Vector {
   p := dist.Mu
-  p  = append(p, dist.Sigma.Vector()...)
+  p  = p.Append(dist.Sigma.DenseVector()...)
   return p
 }
 
 func (dist *NormalDistribution) SetParameters(parameters Vector) error {
   n := dist.Dim()
-  mu    := parameters[0:n]
-  sigma := parameters[n:n+n*n].Matrix(n, n)
+  mu    := parameters.Slice(0,n)
+  sigma := parameters.Slice(n,n+n*n).Matrix(n, n)
   if tmp, err := NewNormalDistribution(mu, sigma); err != nil {
     return err
   } else {

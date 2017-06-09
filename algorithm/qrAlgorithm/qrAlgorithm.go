@@ -193,7 +193,7 @@ func qrAlgorithm(a Matrix) (Matrix, Matrix, error) {
 
   n, m := a.Dims()
 
-  a = a.Clone()
+  a = a.CloneMatrix()
   var b Matrix = NullMatrix(t, n, m)
   var q Matrix = NullMatrix(t, n, m)
   var r Matrix = NullMatrix(t, n, m)
@@ -245,7 +245,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     }
   }
   if inSitu.H == nil {
-    inSitu.H = a.Clone()
+    inSitu.H = a.CloneMatrix()
     inSitu.Hessenberg.H = inSitu.H
   } else {
     if n1, m1 := inSitu.H.Dims(); n1 != n || m1 != m {
@@ -293,7 +293,7 @@ func Eigenvalues(a Matrix, args... interface{}) (Vector, error) {
     return nil, err
   }
   eigenvalues := h.Diag()
-  eigenvalues  = eigenvalues.Sort(false)
+  eigenvalues  = eigenvalues.SortVector(false)
 
   return eigenvalues, nil
 }

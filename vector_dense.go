@@ -18,6 +18,7 @@ package autodiff
 
 /* -------------------------------------------------------------------------- */
 
+import "fmt"
 import "bytes"
 import "bufio"
 import "compress/gzip"
@@ -31,14 +32,26 @@ import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
-type Vector []Scalar
+type DenseVector []Scalar
 
 /* constructors
  * -------------------------------------------------------------------------- */
 
-// Allocate a vector for scalars of type t (i.e. RealType, or ProbabilityType).
 func NewVector(t ScalarType, values []float64) Vector {
-  v := NilVector(len(values))
+  return NewDenseVector(t, values)
+}
+
+func NullVector(t ScalarType, length int) Vector {
+  return NullDenseVector(t, length)
+}
+
+func NilVector(length int) Vector {
+  return NilDenseVector(length)
+}
+
+// Allocate a vector for scalars of type t (i.e. RealType, or ProbabilityType).
+func NewDenseVector(t ScalarType, values []float64) DenseVector {
+  v := NilDenseVector(len(values))
   f := ScalarConstructor(t)
   for i, _ := range values {
     v[i] = f(values[i])
@@ -47,8 +60,8 @@ func NewVector(t ScalarType, values []float64) Vector {
 }
 
 // Allocate an empty vector of type t. All values are initialized to zero.
-func NullVector(t ScalarType, length int) Vector {
-  v := NilVector(length)
+func NullDenseVector(t ScalarType, length int) DenseVector {
+  v := NilDenseVector(length)
   if length > 0 {
     f := ScalarConstructor(t)
     for i := 0; i < length; i++ {
@@ -59,15 +72,15 @@ func NullVector(t ScalarType, length int) Vector {
 }
 
 // Create a vector without allocating memory for the scalar variables.
-func NilVector(length int) Vector {
-  return make(Vector, length)
+func NilDenseVector(length int) DenseVector {
+  return make(DenseVector, length)
 }
 
 /* -------------------------------------------------------------------------- */
 
 // Create a deep copy of the vector.
-func (v Vector) Clone() Vector {
-  result := make(Vector, len(v))
+func (v DenseVector) Clone() DenseVector {
+  result := make(DenseVector, len(v))
 
   for i, _ := range v {
     result[i] = v[i].Clone()
@@ -75,70 +88,86 @@ func (v Vector) Clone() Vector {
   return result
 }
 
+func (v DenseVector) CloneVector() Vector {
+  return v.Clone()
+}
+
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
-func (v Vector) Set(w Vector) {
-  if len(v) != len(w) {
-    panic("CopyFrom(): Vector dimensions do not match!")
+func (v DenseVector) Set(w Vector) {
+  if v.Dim() != w.Dim() {
+    panic("Set(): Vector dimensions do not match!")
   }
-  for i := 0; i < len(w); i++ {
-    v[i].Set(w[i])
+  for i := 0; i < w.Dim(); i++ {
+    v[i].Set(w.At(i))
   }
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (v Vector) At(i int) Scalar {
+func (v DenseVector) Dim() int {
+  return len(v)
+}
+
+func (v DenseVector) At(i int) Scalar {
   return v[i]
 }
 
-func (v Vector) RealAt(i int) *Real {
+func (v DenseVector) RealAt(i int) *Real {
   return v[i].(*Real)
 }
 
-func (v Vector) BareRealAt(i int) *BareReal {
+func (v DenseVector) BareRealAt(i int) *BareReal {
   return v[i].(*BareReal)
 }
 
-func (v Vector) SetReferenceAt(s Scalar, i int) {
+func (v DenseVector) SetReferenceAt(s Scalar, i int) {
   v[i] = s
 }
 
-func (v Vector) Reset() {
+func (v DenseVector) Reset() {
   for i := 0; i < len(v); i++ {
     v[i].Reset()
   }
 }
 
-func (v Vector) ResetDerivatives() {
+func (v DenseVector) ResetDerivatives() {
   for i := 0; i < len(v); i++ {
     v[i].ResetDerivatives()
   }
 }
 
-func (v Vector) ReverseOrder() {
+func (v DenseVector) ReverseOrder() {
   n := len(v)
   for i := 0; i < n/2; i++ {
     v[i], v[n-1-i] = v[n-1-i], v[i]
   }
 }
 
+func (v DenseVector) Slice(i, j int) Vector {
+  return v[i:j]
+}
+
+func (v DenseVector) Append(a ...Scalar) Vector {
+  return append(v, a...)
+}
+
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 
-func (v Vector) Map(f func(Scalar)) {
+func (v DenseVector) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
     f(v[i])
   }
 }
 
-func (v Vector) MapSet(f func(Scalar) Scalar) {
+func (v DenseVector) MapSet(f func(Scalar) Scalar) {
   for i := 0; i < len(v); i++ {
     v[i] = f(v[i])
   }
 }
 
-func (v Vector) Reduce(f func(Scalar, Scalar) Scalar) Scalar {
+func (v DenseVector) Reduce(f func(Scalar, Scalar) Scalar) Scalar {
   r := v[0]
   for i := 1; i < len(v); i++ {
     r = f(r, v[i])
@@ -146,45 +175,53 @@ func (v Vector) Reduce(f func(Scalar, Scalar) Scalar) Scalar {
   return r
 }
 
-func (v Vector) ElementType() ScalarType {
+func (v DenseVector) ElementType() ScalarType {
   if len(v) > 0 {
     return reflect.TypeOf(v[0])
   }
   return nil
 }
 
-func (v Vector) ConvertElementType(t ScalarType) {
+func (v DenseVector) ConvertElementType(t ScalarType) {
   for i := 0; i < len(v); i++ {
     v[i] = NewScalar(t, v[i].GetValue())
   }
 }
 
-func (v Vector) Variables(order int) {
+func (v DenseVector) Variables(order int) {
   Variables(order, v...)
 }
 
 /* sorting
  * -------------------------------------------------------------------------- */
 
-type sortVectorByValue Vector
+type sortDenseVectorByValue DenseVector
 
-func (v sortVectorByValue) Len() int           { return len(v) }
-func (v sortVectorByValue) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
-func (v sortVectorByValue) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
+func (v sortDenseVectorByValue) Len() int           { return len(v) }
+func (v sortDenseVectorByValue) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
+func (v sortDenseVectorByValue) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
 
-func (v Vector) Sort(reverse bool) Vector {
+func (v DenseVector) Sort(reverse bool) DenseVector {
   if reverse {
-    sort.Sort(sort.Reverse(sortVectorByValue(v)))
+    sort.Sort(sort.Reverse(sortDenseVectorByValue(v)))
   } else {
-    sort.Sort(sortVectorByValue(v))
+    sort.Sort(sortDenseVectorByValue(v))
   }
   return v
+}
+
+func (v DenseVector) SortVector(reverse bool) Vector {
+  return v.Sort(reverse)
 }
 
 /* type conversion
  * -------------------------------------------------------------------------- */
 
-func (v Vector) Matrix(n, m int) Matrix {
+func (v DenseVector) DenseVector() DenseVector {
+  return v
+}
+
+func (v DenseVector) Matrix(n, m int) Matrix {
   if n*m != len(v) {
     panic("Matrix dimension does not fit input vector!")
   }
@@ -196,7 +233,7 @@ func (v Vector) Matrix(n, m int) Matrix {
   return &matrix
 }
 
-func (v Vector) Slice() []float64 {
+func (v DenseVector) SliceFloat64() []float64 {
   s := make([]float64, len(v))
   for i, _ := range v {
     s[i] = v[i].GetValue()
@@ -204,7 +241,7 @@ func (v Vector) Slice() []float64 {
   return s
 }
 
-func (v Vector) String() string {
+func (v DenseVector) String() string {
   var buffer bytes.Buffer
 
   buffer.WriteString("[")
@@ -219,7 +256,7 @@ func (v Vector) String() string {
   return buffer.String()
 }
 
-func (v Vector) Table() string {
+func (v DenseVector) Table() string {
   var buffer bytes.Buffer
 
   for i, _ := range v {
@@ -232,8 +269,24 @@ func (v Vector) Table() string {
   return buffer.String()
 }
 
-func ReadVector(t ScalarType, filename string) (Vector, error) {
-  result := NewVector(t, []float64{})
+func (v DenseVector) Export(filename string) error {
+  f, err := os.Create(filename)
+  if err != nil {
+    return err
+  }
+  defer f.Close()
+
+  w := bufio.NewWriter(f)
+  defer w.Flush()
+
+  if _, err := fmt.Fprintf(w, "%s\n", v.Table()); err != nil {
+    return err
+  }
+  return nil
+}
+
+func ImportDenseVector(t ScalarType, filename string) (DenseVector, error) {
+  result := NewDenseVector(t, []float64{})
 
   var scanner *bufio.Scanner
   // open file

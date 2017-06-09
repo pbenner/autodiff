@@ -40,10 +40,10 @@ func gradientDescent(f func(Vector) (Scalar, error), x0 Vector, step, epsilon fl
 
   t := x0.ElementType()
   // copy variables
-  x := x0.Clone()
+  x := x0.CloneVector()
   x.Variables(1)
   // slice containing the gradient
-  gradient := make([]float64, len(x))
+  gradient := make([]float64, x.Dim())
 
   for {
     // evaluate objective function
@@ -52,7 +52,7 @@ func gradientDescent(f func(Vector) (Scalar, error), x0 Vector, step, epsilon fl
       return x, err
     }
     // compute partial derivatives and update variables
-    for i, _ := range x {
+    for i := 0; i < x.Dim(); i++ {
       // save partial derivative
       gradient[i] = s.GetDerivative(i)
     }
@@ -65,9 +65,9 @@ func gradientDescent(f func(Vector) (Scalar, error), x0 Vector, step, epsilon fl
       break
     }
     // update variables
-    for i, _ := range x {
-      x[i] = Sub(x[i], NewScalar(t, step*s.GetDerivative(i)))
-      if math.IsNaN(x[i].GetValue()) {
+    for i := 0; i < x.Dim(); i++ {
+      x.At(i).Sub(x.At(i), NewScalar(t, step*s.GetDerivative(i)))
+      if math.IsNaN(x.At(i).GetValue()) {
         panic("Gradient descent diverged!")
       }
     }

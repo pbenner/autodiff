@@ -86,7 +86,7 @@ func (dist *GParetoDistribution) ScalarType() ScalarType {
 }
 
 func (dist *GParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
@@ -126,7 +126,7 @@ func (dist *GParetoDistribution) Pdf(r Scalar, x Vector) error {
 }
 
 func (dist *GParetoDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
@@ -169,7 +169,7 @@ func (dist *GParetoDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GParetoDistribution) GetParameters() Vector {
-  p   := NilVector(3)
+  p   := NilDenseVector(3)
   p[0] = dist.Mu
   p[1] = dist.Sigma
   p[2] = dist.Xi
@@ -177,9 +177,9 @@ func (dist *GParetoDistribution) GetParameters() Vector {
 }
 
 func (dist *GParetoDistribution) SetParameters(parameters Vector) error {
-  mu    := parameters[0]
-  sigma := parameters[1]
-  xi    := parameters[2]
+  mu    := parameters.At(0)
+  sigma := parameters.At(1)
+  xi    := parameters.At(2)
   if tmp, err := NewGParetoDistribution(mu, sigma, xi); err != nil {
     return err
   } else {

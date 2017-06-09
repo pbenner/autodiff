@@ -81,7 +81,7 @@ func (dist *PowerLawDistribution) ScalarType() ScalarType {
 }
 
 func (dist *PowerLawDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
   r.Add(x, dist.Epsilon)
 
   if r.GetValue() < dist.Xmin.GetValue() {
@@ -106,7 +106,7 @@ func (dist *PowerLawDistribution) Pdf(r Scalar, x Vector) error {
 }
 
 func (dist *PowerLawDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
   r.Add(x, dist.Epsilon)
 
   if r.GetValue() <= 0 {
@@ -131,15 +131,15 @@ func (dist *PowerLawDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist PowerLawDistribution) GetParameters() Vector {
-  p   := NilVector(2)
+  p   := NilDenseVector(2)
   p[0] = dist.Alpha
   p[1] = dist.Xmin
   return p
 }
 
 func (dist *PowerLawDistribution) SetParameters(parameters Vector) error {
-  alpha   := parameters[0]
-  xmin    := parameters[1]
+  alpha   := parameters.At(0)
+  xmin    := parameters.At(1)
   if tmp, err := NewPowerLawDistribution(alpha, xmin, dist.Epsilon); err != nil {
     return err
   } else {

@@ -55,14 +55,14 @@ func fu(x, u Vector, s Scalar) (Vector, bool) {
     // diagonal is already zero
     return u, false
   }
-  // s = -sign(x[0]) ||x||
-  if x[0].GetValue() > 0.0 {
+  // s = -sign(x.At(0)) ||x||
+  if x.At(0).GetValue() > 0.0 {
     s.Neg(s)
   }
   // u = x - s e_1
-  u[0].Sub(x[0], s)
-  for i := 1; i < len(x); i++ {
-    u[i].Set(x[i])
+  u.At(0).Sub(x.At(0), s)
+  for i := 1; i < x.Dim(); i++ {
+    u.At(i).Set(x.At(i))
   }
   // s = ||u||
   s.Vnorm(u)
@@ -78,24 +78,24 @@ func hessenbergReduction(a, v Matrix, x, u Vector, s Scalar) (Matrix, Matrix, er
     // copy column below main diagonal from A to x,
     // x = (A[k+1,k], A[k+2,k], ..., A[n-1,k])
     for i := k+1; i < n; i++ {
-      x[i].Set(a.At(i, k))
+      x.At(i).Set(a.At(i, k))
     }
-    if _, ok := fu(x[k+1:n], u[k+1:n], s); !ok {
+    if _, ok := fu(x.Slice(k+1,n), u.Slice(k+1,n), s); !ok {
       continue
     }
     // A <- P_k A = A - 2 u (u^t A)
     // i) compute u^t A and store it in x
     for j := k; j < n; j++ {
-      x[j].Reset()
+      x.At(j).Reset()
       for i := k+1; i < n; i++ {
-        s.Mul(u[i], a.At(i, j))
-        x[j].Add(x[j], s)
+        s.Mul(u.At(i), a.At(i, j))
+        x.At(j).Add(x.At(j), s)
       }
     }
     // ii) compute A - 2 u (u^t A) = A - 2 u x^t
     for i := k+1; i < n; i++ {
       for j := k; j < n; j++ {
-        s.Mul(u[i], x[j])
+        s.Mul(u.At(i), x.At(j))
         s.Add(s, s)
         a.At(i, j).Sub(a.At(i, j), s)
       }
@@ -103,16 +103,16 @@ func hessenbergReduction(a, v Matrix, x, u Vector, s Scalar) (Matrix, Matrix, er
     // A <- A P_k = A - 2 (A u) u^t
     // i) compute A u and store it in x
     for i := 0; i < n; i++ {
-      x[i].Reset()
+      x.At(i).Reset()
       for j := k+1; j < n; j++ {
-        s.Mul(a.At(i, j), u[j])
-        x[i].Add(x[i], s)
+        s.Mul(a.At(i, j), u.At(j))
+        x.At(i).Add(x.At(i), s)
       }
     }
     // ii) compute A - 2 (A u) u^t = A - 2 x u^t
     for i := 0; i < n; i++ {
       for j := k+1; j < n; j++ {
-        s.Mul(x[i], u[j])
+        s.Mul(x.At(i), u.At(j))
         s.Add(s, s)
         a.At(i, j).Sub(a.At(i, j), s)
       }
@@ -121,16 +121,16 @@ func hessenbergReduction(a, v Matrix, x, u Vector, s Scalar) (Matrix, Matrix, er
       // A <- A P_k = A - 2 (A u) u^t
       // i) compute A u and store it in x
       for i := 0; i < n; i++ {
-        x[i].Reset()
+        x.At(i).Reset()
         for j := k+1; j < n; j++ {
-          s.Mul(v.At(i, j), u[j])
-          x[i].Add(x[i], s)
+          s.Mul(v.At(i, j), u.At(j))
+          x.At(i).Add(x.At(i), s)
         }
       }
       // ii) compute A - 2 (A u) u^t = A - 2 x u^t
       for i := 0; i < n; i++ {
         for j := k+1; j < n; j++ {
-          s.Mul(x[i], u[j])
+          s.Mul(x.At(i), u.At(j))
           s.Add(s, s)
           v.At(i, j).Sub(v.At(i, j), s)
         }
@@ -174,7 +174,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     }
   }
   if h == nil {
-    h = a.Clone()
+    h = a.CloneMatrix()
   } else {
     if n1, m1 := h.Dims(); n1 != n || m1 != m {
       return nil, nil, fmt.Errorf("q has invalid dimension (%dx%d instead of %dx%d)", n1, m1, n, m)
@@ -196,14 +196,14 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   if x == nil {
     x = NullVector(t, n)
   } else {
-    if n1 := len(x); n1 != n {
+    if n1 := x.Dim(); n1 != n {
       return nil, nil, fmt.Errorf("x has invalid dimension (%d instead of %d)", n1, n)
     }
   }
   if u == nil {
     u = NullVector(t, n)
   } else {
-    if n1 := len(u); n1 != n {
+    if n1 := u.Dim(); n1 != n {
       return nil, nil, fmt.Errorf("u has invalid dimension (%d instead of %d)", n1, n)
     }
   }

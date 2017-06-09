@@ -34,7 +34,7 @@ type InSitu struct {
 
 func gramSchmidt(a, q, r Matrix, t ScalarType, n, m int) (Matrix, Matrix, error) {
 
-  v := a.Clone()
+  v := a.CloneMatrix()
   s := NullScalar(t)
 
   for i := 0; i < m; i++ {
@@ -48,7 +48,7 @@ func gramSchmidt(a, q, r Matrix, t ScalarType, n, m int) (Matrix, Matrix, error)
       r.At(i, j).VdotV(q.Col(i), w)
       for k := 0; k < n; k++ {
         s.Mul(r.At(i, j), q.At(k, i))
-        w[k].Sub(w[k], s)
+        w.At(k).Sub(w.At(k), s)
       }
     }
   }

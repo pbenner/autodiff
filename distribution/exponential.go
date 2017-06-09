@@ -67,7 +67,7 @@ func (dist *ExponentialDistribution) ScalarType() ScalarType {
 }
 
 func (dist *ExponentialDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
@@ -90,7 +90,7 @@ func (dist *ExponentialDistribution) Pdf(r Scalar, x Vector) error {
 }
 
 func (dist *ExponentialDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
@@ -117,13 +117,13 @@ func (dist *ExponentialDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist ExponentialDistribution) GetParameters() Vector {
-  p   := NilVector(1)
+  p   := NilDenseVector(1)
   p[0] = dist.Lambda
   return p
 }
 
 func (dist *ExponentialDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewExponentialDistribution(parameters[0]); err != nil {
+  if tmp, err := NewExponentialDistribution(parameters.At(0)); err != nil {
     return err
   } else {
     *dist = *tmp

@@ -55,8 +55,8 @@ func main() {
     // minimum: (x1,x2) = (a, a^2)
     a := NewReal(  1.0)
     b := NewReal(100.0)
-    s := Pow(Sub(a, x[0]), NewReal(2.0))
-    t := Mul(b, Pow(Sub(x[1], Mul(x[0], x[0])), NewReal(2.0)))
+    s := Pow(Sub(a, x.At(0)), NewReal(2.0))
+    t := Mul(b, Pow(Sub(x.At(1), Mul(x.At(0), x.At(0))), NewReal(2.0)))
     return Add(s, t), nil
   }
   hook_rprop := func(gradient, step []float64, x Vector, y Scalar) bool {

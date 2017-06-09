@@ -31,8 +31,8 @@ func Mequal(a, b Matrix) bool {
   }
   v1 := a.Vector()
   v2 := b.Vector()
-  for i := 0; i < len(v1); i++ {
-    if !Equal(v1[i], v2[i]) {
+  for i := 0; i < v1.Dim(); i++ {
+    if !Equal(v1.At(i), v2.At(i)) {
       return false
     }
   }
@@ -284,19 +284,19 @@ func MdotM(a, b Matrix) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Matrix vector product of a and b. The result is stored in r.
-func (r Vector) MdotV(a Matrix, b Vector) Vector {
+func (r DenseVector) MdotV(a Matrix, b Vector) Vector {
   n, m := a.Dims()
-  if &r[0] == &b[0] {
+  if r[0] == b.At(0) {
     panic("result and argument must be different vectors")
   }
-  if len(r) != n || len(b) != m {
+  if r.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
   }
   t := NullScalar(a.ElementType())
   for i := 0; i < n; i++ {
     r[i].Reset()
     for j := 0; j < m; j++ {
-      t.Mul(a.At(i, j), b[j])
+      t.Mul(a.At(i, j), b.At(j))
       r[i].Add(r[i], t)
     }
   }
@@ -306,7 +306,7 @@ func (r Vector) MdotV(a Matrix, b Vector) Vector {
 // Matrix vector product of a and b.
 func MdotV(a Matrix, b Vector) Vector {
   n, _ := a.Dims()
-  r := NullVector(a.ElementType(), n)
+  r := NullDenseVector(a.ElementType(), n)
   r.MdotV(a, b)
   return r
 }
@@ -314,19 +314,19 @@ func MdotV(a Matrix, b Vector) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Vector matrix product of a and b. The result is stored in r.
-func (r Vector) VdotM(a Vector, b Matrix) Vector {
+func (r DenseVector) VdotM(a Vector, b Matrix) Vector {
   n, m := b.Dims()
-  if &r[0] == &a[0] {
+  if r[0] == a.At(0) {
     panic("result and argument must be different vectors")
   }
-  if len(r) != m || len(a) != n {
+  if r.Dim() != m || a.Dim() != n {
     panic("matrix/vector dimensions do not match!")
   }
   t := NullScalar(a.ElementType())
   for i := 0; i < m; i++ {
     r[i].Reset()
     for j := 0; j < n; j++ {
-      t.Mul(a[j], b.At(j, i))
+      t.Mul(a.At(j), b.At(j, i))
       r[i].Add(r[i], t)
     }
   }
@@ -346,12 +346,12 @@ func VdotM(a Vector, b Matrix) Vector {
 // Outer product of two vectors. The result is stored in r.
 func (r *DenseMatrix) Outer(a, b Vector) Matrix {
   n, m := r.Dims()
-  if len(a) != n || len(b) != m {
+  if a.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
   }
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.At(i, j).Mul(a[i], b[j])
+      r.At(i, j).Mul(a.At(i), b.At(j))
     }
   }
   return r
@@ -359,7 +359,7 @@ func (r *DenseMatrix) Outer(a, b Vector) Matrix {
 
 // Outer product of two vectors.
 func Outer(a, b Vector) Matrix {
-  r := NullMatrix(a.ElementType(), len(a), len(b))
+  r := NullMatrix(a.ElementType(), a.Dim(), b.Dim())
   r.Outer(a, b)
   return r
 }
@@ -384,9 +384,9 @@ func Mnorm(a Matrix) Scalar {
   c := NewBareReal(2.0)
   t := NewScalar(a.ElementType(), 0.0)
   v := a.Vector()
-  s := Pow(v[0], NewBareReal(2.0))
-  for i := 1; i < len(v); i++ {
-    t.Pow(v[i], c)
+  s := Pow(v.At(0), NewBareReal(2.0))
+  for i := 1; i < v.Dim(); i++ {
+    t.Pow(v.At(i), c)
     s.Add(s, t)
   }
   return s
@@ -397,20 +397,20 @@ func Mnorm(a Matrix) Scalar {
 // Compute the Jacobian of f at x_. The result is stored in r.
 func (r *DenseMatrix) Jacobian(f func(Vector) Vector, x_ Vector) Matrix {
   n, m := r.Dims()
-  x := x_.Clone()
+  x := x_.CloneVector()
   x.Variables(1)
   // compute Jacobian
   y := f(x)
   // reallocate matrix if dimensions do not match
-  if r == nil || len(x) != m || len(y) != n {
-     n = len(y)
-     m = len(x)
+  if r == nil || x.Dim() != m || y.Dim() != n {
+     n = y.Dim()
+     m = x.Dim()
     *r = *NullDenseMatrix(x_.ElementType(), n, m)
   }
   // copy derivatives
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.At(i, j).SetValue(y[i].GetDerivative(j))
+      r.At(i, j).SetValue(y.At(i).GetDerivative(j))
     }
   }
   return r
@@ -420,12 +420,12 @@ func (r *DenseMatrix) Jacobian(f func(Vector) Vector, x_ Vector) Matrix {
 func (r *DenseMatrix) Hessian(f func(Vector) Scalar, x_ Vector) Matrix {
   n, m := r.Dims()
   // reallocate matrix if dimensions do not match
-  if r == nil || len(x_) != n || n != m {
-     n = len(x_)
-     m = len(x_)
+  if r == nil || x_.Dim() != n || n != m {
+     n = x_.Dim()
+     m = x_.Dim()
     *r = *NullDenseMatrix(x_.ElementType(), n, m)
   }
-  x := x_.Clone()
+  x := x_.CloneVector()
   x.Variables(2)
   // evaluate function
   y := f(x)

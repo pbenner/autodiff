@@ -37,8 +37,8 @@ func TestBfgsMatyas(t *testing.T) {
   f := func(x Vector) (Scalar, error) {
     // f(x1, x2) = 0.26(x1^2 + x2^2) - 0.48 x1 x2
     // minimum: f(x1,x2) = f(0, 0) = 0
-    y := Sub(Mul(NewReal(0.26), Add(Mul(x[0], x[0]), Mul(x[1], x[1]))),
-      Mul(NewReal(0.48), Mul(x[0], x[1])))
+    y := Sub(Mul(NewReal(0.26), Add(Mul(x.At(0), x.At(0)), Mul(x.At(1), x.At(1)))),
+      Mul(NewReal(0.48), Mul(x.At(0), x.At(1))))
     return y, nil
   }
   // hook := func(x, gradient Vector, y Scalar) bool {
@@ -78,8 +78,8 @@ func TestBfgsRosenbrock(t *testing.T) {
     // minimum: (x1,x2) = (a, a^2)
     a := NewReal(  1.0)
     b := NewReal(100.0)
-    s := Pow(Sub(a, x[0]), NewReal(2.0))
-    t := Mul(b, Pow(Sub(x[1], Mul(x[0], x[0])), NewReal(2.0)))
+    s := Pow(Sub(a, x.At(0)), NewReal(2.0))
+    t := Mul(b, Pow(Sub(x.At(1), Mul(x.At(0), x.At(0))), NewReal(2.0)))
     return Add(s, t), nil
   }
   // hook := func(x, gradient Vector, y Scalar) bool {

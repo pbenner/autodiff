@@ -28,7 +28,7 @@ func TestVector(t *testing.T) {
 
   v := NewVector(RealType, []float64{1,2,3,4,5,6})
 
-  if v[1].GetValue() != 2.0 {
+  if v.At(1).GetValue() != 2.0 {
     t.Error("Vector initialization failed!")
   }
 }
@@ -38,13 +38,13 @@ func TestVectorSort(t *testing.T) {
   v1 := NewVector(RealType, []float64{4,3,7,4,1,29,6})
   v2 := NewVector(RealType, []float64{4,3,7,4,1,29,6})
 
-  v1.Sort(false)
-  v2.Sort(true)
+  v1.SortVector(false)
+  v2.SortVector(true)
 
-  if v1[6].GetValue() != 29.0 {
+  if v1.At(6).GetValue() != 29.0 {
     t.Error("Vector sorting failed!")
   }
-  if v2[6].GetValue() != 1.0 {
+  if v2.At(6).GetValue() != 1.0 {
     t.Error("Vector sorting failed!")
   }
 }
@@ -76,14 +76,14 @@ func TestVmulV(t *testing.T) {
   b := NewVector(RealType, []float64{2,-1,1,7})
   r := VmulV(a, b)
 
-  if r[1].GetValue() != -2 {
+  if r.At(1).GetValue() != -2 {
     t.Error("VmulV() failed!")
   }
 }
 
 func TestReadVector(t *testing.T) {
 
-  v, err := ReadVector(RealType, "vector_test.table")
+  v, err := ImportDenseVector(RealType, "vector_test.table")
   if err != nil {
     panic(err)
   }

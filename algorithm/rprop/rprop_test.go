@@ -28,7 +28,7 @@ import . "github.com/pbenner/autodiff"
 
 func TestRProp(t *testing.T) {
   m1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
-  m2 := m1.Clone()
+  m2 := m1.CloneMatrix()
   m3 := NewMatrix(RealType, 2, 2, []float64{-2, 1, 1.5, -0.5})
 
   rows, cols := m1.Dims()
@@ -67,8 +67,8 @@ func TestRPropRosenbrock(t *testing.T) {
     // minimum: (x1,x2) = (a, a^2)
     a := NewReal(  1.0)
     b := NewReal(100.0)
-    s := Pow(Sub(a, x[0]), NewReal(2.0))
-    t := Mul(b, Pow(Sub(x[1], Mul(x[0], x[0])), NewReal(2.0)))
+    s := Pow(Sub(a, x.At(0)), NewReal(2.0))
+    t := Mul(b, Pow(Sub(x.At(1), Mul(x.At(0), x.At(0))), NewReal(2.0)))
     return Add(s, t), nil
   }
   hook := func(gradient []float64, step []float64, x Vector, value Scalar) bool {

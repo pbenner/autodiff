@@ -29,11 +29,11 @@ import . "github.com/pbenner/autodiff"
 func TestNewtonRoot(t *testing.T) {
 
   f := func(x Vector) (Vector, error) {
-    y := NullVector(RealType, 2)
+    y := NullDenseVector(RealType, 2)
     // y1 = x1^2 + x2^2 - 6
-    y[0] = Sub(Add(Pow(x[0], NewReal(2)), Pow(x[1], NewReal(2))), NewReal(6))
+    y[0] = Sub(Add(Pow(x.At(0), NewReal(2)), Pow(x.At(1), NewReal(2))), NewReal(6))
     // y2 = x1^3 - x2^2
-    y[1] = Sub(Pow(x[0], NewReal(3)), Pow(x[1], NewReal(2)))
+    y[1] = Sub(Pow(x.At(0), NewReal(3)), Pow(x.At(1), NewReal(2)))
 
     return y, nil
   }
@@ -53,7 +53,7 @@ func TestNewtonCrit1(t *testing.T) {
   f := func(x Vector) (Scalar, error) {
     // minimize x^2 subject to x^2 = 1, which is equivalent to finding
     // the critical points of the lagrangian x^2 + lambda(x^2 - 1)
-    y := Add(Mul(x[0], x[0]), Mul(x[1], Sub(Mul(x[0], x[0]), NewReal(1))))
+    y := Add(Mul(x.At(0), x.At(0)), Mul(x.At(1), Sub(Mul(x.At(0), x.At(0)), NewReal(1))))
 
     return y, nil
   }
@@ -74,7 +74,7 @@ func TestNewtonCrit2(t *testing.T) {
   f := func(x Vector) (Scalar, error) {
     // minimize x + y subject to x^2 + y^2 = 1, which is equivalent to finding
     // the critical points of the lagrangian x^2 + lambda(x^2 - 1)
-    y := Add(Add(x[0], x[1]), Mul(x[2], Sub(Add(Mul(x[0], x[0]), Mul(x[1], x[1])), NewReal(1))))
+    y := Add(Add(x.At(0), x.At(1)), Mul(x.At(2), Sub(Add(Mul(x.At(0), x.At(0)), Mul(x.At(1), x.At(1))), NewReal(1))))
 
     return y, nil
   }

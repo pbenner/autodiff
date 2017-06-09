@@ -25,27 +25,28 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type CategoricalDistribution struct {
-  Theta Vector
+  Theta DenseVector
   t     Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error) {
-  if len(theta_) == 0 {
+  if theta_.Dim() == 0 {
     return nil, fmt.Errorf("theta has invalid length")
   }
-  theta := theta_.Clone()
+  t     := theta_.ElementType()
+  theta := NullDenseVector(t, theta_.Dim())
 
-  for i := 0; i < len(theta); i++ {
-    if theta[i].GetValue() < 0 {
+  for i := 0; i < theta.Dim(); i++ {
+    if theta_.At(i).GetValue() < 0 {
       return nil, fmt.Errorf("invalid negative probability")
     }
-    theta[i].Log(theta[i])
+    theta.At(i).Log(theta_.At(i))
   }
   result := CategoricalDistribution{
     Theta: theta,
-    t    : theta[0].Clone() }
+    t    : theta.At(0).Clone() }
 
   return &result, nil
 
@@ -68,10 +69,10 @@ func (dist *CategoricalDistribution) Dim() int {
 }
 
 func (dist *CategoricalDistribution) LogPdf(r Scalar, x Vector) error {
-  if len(x) != 1 {
+  if x.Dim() != 1 {
     return fmt.Errorf("x has invalid dimension")
   }
-  r.Set(dist.Theta[int(x[0].GetValue())])
+  r.Set(dist.Theta.At(int(x.At(0).GetValue())))
   return nil
 }
 
@@ -84,12 +85,12 @@ func (dist *CategoricalDistribution) Pdf(r Scalar, x Vector) error {
 }
 
 func (dist *CategoricalDistribution) LogCdf(r Scalar, x Vector) error {
-  if len(x) != 1 {
+  if x.Dim() != 1 {
     return fmt.Errorf("x has invalid dimension")
   }
   r.Reset()
 
-  for i := 0; i <= int(x[0].GetValue()); i++ {
+  for i := 0; i <= int(x.At(0).GetValue()); i++ {
     r.LogAdd(r, dist.Theta[i], dist.t)
   }
   return nil

@@ -70,14 +70,14 @@ func (dist *GammaDistribution) Mean() Scalar {
 }
 
 func (dist *GammaDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+  if v := x.At(0).GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
   }
   t := dist.t
-  t.Mul(x[0], dist.Beta)
+  t.Mul(x.At(0), dist.Beta)
 
-  r.Log(x[0])
+  r.Log(x.At(0))
   r.Mul(r, dist.Omega)
   r.Sub(r, t)
   r.Add(r, dist.Z)
@@ -101,7 +101,7 @@ func (dist *GammaDistribution) LogCdf(r Scalar, x Vector) error {
 }
 
 func (dist *GammaDistribution) Cdf(r Scalar, x Vector) error {
-  r.Mul(x[0], dist.Beta)
+  r.Mul(x.At(0), dist.Beta)
   r.GammaP(dist.Alpha.GetValue(), r)
   return nil
 }
@@ -109,14 +109,14 @@ func (dist *GammaDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GammaDistribution) GetParameters() Vector {
-  p   := NilVector(2)
+  p   := NilDenseVector(2)
   p[0] = dist.Alpha
   p[1] = dist.Beta
   return p
 }
 
 func (dist *GammaDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewGammaDistribution(parameters[0], parameters[1]); err != nil {
+  if tmp, err := NewGammaDistribution(parameters.At(0), parameters.At(1)); err != nil {
     return err
   } else {
     *dist = *tmp

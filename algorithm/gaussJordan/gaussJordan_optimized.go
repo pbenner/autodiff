@@ -26,7 +26,7 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func gaussJordan_RealDense(a, x *DenseMatrix, b Vector, submatrix []bool) error {
+func gaussJordan_RealDense(a, x *DenseMatrix, b DenseVector, submatrix []bool) error {
   t := NewReal(0.0)
   c := NewReal(0.0)
   // number of rows
@@ -162,7 +162,7 @@ singular:
   return errors.New("system is computationally singular")
 }
 
-func gaussJordanUpperTriangular_RealDense(a, x *DenseMatrix, b Vector, submatrix []bool) error {
+func gaussJordanUpperTriangular_RealDense(a, x *DenseMatrix, b DenseVector, submatrix []bool) error {
   t := NewReal(0.0)
   c := NewReal(0.0)
   // number of rows
@@ -239,7 +239,7 @@ singular:
 
 /* -------------------------------------------------------------------------- */
 
-func gaussJordan_BareRealDense(a, x *DenseMatrix, b Vector, submatrix []bool) error {
+func gaussJordan_BareRealDense(a, x *DenseMatrix, b DenseVector, submatrix []bool) error {
   t := NewBareReal(0.0)
   c := NewBareReal(0.0)
   // number of rows
@@ -375,7 +375,7 @@ singular:
   return errors.New("system is computationally singular")
 }
 
-func gaussJordanUpperTriangular_BareRealDense(a, x *DenseMatrix, b Vector, submatrix []bool) error {
+func gaussJordanUpperTriangular_BareRealDense(a, x *DenseMatrix, b DenseVector, submatrix []bool) error {
   t := NewBareReal(0.0)
   c := NewBareReal(0.0)
   // number of rows

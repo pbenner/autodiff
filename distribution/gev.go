@@ -85,7 +85,7 @@ func (dist *GevDistribution) ScalarType() ScalarType {
 }
 
 func (dist *GevDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
@@ -130,7 +130,7 @@ func (dist *GevDistribution) Pdf(r Scalar, x Vector) error {
 }
 
 func (dist *GevDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_[0]
+  x := x_.At(0)
 
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
@@ -165,7 +165,7 @@ func (dist *GevDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GevDistribution) GetParameters() Vector {
-  p := NilVector(3)
+  p := NilDenseVector(3)
   p[0] = dist.Mu
   p[1] = dist.Sigma
   p[2] = dist.Xi
@@ -173,9 +173,9 @@ func (dist *GevDistribution) GetParameters() Vector {
 }
 
 func (dist *GevDistribution) SetParameters(parameters Vector) error {
-  mu    := parameters[0]
-  sigma := parameters[1]
-  xi    := parameters[2]
+  mu    := parameters.At(0)
+  sigma := parameters.At(1)
+  xi    := parameters.At(2)
   if tmp, err := NewGevDistribution(mu, sigma, xi); err != nil {
     return err
   } else {

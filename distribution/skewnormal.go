@@ -51,9 +51,9 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
   // dimension
   n, m := omega.Dims()
   // check parameter dimensions
-  if n != len(xi)     ||
-    (n != len(alpha)) ||
-    (n != len(scale)) ||
+  if n != xi   .Dim()  ||
+    (n != alpha.Dim()) ||
+    (n != scale.Dim()) ||
     (n != m) {
     return nil, errors.New("NewSkewNormalDistribution(): Parameter dimensions do not match!")
   }
@@ -62,7 +62,7 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
   kappa := NullMatrix(RealType, n, n)
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
-      kappa.At(i, j).Mul(Mul(scale[i], scale[j]), omega.At(i,j))
+      kappa.At(i, j).Mul(Mul(scale.At(i), scale.At(j)), omega.At(i,j))
     }
   }
   // parameters for the standard normal cdf
@@ -78,9 +78,9 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
     Normal1: *normal1,
     Normal2: *normal2,
     Xi     : xi,
-    Omega  : omega.Clone(),
-    Alpha  : alpha.Clone(),
-    Scale  : scale.Clone(),
+    Omega  : omega.CloneMatrix(),
+    Alpha  : alpha.CloneVector(),
+    Scale  : scale.CloneVector(),
     l2     : NewScalar(t, math.Log(2)),
     r1     : NewScalar(t, 0.0),
     r2     : NewScalar(t, 0.0),
@@ -97,19 +97,19 @@ func (dist *SkewNormalDistribution) Clone() *SkewNormalDistribution {
   return &SkewNormalDistribution{
     Normal1: *dist.Normal1.Clone(),
     Normal2: *dist.Normal2.Clone(),
-    Xi     :  dist.Xi     .Clone(),
-    Omega  :  dist.Omega  .Clone(),
-    Alpha  :  dist.Alpha  .Clone(),
-    Scale  :  dist.Scale  .Clone(),
+    Xi     :  dist.Xi     .CloneVector(),
+    Omega  :  dist.Omega  .CloneMatrix(),
+    Alpha  :  dist.Alpha  .CloneVector(),
+    Scale  :  dist.Scale  .CloneVector(),
     l2     :  dist.l2     .Clone(),
     r1     :  dist.r1     .Clone(),
     r2     :  dist.r2     .Clone(),
-    t      :  dist.t      .Clone(),
-    z      :  dist.z      .Clone() }
+    t      :  dist.t      .CloneVector(),
+    z      :  dist.z      .CloneVector() }
 }
 
 func (dist *SkewNormalDistribution) Dim() int {
-  return len(dist.Alpha)
+  return dist.Alpha.Dim()
 }
 
 func (dist *SkewNormalDistribution) LogPdf(r0 Scalar, x Vector) error {
@@ -117,10 +117,10 @@ func (dist *SkewNormalDistribution) LogPdf(r0 Scalar, x Vector) error {
   z := dist.z
   t := dist.t
   for i := 0; i < n; i++ {
-    t[0].Sub(x[i], dist.Normal1.Mu[i])
-    z[i].Div(t[0], dist.Scale[i])
+    t.At(0).Sub(x.At(i), dist.Normal1.Mu.At(i))
+    z.At(i).Div(t.At(0), dist.Scale.At(i))
   }
-  t[0].VdotV(dist.Alpha, z)
+  t.At(0).VdotV(dist.Alpha, z)
 
   r1 := dist.r1
   r2 := dist.r2
@@ -146,18 +146,18 @@ func (dist *SkewNormalDistribution) Pdf(r Scalar, x Vector) error {
 
 func (dist SkewNormalDistribution) GetParameters() Vector {
   p := dist.Xi
-  p  = append(p, dist.Omega.Vector()...)
-  p  = append(p, dist.Alpha...)
-  p  = append(p, dist.Scale...)
+  p  = p.Append(dist.Omega.DenseVector()...)
+  p  = p.Append(dist.Alpha.DenseVector()...)
+  p  = p.Append(dist.Scale.DenseVector()...)
   return p
 }
 
 func (dist *SkewNormalDistribution) SetParameters(parameters Vector) error {
   n := dist.Dim()
-  xi    := parameters[0*n+0*n*n:1*n+0*n*n]
-  omega := parameters[1*n+0*n*n:1*n+1*n*n].Matrix(n, n)
-  alpha := parameters[1*n+1*n*n:2*n+1*n*n]
-  scale := parameters[2*n+1*n*n:3*n+1*n*n]
+  xi    := parameters.Slice(0*n+0*n*n,1*n+0*n*n)
+  omega := parameters.Slice(1*n+0*n*n,1*n+1*n*n).Matrix(n, n)
+  alpha := parameters.Slice(1*n+1*n*n,2*n+1*n*n)
+  scale := parameters.Slice(2*n+1*n*n,3*n+1*n*n)
   if tmp, err := NewSkewNormalDistribution(xi, omega, alpha, scale); err != nil {
     return err
   } else {

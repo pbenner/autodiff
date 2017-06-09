@@ -72,7 +72,7 @@ func mInverseGradient(matrix Matrix) (Matrix, error) {
     panic("MInverse(): Not a square matrix!")
   }
   I := IdentityMatrix(matrix.ElementType(), rows)
-  r := matrix.Clone()
+  r := matrix.CloneMatrix()
   // objective function
   f := func(x Vector) (Scalar, error) {
     r.Vector().Set(x)
@@ -91,8 +91,8 @@ func mInverse(matrix Matrix, inSitu *InSitu, args ...interface{}) (Matrix, error
   // copy values to a
   a.Set(matrix)
   // initialize b with ones
-  for i, _ := range b {
-    b[i].SetValue(1.0)
+  for i := 0; i < b.Dim(); i++ {
+    b.At(i).SetValue(1.0)
   }
   // call Gauss-Jordan algorithm
   if err := gaussJordan.Run(a, x, b, args...); err != nil {
@@ -111,8 +111,8 @@ func mInversePositiveDefinite(matrix Matrix, inSitu *InSitu, args ...interface{}
   x := inSitu.Id
   b := inSitu.B
   // initialize b with ones
-  for i, _ := range b {
-    b[i].SetValue(1.0)
+  for i := 0; i < b.Dim(); i++ {
+    b.At(i).SetValue(1.0)
   }
   args = append(args, gaussJordan.UpperTriangular{true})
   // call Gauss-Jordan algorithm
@@ -131,8 +131,8 @@ func mInverseUpperTriangular(matrix Matrix, inSitu *InSitu, args ...interface{})
   // copy values to a
   a.Set(matrix)
   // initialize b with ones
-  for i, _ := range b {
-    b[i].SetValue(1.0)
+  for i := 0; i < b.Dim(); i++ {
+    b.At(i).SetValue(1.0)
   }
   args = append(args, gaussJordan.UpperTriangular{true})
   // call Gauss-Jordan algorithm

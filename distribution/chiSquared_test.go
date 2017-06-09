@@ -30,7 +30,7 @@ func TestChiSquaredDistribution1(t *testing.T) {
 
   d, _ := NewChiSquaredDistribution(2.0)
 
-  x := NewVector(RealType, []float64{10.214}); Variables(2,x[0])
+  x := NewVector(RealType, []float64{10.214}); Variables(2,x.At(0))
   y := NewReal(0.0)
   d.LogPdf(y, x)
 
@@ -49,7 +49,7 @@ func TestChiSquaredDistribution2(t *testing.T) {
 
   d, _ := NewChiSquaredDistribution(2.0)
 
-  x := NewVector(RealType, []float64{4.817}); Variables(2,x[0])
+  x := NewVector(RealType, []float64{4.817}); Variables(2,x.At(0))
   y := NewReal(0.0)
   d.Cdf(y, x)
 

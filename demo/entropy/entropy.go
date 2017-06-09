@@ -51,20 +51,20 @@ func hook_f(px Vector, gradient Matrix, s Vector) bool {
 
 /* Gradient of L(p) */
 func objective_f(px Vector) (Vector, error) {
-  n := len(px) - 1
-  if len(px) != n+1 {
+  n := px.Dim() - 1
+  if px.Dim() != n+1 {
     return nil, errors.New("Input vector has invalid dimension!")
   }
-  gradient := NullVector(RealType, n+1)
+  gradient := NullDenseVector(RealType, n+1)
   // derivative with respect to px[i]
   for i := 0; i < n; i++ {
-    gradient[i] = Sub(NewReal(-1), Log(px[i]))
-    gradient[i] = Sub(gradient[i], px[n])
+    gradient[i] = Sub(NewReal(-1), Log(px.At(i)))
+    gradient[i] = Sub(gradient[i], px.At(n))
   }
   // derivative with respect to lambda
   gradient[n] = NewReal(-1.0)
   for i := 0; i < n; i++ {
-    gradient[n] = Add(gradient[n], px[i])
+    gradient[n] = Add(gradient[n], px.At(i))
   }
   return gradient, nil
 }

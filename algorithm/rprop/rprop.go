@@ -51,18 +51,18 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
   hook Hook,
   constraints Constraints) (Vector, error) {
 
-  n := len(x0)
+  n := x0.Dim()
   t := x0.ElementType()
   // copy variables
-  x1 := x0.Clone()
-  x2 := x0.Clone()
+  x1 := x0.CloneVector()
+  x2 := x0.CloneVector()
   // step size for each variable
   step := make([]float64, n)
   // gradients
   gradient_new := make([]float64, n)
   gradient_old := make([]float64, n)
   // initialize values
-  for i, _ := range x1 {
+  for i := 0; i < x1.Dim(); i++ {
     step[i]         = step_init
     gradient_new[i] = 1
     gradient_old[i] = 1
@@ -87,11 +87,11 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
     return x1, fmt.Errorf("invalid initial value: %v", x1)
   }
   for {
-    for i, _ := range x1 {
+    for i := 0; i < x1.Dim(); i++ {
       gradient_old[i] = gradient_new[i]
     }
     // compute partial derivatives and update x
-    for i, _ := range x1 {
+    for i := 0; i < x1.Dim(); i++ {
       // save derivative
       gradient_new[i] = s.GetDerivative(i)
     }
@@ -104,7 +104,7 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
       break;
     }
     // update step size
-    for i, _ := range x1 {
+    for i := 0; i < x1.Dim(); i++ {
       if gradient_new[i] != 0.0 {
         if ((gradient_old[i] < 0 && gradient_new[i] < 0) ||
             (gradient_old[i] > 0 && gradient_new[i] > 0)) {
@@ -116,15 +116,15 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
     }
     for {
       // update x
-      for i, _ := range x1 {
+      for i := 0; i < x1.Dim(); i++ {
         if gradient_new[i] != 0.0 {
           if gradient_new[i] > 0.0 {
-            x2[i].Sub(x1[i], NewScalar(t, step[i]))
+            x2.At(i).Sub(x1.At(i), NewScalar(t, step[i]))
           } else {
-            x2[i].Add(x1[i], NewScalar(t, step[i]))
+            x2.At(i).Add(x1.At(i), NewScalar(t, step[i]))
           }
         }
-        if math.IsNaN(x2[i].GetValue()) {
+        if math.IsNaN(x2.At(i).GetValue()) {
           return x2, errors.New("Gradient descent diverged!")
         }
       }
@@ -133,7 +133,7 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
       if err != nil || gradient_is_nan(s) ||
         (constraints.Value != nil && !constraints.Value(x2)) {
         // if the updated is invalid reduce step size
-        for i, _ := range x1 {
+        for i := 0; i < x1.Dim(); i++ {
           if gradient_new[i] != 0.0 {
             step[i] *= eta[1]
           }

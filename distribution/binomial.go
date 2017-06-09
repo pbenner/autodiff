@@ -95,7 +95,7 @@ func (dist *BinomialDistribution) SetN(n int) error {
 }
 
 func (dist *BinomialDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x[0].GetValue(); v < 0.0 || math.Floor(v) != v {
+  if v := x.At(0).GetValue(); v < 0.0 || math.Floor(v) != v {
     r.SetValue(math.Inf(-1))
     return nil
   }
@@ -103,11 +103,11 @@ func (dist *BinomialDistribution) LogPdf(r Scalar, x Vector) error {
   t2 := dist.t2
 
   // Gamma(k+1)
-  t1.Add(x[0], dist.c1)
+  t1.Add(x.At(0), dist.c1)
   t1.Lgamma(t1)
 
   // Gamma(n-k+1)
-  t2.Sub(dist.np1, x[0])
+  t2.Sub(dist.np1, x.At(0))
   t2.Lgamma(t2)
 
   // Gamma(n+1) / [Gamma(k+1) Gamma(n-k+1)]
@@ -115,10 +115,10 @@ func (dist *BinomialDistribution) LogPdf(r Scalar, x Vector) error {
   r.Sub(r, t2)
 
   // p^k
-  t1.Mul(dist.Theta, x[0])
+  t1.Mul(dist.Theta, x.At(0))
 
   // (1-p)^(n-k)
-  t2.Sub(dist.n, x[0])
+  t2.Sub(dist.n, x.At(0))
   t2.Mul(dist.ct, t2)
 
   // sum up results
@@ -139,13 +139,13 @@ func (dist *BinomialDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *BinomialDistribution) GetParameters() Vector {
-  p   := NilVector(1)
+  p   := NilDenseVector(1)
   p[0] = dist.Theta
   return p
 }
 
 func (dist *BinomialDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewBinomialDistribution(Exp(parameters[0]), int(dist.n.GetValue())); err != nil {
+  if tmp, err := NewBinomialDistribution(Exp(parameters.At(0)), int(dist.n.GetValue())); err != nil {
     return err
   } else {
     *dist = *tmp

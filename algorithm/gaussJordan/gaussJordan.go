@@ -50,7 +50,7 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
   if m, _ := x.Dims(); m != n {
     return errors.New("GaussJordan(): x has invalid dimension!")
   }
-  if len(b) != n {
+  if b.Dim() != n {
     return errors.New("GaussJordan(): b has invalid dimension!")
   }
   // loop over columns
@@ -96,8 +96,8 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
         x.At(p[j], k).Sub(x.At(p[j], k), t)
       }
       // same for b: b[j] -= b[j]*c
-      t.Mul(b[p[i]], c)
-      b[p[j]].Sub(b[p[j]], t)
+      t.Mul(b.At(p[i]), c)
+      b.At(p[j]).Sub(b.At(p[j]), t)
     }
   }
   // backsubstitute
@@ -111,10 +111,10 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
         continue
       }
       // b[j] -= a[j,i]*b[i]/c
-      t.Mul(a.At(p[j], i), b[p[i]])
+      t.Mul(a.At(p[j], i), b.At(p[i]))
       t.Div(t, c)
-      b[p[j]].Sub(b[p[j]], t)
-      if math.IsNaN(b[p[j]].GetValue()) {
+      b.At(p[j]).Sub(b.At(p[j]), t)
+      if math.IsNaN(b.At(p[j]).GetValue()) {
         goto singular
       }
       // loop over colums in x
@@ -156,7 +156,7 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
       x.At(p[i], k).Div(x.At(p[i], k), c)
     }
     // normalize ith element in b
-    b[p[i]].Div(b[p[i]], c)
+    b.At(p[i]).Div(b.At(p[i]), c)
   }
   if err := a.PermuteRows(p); err != nil {
     return err
@@ -181,7 +181,7 @@ func gaussJordanUpperTriangular(a, x Matrix, b Vector, submatrix []bool) error {
   if m, _ := x.Dims(); m != n {
     panic("GaussJordan(): x has invalid dimension!")
   }
-  if len(b) != n {
+  if b.Dim() != n {
     panic("GaussJordan(): b has invalid dimension!")
   }
   // backsubstitute
@@ -195,10 +195,10 @@ func gaussJordanUpperTriangular(a, x Matrix, b Vector, submatrix []bool) error {
         continue
       }
       // b[j] -= a[j,i]*b[i]/c
-      t.Mul(a.At(j, i), b[i])
+      t.Mul(a.At(j, i), b.At(i))
       t.Div(t, c)
-      b[j].Sub(b[j], t)
-      if math.IsNaN(b[j].GetValue()) {
+      b.At(j).Sub(b.At(j), t)
+      if math.IsNaN(b.At(j).GetValue()) {
         goto singular
       }
       // loop over colums in x
@@ -240,7 +240,7 @@ func gaussJordanUpperTriangular(a, x Matrix, b Vector, submatrix []bool) error {
       x.At(i, k).Div(x.At(i, k), c)
     }
     // normalize ith element in b
-    b[i].Div(b[i], c)
+    b.At(i).Div(b.At(i), c)
   }
   return nil
 singular:
@@ -274,18 +274,19 @@ func Run(a, x Matrix, b Vector, args ...interface{}) error {
     }
   }
   ad, ok1 := a.(*DenseMatrix)
-  xd, ok2 := x.(*DenseMatrix)
+  bd, ok2 := b.( DenseVector)
+  xd, ok3 := x.(*DenseMatrix)
   t1 := a.ElementType()
   t2 := x.ElementType()
-  if ok1 && ok2 && t1 == t2 {
+  if ok1 && ok2 && ok3 && t1 == t2 {
     if t1 == RealType && triangular == true {
-      return gaussJordanUpperTriangular_RealDense(ad, xd, b, submatrix)
+      return gaussJordanUpperTriangular_RealDense(ad, xd, bd, submatrix)
     } else if t1 == BareRealType && triangular == true {
-      return gaussJordanUpperTriangular_BareRealDense(ad, xd, b, submatrix)
+      return gaussJordanUpperTriangular_BareRealDense(ad, xd, bd, submatrix)
     } else if t1 == RealType && triangular == false {
-      return gaussJordan_RealDense(ad, xd, b, submatrix)
+      return gaussJordan_RealDense(ad, xd, bd, submatrix)
     } else if t1 == BareRealType && triangular == false {
-      return gaussJordan_BareRealDense(ad, xd, b, submatrix)
+      return gaussJordan_BareRealDense(ad, xd, bd, submatrix)
     }
   }
   // call generic gaussJordan

@@ -39,9 +39,9 @@ func NewLogSkewNormalDistribution(xi Vector, omega Matrix, alpha, scale Vector) 
   // dimension
   n, m := omega.Dims()
   // check parameter dimensions
-  if n != len(xi)     ||
-    (n != len(alpha)) ||
-    (n != len(scale)) ||
+  if n != xi   .Dim()  ||
+    (n != alpha.Dim()) ||
+    (n != scale.Dim()) ||
     (n != m) {
     panic("NewLogSkewNormalDistribution(): Parameter dimensions do not match!")
   }
@@ -50,7 +50,7 @@ func NewLogSkewNormalDistribution(xi Vector, omega Matrix, alpha, scale Vector) 
   kappa := NullMatrix(RealType, n, n)
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
-      kappa.At(i, j).Mul(Mul(scale[i], scale[j]), omega.At(i,j))
+      kappa.At(i, j).Mul(Mul(scale.At(i), scale.At(j)), omega.At(i,j))
     }
   }
   // parameters for the standard normal cdf
@@ -75,24 +75,24 @@ func (dist *LogSkewNormalDistribution) Clone() *LogSkewNormalDistribution {
   return &LogSkewNormalDistribution{
     Normal1: *dist.Normal1.Clone(),
     Normal2: *dist.Normal2.Clone(),
-    Omega  :  dist.Omega  .Clone(),
-    Alpha  :  dist.Alpha  .Clone(),
-    Scale  :  dist.Scale  .Clone() }
+    Omega  :  dist.Omega  .CloneMatrix(),
+    Alpha  :  dist.Alpha  .CloneVector(),
+    Scale  :  dist.Scale  .CloneVector() }
 }
 
 func (dist LogSkewNormalDistribution) Dim() int {
-  return len(dist.Alpha)
+  return dist.Alpha.Dim()
 }
 
 func (dist LogSkewNormalDistribution) LogPdf(r Scalar, x Vector) error {
   n := dist.Normal1.Dim()
   c := NewScalar(RealType, math.Log(2))
-  y := NullVector(RealType, n)
-  z := NullVector(RealType, n)
-  t := NullVector(RealType, 1)
+  y := NullDenseVector(RealType, n)
+  z := NullDenseVector(RealType, n)
+  t := NullDenseVector(RealType, 1)
   for i := 0; i < n; i++ {
-    y[i] = Log(Add(x[i], NewReal(1.0)))
-    z[i] = Div(Sub(y[i], dist.Normal1.Mu[i]), dist.Scale[i])
+    y[i] = Log(Add(x.At(i), NewReal(1.0)))
+    z[i] = Div(Sub(y.At(i), dist.Normal1.Mu.At(i)), dist.Scale.At(i))
   }
   t[0] = VdotV(dist.Alpha, z)
   // add the det Jacobian of the variable transform to the constant c
@@ -124,18 +124,18 @@ func (dist LogSkewNormalDistribution) Pdf(r Scalar, x Vector) error {
 
 func (dist *LogSkewNormalDistribution) GetParameters() Vector {
   p := dist.Normal1.Mu
-  p  = append(p, dist.Omega.Vector()...)
-  p  = append(p, dist.Alpha...)
-  p  = append(p, dist.Scale...)
+  p  = p.Append(dist.Omega.DenseVector()...)
+  p  = p.Append(dist.Alpha.DenseVector()...)
+  p  = p.Append(dist.Scale.DenseVector()...)
   return p
 }
 
 func (dist *LogSkewNormalDistribution) SetParameters(parameters Vector) error {
   n := dist.Dim()
-  xi    := parameters[0*n+0*n*n:1*n+0*n*n]
-  omega := parameters[1*n+0*n*n:1*n+1*n*n].Matrix(n, n)
-  alpha := parameters[1*n+1*n*n:2*n+1*n*n]
-  scale := parameters[2*n+1*n*n:3*n+1*n*n]
+  xi    := parameters.Slice(0*n+0*n*n,1*n+0*n*n)
+  omega := parameters.Slice(1*n+0*n*n,1*n+1*n*n).Matrix(n, n)
+  alpha := parameters.Slice(1*n+1*n*n,2*n+1*n*n)
+  scale := parameters.Slice(2*n+1*n*n,3*n+1*n*n)
   if tmp, err := NewLogSkewNormalDistribution(xi, omega, alpha, scale); err != nil {
     return err
   } else {

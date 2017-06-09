@@ -63,12 +63,12 @@ func (dist *LogCauchyDistribution) ScalarType() ScalarType {
 }
 
 func (dist *LogCauchyDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x[0].GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+  if v := x.At(0).GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
   }
   t := dist.t
-  r.Log(x[0])
+  r.Log(x.At(0))
   t.Set(r)
   r.Neg(r)
   t.Sub(t, dist.Mu)
@@ -92,14 +92,14 @@ func (dist *LogCauchyDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *LogCauchyDistribution) GetParameters() Vector {
-  p   := NilVector(2)
+  p   := NilDenseVector(2)
   p[0] = dist.Mu
   p[1] = dist.Sigma
   return p
 }
 
 func (dist *LogCauchyDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewLogCauchyDistribution(parameters[0], parameters[1]); err != nil {
+  if tmp, err := NewLogCauchyDistribution(parameters.At(0), parameters.At(1)); err != nil {
     return err
   } else {
     *dist = *tmp

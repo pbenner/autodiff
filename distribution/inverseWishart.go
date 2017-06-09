@@ -83,7 +83,7 @@ func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribu
 func (dist *InverseWishartDistribution) Clone() *InverseWishartDistribution {
   return &InverseWishartDistribution{
     Nu  : dist.Nu  .Clone(),
-    S   : dist.S   .Clone(),
+    S   : dist.S   .CloneMatrix(),
     SDet: dist.SDet.Clone(),
     d   : dist.d   .Clone(),
     c1  : dist.c1  .Clone(),
@@ -161,14 +161,14 @@ func (dist *InverseWishartDistribution) Pdf(r Scalar, x Matrix) error {
 
 func (dist *InverseWishartDistribution) GetParameters() Vector {
   p := dist.S.Vector()
-  p  = append(p, dist.Nu)
+  p  = p.Append(dist.Nu)
   return p
 }
 
 func (dist *InverseWishartDistribution) SetParameters(parameters Vector) error {
   n := dist.Dim()
-  s  := parameters[0:n*n].Matrix(n, n)
-  nu := parameters[n*n]
+  s  := parameters.Slice(0, n*n).Matrix(n, n)
+  nu := parameters.At(n*n)
   if tmp, err := NewInverseWishartDistribution(nu, s); err != nil {
     return err
   } else {

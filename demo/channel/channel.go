@@ -98,14 +98,14 @@ func distance(v1, v2 []float64) float64 {
  * -------------------------------------------------------------------------- */
 
 func hook_f(trace *[]float64, pxstar []float64, gradient Matrix, variables Vector, s Vector) bool {
-  n := (len(variables) - 1)/2
-  px  := NullVector(RealType, n)
+  n  := (variables.Dim() - 1)/2
+  px := make([]float64, n)
   // convert variables to probabilities
   for i := 0; i < n; i++ {
-    px[i].Exp(variables[i])
+    px[i] = math.Exp(variables.At(i).GetValue())
   }
   // distance to optimum
-  d := distance(px.Slice(), pxstar)
+  d := distance(px, pxstar)
   // append result to trace
   *trace = append(*trace, d)
 
@@ -126,36 +126,36 @@ func hook_b(trace *[]float64, pxstar []float64, px []float64) bool {
 
 func objective_f(channel Matrix, variables Vector) Scalar {
   n, m := channel.Dims()
-  if len(variables) != n+1 {
+  if variables.Dim() != n+1 {
     panic("Input vector has invalid dimension!")
   }
-  lambda := variables[n]
+  lambda := variables.At(n)
   result := NewReal(0.0)
   sum := NewReal(0.0)
   px  := NullVector(RealType, n)
   py  := NullVector(RealType, m)
   // convert variables to probabilities
   for i := 0; i < n; i++ {
-    px[i].Exp(variables[i])
+    px.At(i).Exp(variables.At(i))
   }
   // compute p(y) from p(y|x)*p(x)
   for j := 0; j < m; j++ {
-    py[j] = NewReal(0.0)
+    py.At(j).SetValue(0.0)
     for i := 0; i < n; i++ {
-      py[j] = Add(py[j], Mul(channel.At(i, j), px[i]))
+      py.At(j).Add(py.At(j), Mul(channel.At(i, j), px.At(i)))
     }
   }
   for j := 0; j < m; j++ {
     for i := 0; i < n; i++ {
       // compute joint probability
-      pxy := Mul(channel.At(i, j), px[i])
+      pxy := Mul(channel.At(i, j), px.At(i))
       // check if p(x) is zero
-      if px[i].GetValue() == 0.0 {
+      if px.At(i).GetValue() == 0.0 {
         result.Add(result, pxy)
       } else {
         // compute p(x,y) log p(x,y)/(p(x)p(y))
         result.Add(result,
-          Mul(pxy, Log(Div(pxy, Mul(px[i], py[j])))))
+          Mul(pxy, Log(Div(pxy, Mul(px.At(i), py.At(j))))))
       }
     }
   }
@@ -163,7 +163,7 @@ func objective_f(channel Matrix, variables Vector) Scalar {
   result.Neg(result)
   // add constraint
   for i := 0; i < n; i++ {
-    sum.Add(sum, px[i])
+    sum.Add(sum, px.At(i))
   }
   result.Add(result, Mul(lambda, Sub(sum, NewReal(1.0))))
 

@@ -50,7 +50,7 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   if n != m {
     panic("NewTDistribution(): sigma is not a square matrix!")
   }
-  if n != len(mu) {
+  if n != mu.Dim() {
     panic("NewTDistribution(): dimensions of mu and sigma do not match!")
   }
   sigmaInv, err := matrixInverse.Run(sigma, matrixInverse.PositiveDefinite{true})
@@ -74,7 +74,7 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
 
   result := TDistribution{
     Nu      : nu.Clone(),
-    Mu      : mu.Clone(),
+    Mu      : mu.CloneVector(),
     Sigma   : sigma,
     SigmaInv: sigmaInv,
     SigmaDet: sigmaDet,
@@ -92,26 +92,26 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
 func (dist *TDistribution) Clone() *TDistribution {
   return &TDistribution{
     Nu      : dist.Nu      .Clone(),
-    Mu      : dist.Mu      .Clone(),
-    Sigma   : dist.Sigma   .Clone(),
-    SigmaInv: dist.SigmaInv.Clone(),
+    Mu      : dist.Mu      .CloneVector(),
+    Sigma   : dist.Sigma   .CloneMatrix(),
+    SigmaInv: dist.SigmaInv.CloneMatrix(),
     SigmaDet: dist.SigmaDet.Clone(),
     c1      : dist.c1      .Clone(),
     np      : dist.np      .Clone(),
-    t1      : dist.t1      .Clone(),
-    t2      : dist.t2      .Clone(),
+    t1      : dist.t1      .CloneVector(),
+    t2      : dist.t2      .CloneVector(),
     z       : dist.z       .Clone() }
 }
 
 func (dist *TDistribution) Dim() int {
-  return len(dist.Mu)
+  return dist.Mu.Dim()
 }
 
 func (dist *TDistribution) Mean() Vector {
   if dist.Nu.GetValue() <= 1.0 {
     panic("mean undefined for given parameters")
   }
-  return dist.Mu.Clone()
+  return dist.Mu.CloneVector()
 }
 
 func (dist *TDistribution) Variance() Vector {

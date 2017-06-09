@@ -374,20 +374,20 @@ func (c *BareReal) GammaP(a float64, x Scalar) Scalar {
 
 func (r *BareReal) Vmean(a Vector) Scalar {
   r.Reset()
-  for i := 0; i < len(a); i++ {
-    r.Add(r, a[i])
+  for i := 0; i < a.Dim(); i++ {
+    r.Add(r, a.At(i))
   }
-  return r.Div(r, NewBareReal(float64(len(a))))
+  return r.Div(r, NewBareReal(float64(a.Dim())))
 }
 
 func (r *BareReal) VdotV(a, b Vector) Scalar {
-  if len(a) != len(b) {
+  if a.Dim() != b.Dim() {
     panic("vector dimensions do not match")
   }
   r.Reset()
   t := NullBareReal()
-  for i := 0; i < len(a); i++ {
-    t.Mul(a[i], b[i])
+  for i := 0; i < a.Dim(); i++ {
+    t.Mul(a.At(i), b.At(i))
     r.Add(r, t)
   }
   return r
@@ -397,8 +397,8 @@ func (r *BareReal) Vnorm(a Vector) Scalar {
   r.Reset()
   c := NewBareReal(2.0)
   t := NullScalar(a.ElementType())
-  for i := 0; i < len(a); i++ {
-    t.Pow(a[i], c)
+  for i := 0; i < a.Dim(); i++ {
+    t.Pow(a.At(i), c)
     r.Add(r, t)
   }
   r.Sqrt(r)

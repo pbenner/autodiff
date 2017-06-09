@@ -20,11 +20,11 @@ package autodiff
 
 // Test if elements in a equal elements in b.
 func Vequal(a, b Vector) bool {
-  if len(a) != len(b) {
+  if a.Dim() != b.Dim() {
     panic("VEqual(): Vector dimensions do not match!")
   }
-  for i, _ := range (a) {
-    if !Equal(a[i], b[i]) {
+  for i := 0; i < a.Dim(); i++ {
+    if !Equal(a.At(i), b.At(i)) {
       return false
     }
   }
@@ -34,20 +34,20 @@ func Vequal(a, b Vector) bool {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise addition of two vectors. The result is stored in r.
-func (r Vector) VaddV(a, b Vector) Vector {
+func (r DenseVector) VaddV(a, b Vector) Vector {
   n := len(r)
-  if len(a) != n || len(b) != n {
+  if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Add(a[i], b[i])
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Add(a.At(i), b.At(i))
   }
   return r
 }
 
 // Element-wise addition of two vectors.
 func VaddV(a, b Vector) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VaddV(a, b)
   return r
 }
@@ -55,20 +55,20 @@ func VaddV(a, b Vector) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise addition of a vector and a scalar. The result is stored in r.
-func (r Vector) VaddS(a Vector, b Scalar) Vector {
+func (r DenseVector) VaddS(a Vector, b Scalar) Vector {
   n := len(r)
-  if len(a) != n {
+  if a.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Add(a[i], b)
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Add(a.At(i), b)
   }
   return r
 }
 
 // Element-wise addition of a vector and a scalar.
 func VaddS(a Vector, b Scalar) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VaddS(a, b)
   return r
 }
@@ -76,20 +76,20 @@ func VaddS(a Vector, b Scalar) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise substraction of two vectors. The result is stored in r.
-func (r Vector) VsubV(a, b Vector) Vector {
+func (r DenseVector) VsubV(a, b Vector) Vector {
   n := len(r)
-  if len(a) != n || len(b) != n {
+  if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Sub(a[i], b[i])
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Sub(a.At(i), b.At(i))
   }
   return r
 }
 
 // Element-wise substraction of two vectors.
 func VsubV(a, b Vector) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VsubV(a, b)
   return r
 }
@@ -97,20 +97,20 @@ func VsubV(a, b Vector) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
-func (r Vector) VsubS(a Vector, b Scalar) Vector {
+func (r DenseVector) VsubS(a Vector, b Scalar) Vector {
   n := len(r)
-  if len(a) != n {
+  if a.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Sub(a[i], b)
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Sub(a.At(i), b)
   }
   return r
 }
 
 // Element-wise substractor of a vector and a scalar.
 func VsubS(a Vector, b Scalar) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VsubS(a, b)
   return r
 }
@@ -118,20 +118,20 @@ func VsubS(a Vector, b Scalar) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise multiplication of two vectors. The result is stored in r.
-func (r Vector) VmulV(a Vector, b Vector) Vector {
+func (r DenseVector) VmulV(a Vector, b Vector) Vector {
   n := len(r)
-  if len(a) != n || len(b) != n {
+  if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Mul(a[i], b[i])
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Mul(a.At(i), b.At(i))
   }
   return r
 }
 
 // Element-wise multiplication of two vectors.
 func VmulV(a Vector, b Vector) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VmulV(a, b)
   return r
 }
@@ -139,20 +139,20 @@ func VmulV(a Vector, b Vector) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
-func (r Vector) VmulS(a Vector, s Scalar) Vector {
+func (r DenseVector) VmulS(a Vector, s Scalar) Vector {
   n := len(r)
-  if len(a) != n {
+  if a.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Mul(a[i], s)
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Mul(a.At(i), s)
   }
   return r
 }
 
 // Element-wise substraction of a vector and a scalar.
 func VmulS(a Vector, s Scalar) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VmulS(a, s)
   return r
 }
@@ -160,20 +160,20 @@ func VmulS(a Vector, s Scalar) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise division of two vectors. The result is stored in r.
-func (r Vector) VdivV(a Vector, b Vector) Vector {
+func (r DenseVector) VdivV(a Vector, b Vector) Vector {
   n := len(r)
-  if len(a) != n || len(b) != n {
+  if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Div(a[i], b[i])
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Div(a.At(i), b.At(i))
   }
   return r
 }
 
 // Element-wise division of two vectors.
 func VdivV(a Vector, b Vector) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VdivV(a, b)
   return r
 }
@@ -181,20 +181,20 @@ func VdivV(a Vector, b Vector) Vector {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise division of a vector and a scalar. The result is stored in r.
-func (r Vector) VdivS(a Vector, s Scalar) Vector {
+func (r DenseVector) VdivS(a Vector, s Scalar) Vector {
   n := len(r)
-  if len(a) != n {
+  if a.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for i := 0; i < len(a); i++ {
-    r[i].Div(a[i], s)
+  for i := 0; i < a.Dim(); i++ {
+    r[i].Div(a.At(i), s)
   }
   return r
 }
 
 // Element-wise division of a vector and a scalar.
 func VdivS(a Vector, s Scalar) Vector {
-  r := NullVector(a.ElementType(), len(a))
+  r := NullVector(a.ElementType(), a.Dim())
   r.VdivS(a, s)
   return r
 }

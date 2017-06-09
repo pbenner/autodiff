@@ -172,7 +172,7 @@ Compare vanilla gradient descent with resilient backpropagation
 
   f := func(x Vector) Scalar {
     // x^4 - 3x^3 + 2
-    return Add(Sub(Pow(x[0], NewReal(4)), Mul(NewReal(3), Pow(x[0], NewReal(3)))), NewReal(2))
+    return Add(Sub(Pow(x.At(0), NewReal(4)), Mul(NewReal(3), Pow(x.At(0), NewReal(3)))), NewReal(2))
   }
   x0 := NewVector(RealType, []float64{8})
   // vanilla gradient descent
@@ -213,11 +213,11 @@ Find the root of a function *f* with initial value *x0 = (1,1)*
   import   "github.com/pbenner/autodiff/algorithm/newton"
 
   f := func(x Vector) Vector {
-    y := NilVector(2)
+    y := NilDenseVector(2)
     // y1 = x1^2 + x2^2 - 6
     // y2 = x1^3 - x2^2
-    y[0] = Sub(Add(Pow(x[0], NewReal(2)), Pow(x[1], NewReal(2))), NewReal(6))
-    y[1] = Sub(Pow(x[0], NewReal(3)), Pow(x[1], NewReal(2)))
+    y[0] = Sub(Add(Pow(x.At(0), NewReal(2)), Pow(x.At(1), NewReal(2))), NewReal(6))
+    y[1] = Sub(Pow(x.At(0), NewReal(3)), Pow(x.At(1), NewReal(2)))
 
     return y
   }
@@ -242,8 +242,8 @@ Compare Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
      // minimum: (x1,x2) = (a, a^2)
      a := NewReal(  1.0)
      b := NewReal(100.0)
-     s := Pow(Sub(a, x[0]), NewReal(2.0))
-     t := Mul(b, Pow(Sub(x[1], Mul(x[0], x[0])), NewReal(2.0)))
+     s := Pow(Sub(a, x.At(0)), NewReal(2.0))
+     t := Mul(b, Pow(Sub(x.At(1), Mul(x.At(0), x.At(0))), NewReal(2.0)))
      return Add(s, t), nil
    }
   hook_bfgs := func(x, gradient Vector, y Scalar) bool {
@@ -296,7 +296,7 @@ Maximize the function *f(x, y) = x + y* subject to *x^2 + y^2 = 1* by finding th
   // define the Lagrangian
   f := func(x Vector) (Scalar, error) {
     // x + y + lambda(x^2 + y^2 - 1)
-    y := Add(Add(x[0], x[1]), Mul(x[2], Sub(Add(Mul(x[0], x[0]), Mul(x[1], x[1])), NewReal(1))))
+    y := Add(Add(x.At(0), x.At(1)), Mul(x.At(2), Sub(Add(Mul(x.At(0), x.At(0)), Mul(x.At(1), x.At(1))), NewReal(1))))
 
     return y, nil
   }

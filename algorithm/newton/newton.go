@@ -71,8 +71,8 @@ type InSitu struct {
 /* -------------------------------------------------------------------------- */
 
 func Vequals(x1, x2 Vector) bool {
-  for i := 0; i < len(x1); i++ {
-    if x1[i].GetValue() != x2[i].GetValue() {
+  for i := 0; i < x1.Dim(); i++ {
+    if x1.At(i).GetValue() != x2.At(i).GetValue() {
       return false
     }
   }
@@ -86,7 +86,7 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
     inSitu.QR.InitializeH = true
     inSitu.QR.InitializeU = true
     h, u, _ := qrAlgorithm.Run(H, &inSitu.QR, qrAlgorithm.Shift{true})
-    for i := 0; i < len(g); i++ {
+    for i := 0; i < g.Dim(); i++ {
         r := h.At(i, i)
       // elements on the diagonal are the eigenvalues, force them
       // to be positive
@@ -114,7 +114,7 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
     }
     c1 := NewBareReal(1.0)
     // invert D
-    for i := 0; i < len(g); i++ {
+    for i := 0; i < g.Dim(); i++ {
       D.At(i, i).Div(c1, D.At(i, i))
     }
     D.MdotM(Q, D)
@@ -147,8 +147,8 @@ func newton_root(f objective_root, x Vector,
   hessianModification HessianModification,
   inSitu *InSitu,
   options []interface{}) (Vector, error) {
-  x1 := x.Clone()
-  x2 := x.Clone()
+  x1 := x.CloneVector()
+  x2 := x.CloneVector()
   // variables for lineSearch
   c  := NewBareReal(0.9)
 
@@ -163,7 +163,7 @@ func newton_root(f objective_root, x Vector,
   }
   // allocate temporary memory
   if inSitu.T1 == nil {
-    inSitu.T1 = NullVector(y.ElementType(), len(y))
+    inSitu.T1 = NullVector(y.ElementType(), y.Dim())
   }
   if inSitu.T2 == nil {
     inSitu.T2 = NullScalar(y.ElementType())
@@ -233,8 +233,8 @@ func newton_min(
   hessianModification HessianModification,
   inSitu *InSitu,
   options []interface{}) (Vector, error) {
-  x1 := x.Clone()
-  x2 := x.Clone()
+  x1 := x.CloneVector()
+  x2 := x.CloneVector()
   // variables for lineSearch
   c  := NewBareReal(0.9)
   var y1 Scalar
@@ -255,7 +255,7 @@ func newton_min(
   }
   // allocate temporary memory
   if inSitu.T1 == nil {
-    inSitu.T1 = NullVector(g.ElementType(), len(g))
+    inSitu.T1 = NullVector(g.ElementType(), g.Dim())
   }
   if inSitu.T2 == nil {
     inSitu.T2 = NullScalar(g.ElementType())
@@ -409,7 +409,7 @@ func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Ve
   var J Matrix
   var y Vector
   // copy of x for computing derivatives
-  X := x.Clone()
+  X := x.CloneVector()
   X.ConvertElementType(RealType)
   // objective function
   f := func(x Vector) (Vector, Matrix, error) {
@@ -421,19 +421,19 @@ func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Ve
       return nil, nil, err
     }
     if y == nil {
-      y = NullVector(BareRealType, len(Y))
+      y = NullVector(BareRealType, Y.Dim())
     }
     if J == nil {
-      J = NullMatrix(BareRealType, len(y), len(x))
+      J = NullMatrix(BareRealType, y.Dim(), x.Dim())
     }
     // copy values to y
-    for i := 0; i < len(y); i++ {
-      y[i].SetValue(Y[i].GetValue())
+    for i := 0; i < y.Dim(); i++ {
+      y.At(i).SetValue(Y.At(i).GetValue())
     }
     // copy derivatives to J
-    for i := 0; i < len(y); i++ {
-      for j := 0; j < len(x); j++ {
-        J.At(i, j).SetValue(Y[i].GetDerivative(j))
+    for i := 0; i < y.Dim(); i++ {
+      for j := 0; j < x.Dim(); j++ {
+        J.At(i, j).SetValue(Y.At(i).GetDerivative(j))
       }
     }
     return y, J, nil
@@ -443,14 +443,14 @@ func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Ve
 
 func RunCrit(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vector, error) {
 
-  n := len(x)
+  n := x.Dim()
   y := NullBareReal()
   g :=      NullVector(BareRealType, n)
   H := NullMatrix(BareRealType, n, n)
   // copy of x for computing derivatives
-  X := x.Clone()
+  X := x.CloneVector()
   X.ConvertElementType(RealType)
-  P := x.Clone()
+  P := x.CloneVector()
   P.ConvertElementType(RealType)
   // objective function
   f := func(x Vector) (Vector, Matrix, error) {
@@ -465,7 +465,7 @@ func RunCrit(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Ve
     y.SetValue(Y.GetValue())
     // copy derivatives to g
     for i := 0; i < n; i++ {
-      g[i].SetValue(Y.GetDerivative(i))
+      g.At(i).SetValue(Y.GetDerivative(i))
     }
     // copy Hessian to H
     for i := 0; i < n; i++ {
@@ -480,14 +480,14 @@ func RunCrit(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Ve
 
 func RunMin(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vector, error) {
 
-  n := len(x)
+  n := x.Dim()
   y := NullBareReal()
   g :=      NullVector(BareRealType, n)
   H := NullMatrix(BareRealType, n, n)
   // copy of x for computing derivatives
-  X := x.Clone()
+  X := x.CloneVector()
   X.ConvertElementType(RealType)
-  P := x.Clone()
+  P := x.CloneVector()
   P.ConvertElementType(RealType)
   // objective function
   f := func(x Vector) (Scalar, Vector, Matrix, error) {
@@ -502,7 +502,7 @@ func RunMin(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vec
     y.SetValue(Y.GetValue())
     // copy derivatives to g
     for i := 0; i < n; i++ {
-      g[i].SetValue(Y.GetDerivative(i))
+      g.At(i).SetValue(Y.GetDerivative(i))
     }
     // copy Hessian to H
     for i := 0; i < n; i++ {

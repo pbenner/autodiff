@@ -61,7 +61,7 @@ func (dist *LaplaceDistribution) Dim() int {
 
 func (dist *LaplaceDistribution) LogPdf(r Scalar, x Vector) error {
 
-  r.Sub(x[0], dist.Mu)
+  r.Sub(x.At(0), dist.Mu)
   r.Abs(r)
   r.Div(r, dist.Sigma)
   r.Neg(r)
@@ -82,14 +82,14 @@ func (dist *LaplaceDistribution) Pdf(r Scalar, x Vector) error {
 
 func (dist *LaplaceDistribution) LogCdf(r Scalar, x Vector) error {
 
-  r.Sub(x[0], dist.Mu)
+  r.Sub(x.At(0), dist.Mu)
   r.Abs(r)
   r.Div(r, dist.Sigma)
   r.Neg(r)
   r.Exp(r)
   r.Div(r, dist.c2)
 
-  if x[0].Greater(dist.Mu) {
+  if x.At(0).Greater(dist.Mu) {
     r.Neg(r)
     r.Add(r, dist.c1)
   }
@@ -107,15 +107,15 @@ func (dist *LaplaceDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *LaplaceDistribution) GetParameters() Vector {
-  p := NilVector(2)
+  p := NilDenseVector(2)
   p[0] = dist.Mu
   p[1] = dist.Sigma
   return p
 }
 
 func (dist *LaplaceDistribution) SetParameters(parameters Vector) error {
-  mu    := parameters[0]
-  sigma := parameters[1]
+  mu    := parameters.At(0)
+  sigma := parameters.At(1)
   if tmp, err := NewLaplaceDistribution(mu, sigma); err != nil {
     return err
   } else {
