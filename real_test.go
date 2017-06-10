@@ -61,7 +61,7 @@ func TestDiff1(t *testing.T) {
 func TestDiff2(t *testing.T) {
 
   f := func(x Scalar) Scalar {
-    y := x.Clone()
+    y := x.CloneScalar()
     y.Pow(y, NewBareReal(3))
     y.Mul(y, NewReal(2))
     y.Add(y, NewReal(4))

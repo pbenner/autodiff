@@ -40,8 +40,8 @@ func NewLogCauchyDistribution(mu, sigma Scalar) (*LogCauchyDistribution, error) 
     return nil, fmt.Errorf("invalid parameters")
   }
   dist := LogCauchyDistribution{}
-  dist.Mu    = mu   .Clone()
-  dist.Sigma = sigma.Clone()
+  dist.Mu    = mu   .CloneScalar()
+  dist.Sigma = sigma.CloneScalar()
   dist.s2    = Mul(sigma, sigma)
   dist.z     = Sub(Log(sigma), Log(NewBareReal(math.Pi)))
   return &dist, nil
@@ -49,7 +49,7 @@ func NewLogCauchyDistribution(mu, sigma Scalar) (*LogCauchyDistribution, error) 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *LogCauchyDistribution) Clone() *LogCauchyDistribution {
+func (dist *LogCauchyDistribution) CloneScalar() *LogCauchyDistribution {
   r, _ := NewLogCauchyDistribution(dist.Mu, dist.Sigma)
   return r
 }

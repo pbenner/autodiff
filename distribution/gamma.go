@@ -41,9 +41,9 @@ func NewGammaDistribution(alpha, beta Scalar) (*GammaDistribution, error) {
   }
   t := alpha.Type()
   dist := GammaDistribution{}
-  dist.Alpha = alpha.Clone()
-  dist.Beta  = beta .Clone()
-  dist.Omega = alpha.Clone()
+  dist.Alpha = alpha.CloneScalar()
+  dist.Beta  = beta .CloneScalar()
+  dist.Omega = alpha.CloneScalar()
   dist.Omega.Sub(dist.Omega, NewScalar(t, 1.0))
   dist.Z     = Sub(Mul(alpha, Log(beta)), Lgamma(alpha))
   dist.t     = NewScalar(t, 0.0)
@@ -52,7 +52,7 @@ func NewGammaDistribution(alpha, beta Scalar) (*GammaDistribution, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GammaDistribution) Clone() *GammaDistribution {
+func (dist *GammaDistribution) CloneScalar() *GammaDistribution {
   r, _ := NewGammaDistribution(dist.Alpha, dist.Beta)
   return r
 }

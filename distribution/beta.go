@@ -45,20 +45,20 @@ func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, 
   }
   t := alpha.Type()
   dist := BetaDistribution{}
-  dist.Alpha = alpha.Clone()
-  dist.Beta  = beta .Clone()
-  dist.as1 = alpha.Clone()
-  dist.bs1 = beta .Clone()
+  dist.Alpha = alpha.CloneScalar()
+  dist.Beta  = beta .CloneScalar()
+  dist.as1 = alpha.CloneScalar()
+  dist.bs1 = beta .CloneScalar()
   dist.as1.Sub(alpha, NewBareReal(1.0))
   dist.bs1.Sub(beta,  NewBareReal(1.0))
   dist.logScale = logScale
 
-  t1 := alpha.Clone()
+  t1 := alpha.CloneScalar()
   t1.Add(t1, beta)
   t1.Lgamma(t1)
-  t2 := alpha.Clone()
+  t2 := alpha.CloneScalar()
   t2.Lgamma(t2)
-  t3 := beta .Clone()
+  t3 := beta .CloneScalar()
   t3.Lgamma(t3)
   t1.Sub(t1, t2)
   t1.Sub(t1, t3)
@@ -75,7 +75,7 @@ func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *BetaDistribution) Clone() *BetaDistribution {
+func (dist *BetaDistribution) CloneScalar() *BetaDistribution {
   r, _ := NewBetaDistribution(dist.Alpha, dist.Beta, dist.logScale)
   return r
 }

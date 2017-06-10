@@ -73,7 +73,7 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   z.Sub(z, Mul(d2, Log(Mul(nu, NewReal(math.Pi)))))
 
   result := TDistribution{
-    Nu      : nu.Clone(),
+    Nu      : nu.CloneScalar(),
     Mu      : mu.CloneVector(),
     Sigma   : sigma,
     SigmaInv: sigmaInv,
@@ -89,18 +89,18 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *TDistribution) Clone() *TDistribution {
+func (dist *TDistribution) CloneScalar() *TDistribution {
   return &TDistribution{
-    Nu      : dist.Nu      .Clone(),
+    Nu      : dist.Nu      .CloneScalar(),
     Mu      : dist.Mu      .CloneVector(),
     Sigma   : dist.Sigma   .CloneMatrix(),
     SigmaInv: dist.SigmaInv.CloneMatrix(),
-    SigmaDet: dist.SigmaDet.Clone(),
-    c1      : dist.c1      .Clone(),
-    np      : dist.np      .Clone(),
+    SigmaDet: dist.SigmaDet.CloneScalar(),
+    c1      : dist.c1      .CloneScalar(),
+    np      : dist.np      .CloneScalar(),
     t1      : dist.t1      .CloneVector(),
     t2      : dist.t2      .CloneVector(),
-    z       : dist.z       .Clone() }
+    z       : dist.z       .CloneScalar() }
 }
 
 func (dist *TDistribution) Dim() int {

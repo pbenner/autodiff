@@ -368,7 +368,7 @@ func Outer(a, b Vector) Matrix {
 
 // Returns the trace of a.
 func Mtrace(a Matrix) Scalar {
-  r := a.At(0, 0).Clone()
+  r := a.At(0, 0).CloneScalar()
   r.Mtrace(a)
   return r
 }

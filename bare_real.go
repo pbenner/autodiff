@@ -51,8 +51,12 @@ func NullBareReal() *BareReal {
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) Clone() Scalar {
+func (a *BareReal) Clone() *BareReal {
   return NewBareReal(float64(*a))
+}
+
+func (a *BareReal) CloneScalar() Scalar {
+  return a.Clone()
 }
 
 func (a *BareReal) Type() ScalarType {

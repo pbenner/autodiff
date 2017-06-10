@@ -46,7 +46,7 @@ func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error)
   }
   result := CategoricalDistribution{
     Theta: theta,
-    t    : theta.At(0).Clone() }
+    t    : theta.At(0).CloneScalar() }
 
   return &result, nil
 
@@ -54,10 +54,10 @@ func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error)
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *CategoricalDistribution) Clone() *CategoricalDistribution {
+func (dist *CategoricalDistribution) CloneScalar() *CategoricalDistribution {
   return &CategoricalDistribution{
-    Theta : dist.Theta.Clone(),
-    t     : dist.t    .Clone() }
+    Theta : dist.Theta.CloneScalar(),
+    t     : dist.t    .CloneScalar() }
 }
 
 func (dist *CategoricalDistribution) ScalarType() ScalarType {

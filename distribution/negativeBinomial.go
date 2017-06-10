@@ -46,21 +46,21 @@ func NewNegativeBinomialDistribution(r, p Scalar) (*NegativeBinomialDistribution
   t := r.Type()
 
   // (1-p)^r
-  t1 := p.Clone()
+  t1 := p.CloneScalar()
   t1.Sub(NewBareReal(1.0), t1)
   t1.Log(t1)
   t1.Mul(t1, r)
 
   // Gamma(r)
-  t2 := r.Clone()
+  t2 := r.CloneScalar()
   t2.Lgamma(t2)
 
   // p^r / Gamma(r)
   t1.Sub(t1, t2)
   
   dist := NegativeBinomialDistribution{}
-  dist.R  = r.Clone()
-  dist.P  = p.Clone()
+  dist.R  = r.CloneScalar()
+  dist.P  = p.CloneScalar()
   dist.p  = Log(p)
   dist.z  = t1
   dist.c1 = NewScalar(t, 1.0)
@@ -71,7 +71,7 @@ func NewNegativeBinomialDistribution(r, p Scalar) (*NegativeBinomialDistribution
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *NegativeBinomialDistribution) Clone() *NegativeBinomialDistribution {
+func (dist *NegativeBinomialDistribution) CloneScalar() *NegativeBinomialDistribution {
   r, _ := NewNegativeBinomialDistribution(dist.R, dist.P)
   return r
 }

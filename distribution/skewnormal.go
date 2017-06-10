@@ -93,17 +93,17 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *SkewNormalDistribution) Clone() *SkewNormalDistribution {
+func (dist *SkewNormalDistribution) CloneScalar() *SkewNormalDistribution {
   return &SkewNormalDistribution{
-    Normal1: *dist.Normal1.Clone(),
-    Normal2: *dist.Normal2.Clone(),
+    Normal1: *dist.Normal1.CloneScalar(),
+    Normal2: *dist.Normal2.CloneScalar(),
     Xi     :  dist.Xi     .CloneVector(),
     Omega  :  dist.Omega  .CloneMatrix(),
     Alpha  :  dist.Alpha  .CloneVector(),
     Scale  :  dist.Scale  .CloneVector(),
-    l2     :  dist.l2     .Clone(),
-    r1     :  dist.r1     .Clone(),
-    r2     :  dist.r2     .Clone(),
+    l2     :  dist.l2     .CloneScalar(),
+    r1     :  dist.r1     .CloneScalar(),
+    r2     :  dist.r2     .CloneScalar(),
     t      :  dist.t      .CloneVector(),
     z      :  dist.z      .CloneVector() }
 }

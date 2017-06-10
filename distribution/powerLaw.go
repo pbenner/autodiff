@@ -44,17 +44,17 @@ func NewPowerLawDistribution(alpha, xmin, epsilon Scalar) (*PowerLawDistribution
   }
   c1 := NewBareReal(1.0)
   // some constants
-  ca := alpha.Clone()
+  ca := alpha.CloneScalar()
   ca.Sub(c1, alpha)
-  cz := alpha.Clone()
+  cz := alpha.CloneScalar()
   cz.Sub(alpha, c1)
   cz.Div(cz, xmin)
   cz.Log(cz)
 
   result := PowerLawDistribution{
-    Alpha  : alpha  .Clone(),
-    Xmin   : xmin   .Clone(),
-    Epsilon: epsilon.Clone(),
+    Alpha  : alpha  .CloneScalar(),
+    Xmin   : xmin   .CloneScalar(),
+    Epsilon: epsilon.CloneScalar(),
     ca     : ca,
     cz     : cz }
 
@@ -63,13 +63,13 @@ func NewPowerLawDistribution(alpha, xmin, epsilon Scalar) (*PowerLawDistribution
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *PowerLawDistribution) Clone() *PowerLawDistribution {
+func (dist *PowerLawDistribution) CloneScalar() *PowerLawDistribution {
   return &PowerLawDistribution{
-    Alpha  : dist.Alpha  .Clone(),
-    Xmin   : dist.Xmin   .Clone(),
-    Epsilon: dist.Epsilon.Clone(),
-    ca     : dist.ca     .Clone(),
-    cz     : dist.cz     .Clone() }
+    Alpha  : dist.Alpha  .CloneScalar(),
+    Xmin   : dist.Xmin   .CloneScalar(),
+    Epsilon: dist.Epsilon.CloneScalar(),
+    ca     : dist.ca     .CloneScalar(),
+    cz     : dist.cz     .CloneScalar() }
 }
 
 func (dist *PowerLawDistribution) Dim() int {

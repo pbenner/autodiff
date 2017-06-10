@@ -53,10 +53,14 @@ func NullReal() *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (a *Real) Clone() Scalar {
+func (a *Real) Clone() *Real {
   r := NewReal(0.0)
   r.Copy(a)
   return r
+}
+
+func (a *Real) CloneScalar() Scalar {
+  return a.Clone()
 }
 
 func (a *Real) Type() ScalarType {

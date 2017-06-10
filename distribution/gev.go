@@ -51,9 +51,9 @@ func NewGevDistribution(mu, sigma, xi Scalar) (*GevDistribution, error) {
   cy.Add(cy, c1)
 
   result := GevDistribution{
-    Mu    : mu   .Clone(),
-    Sigma : sigma.Clone(),
-    Xi    : xi   .Clone(),
+    Mu    : mu   .CloneScalar(),
+    Sigma : sigma.CloneScalar(),
+    Xi    : xi   .CloneScalar(),
     c1    : c1,
     cx    : cx,
     cy    : cy,
@@ -65,15 +65,15 @@ func NewGevDistribution(mu, sigma, xi Scalar) (*GevDistribution, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GevDistribution) Clone() *GevDistribution {
+func (dist *GevDistribution) CloneScalar() *GevDistribution {
   return &GevDistribution{
-    Mu    : dist.Mu   .Clone(),
-    Sigma : dist.Sigma.Clone(),
-    Xi    : dist.Xi   .Clone(),
-    c1    : dist.c1   .Clone(),
-    cx    : dist.cx   .Clone(),
-    cy    : dist.cy   .Clone(),
-    t     : dist.t    .Clone() }
+    Mu    : dist.Mu   .CloneScalar(),
+    Sigma : dist.Sigma.CloneScalar(),
+    Xi    : dist.Xi   .CloneScalar(),
+    c1    : dist.c1   .CloneScalar(),
+    cx    : dist.cx   .CloneScalar(),
+    cy    : dist.cy   .CloneScalar(),
+    t     : dist.t    .CloneScalar() }
 }
 
 func (dist *GevDistribution) Dim() int {

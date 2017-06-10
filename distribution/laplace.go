@@ -36,8 +36,8 @@ type LaplaceDistribution struct {
 func NewLaplaceDistribution(mu, sigma Scalar) (*LaplaceDistribution, error) {
 
   result := LaplaceDistribution{}
-  result.Mu    = mu   .Clone()
-  result.Sigma = sigma.Clone()
+  result.Mu    = mu   .CloneScalar()
+  result.Sigma = sigma.CloneScalar()
   result.c1    = NewScalar(mu.Type(), 1.0)
   result.c2    = NewScalar(mu.Type(), 2.0)
 
@@ -47,12 +47,12 @@ func NewLaplaceDistribution(mu, sigma Scalar) (*LaplaceDistribution, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *LaplaceDistribution) Clone() *LaplaceDistribution {
+func (dist *LaplaceDistribution) CloneScalar() *LaplaceDistribution {
   return &LaplaceDistribution{
-    Mu      : dist.Mu   .Clone(),
-    Sigma   : dist.Sigma.Clone(),
-    c1      : dist.c1   .Clone(),
-    c2      : dist.c2   .Clone() }
+    Mu      : dist.Mu   .CloneScalar(),
+    Sigma   : dist.Sigma.CloneScalar(),
+    c1      : dist.c1   .CloneScalar(),
+    c2      : dist.c2   .CloneScalar() }
 }
 
 func (dist *LaplaceDistribution) Dim() int {

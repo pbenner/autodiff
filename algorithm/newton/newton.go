@@ -250,8 +250,8 @@ func newton_min(
     return nil, err
   }
   if y != nil {
-    y1 = y.Clone()
-    y2 = y.Clone()
+    y1 = y.CloneScalar()
+    y2 = y.CloneScalar()
   }
   // allocate temporary memory
   if inSitu.T1 == nil {

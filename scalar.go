@@ -54,49 +54,49 @@ type ScalarState interface {
 
 type Scalar interface {
   ScalarState
-  Clone     ()                Scalar
+  CloneScalar()                Scalar
   // type reflections
-  Type      ()                ScalarType
+  Type       ()                ScalarType
   // some basic operations on scalars
-  Equals    (Scalar)          bool
-  Greater   (Scalar)          bool
-  Smaller   (Scalar)          bool
-  Min       (Scalar, Scalar)  Scalar
-  Max       (Scalar, Scalar)  Scalar
-  Abs       (Scalar)          Scalar
-  Sign      ()                int
-  Neg       (Scalar)          Scalar
-  Add       (Scalar, Scalar)  Scalar
-  Sub       (Scalar, Scalar)  Scalar
-  Mul       (Scalar, Scalar)  Scalar
-  Div       (Scalar, Scalar)  Scalar
+  Equals     (Scalar)          bool
+  Greater    (Scalar)          bool
+  Smaller    (Scalar)          bool
+  Min        (Scalar, Scalar)  Scalar
+  Max        (Scalar, Scalar)  Scalar
+  Abs        (Scalar)          Scalar
+  Sign       ()                int
+  Neg        (Scalar)          Scalar
+  Add        (Scalar, Scalar)  Scalar
+  Sub        (Scalar, Scalar)  Scalar
+  Mul        (Scalar, Scalar)  Scalar
+  Div        (Scalar, Scalar)  Scalar
   // add/substract the first two variables on log-scale,
   // take the third argument as a temporary variable
-  LogAdd    (Scalar, Scalar, Scalar)  Scalar
-  LogSub    (Scalar, Scalar, Scalar)  Scalar
-  Pow       (Scalar, Scalar)  Scalar
-  Sqrt      (Scalar)          Scalar
-  Sin       (Scalar)          Scalar
-  Sinh      (Scalar)          Scalar
-  Cos       (Scalar)          Scalar
-  Cosh      (Scalar)          Scalar
-  Tan       (Scalar)          Scalar
-  Tanh      (Scalar)          Scalar
-  Exp       (Scalar)          Scalar
-  Log       (Scalar)          Scalar
-  Log1p     (Scalar)          Scalar
-  Erf       (Scalar)          Scalar
-  Erfc      (Scalar)          Scalar
-  LogErfc   (Scalar)          Scalar
-  Gamma     (Scalar)          Scalar
-  Lgamma    (Scalar)          Scalar
-  Mlgamma   (Scalar, int)     Scalar // multivariate log gamma
-  GammaP    (float64, Scalar) Scalar // regularized lower incomplete gamma
+  LogAdd     (Scalar, Scalar, Scalar)  Scalar
+  LogSub     (Scalar, Scalar, Scalar)  Scalar
+  Pow        (Scalar, Scalar)  Scalar
+  Sqrt       (Scalar)          Scalar
+  Sin        (Scalar)          Scalar
+  Sinh       (Scalar)          Scalar
+  Cos        (Scalar)          Scalar
+  Cosh       (Scalar)          Scalar
+  Tan        (Scalar)          Scalar
+  Tanh       (Scalar)          Scalar
+  Exp        (Scalar)          Scalar
+  Log        (Scalar)          Scalar
+  Log1p      (Scalar)          Scalar
+  Erf        (Scalar)          Scalar
+  Erfc       (Scalar)          Scalar
+  LogErfc    (Scalar)          Scalar
+  Gamma      (Scalar)          Scalar
+  Lgamma     (Scalar)          Scalar
+  Mlgamma    (Scalar, int)     Scalar // multivariate log gamma
+  GammaP     (float64, Scalar) Scalar // regularized lower incomplete gamma
   // vector operations
-  Vmean     (a    Vector)     Scalar
-  VdotV     (a, b Vector)     Scalar
-  Vnorm     (a    Vector)     Scalar
-  Mtrace    (a    Matrix)     Scalar
+  Vmean      (a    Vector)     Scalar
+  VdotV      (a, b Vector)     Scalar
+  Vnorm      (a    Vector)     Scalar
+  Mtrace     (a    Matrix)     Scalar
   // nice printing
   fmt.Stringer
 }

@@ -106,18 +106,18 @@ func (matrix *DenseMatrix) initTmp() {
  * -------------------------------------------------------------------------- */
 
 // Clone matrix including data.
-func (matrix *DenseMatrix) Clone() *DenseMatrix {
+func (matrix *DenseMatrix) CloneScalar() *DenseMatrix {
   return &DenseMatrix{
-    Values    : matrix.Values.Clone(),
+    Values    : matrix.Values.CloneScalar(),
     Rows      : matrix.Rows,
     Cols      : matrix.Cols,
     Transposed: matrix.Transposed,
-    Tmp1      : matrix.Tmp1.Clone(),
-    Tmp2      : matrix.Tmp2.Clone() }
+    Tmp1      : matrix.Tmp1.CloneScalar(),
+    Tmp2      : matrix.Tmp2.CloneScalar() }
 }
 
 func (matrix *DenseMatrix) CloneMatrix() Matrix {
-  return matrix.Clone()
+  return matrix.CloneScalar()
 }
 
 func (a *DenseMatrix) Set(b Matrix) {
@@ -128,7 +128,7 @@ func (a *DenseMatrix) Set(b Matrix) {
   }
   for i := 0; i < n1; i++ {
     for j := 0; j < m1; j++ {
-      a.At(i, j).Set(b.At(i, j).Clone())
+      a.At(i, j).Set(b.At(i, j).CloneScalar())
     }
   }
 }
@@ -300,7 +300,7 @@ func (matrix *DenseMatrix) MapSet(f func(Scalar) Scalar) {
 
 func (matrix *DenseMatrix) Reduce(f func(Scalar, Scalar) Scalar) Scalar {
   n, m := matrix.Dims()
-  r := matrix.At(0, 0).Clone()
+  r := matrix.At(0, 0).CloneScalar()
   // first row
   for j := 1; j < m; j++ {
     r = f(r, matrix.At(0, j))

@@ -41,7 +41,7 @@ func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error)
   c1 := NewBareReal(1.0)
 
   result := ExponentialDistribution{
-    Lambda   : lambda.Clone(),
+    Lambda   : lambda.CloneScalar(),
     LambdaLog: Log(lambda),
     c1       : c1 }
 
@@ -51,11 +51,11 @@ func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error)
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *ExponentialDistribution) Clone() *ExponentialDistribution {
+func (dist *ExponentialDistribution) CloneScalar() *ExponentialDistribution {
   return &ExponentialDistribution{
-    Lambda   : dist.Lambda   .Clone(),
-    LambdaLog: dist.LambdaLog.Clone(),
-    c1       : dist.c1       .Clone() }
+    Lambda   : dist.Lambda   .CloneScalar(),
+    LambdaLog: dist.LambdaLog.CloneScalar(),
+    c1       : dist.c1       .CloneScalar() }
 }
 
 func (dist *ExponentialDistribution) Dim() int {

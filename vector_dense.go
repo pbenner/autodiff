@@ -79,17 +79,17 @@ func NilDenseVector(length int) DenseVector {
 /* -------------------------------------------------------------------------- */
 
 // Create a deep copy of the vector.
-func (v DenseVector) Clone() DenseVector {
+func (v DenseVector) CloneScalar() DenseVector {
   result := make(DenseVector, len(v))
 
   for i, _ := range v {
-    result[i] = v[i].Clone()
+    result[i] = v[i].CloneScalar()
   }
   return result
 }
 
 func (v DenseVector) CloneVector() Vector {
-  return v.Clone()
+  return v.CloneScalar()
 }
 
 // Copy scalars from w into this vector. The lengths of both vectors must

@@ -41,9 +41,9 @@ func NewGeneralizedGammaDistribution(a, d, p Scalar) (*GeneralizedGammaDistribut
     return nil, fmt.Errorf("invalid parameters")
   }
   dist := GeneralizedGammaDistribution{}
-  dist.A = a.Clone()
-  dist.D = d.Clone()
-  dist.P = p.Clone()
+  dist.A = a.CloneScalar()
+  dist.D = d.CloneScalar()
+  dist.P = p.CloneScalar()
   dist.dm1 = Sub(d, NewScalar(d.Type(), 1.0))
   dist.z   = Log(p)
   dist.z   = Sub(dist.z, Mul(d, Log(a)))
@@ -54,7 +54,7 @@ func NewGeneralizedGammaDistribution(a, d, p Scalar) (*GeneralizedGammaDistribut
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GeneralizedGammaDistribution) Clone() *GeneralizedGammaDistribution {
+func (dist *GeneralizedGammaDistribution) CloneScalar() *GeneralizedGammaDistribution {
   r, _ := NewGeneralizedGammaDistribution(dist.A, dist.D, dist.P)
   return r
 }

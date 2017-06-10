@@ -48,14 +48,14 @@ func NewGParetoDistribution(mu, sigma, xi Scalar) (*GParetoDistribution, error) 
   cx1.Div(cx1, xi)
   cx1.Neg(cx1)
   // cx2 = -1/xi - 1
-  cx2 := cx1.Clone()
+  cx2 := cx1.CloneScalar()
   cx2.Sub(cx2, c1)
   cs  := Log(sigma)
 
   result := &GParetoDistribution{
-    Mu    : mu   .Clone(),
-    Sigma : sigma.Clone(),
-    Xi    : xi   .Clone(),
+    Mu    : mu   .CloneScalar(),
+    Sigma : sigma.CloneScalar(),
+    Xi    : xi   .CloneScalar(),
     c1    : c1,
     cx1   : cx1,
     cx2   : cx2,
@@ -66,15 +66,15 @@ func NewGParetoDistribution(mu, sigma, xi Scalar) (*GParetoDistribution, error) 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GParetoDistribution) Clone() *GParetoDistribution {
+func (dist *GParetoDistribution) CloneScalar() *GParetoDistribution {
   return &GParetoDistribution{
-    Mu    : dist.Mu   .Clone(),
-    Sigma : dist.Sigma.Clone(),
-    Xi    : dist.Xi   .Clone(),
-    c1    : dist.c1   .Clone(),
-    cx1   : dist.cx1  .Clone(),
-    cx2   : dist.cx2  .Clone(),
-    cs    : dist.cs   .Clone() }
+    Mu    : dist.Mu   .CloneScalar(),
+    Sigma : dist.Sigma.CloneScalar(),
+    Xi    : dist.Xi   .CloneScalar(),
+    c1    : dist.c1   .CloneScalar(),
+    cx1   : dist.cx1  .CloneScalar(),
+    cx2   : dist.cx2  .CloneScalar(),
+    cs    : dist.cs   .CloneScalar() }
 }
 
 func (dist *GParetoDistribution) Dim() int {

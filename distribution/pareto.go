@@ -46,16 +46,16 @@ func NewParetoDistribution(lambda, kappa, epsilon Scalar) (*ParetoDistribution, 
     return nil, fmt.Errorf("invalid value for parameter epsilon: %f", kappa.GetValue())
   }
 
-  kappa1p  := kappa.Clone()
+  kappa1p  := kappa.CloneScalar()
   kappa1p.Add(kappa1p, NewBareReal(1.0))
 
   z := Add(Log(kappa), Mul(kappa, Log(lambda)))
 
   result := &ParetoDistribution{
-    Lambda   : lambda .Clone(),
-    Kappa    : kappa  .Clone(),
-    Kappa1p  : kappa1p.Clone(),
-    Epsilon  : epsilon.Clone(),
+    Lambda   : lambda .CloneScalar(),
+    Kappa    : kappa  .CloneScalar(),
+    Kappa1p  : kappa1p.CloneScalar(),
+    Epsilon  : epsilon.CloneScalar(),
     z        : z }
 
   return result, nil
@@ -64,13 +64,13 @@ func NewParetoDistribution(lambda, kappa, epsilon Scalar) (*ParetoDistribution, 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *ParetoDistribution) Clone() *ParetoDistribution {
+func (dist *ParetoDistribution) CloneScalar() *ParetoDistribution {
   return &ParetoDistribution{
-    Lambda   : dist.Lambda .Clone(),
-    Kappa    : dist.Kappa  .Clone(),
-    Kappa1p  : dist.Kappa1p.Clone(),
-    Epsilon  : dist.Epsilon.Clone(),
-    z        : dist.z      .Clone()}
+    Lambda   : dist.Lambda .CloneScalar(),
+    Kappa    : dist.Kappa  .CloneScalar(),
+    Kappa1p  : dist.Kappa1p.CloneScalar(),
+    Epsilon  : dist.Epsilon.CloneScalar(),
+    z        : dist.z      .CloneScalar()}
 }
 
 func (dist *ParetoDistribution) Dim() int {

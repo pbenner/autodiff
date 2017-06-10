@@ -31,12 +31,12 @@ func Smaller(a, b Scalar) bool {
 }
 
 func Neg(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Neg(a)
 }
 
 func Abs(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   if c.Sign() == -1 {
     c.Neg(c)
   }
@@ -44,116 +44,116 @@ func Abs(a Scalar) Scalar {
 }
 
 func Add(a, b Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Add(a, b)
 }
 
 func Sub(a, b Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Sub(a, b)
 }
 
 func Mul(a, b Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Mul(a, b)
 }
 
 func Div(a, b Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Div(a, b)
 }
 
 func Pow(a Scalar, k Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Pow(a, k)
 }
 
 func Sqrt(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Sqrt(a)
 }
 
 func Sin(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Sin(a)
 }
 
 func Sinh(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Sinh(a)
 }
 
 func Cos(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Cos(a)
 }
 
 func Cosh(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Cosh(a)
 }
 
 func Tan(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Tan(a)
 }
 
 func Tanh(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Tanh(a)
 }
 
 func Exp(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Exp(a)
 }
 
 func Log(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Log(a)
 }
 
 func Erf(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Erf(a)
 }
 
 func Erfc(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Erfc(a)
 }
 
 func LogErfc(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.LogErfc(a)
 }
 
 func Gamma(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Gamma(a)
 }
 
 func Lgamma(a Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Lgamma(a)
 }
 
 func Mlgamma(a Scalar, k int) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Mlgamma(a, k)
 }
 
 func GammaP(a float64, x Scalar) Scalar {
-  c := x.Clone()
+  c := x.CloneScalar()
   return c.GammaP(a, x)
 }
 
 func Min(a, b Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Min(a, b)
 }
 
 func Max(a, b Scalar) Scalar {
-  c := a.Clone()
+  c := a.CloneScalar()
   return c.Max(a, b)
 }
