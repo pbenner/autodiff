@@ -106,18 +106,18 @@ func (matrix *DenseMatrix) initTmp() {
  * -------------------------------------------------------------------------- */
 
 // Clone matrix including data.
-func (matrix *DenseMatrix) CloneScalar() *DenseMatrix {
+func (matrix *DenseMatrix) Clone() *DenseMatrix {
   return &DenseMatrix{
-    Values    : matrix.Values.CloneScalar(),
+    Values    : matrix.Values.Clone(),
     Rows      : matrix.Rows,
     Cols      : matrix.Cols,
     Transposed: matrix.Transposed,
-    Tmp1      : matrix.Tmp1.CloneScalar(),
-    Tmp2      : matrix.Tmp2.CloneScalar() }
+    Tmp1      : matrix.Tmp1.Clone(),
+    Tmp2      : matrix.Tmp2.Clone() }
 }
 
 func (matrix *DenseMatrix) CloneMatrix() Matrix {
-  return matrix.CloneScalar()
+  return matrix.Clone()
 }
 
 func (a *DenseMatrix) Set(b Matrix) {
