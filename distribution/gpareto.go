@@ -66,7 +66,7 @@ func NewGParetoDistribution(mu, sigma, xi Scalar) (*GParetoDistribution, error) 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GParetoDistribution) CloneScalar() *GParetoDistribution {
+func (dist *GParetoDistribution) Clone() *GParetoDistribution {
   return &GParetoDistribution{
     Mu    : dist.Mu   .CloneScalar(),
     Sigma : dist.Sigma.CloneScalar(),

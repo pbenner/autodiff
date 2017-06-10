@@ -49,7 +49,7 @@ func NewChiSquaredDistribution(k_ float64) (*ChiSquaredDistribution, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *ChiSquaredDistribution) CloneScalar() *ChiSquaredDistribution {
+func (dist *ChiSquaredDistribution) Clone() *ChiSquaredDistribution {
   r, _ := NewChiSquaredDistribution(dist.K.GetValue())
   return r
 }

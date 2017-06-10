@@ -62,9 +62,9 @@ func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *NormalIWishartDistribution) CloneScalar() *NormalIWishartDistribution {
+func (dist *NormalIWishartDistribution) Clone() *NormalIWishartDistribution {
   return &NormalIWishartDistribution{
-    InverseWishartDistribution: *dist.InverseWishartDistribution.CloneScalar(),
+    InverseWishartDistribution: *dist.InverseWishartDistribution.Clone(),
     Kappa: dist.Kappa.CloneScalar(),
     Mu   : dist.Mu   .CloneVector(),
     r1   : dist.r1   .CloneScalar(),

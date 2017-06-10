@@ -89,7 +89,7 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *TDistribution) CloneScalar() *TDistribution {
+func (dist *TDistribution) Clone() *TDistribution {
   return &TDistribution{
     Nu      : dist.Nu      .CloneScalar(),
     Mu      : dist.Mu      .CloneVector(),

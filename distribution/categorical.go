@@ -54,7 +54,7 @@ func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error)
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *CategoricalDistribution) CloneScalar() *CategoricalDistribution {
+func (dist *CategoricalDistribution) Clone() *CategoricalDistribution {
   return &CategoricalDistribution{
     Theta : dist.Theta.CloneScalar(),
     t     : dist.t    .CloneScalar() }

@@ -64,7 +64,7 @@ func NewParetoDistribution(lambda, kappa, epsilon Scalar) (*ParetoDistribution, 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *ParetoDistribution) CloneScalar() *ParetoDistribution {
+func (dist *ParetoDistribution) Clone() *ParetoDistribution {
   return &ParetoDistribution{
     Lambda   : dist.Lambda .CloneScalar(),
     Kappa    : dist.Kappa  .CloneScalar(),

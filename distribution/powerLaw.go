@@ -63,7 +63,7 @@ func NewPowerLawDistribution(alpha, xmin, epsilon Scalar) (*PowerLawDistribution
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *PowerLawDistribution) CloneScalar() *PowerLawDistribution {
+func (dist *PowerLawDistribution) Clone() *PowerLawDistribution {
   return &PowerLawDistribution{
     Alpha  : dist.Alpha  .CloneScalar(),
     Xmin   : dist.Xmin   .CloneScalar(),

@@ -80,7 +80,7 @@ func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribu
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *InverseWishartDistribution) CloneScalar() *InverseWishartDistribution {
+func (dist *InverseWishartDistribution) Clone() *InverseWishartDistribution {
   return &InverseWishartDistribution{
     Nu  : dist.Nu  .CloneScalar(),
     S   : dist.S   .CloneMatrix(),

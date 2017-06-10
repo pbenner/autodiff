@@ -54,7 +54,7 @@ func NewGeneralizedGammaDistribution(a, d, p Scalar) (*GeneralizedGammaDistribut
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GeneralizedGammaDistribution) CloneScalar() *GeneralizedGammaDistribution {
+func (dist *GeneralizedGammaDistribution) Clone() *GeneralizedGammaDistribution {
   r, _ := NewGeneralizedGammaDistribution(dist.A, dist.D, dist.P)
   return r
 }

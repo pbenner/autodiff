@@ -49,7 +49,7 @@ func NewLogCauchyDistribution(mu, sigma Scalar) (*LogCauchyDistribution, error) 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *LogCauchyDistribution) CloneScalar() *LogCauchyDistribution {
+func (dist *LogCauchyDistribution) Clone() *LogCauchyDistribution {
   r, _ := NewLogCauchyDistribution(dist.Mu, dist.Sigma)
   return r
 }

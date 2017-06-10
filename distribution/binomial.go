@@ -67,7 +67,7 @@ func NewBinomialDistribution(theta Scalar, n int) (*BinomialDistribution, error)
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *BinomialDistribution) CloneScalar() *BinomialDistribution {
+func (dist *BinomialDistribution) Clone() *BinomialDistribution {
   r, _ := NewBinomialDistribution(Exp(dist.Theta), int(dist.n.GetValue()))
   return r
 }

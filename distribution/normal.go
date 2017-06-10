@@ -84,7 +84,7 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *NormalDistribution) CloneScalar() *NormalDistribution {
+func (dist *NormalDistribution) Clone() *NormalDistribution {
   return &NormalDistribution{
     Mu      : dist.Mu      .CloneVector(),
     Sigma   : dist.Sigma   .CloneMatrix(),

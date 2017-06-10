@@ -71,7 +71,7 @@ func NewNegativeBinomialDistribution(r, p Scalar) (*NegativeBinomialDistribution
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *NegativeBinomialDistribution) CloneScalar() *NegativeBinomialDistribution {
+func (dist *NegativeBinomialDistribution) Clone() *NegativeBinomialDistribution {
   r, _ := NewNegativeBinomialDistribution(dist.R, dist.P)
   return r
 }

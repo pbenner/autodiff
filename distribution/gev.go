@@ -65,7 +65,7 @@ func NewGevDistribution(mu, sigma, xi Scalar) (*GevDistribution, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GevDistribution) CloneScalar() *GevDistribution {
+func (dist *GevDistribution) Clone() *GevDistribution {
   return &GevDistribution{
     Mu    : dist.Mu   .CloneScalar(),
     Sigma : dist.Sigma.CloneScalar(),

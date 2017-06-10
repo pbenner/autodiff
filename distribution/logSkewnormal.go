@@ -71,10 +71,10 @@ func NewLogSkewNormalDistribution(xi Vector, omega Matrix, alpha, scale Vector) 
 /* -------------------------------------------------------------------------- */
 
 
-func (dist *LogSkewNormalDistribution) CloneScalar() *LogSkewNormalDistribution {
+func (dist *LogSkewNormalDistribution) Clone() *LogSkewNormalDistribution {
   return &LogSkewNormalDistribution{
-    Normal1: *dist.Normal1.CloneScalar(),
-    Normal2: *dist.Normal2.CloneScalar(),
+    Normal1: *dist.Normal1.Clone(),
+    Normal2: *dist.Normal2.Clone(),
     Omega  :  dist.Omega  .CloneMatrix(),
     Alpha  :  dist.Alpha  .CloneVector(),
     Scale  :  dist.Scale  .CloneVector() }

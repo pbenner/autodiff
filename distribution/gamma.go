@@ -52,7 +52,7 @@ func NewGammaDistribution(alpha, beta Scalar) (*GammaDistribution, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *GammaDistribution) CloneScalar() *GammaDistribution {
+func (dist *GammaDistribution) Clone() *GammaDistribution {
   r, _ := NewGammaDistribution(dist.Alpha, dist.Beta)
   return r
 }

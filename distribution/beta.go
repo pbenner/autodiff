@@ -75,7 +75,7 @@ func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, 
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *BetaDistribution) CloneScalar() *BetaDistribution {
+func (dist *BetaDistribution) Clone() *BetaDistribution {
   r, _ := NewBetaDistribution(dist.Alpha, dist.Beta, dist.logScale)
   return r
 }

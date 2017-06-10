@@ -51,7 +51,7 @@ func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error)
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *ExponentialDistribution) CloneScalar() *ExponentialDistribution {
+func (dist *ExponentialDistribution) Clone() *ExponentialDistribution {
   return &ExponentialDistribution{
     Lambda   : dist.Lambda   .CloneScalar(),
     LambdaLog: dist.LambdaLog.CloneScalar(),

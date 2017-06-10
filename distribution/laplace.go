@@ -47,7 +47,7 @@ func NewLaplaceDistribution(mu, sigma Scalar) (*LaplaceDistribution, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (dist *LaplaceDistribution) CloneScalar() *LaplaceDistribution {
+func (dist *LaplaceDistribution) Clone() *LaplaceDistribution {
   return &LaplaceDistribution{
     Mu      : dist.Mu   .CloneScalar(),
     Sigma   : dist.Sigma.CloneScalar(),
