@@ -37,8 +37,8 @@ type Vector interface {
   Slice           (i, j int)           Vector
   Append          (...Scalar)          Vector
   // type conversions
-  Matrix          (n, m int)           Matrix
-  DenseVector     ()                   DenseVector
+  ToMatrix        (n, m int)           Matrix
+  ToDenseVector   ()                   DenseVector
   // math operations
   VaddV(a, b Vector) Vector
   VaddS(a Vector, b Scalar) Vector

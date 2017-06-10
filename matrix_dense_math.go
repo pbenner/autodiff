@@ -29,8 +29,8 @@ func Mequal(a, b Matrix) bool {
   if n1 != n2 || m1 != m2 {
     panic("MEqual(): matrix dimensions do not match!")
   }
-  v1 := a.Vector()
-  v2 := b.Vector()
+  v1 := a.ToVector()
+  v2 := b.ToVector()
   for i := 0; i < v1.Dim(); i++ {
     if !Equal(v1.At(i), v2.At(i)) {
       return false
@@ -383,7 +383,7 @@ func Mnorm(a Matrix) Scalar {
   }
   c := NewBareReal(2.0)
   t := NewScalar(a.ElementType(), 0.0)
-  v := a.Vector()
+  v := a.ToVector()
   s := Pow(v.At(0), NewBareReal(2.0))
   for i := 1; i < v.Dim(); i++ {
     t.Pow(v.At(i), c)

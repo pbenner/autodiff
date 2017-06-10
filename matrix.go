@@ -45,9 +45,9 @@ type Matrix interface {
   SetIdentity     ()
   // returns all elements of the matrix as
   // a vector, the order is unspecified
-  Vector          ()                   Vector
-  DenseMatrix     ()                  *DenseMatrix
-  DenseVector     ()                   DenseVector
+  ToVector        ()                   Vector
+  ToDenseMatrix   ()                  *DenseMatrix
+  ToDenseVector   ()                   DenseVector
   // math operations
   MaddM(a, b Matrix) Matrix
   MaddS(a Matrix, b Scalar) Matrix

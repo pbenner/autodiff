@@ -225,15 +225,15 @@ func (matrix *DenseMatrix) Reshape(rows, cols int) error {
   return nil
 }
 
-func (matrix *DenseMatrix) Vector() Vector {
+func (matrix *DenseMatrix) ToVector() Vector {
   return matrix.Values
 }
 
-func (matrix *DenseMatrix) DenseMatrix() *DenseMatrix {
+func (matrix *DenseMatrix) ToDenseMatrix() *DenseMatrix {
   return matrix
 }
 
-func (matrix *DenseMatrix) DenseVector() DenseVector {
+func (matrix *DenseMatrix) ToDenseVector() DenseVector {
   return matrix.Values
 }
 

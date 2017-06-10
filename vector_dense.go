@@ -217,11 +217,11 @@ func (v DenseVector) SortVector(reverse bool) Vector {
 /* type conversion
  * -------------------------------------------------------------------------- */
 
-func (v DenseVector) DenseVector() DenseVector {
+func (v DenseVector) ToDenseVector() DenseVector {
   return v
 }
 
-func (v DenseVector) Matrix(n, m int) Matrix {
+func (v DenseVector) ToMatrix(n, m int) Matrix {
   if n*m != len(v) {
     panic("Matrix dimension does not fit input vector!")
   }
