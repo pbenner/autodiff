@@ -229,6 +229,10 @@ func (matrix *DenseMatrix) Vector() Vector {
   return matrix.Values
 }
 
+func (matrix *DenseMatrix) DenseMatrix() *DenseMatrix {
+  return matrix
+}
+
 func (matrix *DenseMatrix) DenseVector() DenseVector {
   return matrix.Values
 }

@@ -46,6 +46,7 @@ type Matrix interface {
   // returns all elements of the matrix as
   // a vector, the order is unspecified
   Vector          ()                   Vector
+  DenseMatrix     ()                  *DenseMatrix
   DenseVector     ()                   DenseVector
   // math operations
   MaddM(a, b Matrix) Matrix
