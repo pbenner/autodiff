@@ -117,8 +117,8 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
     for i := 0; i < g.Dim(); i++ {
       D.At(i, i).Div(c1, D.At(i, i))
     }
-    D.MdotM(Q, D)
-    D.MdotM(D, Q.T())
+    L.MdotM(Q, D)
+    D.MdotM(L, Q.T())
     r.MdotV(D, g)
   case "None":
     // invert L
