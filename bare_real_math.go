@@ -107,6 +107,8 @@ func (r *BareReal) BareRealMax(a, b *BareReal) Scalar {
 func (c *BareReal) Abs(a Scalar) Scalar {
   if c.Sign() == -1 {
     c.Neg(a)
+  } else {
+    c.Set(a)
   }
   return c
 }
@@ -114,6 +116,8 @@ func (c *BareReal) Abs(a Scalar) Scalar {
 func (c *BareReal) BareRealAbs(a *BareReal) Scalar {
   if c.Sign() == -1 {
     c.Neg(a)
+  } else {
+    c.Set(a)
   }
   return c
 }
