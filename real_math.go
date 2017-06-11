@@ -527,3 +527,20 @@ func (r *Real) Mtrace(a Matrix) Scalar {
   }
   return r
 }
+
+// Frobenius norm.
+func (r *Real) Mnorm(a Matrix) Scalar {
+  n, m := a.Dims()
+  if n == 0 || m == 0 {
+    return nil
+  }
+  c := NewBareReal(2.0)
+  t := NewScalar(r.Type(), 0.0)
+  v := a.ToVector()
+  r.Pow(v.At(0), NewBareReal(2.0))
+  for i := 1; i < v.Dim(); i++ {
+    t.Pow(v.At(i), c)
+    r.Add(r, t)
+  }
+  return r
+}

@@ -32,7 +32,7 @@ func Mequal(a, b Matrix) bool {
   v1 := a.ToVector()
   v2 := b.ToVector()
   for i := 0; i < v1.Dim(); i++ {
-    if !Equal(v1.At(i), v2.At(i)) {
+    if !v1.At(i).Equals(v2.At(i)) {
       return false
     }
   }
@@ -283,35 +283,6 @@ func (r *DenseMatrix) Outer(a, b Vector) Matrix {
     }
   }
   return r
-}
-
-/* -------------------------------------------------------------------------- */
-
-// Returns the trace of a.
-func Mtrace(a Matrix) Scalar {
-  r := a.At(0, 0).CloneScalar()
-  r.Mtrace(a)
-  return r
-}
-
-/* -------------------------------------------------------------------------- */
-
-// Frobenius norm.
-func Mnorm(a Matrix) Scalar {
-  n, m := a.Dims()
-  if n == 0 || m == 0 {
-    return nil
-  }
-  c := NewBareReal(2.0)
-  t := NewScalar(a.ElementType(), 0.0)
-  s := NewScalar(a.ElementType(), 0.0)
-  v := a.ToVector()
-  s.Pow(v.At(0), NewBareReal(2.0))
-  for i := 1; i < v.Dim(); i++ {
-    t.Pow(v.At(i), c)
-    s.Add(s, t)
-  }
-  return s
 }
 
 /* -------------------------------------------------------------------------- */

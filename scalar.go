@@ -96,6 +96,7 @@ type Scalar interface {
   Vmean      (a    Vector)     Scalar
   VdotV      (a, b Vector)     Scalar
   Vnorm      (a    Vector)     Scalar
+  Mnorm      (a    Matrix)     Scalar
   Mtrace     (a    Matrix)     Scalar
   // nice printing
   fmt.Stringer

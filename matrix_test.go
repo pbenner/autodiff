@@ -101,8 +101,9 @@ func TestSubmatrix(t *testing.T) {
   a := NewMatrix(RealType, 3, 3, []float64{1,2,3,4,5,6,7,8,9})
   m := a.Submatrix(1,2,0,1)
   r := NewMatrix(RealType, 2, 2, []float64{4,5,7,8})
+  s := NullReal()
 
-  if Mnorm(r.MsubM(r, m)).GetValue() > 1e-8  {
+  if s.Mnorm(r.MsubM(r, m)).GetValue() > 1e-8  {
     t.Error("Submatrix failed!")
   }
 }
@@ -110,8 +111,9 @@ func TestSubmatrix(t *testing.T) {
 func TestMatrixTrace(t *testing.T) {
 
   m1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
+  s := NullReal()
 
-  if Mtrace(m1).GetValue() != 5 {
+  if s.Mtrace(m1).GetValue() != 5 {
     t.Error("Wrong matrix trace!")
   }
 }
@@ -174,8 +176,9 @@ func TestMatrixMapReduce(t *testing.T) {
   m := NewMatrix(RealType, 2, 2, []float64{1, 2,3,4})
   m.Map(func(x Scalar) { x.Exp(x) })
   a := m.Reduce(func(x, y Scalar) Scalar { return x.Add(x, y) }, t1)
+  s := NullReal()
 
-  if Mnorm(m.MsubM(m, r1)).GetValue() > 1e-8  {
+  if s.Mnorm(m.MsubM(m, r1)).GetValue() > 1e-8  {
     t.Error("Matrix/Vector multiplication failed!")
   }
   if math.Abs(a.GetValue() - r2) > 1e-2 {
@@ -192,8 +195,9 @@ func TestOuter(t *testing.T) {
     2,1,0,3,
     6,3,0,9,
     4,2,0,6 })
+  s := NullReal()
 
-  if Mnorm(r.MsubM(r, m)).GetValue() > 1e-8  {
+  if s.Mnorm(r.MsubM(r, m)).GetValue() > 1e-8  {
     t.Error("Outer product multiplication failed!")
   }
 
@@ -220,11 +224,12 @@ func TestMatrixJacobian(t *testing.T) {
 
   v1 := NewVector(RealType, []float64{1,1})
   m1 := NullMatrix(RealType, 3, 2)
-  m2 :=  NewMatrix(RealType, 3, 2, []float64{2, 2, 3, -2, 0, 0})
+  m2 := NewMatrix(RealType, 3, 2, []float64{2, 2, 3, -2, 0, 0})
+  s  := NullReal()
 
   m1.Jacobian(f, v1)
 
-  if Mnorm(m1.MsubM(m1, m2)).GetValue() > 1e-8 {
+  if s.Mnorm(m1.MsubM(m1, m2)).GetValue() > 1e-8 {
     t.Error("Jacobian test failed!")
   }
 }
@@ -246,10 +251,11 @@ func TestMatrixHessian(t *testing.T) {
   r2 :=  NewMatrix(RealType, 2, 2, []float64{
      9, -3,
     -3, 15})
+  s := NullReal()
 
   r1.Hessian(f, x)
 
-  if Mnorm(r1.MsubM(r1, r2)).GetValue() > 1e-8 {
+  if s.Mnorm(r1.MsubM(r1, r2)).GetValue() > 1e-8 {
     t.Error("Matrix Hessian test failed!")
   }
 }
@@ -261,8 +267,9 @@ func TestReadMatrix(t *testing.T) {
     panic(err)
   }
   r := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
+  s := NullReal()
 
-  if Mnorm(m.MsubM(m, r)).GetValue() != 0.0 {
+  if s.Mnorm(m.MsubM(m, r)).GetValue() != 0.0 {
     t.Error("Read matrix failed!")
   }
 }
@@ -286,7 +293,9 @@ func TestSymmetricPermutation(t *testing.T) {
   m2.SymmetricPermutation(pi)
   m2.SymmetricPermutation(pi)
 
-  if Mnorm(m1.MsubM(m1, m2)).GetValue() > 1e-20 {
+  s := NullReal()
+
+  if s.Mnorm(m1.MsubM(m1, m2)).GetValue() > 1e-20 {
     t.Error("SymmetricPermutation() failed")
   }
 }
@@ -303,13 +312,14 @@ func TestMdotM(t *testing.T) {
   r3 := NullMatrix(RealType, 3, 3)
   r3.MdotM(r1, r2)
   s  := NullMatrix(RealType, 3, 3)
+  q  := NullReal()
 
   {
     r1 := r1.CloneMatrix()
     r2 := r1.CloneMatrix()
     r1.MdotM(r1, r2)
 
-    if Mnorm(s.MsubM(r1, r3)).GetValue() > 1e-8 {
+    if q.Mnorm(s.MsubM(r1, r3)).GetValue() > 1e-8 {
       t.Error("test failed")
     }
   }
@@ -318,7 +328,7 @@ func TestMdotM(t *testing.T) {
     r2 := r1.CloneMatrix()
     r2.MdotM(r1, r2)
 
-    if Mnorm(s.MsubM(r2, r3)).GetValue() > 1e-8 {
+    if q.Mnorm(s.MsubM(r2, r3)).GetValue() > 1e-8 {
       t.Error("test failed")
     }
   }

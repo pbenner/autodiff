@@ -189,7 +189,8 @@ func hessenbergQrAlgorithm(inSitu *InSitu, epsilon float64, shift bool) (Matrix,
 
 func qrAlgorithm(a Matrix) (Matrix, Matrix, error) {
 
-  t := a.ElementType()
+  t  := a.ElementType()
+  t1 := NewScalar(t, 0.0)
 
   n, m := a.Dims()
 
@@ -208,7 +209,7 @@ func qrAlgorithm(a Matrix) (Matrix, Matrix, error) {
     }
     q, r, _ = gramSchmidt.Run(a, gramSchmidt.InSitu{q, r})
     b.MdotM(r, q)
-    if Mnorm(a.MsubM(a, b)).GetValue() < 1e-12 {
+    if t1.Mnorm(a.MsubM(a, b)).GetValue() < 1e-12 {
       break
     }
     a, b = b, a

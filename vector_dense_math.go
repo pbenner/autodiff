@@ -24,7 +24,7 @@ func Vequal(a, b Vector) bool {
     panic("VEqual(): Vector dimensions do not match!")
   }
   for i := 0; i < a.Dim(); i++ {
-    if !Equal(a.At(i), b.At(i)) {
+    if !a.At(i).Equals(b.At(i)) {
       return false
     }
   }

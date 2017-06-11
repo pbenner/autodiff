@@ -73,10 +73,11 @@ func mInverseGradient(matrix Matrix) (Matrix, error) {
   }
   I := IdentityMatrix(matrix.ElementType(), rows)
   r := matrix.CloneMatrix()
+  s := NewScalar(matrix.ElementType(), 0.0)
   // objective function
   f := func(x Vector) (Scalar, error) {
     r.ToVector().Set(x)
-    s := Mnorm(r.MsubM(r.MdotM(matrix, r), I))
+    s.Mnorm(r.MsubM(r.MdotM(matrix, r), I))
     return s, nil
   }
   x, _ := rprop.Run(f, r.ToVector(), 0.01, []float64{2.0, 0.1})

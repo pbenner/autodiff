@@ -22,6 +22,18 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
+func Equal(a, b Scalar) bool {
+  return a.Equals(b)
+}
+
+func Greater(a, b Scalar) bool {
+  return a.Greater(b)
+}
+
+func Smaller(a, b Scalar) bool {
+  return a.Smaller(b)
+}
+
 func Neg(a Scalar) Scalar {
   c := a.CloneScalar()
   return c.Neg(a)

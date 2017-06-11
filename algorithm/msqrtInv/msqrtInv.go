@@ -32,6 +32,7 @@ import   "github.com/pbenner/autodiff/algorithm/matrixInverse"
 func mSqrtInv(matrix Matrix) (Matrix, error) {
   n, _ := matrix.Dims()
   c  := NewScalar(matrix.ElementType(), 2.0)
+  t1 := NewScalar(matrix.ElementType(), 2.0)
   A  := matrix
   S1 := NullMatrix(matrix.ElementType(), n, n)
   S2 := NullMatrix(matrix.ElementType(), n, n)
@@ -43,7 +44,7 @@ func mSqrtInv(matrix Matrix) (Matrix, error) {
   }
   X1 := NullMatrix(matrix.ElementType(), n, n)
   X1.MmulS(S1.MdotM(X0, t), c)
-  for Mnorm(S1.MsubM(X0, X1)).GetValue() > 1e-8 {
+  for t1.Mnorm(S1.MsubM(X0, X1)).GetValue() > 1e-8 {
     X0, X1 = X1, X0
     t, err := matrixInverse.Run(S1.MaddM(I, S2.MdotM(A, S1.MdotM(X0, X0))))
     if err != nil {
