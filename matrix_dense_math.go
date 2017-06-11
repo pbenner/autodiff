@@ -189,23 +189,37 @@ func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
   if n1 != n || m2 != m || n1 != m2 || m1 != n2 {
     panic("matrix dimensions do not match!")
   }
-  if r == a || r == b {
-    panic("result and argument must be different vectors")
-  }
   t1 := NullScalar(a.ElementType())
   t2 := NullScalar(a.ElementType())
-  t3 := r.Tmp2[0:m]
-  for i := 0; i < n; i++ {
+  if r == b {
+    t3 := r.Tmp2[0:n]
     for j := 0; j < m; j++ {
-      t2.Reset()
-      for k := 0; k < m1; k++ {
-        t1.Mul(a.At(i, k), b.At(k, j))
-        t2.Add(t2, t1)
+      for i := 0; i < n; i++ {
+        t2.Reset()
+        for k := 0; k < m1; k++ {
+          t1.Mul(a.At(i, k), b.At(k, j))
+          t2.Add(t2, t1)
+        }
+        t3[i].Set(t2)
       }
-      t3[j].Set(t2)
+      for i := 0; i < n; i++ {
+        r.At(i, j).Set(t3[i])
+      }
     }
-    for j := 0; j < m; j++ {
-      r.At(i, j).Set(t3[j])
+  } else {
+    t3 := r.Tmp2[0:m]
+    for i := 0; i < n; i++ {
+      for j := 0; j < m; j++ {
+        t2.Reset()
+        for k := 0; k < m1; k++ {
+          t1.Mul(a.At(i, k), b.At(k, j))
+          t2.Add(t2, t1)
+        }
+        t3[j].Set(t2)
+      }
+      for j := 0; j < m; j++ {
+        r.At(i, j).Set(t3[j])
+      }
     }
   }
   return r

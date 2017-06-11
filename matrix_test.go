@@ -290,3 +290,36 @@ func TestSymmetricPermutation(t *testing.T) {
     t.Error("SymmetricPermutation() failed")
   }
 }
+
+func TestMdotM(t *testing.T) {
+  r1 := NewMatrix(RealType, 3, 3, []float64{
+    1, 2, 3,
+    4, 5, 6,
+    7, 8, 9 })
+  r2 := NewMatrix(RealType, 3, 3, []float64{
+    1, 2, 3,
+    4, 5, 6,
+    7, 8, 9 })
+  r3 := NullMatrix(RealType, 3, 3)
+  r3.MdotM(r1, r2)
+  s  := NullMatrix(RealType, 3, 3)
+
+  {
+    r1 := r1.CloneMatrix()
+    r2 := r1.CloneMatrix()
+    r1.MdotM(r1, r2)
+
+    if Mnorm(s.MsubM(r1, r3)).GetValue() > 1e-8 {
+      t.Error("test failed")
+    }
+  }
+  {
+    r1 := r1.CloneMatrix()
+    r2 := r1.CloneMatrix()
+    r2.MdotM(r1, r2)
+
+    if Mnorm(s.MsubM(r2, r3)).GetValue() > 1e-8 {
+      t.Error("test failed")
+    }
+  }
+}
