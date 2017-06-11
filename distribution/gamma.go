@@ -39,13 +39,16 @@ func NewGammaDistribution(alpha, beta Scalar) (*GammaDistribution, error) {
   if alpha.GetValue() <= 0.0 || beta.GetValue() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
-  t := alpha.Type()
+  t  := alpha.Type()
+  t1 := NewScalar(t, 0.0)
+  t2 := NewScalar(t, 0.0)
   dist := GammaDistribution{}
   dist.Alpha = alpha.CloneScalar()
   dist.Beta  = beta .CloneScalar()
   dist.Omega = alpha.CloneScalar()
   dist.Omega.Sub(dist.Omega, NewScalar(t, 1.0))
-  dist.Z     = Sub(Mul(alpha, Log(beta)), Lgamma(alpha))
+  dist.Z     = NewScalar(t, 0.0)
+  dist.Z.Sub(t1.Mul(alpha, t1.Log(beta)), t2.Lgamma(alpha))
   dist.t     = NewScalar(t, 0.0)
   return &dist, nil
 }
@@ -66,7 +69,8 @@ func (dist *GammaDistribution) ScalarType() ScalarType {
 }
 
 func (dist *GammaDistribution) Mean() Scalar {
-  return Div(dist.Alpha, dist.Beta)
+  r := NewScalar(dist.ScalarType(), 0.0)
+  return r.Div(dist.Alpha, dist.Beta)
 }
 
 func (dist *GammaDistribution) LogPdf(r Scalar, x Vector) error {

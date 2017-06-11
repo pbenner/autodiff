@@ -45,17 +45,19 @@ func NewLogSkewNormalDistribution(xi Vector, omega Matrix, alpha, scale Vector) 
     (n != m) {
     panic("NewLogSkewNormalDistribution(): Parameter dimensions do not match!")
   }
+  t  := xi.ElementType()
+  t1 := NewScalar(t, 0.0)
   // parameters for the multivariate normal
   // kappa = diag(s) omega diag(s)
-  kappa := NullMatrix(RealType, n, n)
+  kappa := NullMatrix(t, n, n)
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
-      kappa.At(i, j).Mul(Mul(scale.At(i), scale.At(j)), omega.At(i,j))
+      kappa.At(i, j).Mul(t1.Mul(scale.At(i), scale.At(j)), omega.At(i,j))
     }
   }
   // parameters for the standard normal cdf
-  mu    := NewVector(RealType,       []float64{0})
-  sigma := NewMatrix(RealType, 1, 1, []float64{1})
+  mu    := NewVector(t,       []float64{0})
+  sigma := NewMatrix(t, 1, 1, []float64{1})
 
   normal1, err := NewNormalDistribution(xi, kappa)
   if err != nil { return nil, err }
@@ -70,7 +72,6 @@ func NewLogSkewNormalDistribution(xi Vector, omega Matrix, alpha, scale Vector) 
 
 /* -------------------------------------------------------------------------- */
 
-
 func (dist *LogSkewNormalDistribution) Clone() *LogSkewNormalDistribution {
   return &LogSkewNormalDistribution{
     Normal1: *dist.Normal1.Clone(),
@@ -84,28 +85,36 @@ func (dist LogSkewNormalDistribution) Dim() int {
   return dist.Alpha.Dim()
 }
 
+func (dist *LogSkewNormalDistribution) ScalarType() ScalarType {
+  return RealType
+}
+
 func (dist LogSkewNormalDistribution) LogPdf(r Scalar, x Vector) error {
   n := dist.Normal1.Dim()
-  c := NewScalar(RealType, math.Log(2))
-  y := NullDenseVector(RealType, n)
-  z := NullDenseVector(RealType, n)
-  t := NullDenseVector(RealType, 1)
+  c := NewScalar(dist.ScalarType(), math.Log(2))
+  y := NullDenseVector(dist.ScalarType(), n)
+  z := NullDenseVector(dist.ScalarType(), n)
+  t := NullDenseVector(dist.ScalarType(), 1)
+  s := NewScalar(dist.ScalarType(), 0.0)
   for i := 0; i < n; i++ {
-    y[i] = Log(Add(x.At(i), NewReal(1.0)))
-    z[i] = Div(Sub(y.At(i), dist.Normal1.Mu.At(i)), dist.Scale.At(i))
+    y[i].Log(s.Add(x.At(i), NewReal(1.0)))
+    z[i].Div(s.Sub(y.At(i), dist.Normal1.Mu.At(i)), dist.Scale.At(i))
   }
-  t[0] = VdotV(dist.Alpha, z)
+  t[0].VdotV(dist.Alpha, z)
   // add the det Jacobian of the variable transform to the constant c
   for i := 0; i < n; i++ {
-    c = Add(c, Neg(Log(y[i])))
+    c.Add(c, s.Neg(s.Log(y[i])))
   }
 
   r1 := r.CloneScalar()
   r2 := r.CloneScalar()
 
-  dist.Normal1.LogPdf(r1, x)
-  dist.Normal2.LogCdf(r2, t)
-
+  if err := dist.Normal1.LogPdf(r1, x); err != nil {
+    return err
+  }
+  if err := dist.Normal2.LogCdf(r2, t); err != nil {
+    return err
+  }
   r.Add(r1, r2)
   r.Add(r, c)
 

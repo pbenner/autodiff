@@ -45,13 +45,6 @@ func (r DenseVector) VaddV(a, b Vector) Vector {
   return r
 }
 
-// Element-wise addition of two vectors.
-func VaddV(a, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VaddV(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Element-wise addition of a vector and a scalar. The result is stored in r.
@@ -63,13 +56,6 @@ func (r DenseVector) VaddS(a Vector, b Scalar) Vector {
   for i := 0; i < a.Dim(); i++ {
     r[i].Add(a.At(i), b)
   }
-  return r
-}
-
-// Element-wise addition of a vector and a scalar.
-func VaddS(a Vector, b Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VaddS(a, b)
   return r
 }
 
@@ -87,13 +73,6 @@ func (r DenseVector) VsubV(a, b Vector) Vector {
   return r
 }
 
-// Element-wise substraction of two vectors.
-func VsubV(a, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VsubV(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
@@ -105,13 +84,6 @@ func (r DenseVector) VsubS(a Vector, b Scalar) Vector {
   for i := 0; i < a.Dim(); i++ {
     r[i].Sub(a.At(i), b)
   }
-  return r
-}
-
-// Element-wise substractor of a vector and a scalar.
-func VsubS(a Vector, b Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VsubS(a, b)
   return r
 }
 
@@ -129,13 +101,6 @@ func (r DenseVector) VmulV(a Vector, b Vector) Vector {
   return r
 }
 
-// Element-wise multiplication of two vectors.
-func VmulV(a Vector, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VmulV(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
@@ -147,13 +112,6 @@ func (r DenseVector) VmulS(a Vector, s Scalar) Vector {
   for i := 0; i < a.Dim(); i++ {
     r[i].Mul(a.At(i), s)
   }
-  return r
-}
-
-// Element-wise substraction of a vector and a scalar.
-func VmulS(a Vector, s Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VmulS(a, s)
   return r
 }
 
@@ -171,13 +129,6 @@ func (r DenseVector) VdivV(a Vector, b Vector) Vector {
   return r
 }
 
-// Element-wise division of two vectors.
-func VdivV(a Vector, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VdivV(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Element-wise division of a vector and a scalar. The result is stored in r.
@@ -189,21 +140,6 @@ func (r DenseVector) VdivS(a Vector, s Scalar) Vector {
   for i := 0; i < a.Dim(); i++ {
     r[i].Div(a.At(i), s)
   }
-  return r
-}
-
-// Element-wise division of a vector and a scalar.
-func VdivS(a Vector, s Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VdivS(a, s)
-  return r
-}
-
-/* -------------------------------------------------------------------------- */
-
-func VdotV(a, b Vector) Scalar {
-  r := NullScalar(a.ElementType())
-  r.VdotV(a, b)
   return r
 }
 

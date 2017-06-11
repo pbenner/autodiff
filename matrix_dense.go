@@ -302,15 +302,9 @@ func (matrix *DenseMatrix) MapSet(f func(Scalar) Scalar) {
   }
 }
 
-func (matrix *DenseMatrix) Reduce(f func(Scalar, Scalar) Scalar) Scalar {
+func (matrix *DenseMatrix) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
   n, m := matrix.Dims()
-  r := matrix.At(0, 0).CloneScalar()
-  // first row
-  for j := 1; j < m; j++ {
-    r = f(r, matrix.At(0, j))
-  }
-  // all other rows
-  for i := 1; i < n; i++ {
+  for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r = f(r, matrix.At(i, j))
     }

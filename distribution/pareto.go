@@ -46,10 +46,14 @@ func NewParetoDistribution(lambda, kappa, epsilon Scalar) (*ParetoDistribution, 
     return nil, fmt.Errorf("invalid value for parameter epsilon: %f", kappa.GetValue())
   }
 
+  t  := lambda.Type()
+  t1 := NewScalar(t, 0.0)
+  t2 := NewScalar(t, 0.0)
+
   kappa1p  := kappa.CloneScalar()
   kappa1p.Add(kappa1p, NewBareReal(1.0))
 
-  z := Add(Log(kappa), Mul(kappa, Log(lambda)))
+  z := t1.Add(t1.Log(kappa), t2.Mul(kappa, t2.Log(lambda)))
 
   result := &ParetoDistribution{
     Lambda   : lambda .CloneScalar(),

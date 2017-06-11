@@ -23,6 +23,7 @@ import   "math"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/gradientDescent"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
+import . "github.com/pbenner/autodiff/simple"
 
 import   "github.com/gonum/plot"
 import   "github.com/gonum/plot/plotter"

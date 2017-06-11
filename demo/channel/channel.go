@@ -24,6 +24,7 @@ import   "math"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/newton"
 import   "github.com/pbenner/autodiff/algorithm/blahut"
+import . "github.com/pbenner/autodiff/simple"
 
 import   "github.com/gonum/plot"
 import   "github.com/gonum/plot/plotter"

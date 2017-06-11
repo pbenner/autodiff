@@ -100,6 +100,8 @@ func (r *Real) RealMax(a, b *Real) Scalar {
 func (c *Real) Abs(a Scalar) Scalar {
   if c.Sign() == -1 {
     c.Neg(a)
+  } else {
+    c.Set(a)
   }
   return c
 }
@@ -107,6 +109,8 @@ func (c *Real) Abs(a Scalar) Scalar {
 func (c *Real) RealAbs(a *Real) Scalar {
   if c.Sign() == -1 {
     c.Neg(a)
+  } else {
+    c.Set(a)
   }
   return c
 }

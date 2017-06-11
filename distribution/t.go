@@ -43,7 +43,8 @@ type TDistribution struct {
 
 func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error) {
 
-  t := nu.Type()
+  t  := nu.Type()
+  t1 := NewScalar(t, 0.0)
 
   n, m := sigma.Dims()
 
@@ -61,16 +62,20 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   c1 := NewScalar(t, 1.0)
   c2 := NewScalar(t, 2.0)
   d2 := NewScalar(t, float64(n)/2.0)
-  n2 := Div(nu, c2)
-  np := Add(n2, d2)
+  n2 := NewScalar(t, 0.0)
+  n2.Div(nu, c2)
+  np := NewScalar(t, 0.0)
+  np.Add(n2, d2)
   // +log Gamma(nu/2 + d/2)
-  z  := Lgamma(np)
+  
+  z := NewScalar(t, 0.0)
+  z.Lgamma(np)
   // -log Gamma(nu/2)
-  z.Sub(z, Lgamma(n2))
+  z.Sub(z, t1.Lgamma(n2))
   // -1/2 log |Sigma|
-  z.Sub(z, Div(Log(sigmaDet), c2))
+  z.Sub(z, t1.Div(t1.Log(sigmaDet), c2))
   // -d/2 log nu*pi
-  z.Sub(z, Mul(d2, Log(Mul(nu, NewReal(math.Pi)))))
+  z.Sub(z, t1.Mul(d2, t1.Log(t1.Mul(nu, NewReal(math.Pi)))))
 
   result := TDistribution{
     Nu      : nu.CloneScalar(),
@@ -103,6 +108,10 @@ func (dist *TDistribution) Clone() *TDistribution {
     z       : dist.z       .CloneScalar() }
 }
 
+func (dist *TDistribution) ScalarType() ScalarType {
+  return dist.Nu.Type()
+}
+
 func (dist *TDistribution) Dim() int {
   return dist.Mu.Dim()
 }
@@ -118,7 +127,10 @@ func (dist *TDistribution) Variance() Vector {
   if dist.Nu.GetValue() <= 2.0 {
     panic("variance undefined for given parameters")
   }
-  m := MmulS(dist.Sigma, Div(dist.Nu, Sub(dist.Nu, NewReal(2.0))))
+  n := dist.Dim()
+  t := NullScalar(dist.ScalarType())
+  m := NullMatrix(dist.ScalarType(), n, n)
+  m.MmulS(dist.Sigma, t.Div(dist.Nu, t.Sub(dist.Nu, NewReal(2.0))))
 
   return m.Diag()
 }

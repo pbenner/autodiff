@@ -61,7 +61,8 @@ func NewNegativeBinomialDistribution(r, p Scalar) (*NegativeBinomialDistribution
   dist := NegativeBinomialDistribution{}
   dist.R  = r.CloneScalar()
   dist.P  = p.CloneScalar()
-  dist.p  = Log(p)
+  dist.p  = NewScalar(t, 0.0)
+  dist.p.Log(p)
   dist.z  = t1
   dist.c1 = NewScalar(t, 1.0)
   dist.t1 = NewScalar(t, 0.0)

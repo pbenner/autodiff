@@ -23,6 +23,7 @@ import   "math"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
+import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 

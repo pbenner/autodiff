@@ -168,8 +168,8 @@ func bfgs_updateH(g1, g2, p2 Vector, H1, H2, I Matrix, t1, t2 Scalar, t3, t4 Vec
   // I - s y^T / (y^T s)
   t5.MsubM(I, t5)
   // [I - s y^T / (y^T s)] H1 [I - s y^T / (y^T s)]
-  H2.MdotM(t5, H1)
-  H2.MdotM(H2, t5)
+  t6.MdotM(t5, H1)
+  H2.MdotM(t6, t5)
   // s s^T
   t5.Outer(s, s)
   // s s^T / (y^T s)

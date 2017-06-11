@@ -22,7 +22,7 @@ import   "fmt"
 import   "math/rand"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
-
+import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 

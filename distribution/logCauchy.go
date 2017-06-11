@@ -39,11 +39,14 @@ func NewLogCauchyDistribution(mu, sigma Scalar) (*LogCauchyDistribution, error) 
   if sigma.GetValue() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
+  t  := mu.Type()
+  t1 := NewScalar(t, 0.0)
+  t2 := NewScalar(t, 0.0)
   dist := LogCauchyDistribution{}
   dist.Mu    = mu   .CloneScalar()
   dist.Sigma = sigma.CloneScalar()
-  dist.s2    = Mul(sigma, sigma)
-  dist.z     = Sub(Log(sigma), Log(NewBareReal(math.Pi)))
+  dist.z     = t1.Sub(t1.Log(sigma), t2.Log(NewBareReal(math.Pi)))
+  dist.s2    = t2.Mul(sigma, sigma)
   return &dist, nil
 }
 

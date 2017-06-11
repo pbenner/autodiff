@@ -45,7 +45,9 @@ type InverseWishartDistribution struct {
 
 func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribution, error) {
 
-  t := nu.Type()
+  t  := nu.Type()
+  t1 := NewScalar(t, 0.0)
+  t2 := NewScalar(t, 0.0)
 
   n, m := s.Dims()
 
@@ -60,9 +62,10 @@ func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribu
   c1 := NewBareReal(1.0)
   c2 := NewBareReal(2.0)
   // negative log partition function
-  z := Mul(Div(nu, c2), Log(sDet))            // |S|^(nu/2)
-  z.Sub(z, Mul(Mul(nu, Div(d, c2)), Log(c2))) // 2^(nu n/2)
-  z.Sub(z, Mlgamma(Div(nu, c2), n))           // Gamma_n(nu/2)
+  z := NewScalar(t, 0.0)
+  z.Mul(t1.Div(nu, c2), t2.Log(sDet))                     // |S|^(nu/2)
+  z.Sub(z, t1.Mul(t1.Mul(nu, t1.Div(d, c2)), t2.Log(c2))) // 2^(nu n/2)
+  z.Sub(z, t1.Mlgamma(t1.Div(nu, c2), n))                 // Gamma_n(nu/2)
 
   result := InverseWishartDistribution{
     Nu  : nu,
@@ -92,6 +95,10 @@ func (dist *InverseWishartDistribution) Clone() *InverseWishartDistribution {
     t   : dist.t   .CloneScalar() }
 }
 
+func (dist *InverseWishartDistribution) ScalarType() ScalarType {
+  return dist.Nu.Type()
+}
+
 func (dist *InverseWishartDistribution) Dim() int {
   n, _ := dist.S.Dims()
   return n
@@ -102,7 +109,9 @@ func (dist *InverseWishartDistribution) Mean() Matrix {
   if dist.Nu.GetValue() <= float64(n) - 1.0 {
     panic("mean is not defined for the given parameters")
   }
-  return MdivS(dist.S, Sub(Sub(dist.Nu, dist.d), NewReal(1.0)))
+  t1 := NullScalar(dist.ScalarType())
+  t2 := NullMatrix(dist.ScalarType(), n, n)
+  return t2.MdivS(dist.S, t1.Sub(t1.Sub(dist.Nu, dist.d), NewReal(1.0)))
 }
 
 func (dist *InverseWishartDistribution) Variance() Matrix {
@@ -112,17 +121,26 @@ func (dist *InverseWishartDistribution) Variance() Matrix {
   }
   m := NullMatrix(RealType, n, n)
   // some constants
-  c1 := Sub(dist.Nu, dist.d)           // (nu - d)
-  c2 := Add(c1, NewReal(1.0))          // (nu - d + 1)
-  c3 := Sub(c1, NewReal(1.0))          // (nu - d - 1)
-  c4 := Sub(c1, NewReal(3.0))          // (nu - d - 3)
-  c5 := Mul(Mul(c1, Mul(c3, c3)), c4)  // (nu - d)(nu - d - 1)^2 (nu - d - 3)
+  t1 := NewScalar(dist.ScalarType(), 0.0)
+  t2 := NewScalar(dist.ScalarType(), 0.0)
+  c1 := NewScalar(dist.ScalarType(), 0.0)
+  c2 := NewScalar(dist.ScalarType(), 0.0)
+  c3 := NewScalar(dist.ScalarType(), 0.0)
+  c4 := NewScalar(dist.ScalarType(), 0.0)
+  c5 := NewScalar(dist.ScalarType(), 0.0)
+  c1.Sub(dist.Nu, dist.d)           // (nu - d)
+  c2.Add(c1, NewReal(1.0))          // (nu - d + 1)
+  c3.Sub(c1, NewReal(1.0))          // (nu - d - 1)
+  c4.Sub(c1, NewReal(3.0))          // (nu - d - 3)
+  c5.Mul(t1.Mul(c1, t1.Mul(c3, c3)), c4)  // (nu - d)(nu - d - 1)^2 (nu - d - 3)
 
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
-      x := Mul(dist.S.At(i,j), dist.S.At(i,j))
-      y := Mul(dist.S.At(i,i), dist.S.At(j,j))
-      m.At(i, j).Div(Add(Mul(c2, x), Mul(c3, y)), c5)
+      x := t1
+      y := t2
+      x.Mul(dist.S.At(i,j), dist.S.At(i,j))
+      y.Mul(dist.S.At(i,i), dist.S.At(j,j))
+      m.At(i, j).Div(x.Add(x.Mul(c2, x), y.Mul(c3, y)), c5)
     }
   }
   return m

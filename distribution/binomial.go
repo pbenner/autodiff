@@ -45,7 +45,8 @@ func NewBinomialDistribution(theta Scalar, n int) (*BinomialDistribution, error)
   t := theta.Type()
   dist := BinomialDistribution{}
 
-  dist.Theta = Log(theta)
+  dist.Theta = NewScalar(t, 0.0)
+  dist.Theta.Log(theta)
   dist.n     = NewScalar(t, float64(n+0))
   dist.np1   = NewScalar(t, float64(n+1))
 
@@ -68,7 +69,9 @@ func NewBinomialDistribution(theta Scalar, n int) (*BinomialDistribution, error)
 /* -------------------------------------------------------------------------- */
 
 func (dist *BinomialDistribution) Clone() *BinomialDistribution {
-  r, _ := NewBinomialDistribution(Exp(dist.Theta), int(dist.n.GetValue()))
+  t := NewScalar(dist.ScalarType(), 0.0)
+  t.Exp(dist.Theta)
+  r, _ := NewBinomialDistribution(t, int(dist.n.GetValue()))
   return r
 }
 
@@ -145,7 +148,9 @@ func (dist *BinomialDistribution) GetParameters() Vector {
 }
 
 func (dist *BinomialDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewBinomialDistribution(Exp(parameters.At(0)), int(dist.n.GetValue())); err != nil {
+  t := NewScalar(dist.ScalarType(), 0.0)
+  t.Exp(parameters.At(0))
+  if tmp, err := NewBinomialDistribution(t, int(dist.n.GetValue())); err != nil {
     return err
   } else {
     *dist = *tmp

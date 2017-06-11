@@ -22,6 +22,7 @@ SUBDIRS = \
 	demo/regression \
 	demo/rosenbrock \
 	distribution \
+	simple \
 	special
 
 all:

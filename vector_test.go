@@ -63,7 +63,8 @@ func TestVdotV(t *testing.T) {
 
   a := NewVector(RealType, []float64{1, 2,3,4})
   b := NewVector(RealType, []float64{2,-1,1,7})
-  r := VdotV(a, b)
+  r := NullReal()
+  r.VdotV(a, b)
 
   if r.GetValue() != 31 {
     t.Error("VmulV() failed!")
@@ -74,7 +75,8 @@ func TestVmulV(t *testing.T) {
 
   a := NewVector(RealType, []float64{1, 2,3,4})
   b := NewVector(RealType, []float64{2,-1,1,7})
-  r := VmulV(a, b)
+  r := a.CloneVector()
+  r.VmulV(a, b)
 
   if r.At(1).GetValue() != -2 {
     t.Error("VmulV() failed!")
@@ -89,7 +91,7 @@ func TestReadVector(t *testing.T) {
   }
   r := NewVector(RealType, []float64{1,2,3,4,5,6})
 
-  if Vnorm(VsubV(v, r)).GetValue() != 0.0 {
+  if Vnorm(v.VsubV(v, r)).GetValue() != 0.0 {
     t.Error("Read vector failed!")
   }
 }
@@ -98,11 +100,12 @@ func TestVectorMapReduce(t *testing.T) {
 
   r1 := NewVector(RealType, []float64{2.718282e+00, 7.389056e+00, 2.008554e+01, 5.459815e+01})
   r2 := 84.79103
+  t1 := NewReal(0.0)
   a := NewVector(RealType, []float64{1, 2,3,4})
-  a.MapSet(Exp)
-  b := a.Reduce(Add)
+  a.Map(func(x Scalar) { x.Exp(x) })
+  b := a.Reduce(func(x, y Scalar) Scalar { return x.Add(x, y) }, t1)
 
-  if Vnorm(VsubV(a,r1)).GetValue() > 1e-2 {
+  if Vnorm(a.VsubV(a,r1)).GetValue() > 1e-2 {
     t.Error("Vector map/reduce failed!")
   }
   if math.Abs(b.GetValue() - r2) > 1e-2 {

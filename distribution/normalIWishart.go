@@ -30,6 +30,7 @@ type NormalIWishartDistribution struct {
   Mu     Vector
   r1     Scalar
   r2     Scalar
+  sigmap Matrix
 }
 
 /* -------------------------------------------------------------------------- */
@@ -51,10 +52,11 @@ func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (
 
   result := NormalIWishartDistribution{
     InverseWishartDistribution: *iw,
-    Kappa: kappa,
-    Mu   : mu,
-    r1   : NewScalar(t, 0.0),
-    r2   : NewScalar(t, 0.0) }
+    Kappa : kappa,
+    Mu    : mu,
+    r1    : NullScalar(t),
+    r2    : NullScalar(t),
+    sigmap: NullMatrix(t, n, n) }
 
   return &result, nil
 
@@ -71,15 +73,22 @@ func (dist *NormalIWishartDistribution) Clone() *NormalIWishartDistribution {
     r2   : dist.r2   .CloneScalar() }
 }
 
+func (dist *NormalIWishartDistribution) ScalarType() ScalarType {
+  return dist.Mu.ElementType()
+}
+
 func (dist *NormalIWishartDistribution) Dim() int {
   return dist.Mu.Dim()
 }
 
 func (dist *NormalIWishartDistribution) MarginalMu() *TDistribution {
-  d := NewReal(float64(dist.Dim()))
-  c := Add(Sub(dist.Nu, d), NewReal(1.0)) // (nu - d + 1)
-  c  = Mul(dist.Kappa, c)                 // (nu - d + 1)kappa
-  lambda := MdivS(dist.S, c)
+  n := dist.Dim()
+  d := NewScalar(dist.ScalarType(), float64(dist.Dim()))
+  c := NewScalar(dist.ScalarType(), 0.0)
+  c.Add(c.Sub(dist.Nu, d), NewReal(1.0)) // (nu - d + 1)
+  c.Mul(c, dist.Kappa)                   // (nu - d + 1)kappa
+  lambda := NullMatrix(dist.ScalarType(), n, n)
+  lambda.MdivS(dist.S, c)
 
   r, err := NewTDistribution(dist.Nu, dist.Mu, lambda)
   if err != nil {
@@ -109,12 +118,13 @@ func (dist *NormalIWishartDistribution) Variance() (Vector, Matrix) {
 }
 
 func (dist *NormalIWishartDistribution) LogPdf(r Scalar, mu Vector, sigma Matrix) error {
-  sigmap := MmulS(sigma, Div(NewReal(1.0), dist.Kappa))
+  r1 := dist.r1
+  r2 := dist.r2
+  sigmap := dist.sigmap
+  sigmap.MmulS(sigma, r1.Div(NewReal(1.0), dist.Kappa))
   if normal, err := NewNormalDistribution(dist.Mu, sigmap); err != nil {
     return err
   } else {
-    r1 := dist.r1
-    r2 := dist.r2
     if err := normal.LogPdf(r1, mu); err != nil {
       return err
     }

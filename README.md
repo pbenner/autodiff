@@ -169,6 +169,7 @@ Compare vanilla gradient descent with resilient backpropagation
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/gradientDescent"
   import   "github.com/pbenner/autodiff/algorithm/rprop"
+  import . "github.com/pbenner/autodiff/simple"
 
   f := func(x Vector) Scalar {
     // x^4 - 3x^3 + 2
@@ -189,6 +190,7 @@ Compute the inverse *r* of a matrix *m* by minimizing the Frobenius norm *||mb -
 ```go
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/rprop"
+  import . "github.com/pbenner/autodiff/simple"
 
   m := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
 
@@ -211,6 +213,7 @@ Find the root of a function *f* with initial value *x0 = (1,1)*
 ```go
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/newton"
+  import . "github.com/pbenner/autodiff/simple"
 
   f := func(x Vector) Vector {
     y := NilDenseVector(2)
@@ -234,6 +237,7 @@ Compare Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
   import   "github.com/pbenner/autodiff/algorithm/rprop"
   import   "github.com/pbenner/autodiff/algorithm/bfgs"
   import   "github.com/pbenner/autodiff/algorithm/newton"
+  import . "github.com/pbenner/autodiff/simple"
 
   f := func(x Vector) (Scalar, error) {
      // f(x1, x2) = (a - x1)^2 + b(x2 - x1^2)^2
@@ -292,6 +296,7 @@ Maximize the function *f(x, y) = x + y* subject to *x^2 + y^2 = 1* by finding th
 ```go
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/newton"
+  import . "github.com/pbenner/autodiff/simple"
 
   // define the Lagrangian
   f := func(x Vector) (Scalar, error) {

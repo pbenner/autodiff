@@ -60,10 +60,13 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
   sigmaDet, err := determinant  .Run(sigma, determinant  .PositiveDefinite{true})
   if err != nil { return nil, err }
 
+  t1 := NewScalar(t, 0.0)
+
   // -1/2 [ p log(2pi) + log|Sigma| ]
   c1 := NewScalar(t, -0.5)
   c2 := NewScalar(t, float64(n)*math.Log(2*math.Pi))
-  h  := Mul(c1, Add(c2, Log(Abs(sigmaDet))))
+  h  := NewScalar(t, 0.0)
+  h.Mul(c1, t1.Add(c2, t1.Log(t1.Abs(sigmaDet))))
 
   result := NormalDistribution{
     Mu      : mu,

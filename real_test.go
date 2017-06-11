@@ -41,8 +41,10 @@ func TestReal(t *testing.T) {
 
 func TestDiff1(t *testing.T) {
 
+  t1 := NullReal()
+
   f := func(x Scalar) Scalar {
-    return Add(Mul(NewReal(2), Pow(x, NewBareReal(3))), NewReal(4))
+    return t1.Add(t1.Mul(NewReal(2), t1.Pow(x, NewBareReal(3))), NewReal(4))
   }
   x := NewReal(9)
 
@@ -109,7 +111,8 @@ func TestPow1(t *testing.T) {
 
   Variables(2, x, k)
 
-  r := Pow(x, k)
+  r := NullReal()
+  r.Pow(x, k)
 
   if math.Abs(r.GetDerivative(0) - 182.124553) > 1e-4  ||
     (math.Abs(r.GetDerivative(1) - 184.826947) > 1e-4) {
@@ -127,7 +130,8 @@ func TestPow2(t *testing.T) {
 
   Variables(2, x, k)
 
-  r := Pow(x, k)
+  r := NullReal()
+  r.Pow(x, k)
 
   if math.Abs(r.GetDerivative(0) - -157.216) > 1e-4  ||
     (math.Abs(r.GetHessian(0, 0) -  138.720) > 1e-4) {
@@ -144,7 +148,8 @@ func TestTan(t *testing.T) {
   a := NewReal(4.321)
   Variables(1, a)
 
-  s := Tan(a)
+  s := NullReal()
+  s.Tan(a)
 
   if math.Abs(s.GetDerivative(0) - 6.87184) > 0.0001 {
     t.Error("Incorrect derivative for Tan()!", s.GetDerivative(0))
@@ -156,7 +161,8 @@ func TestTanh1(t *testing.T) {
   a := NewReal(4.321)
   Variables(2, a)
 
-  s := Tanh(a)
+  s := NullReal()
+  s.Tanh(a)
 
   if math.Abs(s.GetDerivative(0) -  0.00070588) > 0.0000001 {
     t.Error("Incorrect derivative for Tanh()!")
@@ -186,7 +192,8 @@ func TestErf(t *testing.T) {
   a := NewReal(0.23)
   Variables(2, a)
 
-  s := Erf(a)
+  s := NullReal()
+  s.Erf(a)
 
   if math.Abs(s.GetDerivative(0) -  1.07023926) > 1e-6 ||
     (math.Abs(s.GetHessian(0, 0) - -0.49231006) > 1e-6) {
@@ -199,7 +206,8 @@ func TestErfc(t *testing.T) {
   a := NewReal(0.23)
   Variables(2, a)
 
-  s := Erfc(a)
+  s := NullReal()
+  s.Erfc(a)
 
   if math.Abs(s.GetDerivative(0) - -1.07023926) > 1e-6 ||
     (math.Abs(s.GetHessian(0, 0) -  0.49231006) > 1e-6) {
@@ -212,7 +220,8 @@ func TestLogErfc1(t *testing.T) {
   a := NewReal(0.23)
   Variables(2, a)
 
-  s := LogErfc(a)
+  s := NullReal()
+  s.LogErfc(a)
 
   if math.Abs(s.GetDerivative(0) - -1.436606354) > 1e-6 {
     t.Error("Incorrect derivative for LogErfc()!")
@@ -242,7 +251,8 @@ func TestGamma(t *testing.T) {
   a := NewReal(4.321)
   Variables(2, a)
 
-  s := Gamma(a)
+  s := NullReal()
+  s.Gamma(a)
 
   if math.Abs(s.GetDerivative(0) - 12.2353264) > 1e-6 ||
     (math.Abs(s.GetHessian(0, 0) - 18.8065398) > 1e-6) {
@@ -255,7 +265,8 @@ func TestGammaP(t *testing.T) {
   x := NewReal(4.321)
   Variables(2, x)
 
-  s := GammaP(9.125, x)
+  s := NullReal()
+  s.GammaP(9.125, x)
 
   if math.Abs(s.GetValue() - 0.029234) > 1e-6        ||
     (math.Abs(s.GetDerivative(0) - 0.036763) > 1e-6) ||
@@ -271,8 +282,11 @@ func TestHessian(t *testing.T) {
 
   Variables(2, x, y)
 
+  t1 := NullReal()
+  t2 := NullReal()
   // y = x^3 + y^3 - 3xy
-  z := Sub(Add(Pow(x, k), Pow(y, k)), Mul(NewReal(3.0), Mul(x, y)))
+  z := NullReal()
+  z.Sub(t1.Add(t1.Pow(x, k), t2.Pow(y, k)), t2.Mul(NewReal(3.0), t2.Mul(x, y)))
 
   if math.Abs(z.GetHessian(0, 0) -  9) > 1e-6  ||
     (math.Abs(z.GetHessian(0, 1) - -3) > 1e-6) ||

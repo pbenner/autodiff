@@ -44,11 +44,14 @@ func mSqrt(matrix Matrix) (Matrix, error) {
   if err != nil {
     return nil, err
   }
-  Y1 := MmulS(MaddM(Y0, t1), c)
-  Z1 := MmulS(MaddM(Z0, t2), c)
-  for Mnorm(MsubM(Y0, Y1)).GetValue() > 1e-8 {
-    Y0 = Y1
-    Z0 = Z1
+  S  := Y0.CloneMatrix()
+  Y1 := Y0.CloneMatrix()
+  Y1.MmulS(Y1.MaddM(Y0, t1), c)
+  Z1 := Z0.CloneMatrix()
+  Z1.MmulS(Z1.MaddM(Z0, t2), c)
+  for Mnorm(S.MsubM(Y0, Y1)).GetValue() > 1e-8 {
+    Y0, Y1 = Y1, Y0
+    Z0, Z1 = Z1, Z0
     t1, err := matrixInverse.Run(Z0)
     if err != nil {
       return nil, err
@@ -57,8 +60,8 @@ func mSqrt(matrix Matrix) (Matrix, error) {
     if err != nil {
       return nil, err
     }
-    Y1 = MmulS(MaddM(Y0, t1), c)
-    Z1 = MmulS(MaddM(Z0, t2), c)
+    Y1.MmulS(Y1.MaddM(Y0, t1), c)
+    Z1.MmulS(Z1.MaddM(Z0, t2), c)
   }
   return Y1, nil
 }

@@ -50,7 +50,8 @@ func NewGParetoDistribution(mu, sigma, xi Scalar) (*GParetoDistribution, error) 
   // cx2 = -1/xi - 1
   cx2 := cx1.CloneScalar()
   cx2.Sub(cx2, c1)
-  cs  := Log(sigma)
+  cs  := sigma.CloneScalar()
+  cs.Log(sigma)
 
   result := &GParetoDistribution{
     Mu    : mu   .CloneScalar(),

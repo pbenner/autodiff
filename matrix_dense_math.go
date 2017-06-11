@@ -57,14 +57,6 @@ func (r *DenseMatrix) MaddM(a, b Matrix) Matrix {
   return r
 }
 
-// Element-wise addition of two matrices.
-func MaddM(a, b Matrix) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MaddM(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Add scalar b to all elements of a. The result is stored in r.
@@ -79,14 +71,6 @@ func (r *DenseMatrix) MaddS(a Matrix, b Scalar) Matrix {
       r.At(i, j).Add(a.At(i, j), b)
     }
   }
-  return r
-}
-
-// Add scalar b to all elements of a.
-func MaddS(a Matrix, b Scalar) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MaddS(a, b)
   return r
 }
 
@@ -108,14 +92,6 @@ func (r *DenseMatrix) MsubM(a, b Matrix) Matrix {
   return r
 }
 
-// Element-wise substraction of two matrices.
-func MsubM(a, b Matrix) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MsubM(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Substract b from all elements of a. The result is stored in r.
@@ -130,14 +106,6 @@ func (r *DenseMatrix) MsubS(a Matrix, b Scalar) Matrix {
       r.At(i, j).Sub(a.At(i, j), b)
     }
   }
-  return r
-}
-
-// Substract b from all elements of a.
-func MsubS(a Matrix, b Scalar) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MsubS(a, b)
   return r
 }
 
@@ -159,14 +127,6 @@ func (r *DenseMatrix) MmulM(a, b Matrix) Matrix {
   return r
 }
 
-// Element-wise multiplication of two matrices.
-func MmulM(a, b Matrix) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MmulM(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Multiply all elements of a with b. The result is stored in r.
@@ -181,14 +141,6 @@ func (r *DenseMatrix) MmulS(a Matrix, b Scalar) Matrix {
       r.At(i, j).Mul(a.At(i, j), b)
     }
   }
-  return r
-}
-
-// Multiply all elements of a with b.
-func MmulS(a Matrix, b Scalar) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MmulS(a, b)
   return r
 }
 
@@ -210,14 +162,6 @@ func (r *DenseMatrix) MdivM(a, b Matrix) Matrix {
   return r
 }
 
-// Element-wise division of two matrices.
-func MdivM(a, b Matrix) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MdivM(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Divide all elements of a by b. The result is stored in r.
@@ -235,14 +179,6 @@ func (r *DenseMatrix) MdivS(a Matrix, b Scalar) Matrix {
   return r
 }
 
-// Divide all elements of a by b.
-func MdivS(a Matrix, b Scalar) Matrix {
-  n, m := a.Dims()
-  r := NullMatrix(a.ElementType(), n, m)
-  r.MdivS(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Matrix product of a and b. The result is stored in r.
@@ -252,6 +188,9 @@ func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
   n2, m2 := b.Dims()
   if n1 != n || m2 != m || n1 != m2 || m1 != n2 {
     panic("matrix dimensions do not match!")
+  }
+  if r == a || r == b {
+    panic("result and argument must be different vectors")
   }
   t1 := NullScalar(a.ElementType())
   t2 := NullScalar(a.ElementType())
@@ -269,15 +208,6 @@ func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
       r.At(i, j).Set(t3[j])
     }
   }
-  return r
-}
-
-// Matrix product of a and b.
-func MdotM(a, b Matrix) Matrix {
-  n1, _  := a.Dims()
-  _,  m2 := b.Dims()
-  r := NullMatrix(a.ElementType(), n1, m2)
-  r.MdotM(a, b)
   return r
 }
 
@@ -303,14 +233,6 @@ func (r DenseVector) MdotV(a Matrix, b Vector) Vector {
   return r
 }
 
-// Matrix vector product of a and b.
-func MdotV(a Matrix, b Vector) Vector {
-  n, _ := a.Dims()
-  r := NullDenseVector(a.ElementType(), n)
-  r.MdotV(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Vector matrix product of a and b. The result is stored in r.
@@ -333,14 +255,6 @@ func (r DenseVector) VdotM(a Vector, b Matrix) Vector {
   return r
 }
 
-// Vector matrix product of a and b.
-func VdotM(a Vector, b Matrix) Vector {
-  _, m := b.Dims()
-  r := NullVector(a.ElementType(), m)
-  r.VdotM(a, b)
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 // Outer product of two vectors. The result is stored in r.
@@ -354,13 +268,6 @@ func (r *DenseMatrix) Outer(a, b Vector) Matrix {
       r.At(i, j).Mul(a.At(i), b.At(j))
     }
   }
-  return r
-}
-
-// Outer product of two vectors.
-func Outer(a, b Vector) Matrix {
-  r := NullMatrix(a.ElementType(), a.Dim(), b.Dim())
-  r.Outer(a, b)
   return r
 }
 
@@ -383,8 +290,9 @@ func Mnorm(a Matrix) Scalar {
   }
   c := NewBareReal(2.0)
   t := NewScalar(a.ElementType(), 0.0)
+  s := NewScalar(a.ElementType(), 0.0)
   v := a.ToVector()
-  s := Pow(v.At(0), NewBareReal(2.0))
+  s.Pow(v.At(0), NewBareReal(2.0))
   for i := 1; i < v.Dim(); i++ {
     t.Pow(v.At(i), c)
     s.Add(s, t)

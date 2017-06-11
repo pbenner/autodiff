@@ -47,7 +47,8 @@ type SkewNormalDistribution struct {
 // distribution." Biometrika 83.4 (1996): 715-726.
 
 func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vector) (*SkewNormalDistribution, error) {
-  t := xi.ElementType()
+  t  := xi.ElementType()
+  t1 := NewScalar(t, 0.0)
   // dimension
   n, m := omega.Dims()
   // check parameter dimensions
@@ -59,10 +60,10 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
   }
   // parameters for the multivariate normal
   // kappa = diag(s) omega diag(s)
-  kappa := NullMatrix(RealType, n, n)
+  kappa := NullMatrix(t, n, n)
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
-      kappa.At(i, j).Mul(Mul(scale.At(i), scale.At(j)), omega.At(i,j))
+      kappa.At(i, j).Mul(t1.Mul(scale.At(i), scale.At(j)), omega.At(i,j))
     }
   }
   // parameters for the standard normal cdf

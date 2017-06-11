@@ -67,7 +67,7 @@ func TestDeterminant4(t *testing.T) {
   if math.Abs(r1.GetValue() - r2.GetValue()) > 1e-4 {
     t.Error("Matrix determinant failed!")
   }
-  if math.Abs(Log(r1).GetValue() - r3.GetValue()) > 1e-4 {
+  if math.Abs(r1.Log(r1).GetValue() - r3.GetValue()) > 1e-4 {
     t.Error("Matrix determinant failed!")
   }
 

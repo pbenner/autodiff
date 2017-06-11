@@ -41,9 +41,13 @@ func NewChiSquaredDistribution(k_ float64) (*ChiSquaredDistribution, error) {
   k  := NewScalar(t, k_)
   c1 := NewScalar(t, 1.0)
   c2 := NewScalar(t, 2.0)
-  l  := Div(k, c2)
-  e  := Sub(l, c1)
-  z  := Add(Mul(l, Log(c2)), Lgamma(l))
+  l  := NewScalar(t, 0.0)
+  l.Div(k, c2)
+  e  := NewScalar(t, 0.0)
+  e.Sub(l, c1)
+  z  := NewScalar(t, 0.0)
+  t1 := NewScalar(t, 0.0)
+  z.Add(z.Mul(l, z.Log(c2)), t1.Lgamma(l))
   return &ChiSquaredDistribution{K: k, C: c2, L: l, E: e, Z: z}, nil
 }
 
@@ -59,9 +63,10 @@ func (dist *ChiSquaredDistribution) Dim() int {
 }
 
 func (dist *ChiSquaredDistribution) LogPdf(r Scalar, x Vector) error {
+  t := NewScalar(x.ElementType(), 0.0)
   r.Log(x.At(0))
   r.Mul(r, dist.E)
-  t := Div(x.At(0), dist.C)
+  t.Div(x.At(0), dist.C)
   r.Sub(r, t)
   r.Sub(r, dist.Z)
   return nil

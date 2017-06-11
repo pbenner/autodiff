@@ -167,9 +167,8 @@ func (v DenseVector) MapSet(f func(Scalar) Scalar) {
   }
 }
 
-func (v DenseVector) Reduce(f func(Scalar, Scalar) Scalar) Scalar {
-  r := v[0]
-  for i := 1; i < len(v); i++ {
+func (v DenseVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
+  for i := 0; i < len(v); i++ {
     r = f(r, v[i])
   }
   return r

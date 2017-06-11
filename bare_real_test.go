@@ -37,7 +37,7 @@ func TestBareDiff1(t *testing.T) {
   Variables(1, x)
 
   // this should panic
-  Mul(y, x)
+  y.Mul(y, x)
 }
 
 func TestBareDiff2(t *testing.T) {
@@ -54,5 +54,5 @@ func TestBareDiff2(t *testing.T) {
   Variables(1, x)
 
   // this should be ok
-  Mul(x, y)
+  x.Mul(x, y)
 }

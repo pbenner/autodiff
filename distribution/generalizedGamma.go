@@ -40,15 +40,19 @@ func NewGeneralizedGammaDistribution(a, d, p Scalar) (*GeneralizedGammaDistribut
   if a.GetValue() <= 0.0 || d.GetValue() <= 0.0 || p.GetValue() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
+  t  := a.Type()
+  t1 := NewScalar(t, 0.0)
   dist := GeneralizedGammaDistribution{}
   dist.A = a.CloneScalar()
   dist.D = d.CloneScalar()
   dist.P = p.CloneScalar()
-  dist.dm1 = Sub(d, NewScalar(d.Type(), 1.0))
-  dist.z   = Log(p)
-  dist.z   = Sub(dist.z, Mul(d, Log(a)))
-  dist.z   = Sub(dist.z, Lgamma(Div(d, p)))
-  dist.t   = NewScalar(a.Type(), 0.0)
+  dist.dm1 = NewScalar(t, 0.0)
+  dist.dm1.Sub(d, NewScalar(d.Type(), 1.0))
+  dist.z   = NewScalar(t, 0.0)
+  dist.z.Log(p)
+  dist.z.Sub(dist.z, t1.Mul(d, t1.Log(a)))
+  dist.z.Sub(dist.z, t1.Lgamma(t1.Div(d, p)))
+  dist.t   = t1
   return &dist, nil
 }
 

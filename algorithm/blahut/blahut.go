@@ -47,34 +47,38 @@ func blahut_compute_q(channel Matrix, p Vector, q Matrix) {
 
 func blahut_compute_r(channel, q Matrix, r Vector) {
   n, m := channel.Dims()
+  t1 := NewScalar(q.ElementType(), 0.0)
+  t2 := NewScalar(q.ElementType(), 0.0)
   for i := 0; i < n; i++ {
     r.At(i).SetValue(0.0)
     for j := 0; j < m; j++ {
       if !math.IsInf(channel.At(i, j).GetLogValue(), -1) && // 0 log q = 0
          !math.IsInf(r.At(i).GetLogValue(), 1) {               // Inf + x = Inf
-        r.At(i).Sub(r.At(i), Mul(channel.At(i, j), Log(q.At(j, i))))
+        r.At(i).Sub(r.At(i), t1.Mul(channel.At(i, j), t2.Log(q.At(j, i))))
       }
     }
-    r.At(i).Exp(Neg(r.At(i)))
+    r.At(i).Exp(t1.Neg(r.At(i)))
   }
 }
 
 func blahut_compute_J(r Vector, J Scalar) {
   sum := NewScalar(r.ElementType(), 0.0)
   for i := 0; i < r.Dim(); i++ {
-    sum = Add(sum, r.At(i))
+    sum.Add(sum, r.At(i))
   }
-  J.Set(Div(Log(sum), NewScalar(r.ElementType(), math.Log(2.0))))
+  J.Set(sum.Div(sum.Log(sum), NewScalar(r.ElementType(), math.Log(2.0))))
 }
 
 func blahut_compute_p(r Vector, lambda Scalar, p Vector) {
+  t1 := NewScalar(r.ElementType(), 0.0)
+  t2 := NewScalar(r.ElementType(), 0.0)
   for i := 0; i < p.Dim(); i++ {
     if math.IsInf(p.At(i).GetLogValue(), -1) {
       // p[i] = r.At(i)
       p.At(i).Set(r.At(i))
     } else {
       // p[i] = p[i]^(1-lambda) * r[i]^lambda
-      p.At(i).Mul(Pow(p.At(i), Sub(NewBareReal(1.0), lambda)), Pow(r.At(i), lambda))
+      p.At(i).Mul(t1.Pow(p.At(i), t2.Sub(NewBareReal(1.0), lambda)), t2.Pow(r.At(i), lambda))
     }
   }
   normalizeVector(p)

@@ -39,10 +39,13 @@ func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error)
   }
   // some constants
   c1 := NewBareReal(1.0)
+  l1 := lambda.CloneScalar()
+  l2 := lambda.CloneScalar()
+  l2.Log(l1)
 
   result := ExponentialDistribution{
-    Lambda   : lambda.CloneScalar(),
-    LambdaLog: Log(lambda),
+    Lambda   : l1,
+    LambdaLog: l2,
     c1       : c1 }
 
   return &result, nil
