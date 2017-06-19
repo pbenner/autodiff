@@ -323,6 +323,8 @@ func (matrix *DenseMatrix) ConvertElementType(t ScalarType) {
   for i := 0; i < len(matrix.Values); i++ {
     matrix.Values[i] = NewScalar(t, matrix.Values[i].GetValue())
   }
+  matrix.Tmp1.ConvertElementType(t)
+  matrix.Tmp2.ConvertElementType(t)
 }
 
 func (matrix *DenseMatrix) Variables(order int) {
