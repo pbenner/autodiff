@@ -19,6 +19,7 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 import "fmt"
+import "encoding/json"
 import "reflect"
 import "math"
 
@@ -144,4 +145,15 @@ func (a *BareReal) SetHessian(i, j int, v float64) {
 }
 
 func (a *BareReal) SetVariable(i, n, order int) {
+}
+
+/* json
+ * -------------------------------------------------------------------------- */
+
+func (obj *BareReal) MarshalJSON() ([]byte, error) {
+  return json.Marshal(*obj)
+}
+
+func (obj *BareReal) UnmarshalJSON(data []byte) error {
+  return json.Unmarshal(data, obj)
 }

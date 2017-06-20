@@ -20,6 +20,7 @@ package autodiff
 
 import "fmt"
 import "reflect"
+import "encoding/json"
 
 /* -------------------------------------------------------------------------- */
 
@@ -50,6 +51,8 @@ type ScalarState interface {
   SetDerivative   (int, float64)
   SetHessian      (int, int, float64)
   SetVariable     (int, int, int)
+  // json
+  json.Marshaler
 }
 
 type Scalar interface {

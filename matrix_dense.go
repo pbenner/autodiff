@@ -21,6 +21,7 @@ package autodiff
 import "bytes"
 import "bufio"
 import "compress/gzip"
+import "encoding/json"
 import "errors"
 import "fmt"
 import "reflect"
@@ -94,10 +95,10 @@ func NilDenseMatrix(rows, cols int) *DenseMatrix {
 
 func (matrix *DenseMatrix) initTmp() {
   t := matrix.ElementType()
-  if len(matrix.Tmp1) == 0 {
+  if len(matrix.Tmp1) != matrix.Rows {
     matrix.Tmp1 = NullDenseVector(t, matrix.Rows)
   }
-  if len(matrix.Tmp2) == 0 {
+  if len(matrix.Tmp2) != matrix.Cols {
     matrix.Tmp2 = NullDenseVector(t, matrix.Cols)
   }
 }
@@ -444,4 +445,37 @@ func ReadMatrix(t ScalarType, filename string) (Matrix, error) {
   result = NewMatrix(t, rows, cols, data)
 
   return result, nil
+}
+
+/* json
+ * -------------------------------------------------------------------------- */
+
+func (obj *DenseMatrix) MarshalJSON() ([]byte, error) {
+  if obj.Transposed {
+    n, m := obj.Dims()
+    tmp  := NullDenseMatrix(obj.ElementType(), n, m)
+    tmp.Set(obj)
+    obj = tmp
+  }
+  r := struct{Values DenseVector; Rows int; Cols int}{}
+  r.Values = obj.Values
+  r.Rows   = obj.Rows
+  r.Cols   = obj.Cols
+  return json.MarshalIndent(r, "", "  ")
+}
+
+func (obj *DenseMatrix) UnmarshalJSON(data []byte) error {
+  r := struct{Values []*Real; Rows int; Cols int}{}
+  if err := json.Unmarshal(data, &r); err != nil {
+    return err
+  }
+  obj.Values     = NilDenseVector(len(r.Values))
+  for i := 0; i < len(r.Values); i++ {
+    obj.Values[i] = r.Values[i]
+  }
+  obj.Rows       = r.Rows
+  obj.Cols       = r.Cols
+  obj.Transposed = false
+  obj.initTmp()
+  return nil
 }

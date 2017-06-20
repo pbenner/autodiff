@@ -19,7 +19,10 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 //import "fmt"
+import "encoding/json"
 import "math"
+import "io/ioutil"
+import "os"
 import "testing"
 
 /* -------------------------------------------------------------------------- */
@@ -293,5 +296,100 @@ func TestHessian(t *testing.T) {
     (math.Abs(z.GetHessian(1, 0) - -3) > 1e-6) ||
     (math.Abs(z.GetHessian(1, 1) - 15) > 1e-6) {
     t.Error("Hessian test failed!")
+  }
+}
+
+func TestRealJson(t *testing.T) {
+
+  writeJson := func(filename string, obj interface{}) error {
+    if f, err := os.Create(filename); err != nil {
+      return err
+    } else {
+      b, err := json.MarshalIndent(obj, "", "  ")
+      if err != nil {
+        return err
+      }
+      if _, err := f.Write(b); err != nil {
+        return err
+      }
+    }
+    return nil
+  }
+  readJson := func(filename string, obj interface{}) error {
+    if f, err := os.Open(filename); err != nil {
+      return err
+    } else {
+      buffer, err := ioutil.ReadAll(f)
+      if err != nil {
+        return err
+      }
+      if err := json.Unmarshal(buffer, obj); err != nil {
+        return err
+      }
+    }
+    return nil
+  }
+  {
+    filename := "real_test.1.json"
+
+    r1 := NewReal(1.5)
+    r1.Alloc(1,2)
+    r2 := NewReal(0.0)
+
+    if err := writeJson(filename, r1); err != nil {
+      t.Error(err); return
+    }
+    if err := readJson(filename, r2); err != nil {
+      t.Error(err); return
+    }
+    if r1.GetValue() != r2.GetValue() {
+      t.Error("test failed")
+    }
+  }
+  {
+    filename := "real_test.2.json"
+
+    r1 := NewReal(1.5)
+    r1.Alloc(1,2)
+    r1.SetDerivative(0, 2.3)
+    r2 := NewReal(0.0)
+
+    if err := writeJson(filename, r1); err != nil {
+      t.Error(err); return
+    }
+    if err := readJson(filename, r2); err != nil {
+      t.Error(err); return
+    }
+    if r1.GetValue() != r2.GetValue() {
+      t.Error("test failed")
+    }
+    if r1.GetDerivative(0) != r2.GetDerivative(0) {
+      t.Error("test failed")
+    }
+  }
+  {
+    filename := "real_test.3.json"
+
+    r1 := NewReal(1.5)
+    r1.Alloc(1,2)
+    r1.SetDerivative(0, 2.3)
+    r1.SetHessian(0, 0, 3.4)
+    r2 := NewReal(0.0)
+
+    if err := writeJson(filename, r1); err != nil {
+      t.Error(err); return
+    }
+    if err := readJson(filename, r2); err != nil {
+      t.Error(err); return
+    }
+    if r1.GetValue() != r2.GetValue() {
+      t.Error("test failed")
+    }
+    if r1.GetDerivative(0) != r2.GetDerivative(0) {
+      t.Error("test failed")
+    }
+    if r1.GetHessian(0, 0) != r2.GetHessian(0, 0) {
+      t.Error("test failed")
+    }
   }
 }

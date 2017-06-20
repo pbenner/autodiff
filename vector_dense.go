@@ -22,6 +22,7 @@ import "fmt"
 import "bytes"
 import "bufio"
 import "compress/gzip"
+import "encoding/json"
 import "errors"
 import "reflect"
 import "sort"
@@ -327,4 +328,25 @@ func ImportDenseVector(t ScalarType, filename string) (DenseVector, error) {
     }
   }
   return result, nil
+}
+
+/* json
+ * -------------------------------------------------------------------------- */
+
+func (obj DenseVector) MarshalJSON() ([]byte, error) {
+  r := []Scalar{}
+  r  = obj
+  return json.MarshalIndent(r, "", "  ")
+}
+
+func (obj *DenseVector) UnmarshalJSON(data []byte) error {
+  r := []*Real{}
+  if err := json.Unmarshal(data, &r); err != nil {
+    return err
+  }
+  *obj = NilDenseVector(len(r))
+  for i := 0; i < len(r); i++ {
+    (*obj)[i] = r[i]
+  }
+  return nil
 }

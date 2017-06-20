@@ -19,7 +19,10 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 //import "fmt"
+import "encoding/json"
 import "math"
+import "io/ioutil"
+import "os"
 import "testing"
 
 /* -------------------------------------------------------------------------- */
@@ -329,6 +332,75 @@ func TestMdotM(t *testing.T) {
     r2.MdotM(r1, r2)
 
     if q.Mnorm(s.MsubM(r2, r3)).GetValue() > 1e-8 {
+      t.Error("test failed")
+    }
+  }
+}
+
+func TestMatrixJson(t *testing.T) {
+
+  writeJson := func(filename string, obj interface{}) error {
+    if f, err := os.Create(filename); err != nil {
+      return err
+    } else {
+      b, err := json.MarshalIndent(obj, "", "  ")
+      if err != nil {
+        return err
+      }
+      if _, err := f.Write(b); err != nil {
+        return err
+      }
+    }
+    return nil
+  }
+  readJson := func(filename string, obj interface{}) error {
+    if f, err := os.Open(filename); err != nil {
+      return err
+    } else {
+      buffer, err := ioutil.ReadAll(f)
+      if err != nil {
+        return err
+      }
+      if err := json.Unmarshal(buffer, obj); err != nil {
+        return err
+      }
+    }
+    return nil
+  }
+  {
+    filename := "matrix_test.1.json"
+
+    r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
+    r2 := NilMatrix(0, 0)
+
+    if err := writeJson(filename, r1); err != nil {
+      t.Error(err); return
+    }
+    if err := readJson(filename, r2); err != nil {
+      t.Error(err); return
+    }
+    if r1.At(0,0).GetValue() != r2.At(0,0).GetValue() {
+      t.Error("test failed")
+    }
+  }
+  {
+    filename := "matrix_test.2.json"
+
+    r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
+    r1.At(0,0).Alloc(1,2)
+    r1.At(0,0).SetDerivative(0, 2.3)
+    r2 := NilMatrix(0, 0)
+
+    if err := writeJson(filename, r1); err != nil {
+      t.Error(err); return
+    }
+    if err := readJson(filename, r2); err != nil {
+      t.Error(err); return
+    }
+    if r1.At(0,0).GetValue() != r2.At(0,0).GetValue() {
+      t.Error("test failed")
+    }
+    if r1.At(0,0).GetDerivative(0) != r2.At(0,0).GetDerivative(0) {
       t.Error("test failed")
     }
   }

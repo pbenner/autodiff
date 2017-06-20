@@ -18,6 +18,8 @@ package autodiff
 
 /* -------------------------------------------------------------------------- */
 
+import "fmt"
+import "encoding/json"
 import "math"
 
 /* -------------------------------------------------------------------------- */
@@ -192,5 +194,74 @@ func (a *BasicState) SetVariable(i, n, order int) {
   a.Alloc(n, order)
   if order > 0 {
     a.Derivative[i] = 1
+  }
+}
+
+/* json
+ * -------------------------------------------------------------------------- */
+
+func (obj *BasicState) MarshalJSON() ([]byte, error) {
+  t1 := false
+  t2 := false
+  if obj.Order > 0 && obj.N > 0 {
+    // check for non-zero derivatives
+    for i := 0; !t1 && i < obj.GetN(); i++ {
+      if obj.Derivative[i] != 0.0 {
+        t1 = true
+      }
+    }
+    if obj.Order > 1 {
+      // check for non-zero second derivatives
+      for i := 0; !t2 && i < obj.GetN(); i++ {
+        for j := 0; !t2 && j < obj.GetN(); j++ {
+          if obj.GetHessian(i, j) != 0.0 {
+            t2 = true
+          }
+        }
+      }
+    }
+  }
+  if t1 && t2 {
+    r := struct{Value float64; Derivative []float64; Hessian [][]float64}{
+      obj.Value, obj.Derivative, obj.Hessian}
+    return json.Marshal(r)
+  } else
+  if t1 && !t2 {
+    r := struct{Value float64; Derivative []float64}{
+      obj.Value, obj.Derivative}
+    return json.Marshal(r)
+  } else
+  if !t1 && t2 {
+    r := struct{Value float64; Hessian [][]float64}{
+      obj.Value, obj.Hessian}
+    return json.Marshal(r)
+  } else {
+    return json.Marshal(obj.Value)
+  }
+}
+
+func (obj *BasicState) UnmarshalJSON(data []byte) error {
+  r := struct{Value float64; Derivative []float64; Hessian [][]float64}{}
+  if err := json.Unmarshal(data, &r); err == nil {
+    obj.Value = r.Value
+    if len(r.Derivative) != 0 && len(r.Hessian) != 0 {
+      if len(r.Derivative) != len(r.Derivative) {
+        return fmt.Errorf("invalid json scalar representation")
+      }
+      obj.Alloc(len(r.Derivative), 2)
+      obj.Derivative = r.Derivative
+      obj.Hessian    = r.Hessian
+    } else
+    if len(r.Derivative) != 0 && len(r.Hessian) == 0 {
+      obj.Alloc(len(r.Derivative), 1)
+      obj.Derivative = r.Derivative
+    } else
+    if len(r.Derivative) == 0 && len(r.Hessian) != 0 {
+      obj.Alloc(len(r.Derivative), 2)
+      obj.Hessian    = r.Hessian
+    }
+    return nil
+  } else {
+    return json.Unmarshal(data, &obj.Value)
   }
 }

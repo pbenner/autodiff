@@ -16,6 +16,10 @@
 
 package autodiff
 
+/* -------------------------------------------------------------------------- */
+
+import "encoding/json"
+
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
@@ -50,4 +54,6 @@ type Vector interface {
   VdivS(a Vector, b Scalar) Vector
   MdotV(a Matrix, b Vector) Vector
   VdotM(a Vector, b Matrix) Vector
+  // json
+  json.Marshaler
 }

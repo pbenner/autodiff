@@ -16,6 +16,10 @@
 
 package autodiff
 
+/* -------------------------------------------------------------------------- */
+
+import "encoding/json"
+
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
@@ -61,4 +65,6 @@ type Matrix interface {
   Outer(a, b Vector) Matrix
   Jacobian(f func(Vector) Vector, x_ Vector) Matrix
   Hessian (f func(Vector) Scalar, x_ Vector) Matrix
+  // json
+  json.Marshaler
 }
