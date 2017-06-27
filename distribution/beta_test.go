@@ -64,3 +64,24 @@ func TestBeta3(t *testing.T) {
     t.Error("test failed")
   }
 }
+
+func TestBeta4(t *testing.T) {
+  d, _ := NewBetaDistribution(NewReal(0.5), NewReal(0.6), false)
+  x1 := NewVector(RealType, []float64{0.0})
+  x2 := NewVector(RealType, []float64{1.0})
+  r1 := NewReal(0.0)
+  r2 := NewReal(0.0)
+
+  if err := d.LogPdf(r1, x1); err != nil {
+    t.Error(err)
+  }
+  if err := d.LogPdf(r2, x2); err != nil {
+    t.Error(err)
+  }
+  if !math.IsInf(r1.GetValue(), 1) {
+    t.Error("test failed")
+  }
+  if !math.IsInf(r2.GetValue(), 1) {
+    t.Error("test failed")
+  }
+}

@@ -95,7 +95,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
       return nil
     }
   } else {
-    if v := x.At(0).GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+    if v := x.At(0).GetValue(); v < 0.0 || v > 1.0 {
       r.SetValue(math.Inf(-1))
       return nil
     }
