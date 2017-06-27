@@ -26,15 +26,15 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type BetaDistribution struct {
-  Alpha Scalar
-  Beta  Scalar
-  as1   Scalar
-  bs1   Scalar
-  z     Scalar
-  c1    Scalar
-  t1    Scalar
-  t2    Scalar
-  logScale bool
+  Alpha    Scalar
+  Beta     Scalar
+  as1      Scalar
+  bs1      Scalar
+  z        Scalar
+  c1       Scalar
+  t1       Scalar
+  t2       Scalar
+  LogScale bool
 }
 
 /* -------------------------------------------------------------------------- */
@@ -51,7 +51,7 @@ func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, 
   dist.bs1 = beta .CloneScalar()
   dist.as1.Sub(alpha, NewBareReal(1.0))
   dist.bs1.Sub(beta,  NewBareReal(1.0))
-  dist.logScale = logScale
+  dist.LogScale = logScale
 
   t1 := alpha.CloneScalar()
   t1.Add(t1, beta)
@@ -76,7 +76,7 @@ func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, 
 /* -------------------------------------------------------------------------- */
 
 func (dist *BetaDistribution) Clone() *BetaDistribution {
-  r, _ := NewBetaDistribution(dist.Alpha, dist.Beta, dist.logScale)
+  r, _ := NewBetaDistribution(dist.Alpha, dist.Beta, dist.LogScale)
   return r
 }
 
@@ -89,7 +89,7 @@ func (dist *BetaDistribution) ScalarType() ScalarType {
 }
 
 func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
-  if dist.logScale {
+  if dist.LogScale {
     if v := x.At(0).GetValue(); v > 0.0 {
       r.SetValue(math.Inf(-1))
       return nil
@@ -103,7 +103,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
   t1 := dist.t1
   t2 := dist.t2
 
-  if dist.logScale {
+  if dist.LogScale {
     if v := dist.bs1.GetValue(); v == 0.0 {
       t2.SetValue(0.0)
     } else {
@@ -166,7 +166,7 @@ func (dist *BetaDistribution) GetParameters() Vector {
 }
 
 func (dist *BetaDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewBetaDistribution(parameters.At(0), parameters.At(1), dist.logScale); err != nil {
+  if tmp, err := NewBetaDistribution(parameters.At(0), parameters.At(1), dist.LogScale); err != nil {
     return err
   } else {
     *dist = *tmp
