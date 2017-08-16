@@ -61,7 +61,7 @@ type Scalar interface {
   // type reflections
   Type       ()                ScalarType
   // some basic operations on scalars
-  Equals     (Scalar)          bool
+  Equals     (Scalar, float64) bool
   Greater    (Scalar)          bool
   Smaller    (Scalar)          bool
   Min        (Scalar, Scalar)  Scalar

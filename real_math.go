@@ -25,13 +25,11 @@ import "github.com/pbenner/autodiff/special"
 
 /* -------------------------------------------------------------------------- */
 
-func (a *Real) Equals(b Scalar) bool {
-  epsilon := 1e-12
+func (a *Real) Equals(b Scalar, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
-func (a *Real) RealEquals(b *Real) bool {
-  epsilon := 1e-12
+func (a *Real) RealEquals(b *Real, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 

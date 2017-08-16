@@ -22,8 +22,8 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func Equal(a, b Scalar) bool {
-  return a.Equals(b)
+func Equal(a, b Scalar, epsilon float64) bool {
+  return a.Equals(b, epsilon)
 }
 
 func Greater(a, b Scalar) bool {

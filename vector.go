@@ -40,6 +40,7 @@ type Vector interface {
   SortVector      (bool)               Vector
   Slice           (i, j int)           Vector
   Append          (...Scalar)          Vector
+  Equals          (Vector, float64)    bool
   // type conversions
   ToMatrix        (n, m int)           Matrix
   ToDenseVector   ()                   DenseVector

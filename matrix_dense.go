@@ -282,6 +282,21 @@ func (matrix *DenseMatrix) SetIdentity() {
   }
 }
 
+func (matrix *DenseMatrix) IsSymmetric(epsilon float64) bool {
+  n, m := matrix.Dims()
+  if n != m {
+    return false
+  }
+  for i := 0; i < n; i++ {
+    for j := i+1; j < m; j++ {
+      if !matrix.At(i,j).Equals(matrix.At(j,i), 1e-12) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
 /* implement ScalarContainer
  * -------------------------------------------------------------------------- */
 

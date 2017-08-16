@@ -23,7 +23,7 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 // True if matrix a equals b.
-func Mequal(a, b Matrix) bool {
+func (a *DenseMatrix) Equals(b Matrix, epsilon float64) bool {
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n2 || m1 != m2 {
@@ -32,7 +32,7 @@ func Mequal(a, b Matrix) bool {
   v1 := a.ToVector()
   v2 := b.ToVector()
   for i := 0; i < v1.Dim(); i++ {
-    if !v1.At(i).Equals(v2.At(i)) {
+    if !v1.At(i).Equals(v2.At(i), epsilon) {
       return false
     }
   }

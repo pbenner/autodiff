@@ -301,16 +301,8 @@ func Eigenvalues(a Matrix, args... interface{}) (Vector, error) {
 
 func Eigensystem(a Matrix, args... interface{}) (Vector, Matrix, error) {
   // check if a is symmetric
-  n, m := a.Dims()
-  if n != m {
-    return nil, nil, fmt.Errorf("`a' must be a square matrix")
-  }
-  for i := 0; i < n; i++ {
-    for j := i+1; j < m; j++ {
-      if math.Abs(a.At(i,j).GetValue() - a.At(j,i).GetValue()) > 1e-12 {
-        return nil, nil, fmt.Errorf("for computing eigenvectors `a' must be symmetric")
-      }
-    }
+  if !a.IsSymmetric(1e-12) {
+    return nil, nil, fmt.Errorf("for computing eigenvectors `a' must be symmetric")
   }
   h, u, err := Run(a, args...)
   if err != nil {

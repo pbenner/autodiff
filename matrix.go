@@ -47,12 +47,14 @@ type Matrix interface {
   SymmetricPermutation(pi []int) error
   Reshape         (int, int)           error
   SetIdentity     ()
+  IsSymmetric     (float64)            bool
   // returns all elements of the matrix as
   // a vector, the order is unspecified
   ToVector        ()                   Vector
   ToDenseMatrix   ()                  *DenseMatrix
   ToDenseVector   ()                   DenseVector
   // math operations
+  Equals(b Matrix, epsilon float64)    bool
   MaddM(a, b Matrix) Matrix
   MaddS(a Matrix, b Scalar) Matrix
   MsubM(a, b Matrix) Matrix

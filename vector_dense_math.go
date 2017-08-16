@@ -19,12 +19,12 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 // Test if elements in a equal elements in b.
-func Vequal(a, b Vector) bool {
+func (a DenseVector) Equals(b Vector, epsilon float64) bool {
   if a.Dim() != b.Dim() {
     panic("VEqual(): Vector dimensions do not match!")
   }
   for i := 0; i < a.Dim(); i++ {
-    if !a.At(i).Equals(b.At(i)) {
+    if !a.At(i).Equals(b.At(i), epsilon) {
       return false
     }
   }

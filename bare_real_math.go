@@ -32,13 +32,11 @@ func checkBare(b Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) Equals(b Scalar) bool {
-  epsilon := 1e-12
+func (a *BareReal) Equals(b Scalar, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
-func (a *BareReal) BareRealEquals(b Scalar) bool {
-  epsilon := 1e-12
+func (a *BareReal) BareRealEquals(b Scalar, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
