@@ -95,11 +95,15 @@ func NilDenseMatrix(rows, cols int) *DenseMatrix {
 
 func (matrix *DenseMatrix) initTmp() {
   t := matrix.ElementType()
-  if len(matrix.Tmp1) != matrix.Rows {
+  if len(matrix.Tmp1) < matrix.Rows {
     matrix.Tmp1 = NullDenseVector(t, matrix.Rows)
+  } else {
+    matrix.Tmp1 = matrix.Tmp1[0:matrix.Rows]
   }
-  if len(matrix.Tmp2) != matrix.Cols {
+  if len(matrix.Tmp2) < matrix.Cols {
     matrix.Tmp2 = NullDenseVector(t, matrix.Cols)
+  } else {
+    matrix.Tmp2 = matrix.Tmp2[0:matrix.Cols]
   }
 }
 
@@ -218,12 +222,15 @@ func (matrix *DenseMatrix) Submatrix(rfrom, rto, cfrom, cto int) Matrix {
 }
 
 func (matrix *DenseMatrix) Reshape(rows, cols int) error {
-  if len(matrix.Values) != rows*cols {
+  if n := rows*cols; n > len(matrix.Values) {
     return errors.New("Reshape(): invalid parameters")
+  } else {
+    matrix.Rows   = rows
+    matrix.Cols   = cols
+    matrix.Values = matrix.Values[0:n]
+    matrix.initTmp()
+    return nil
   }
-  matrix.Rows = rows
-  matrix.Cols = cols
-  return nil
 }
 
 func (matrix *DenseMatrix) ToVector() Vector {
