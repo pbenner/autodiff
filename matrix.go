@@ -31,7 +31,6 @@ type Matrix interface {
   ResetDerivatives    ()
   // basic methods
   CloneMatrix         ()                   Matrix
-  ShallowCloneMatrix  ()                   Matrix
   Set                 (Matrix)
   Dims                ()                   (int, int)
   Row                 (i int)              Vector
@@ -40,13 +39,12 @@ type Matrix interface {
   T                   ()                   Matrix
   Table               ()                   string
   Export              (string)             error
-  Submatrix           (rfrom, rto, cfrom, cto int) Matrix
+  Slice               (rfrom, rto, cfrom, cto int) Matrix
   SwapRows            (int, int) error
   SwapColumns         (int, int) error
   PermuteRows         ([]int) error
   PermuteColumns      ([]int) error
   SymmetricPermutation(pi []int) error
-  Reshape             (int, int)           error
   SetIdentity         ()
   IsSymmetric         (float64)            bool
   // returns all elements of the matrix as

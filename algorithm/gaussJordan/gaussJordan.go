@@ -251,7 +251,7 @@ singular:
 
 func Run(a, x Matrix, b Vector, args ...interface{}) error {
 
-  submatrix  := Submatrix{   nil}.Value
+  submatrix  := Submatrix{nil}.Value
   triangular := false
 
   // loop over optional arguments

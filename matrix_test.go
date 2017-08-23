@@ -27,6 +27,27 @@ import "testing"
 
 /* -------------------------------------------------------------------------- */
 
+func TestMatrix1(t *testing.T) {
+  m1 := NewMatrix(RealType, 4, 7, []float64{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28})
+  m2 := m1.Slice(1,3,2,5)
+  r  := NewMatrix(RealType, 2, 3, []float64{10, 11, 12, 17, 18, 19})
+
+  if !m2.Equals(r, 1e-12) {
+    t.Error("test failed")
+  }
+}
+
+func TestMatrix2(t *testing.T) {
+  m1 := NewMatrix(RealType, 4, 7, []float64{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28})
+  m1  = m1.T()
+  m2 := m1.Slice(2,5,1,3)
+  r  := NewMatrix(RealType, 3, 2, []float64{10, 17, 11, 18, 12, 19})
+
+  if !m2.Equals(r, 1e-12) {
+    t.Error("test failed")
+  }
+}
+
 func TestMatrix(t *testing.T) {
 
   m1 := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
@@ -96,18 +117,6 @@ func TestMatrixReference(t *testing.T) {
 
   if m.At(1,2).GetValue() != -24 {
     t.Error("Matrix transpose failed!")
-  }
-}
-
-func TestSubmatrix(t *testing.T) {
-
-  a := NewMatrix(RealType, 3, 3, []float64{1,2,3,4,5,6,7,8,9})
-  m := a.Submatrix(1,2,0,1)
-  r := NewMatrix(RealType, 2, 2, []float64{4,5,7,8})
-  s := NullReal()
-
-  if s.Mnorm(r.MsubM(r, m)).GetValue() > 1e-8  {
-    t.Error("Submatrix failed!")
   }
 }
 

@@ -33,12 +33,16 @@ import "os"
  * -------------------------------------------------------------------------- */
 
 type DenseMatrix struct {
-  Values     DenseVector
-  Rows       int
-  Cols       int
-  Transposed bool
-  Tmp1       DenseVector
-  Tmp2       DenseVector
+  values     DenseVector
+  rows       int
+  cols       int
+  rowOffset  int
+  rowMax     int
+  colOffset  int
+  colMax     int
+  transposed bool
+  tmp1       DenseVector
+  tmp2       DenseVector
 }
 
 /* constructors
@@ -58,7 +62,7 @@ func NilMatrix(rows, cols int) Matrix {
 
 func NewDenseMatrix(t ScalarType, rows, cols int, values []float64) *DenseMatrix {
   m := NilDenseMatrix(rows, cols)
-  v := m.Values
+  v := m.values
   f := ScalarConstructor(t)
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
@@ -78,32 +82,40 @@ func NewDenseMatrix(t ScalarType, rows, cols int, values []float64) *DenseMatrix
 
 func NullDenseMatrix(t ScalarType, rows, cols int) *DenseMatrix {
   m := DenseMatrix{}
-  m.Values = NullDenseVector(t, rows*cols)
-  m.Rows   = rows
-  m.Cols   = cols
+  m.values    = NullDenseVector(t, rows*cols)
+  m.rows      = rows
+  m.cols      = cols
+  m.rowOffset = 0
+  m.rowMax    = rows
+  m.colOffset = 0
+  m.colMax    = cols
   m.initTmp()
   return &m
 }
 
 func NilDenseMatrix(rows, cols int) *DenseMatrix {
   m := DenseMatrix{}
-  m.Values = NilDenseVector(rows*cols)
-  m.Rows   = rows
-  m.Cols   = cols
+  m.values    = NilDenseVector(rows*cols)
+  m.rows      = rows
+  m.cols      = cols
+  m.rowOffset = 0
+  m.rowMax    = rows
+  m.colOffset = 0
+  m.colMax    = cols
   return &m
 }
 
 func (matrix *DenseMatrix) initTmp() {
   t := matrix.ElementType()
-  if len(matrix.Tmp1) < matrix.Rows {
-    matrix.Tmp1 = NullDenseVector(t, matrix.Rows)
+  if len(matrix.tmp1) < matrix.rows {
+    matrix.tmp1 = NullDenseVector(t, matrix.rows)
   } else {
-    matrix.Tmp1 = matrix.Tmp1[0:matrix.Rows]
+    matrix.tmp1 = matrix.tmp1[0:matrix.rows]
   }
-  if len(matrix.Tmp2) < matrix.Cols {
-    matrix.Tmp2 = NullDenseVector(t, matrix.Cols)
+  if len(matrix.tmp2) < matrix.cols {
+    matrix.tmp2 = NullDenseVector(t, matrix.cols)
   } else {
-    matrix.Tmp2 = matrix.Tmp2[0:matrix.Cols]
+    matrix.tmp2 = matrix.tmp2[0:matrix.cols]
   }
 }
 
@@ -113,12 +125,16 @@ func (matrix *DenseMatrix) initTmp() {
 // Clone matrix including data.
 func (matrix *DenseMatrix) Clone() *DenseMatrix {
   return &DenseMatrix{
-    Values    : matrix.Values.Clone(),
-    Rows      : matrix.Rows,
-    Cols      : matrix.Cols,
-    Transposed: matrix.Transposed,
-    Tmp1      : matrix.Tmp1.Clone(),
-    Tmp2      : matrix.Tmp2.Clone() }
+    values    : matrix.values.Clone(),
+    rows      : matrix.rows,
+    cols      : matrix.cols,
+    transposed: matrix.transposed,
+    rowOffset : matrix.rowOffset,
+    rowMax    : matrix.rowMax,
+    colOffset : matrix.colOffset,
+    colMax    : matrix.colMax,
+    tmp1      : matrix.tmp1.Clone(),
+    tmp2      : matrix.tmp2.Clone() }
 }
 
 func (matrix *DenseMatrix) CloneMatrix() Matrix {
@@ -127,12 +143,16 @@ func (matrix *DenseMatrix) CloneMatrix() Matrix {
 
 func (matrix *DenseMatrix) ShallowClone() *DenseMatrix {
   return &DenseMatrix{
-    Values    : matrix.Values,
-    Rows      : matrix.Rows,
-    Cols      : matrix.Cols,
-    Transposed: matrix.Transposed,
-    Tmp1      : matrix.Tmp1,
-    Tmp2      : matrix.Tmp2 }
+    values    : matrix.values,
+    rows      : matrix.rows,
+    cols      : matrix.cols,
+    transposed: matrix.transposed,
+    rowOffset : matrix.rowOffset,
+    rowMax    : matrix.rowMax,
+    colOffset : matrix.colOffset,
+    colMax    : matrix.colMax,
+    tmp1      : matrix.tmp1,
+    tmp2      : matrix.tmp2 }
 }
 
 func (matrix *DenseMatrix) ShallowCloneMatrix() Matrix {
@@ -167,10 +187,10 @@ func IdentityMatrix(t ScalarType, dim int) Matrix {
  * -------------------------------------------------------------------------- */
 
 func (matrix *DenseMatrix) index(i, j int) int {
-  if matrix.Transposed {
-    return j*matrix.Rows + i
+  if matrix.transposed {
+    return (matrix.colOffset + j)*matrix.rowMax + (matrix.rowOffset + i)
   } else {
-    return i*matrix.Cols + j
+    return (matrix.rowOffset + i)*matrix.colMax + (matrix.colOffset + j)
   }
 }
 
@@ -178,33 +198,33 @@ func (matrix *DenseMatrix) Dims() (int, int) {
   if matrix == nil {
     return 0, 0
   } else {
-    return matrix.Rows, matrix.Cols
+    return matrix.rows, matrix.cols
   }
 }
 
 func (matrix *DenseMatrix) Row(i int) Vector {
   var v DenseVector
-  if matrix.Transposed {
-    v = NilDenseVector(matrix.Cols)
-    for j := 0; j < matrix.Cols; j++ {
-      v[j] = matrix.Values[matrix.index(i, j)]
+  if matrix.transposed {
+    v = NilDenseVector(matrix.cols)
+    for j := 0; j < matrix.cols; j++ {
+      v[j] = matrix.values[matrix.index(i, j)]
     }
   } else {
     i = matrix.index(i, 0)
-    v = matrix.Values[i:i + matrix.Cols]
+    v = matrix.values[i:i + matrix.cols]
   }
   return v
 }
 
 func (matrix *DenseMatrix) Col(j int) Vector {
   var v DenseVector
-  if matrix.Transposed {
+  if matrix.transposed {
     j = matrix.index(0, j)
-    v = matrix.Values[j:j + matrix.Rows]
+    v = matrix.values[j:j + matrix.rows]
   } else {
-    v = NilDenseVector(matrix.Rows)
-    for i := 0; i < matrix.Rows; i++ {
-      v[i] = matrix.Values[matrix.index(i, j)]
+    v = NilDenseVector(matrix.rows)
+    for i := 0; i < matrix.rows; i++ {
+      v[i] = matrix.values[matrix.index(i, j)]
     }
   }
   return v
@@ -217,75 +237,73 @@ func (matrix *DenseMatrix) Diag() Vector {
   }
   v := NilVector(n)
   for i := 0; i < n; i++ {
-    v.SetReferenceAt(matrix.Values[matrix.index(i, i)], i)
+    v.SetReferenceAt(matrix.values[matrix.index(i, i)], i)
   }
   return v
 }
 
-func (matrix *DenseMatrix) Submatrix(rfrom, rto, cfrom, cto int) Matrix {
-  t := matrix.ElementType()
-  n := rto-rfrom+1
-  m := cto-cfrom+1
-  r := NullMatrix(t, n, m)
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Set(matrix.At(rfrom+i, cfrom+j))
-    }
-  }
-  return r
-}
-
-func (matrix *DenseMatrix) Reshape(rows, cols int) error {
-  if n := rows*cols; n > len(matrix.Values) {
-    return errors.New("Reshape(): invalid parameters")
-  } else {
-    matrix.Rows   = rows
-    matrix.Cols   = cols
-    matrix.Values = matrix.Values[0:n]
-    matrix.initTmp()
-    return nil
-  }
+func (matrix *DenseMatrix) Slice(rfrom, rto, cfrom, cto int) Matrix {
+  m := *matrix
+  m.rowOffset = rfrom
+  m.rows      = rto - rfrom
+  m.colOffset = cfrom
+  m.cols      = cto - cfrom
+  // crop tmp vectors
+  m.initTmp()
+  return &m
 }
 
 func (matrix *DenseMatrix) ToVector() Vector {
-  return matrix.Values
+  return matrix.ToDenseVector()
+}
+
+func (matrix *DenseMatrix) ToDenseVector() DenseVector {
+  if matrix.cols < matrix.colMax - matrix.colOffset ||
+    (matrix.rows < matrix.rowMax - matrix.rowOffset) {
+    n, m := matrix.Dims()
+    v := NilDenseVector(n*m)
+    for i := 0; i < n; i++ {
+      for j := 0; j < m; j++ {
+        v[i*matrix.cols + j] = matrix.At(i, j)
+      }
+    }
+    return v
+  } else {
+    return matrix.values
+  }
 }
 
 func (matrix *DenseMatrix) ToDenseMatrix() *DenseMatrix {
   return matrix
 }
 
-func (matrix *DenseMatrix) ToDenseVector() DenseVector {
-  return matrix.Values
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (matrix *DenseMatrix) At(i, j int) Scalar {
-  return matrix.Values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 
 func (matrix *DenseMatrix) RealAt(i, j int) *Real {
-  return matrix.Values[matrix.index(i, j)].(*Real)
+  return matrix.values[matrix.index(i, j)].(*Real)
 }
 
 func (matrix *DenseMatrix) BareRealAt(i, j int) *BareReal {
-  return matrix.Values[matrix.index(i, j)].(*BareReal)
+  return matrix.values[matrix.index(i, j)].(*BareReal)
 }
 
 func (matrix *DenseMatrix) SetReferenceAt(s Scalar, i, j int) {
-  matrix.Values[matrix.index(i, j)] = s
+  matrix.values[matrix.index(i, j)] = s
 }
 
 func (matrix *DenseMatrix) Reset() {
-  for i := 0; i < len(matrix.Values); i++ {
-    matrix.Values[i].Reset()
+  for i := 0; i < len(matrix.values); i++ {
+    matrix.values[i].Reset()
   }
 }
 
 func (matrix *DenseMatrix) ResetDerivatives() {
-  for i := 0; i < len(matrix.Values); i++ {
-    matrix.Values[i].ResetDerivatives()
+  for i := 0; i < len(matrix.values); i++ {
+    matrix.values[i].ResetDerivatives()
   }
 }
 
@@ -350,22 +368,22 @@ func (matrix *DenseMatrix) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scala
 }
 
 func (matrix *DenseMatrix) ElementType() ScalarType {
-  if matrix.Rows > 0 && matrix.Cols > 0 {
-    return reflect.TypeOf(matrix.Values[0])
+  if matrix.rows > 0 && matrix.cols > 0 {
+    return reflect.TypeOf(matrix.values[0])
   }
   return nil
 }
 
 func (matrix *DenseMatrix) ConvertElementType(t ScalarType) {
-  for i := 0; i < len(matrix.Values); i++ {
-    matrix.Values[i] = NewScalar(t, matrix.Values[i].GetValue())
+  for i := 0; i < len(matrix.values); i++ {
+    matrix.values[i] = NewScalar(t, matrix.values[i].GetValue())
   }
-  matrix.Tmp1.ConvertElementType(t)
-  matrix.Tmp2.ConvertElementType(t)
+  matrix.tmp1.ConvertElementType(t)
+  matrix.tmp2.ConvertElementType(t)
 }
 
 func (matrix *DenseMatrix) Variables(order int) {
-  Variables(order, matrix.Values...)
+  Variables(order, matrix.values...)
 }
 
 /* type conversion
@@ -375,12 +393,12 @@ func (m *DenseMatrix) String() string {
   var buffer bytes.Buffer
 
   buffer.WriteString("[")
-  for i := 0; i < m.Rows; i++ {
+  for i := 0; i < m.rows; i++ {
     if i != 0 {
       buffer.WriteString(",\n ")
     }
     buffer.WriteString("[")
-    for j := 0; j < m.Cols; j++ {
+    for j := 0; j < m.cols; j++ {
       if j != 0 {
         buffer.WriteString(", ")
       }
@@ -487,16 +505,16 @@ func ReadMatrix(t ScalarType, filename string) (Matrix, error) {
  * -------------------------------------------------------------------------- */
 
 func (obj *DenseMatrix) MarshalJSON() ([]byte, error) {
-  if obj.Transposed {
+  if obj.transposed || obj.rowMax > obj.rows || obj.colMax > obj.cols {
     n, m := obj.Dims()
     tmp  := NullDenseMatrix(obj.ElementType(), n, m)
     tmp.Set(obj)
     obj = tmp
   }
   r := struct{Values DenseVector; Rows int; Cols int}{}
-  r.Values = obj.Values
-  r.Rows   = obj.Rows
-  r.Cols   = obj.Cols
+  r.Values = obj.values
+  r.Rows   = obj.rows
+  r.Cols   = obj.cols
   return json.MarshalIndent(r, "", "  ")
 }
 
@@ -505,13 +523,17 @@ func (obj *DenseMatrix) UnmarshalJSON(data []byte) error {
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  obj.Values     = NilDenseVector(len(r.Values))
+  obj.values = NilDenseVector(len(r.Values))
   for i := 0; i < len(r.Values); i++ {
-    obj.Values[i] = r.Values[i]
+    obj.values[i] = r.Values[i]
   }
-  obj.Rows       = r.Rows
-  obj.Cols       = r.Cols
-  obj.Transposed = false
+  obj.rows       = r.Rows
+  obj.rowMax     = r.Rows
+  obj.rowOffset  = 0
+  obj.cols       = r.Cols
+  obj.colMax     = r.Cols
+  obj.colOffset  = 0
+  obj.transposed = false
   obj.initTmp()
   return nil
 }

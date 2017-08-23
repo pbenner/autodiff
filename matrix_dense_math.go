@@ -29,11 +29,11 @@ func (a *DenseMatrix) Equals(b Matrix, epsilon float64) bool {
   if n1 != n2 || m1 != m2 {
     panic("MEqual(): matrix dimensions do not match!")
   }
-  v1 := a.ToVector()
-  v2 := b.ToVector()
-  for i := 0; i < v1.Dim(); i++ {
-    if !v1.At(i).Equals(v2.At(i), epsilon) {
-      return false
+  for i := 0; i < n1; i++ {
+    for j := 0; j < m1; j++ {
+      if !a.At(i, j).Equals(b.At(i, j), epsilon) {
+        return false
+      }
     }
   }
   return true
@@ -192,7 +192,7 @@ func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
   t1 := NullScalar(a.ElementType())
   t2 := NullScalar(a.ElementType())
   if r == b {
-    t3 := r.Tmp2[0:n]
+    t3 := r.tmp2[0:n]
     for j := 0; j < m; j++ {
       for i := 0; i < n; i++ {
         t2.Reset()
@@ -207,7 +207,7 @@ func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
       }
     }
   } else {
-    t3 := r.Tmp2[0:m]
+    t3 := r.tmp2[0:m]
     for i := 0; i < n; i++ {
       for j := 0; j < m; j++ {
         t2.Reset()

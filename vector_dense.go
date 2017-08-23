@@ -226,9 +226,13 @@ func (v DenseVector) ToMatrix(n, m int) Matrix {
     panic("Matrix dimension does not fit input vector!")
   }
   matrix := DenseMatrix{}
-  matrix.Values = v
-  matrix.Rows   = n
-  matrix.Cols   = m
+  matrix.values    = v
+  matrix.rows      = n
+  matrix.cols      = m
+  matrix.rowOffset = 0
+  matrix.rowMax    = n
+  matrix.colOffset = 0
+  matrix.colMax    = m
   matrix.initTmp()
   return &matrix
 }
