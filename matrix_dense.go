@@ -244,10 +244,10 @@ func (matrix *DenseMatrix) Diag() Vector {
 
 func (matrix *DenseMatrix) Slice(rfrom, rto, cfrom, cto int) Matrix {
   m := *matrix
-  m.rowOffset = rfrom
-  m.rows      = rto - rfrom
-  m.colOffset = cfrom
-  m.cols      = cto - cfrom
+  m.rowOffset += rfrom
+  m.rows       = rto - rfrom
+  m.colOffset += cfrom
+  m.cols       = cto - cfrom
   // crop tmp vectors
   m.initTmp()
   return &m
