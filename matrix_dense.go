@@ -125,6 +125,20 @@ func (matrix *DenseMatrix) CloneMatrix() Matrix {
   return matrix.Clone()
 }
 
+func (matrix *DenseMatrix) ShallowClone() *DenseMatrix {
+  return &DenseMatrix{
+    Values    : matrix.Values,
+    Rows      : matrix.Rows,
+    Cols      : matrix.Cols,
+    Transposed: matrix.Transposed,
+    Tmp1      : matrix.Tmp1,
+    Tmp2      : matrix.Tmp2 }
+}
+
+func (matrix *DenseMatrix) ShallowCloneMatrix() Matrix {
+  return matrix.ShallowClone()
+}
+
 func (a *DenseMatrix) Set(b Matrix) {
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()

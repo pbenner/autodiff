@@ -25,34 +25,35 @@ import "encoding/json"
 
 type Matrix interface {
   ScalarContainer
-  At              (i, j int)           Scalar
-  SetReferenceAt  (v Scalar, i, j int)
-  Reset           ()
-  ResetDerivatives()
+  At                  (i, j int)           Scalar
+  SetReferenceAt      (v Scalar, i, j int)
+  Reset               ()
+  ResetDerivatives    ()
   // basic methods
-  CloneMatrix     ()                   Matrix
-  Set             (Matrix)
-  Dims            ()                   (int, int)
-  Row             (i int)              Vector
-  Col             (j int)              Vector
-  Diag            ()                   Vector
-  T               ()                   Matrix
-  Table           ()                   string
-  Export          (string)             error
-  Submatrix       (rfrom, rto, cfrom, cto int) Matrix
-  SwapRows        (int, int) error
-  SwapColumns     (int, int) error
-  PermuteRows     ([]int) error
-  PermuteColumns  ([]int) error
+  CloneMatrix         ()                   Matrix
+  ShallowCloneMatrix  ()                   Matrix
+  Set                 (Matrix)
+  Dims                ()                   (int, int)
+  Row                 (i int)              Vector
+  Col                 (j int)              Vector
+  Diag                ()                   Vector
+  T                   ()                   Matrix
+  Table               ()                   string
+  Export              (string)             error
+  Submatrix           (rfrom, rto, cfrom, cto int) Matrix
+  SwapRows            (int, int) error
+  SwapColumns         (int, int) error
+  PermuteRows         ([]int) error
+  PermuteColumns      ([]int) error
   SymmetricPermutation(pi []int) error
-  Reshape         (int, int)           error
-  SetIdentity     ()
-  IsSymmetric     (float64)            bool
+  Reshape             (int, int)           error
+  SetIdentity         ()
+  IsSymmetric         (float64)            bool
   // returns all elements of the matrix as
   // a vector, the order is unspecified
-  ToVector        ()                   Vector
-  ToDenseMatrix   ()                  *DenseMatrix
-  ToDenseVector   ()                   DenseVector
+  ToVector            ()                   Vector
+  ToDenseMatrix       ()                  *DenseMatrix
+  ToDenseVector       ()                   DenseVector
   // math operations
   Equals(b Matrix, epsilon float64)    bool
   MaddM(a, b Matrix) Matrix
