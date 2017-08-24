@@ -183,16 +183,16 @@ func (r *DenseMatrix) MdivS(a Matrix, b Scalar) Matrix {
 
 // Matrix product of a and b. The result is stored in r.
 func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
-  n, m := r.Dims()
+  n , m  := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
-  if n1 != n || m2 != m || n1 != m2 || m1 != n2 {
+  if n1 != n || m2 != m || m1 != n2 {
     panic("matrix dimensions do not match!")
   }
   t1 := NullScalar(a.ElementType())
   t2 := NullScalar(a.ElementType())
   if r == b {
-    t3 := r.tmp2[0:n]
+    t3 := r.tmp1[0:n]
     for j := 0; j < m; j++ {
       for i := 0; i < n; i++ {
         t2.Reset()
