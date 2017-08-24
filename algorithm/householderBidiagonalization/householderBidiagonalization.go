@@ -30,6 +30,7 @@ type Epsilon struct {
 }
 
 type InSitu struct {
+  A     Matrix
   X     DenseVector
   Beta  Scalar
   Mu    Scalar
@@ -104,8 +105,9 @@ func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
   return house(x[j+1:n], inSitu)
 }
 
-func householderBidiagonalization(A Matrix, inSitu *InSitu, epsilon float64) (Matrix, error) {
+func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, error) {
 
+  A  := inSitu.A
   c1 := inSitu.C1
   T  := inSitu.T2
 
@@ -116,7 +118,7 @@ func householderBidiagonalization(A Matrix, inSitu *InSitu, epsilon float64) (Ma
     a := A.Slice(j, m  , j, n  )
     t := T.Slice(0, m-j, 0, m-j)
 
-    nu, beta := houseCol(A, j, inSitu)
+    nu, beta := houseCol(j, inSitu)
 
     // compute (I - beta nu nu^T)
     for j1 := 0; j1 < m-j; j1++ {
@@ -143,7 +145,7 @@ func householderBidiagonalization(A Matrix, inSitu *InSitu, epsilon float64) (Ma
       a := A.Slice(j, m    , j+1, n)
       t := T.Slice(0, n-j-1, 0  , n-j-1)
 
-      nu, beta := houseRow(A, j, inSitu)
+      nu, beta := houseRow(j, inSitu)
       
       // compute (I - beta nu nu^T)
       for j1 := 0; j1 < n-j-1; j1++ {
@@ -193,6 +195,13 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
       panic("InSitu must be passed by reference")
     }
   }
+  if inSitu.A == nil {
+    inSitu.A = a.CloneMatrix()
+  } else {
+    if inSitu.A != a {
+      inSitu.A.Set(a)
+    }
+  }
   if inSitu.X == nil {
     inSitu.X = NullDenseVector(t, m)
   }
@@ -217,5 +226,5 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
   if inSitu.T2 == nil {
     inSitu.T2 = NullDenseMatrix(t, m, m)
   }
-  return householderBidiagonalization(a, inSitu, epsilon)
+  return householderBidiagonalization(inSitu, epsilon)
 }
