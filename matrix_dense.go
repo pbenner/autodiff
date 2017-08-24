@@ -28,6 +28,7 @@ import "reflect"
 import "strconv"
 import "strings"
 import "os"
+import "unsafe"
 
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
@@ -279,6 +280,22 @@ func (matrix *DenseMatrix) ToDenseMatrix() *DenseMatrix {
 
 /* -------------------------------------------------------------------------- */
 
+func (matrix *DenseMatrix) T() Matrix {
+  return &DenseMatrix{
+    values    :  matrix.values,
+    rows      :  matrix.cols,
+    cols      :  matrix.rows,
+    transposed: !matrix.transposed,
+    rowOffset :  matrix.colOffset,
+    rowMax    :  matrix.colMax,
+    colOffset :  matrix.rowOffset,
+    colMax    :  matrix.rowMax,
+    tmp1      :  matrix.tmp2,
+    tmp2      :  matrix.tmp1 }
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (matrix *DenseMatrix) At(i, j int) Scalar {
   return matrix.values[matrix.index(i, j)]
 }
@@ -334,6 +351,10 @@ func (matrix *DenseMatrix) IsSymmetric(epsilon float64) bool {
     }
   }
   return true
+}
+
+func (matrix *DenseMatrix) storageLocation() uintptr {
+  return uintptr(unsafe.Pointer(&matrix.values[0]))
 }
 
 /* implement ScalarContainer

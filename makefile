@@ -9,6 +9,7 @@ SUBDIRS = \
 	algorithm/gradientDescent \
 	algorithm/gramSchmidt \
 	algorithm/hessenbergReduction \
+	algorithm/householderBidiagonalization \
 	algorithm/lineSearch \
 	algorithm/matrixInverse \
 	algorithm/msqrt \

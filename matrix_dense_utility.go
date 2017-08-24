@@ -21,22 +21,6 @@ package autodiff
 //import "fmt"
 import "errors"
 
-/* -------------------------------------------------------------------------- */
-
-func (matrix *DenseMatrix) T() Matrix {
-  return &DenseMatrix{
-    values    :  matrix.values,
-    rows      :  matrix.cols,
-    cols      :  matrix.rows,
-    transposed: !matrix.transposed,
-    rowOffset :  matrix.colOffset,
-    rowMax    :  matrix.colMax,
-    colOffset :  matrix.rowOffset,
-    colMax    :  matrix.rowMax,
-    tmp1      :  matrix.tmp2,
-    tmp2      :  matrix.tmp1 }
-}
-
 /* permutations
  * -------------------------------------------------------------------------- */
 

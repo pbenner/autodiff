@@ -191,7 +191,7 @@ func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
   }
   t1 := NullScalar(a.ElementType())
   t2 := NullScalar(a.ElementType())
-  if r == b {
+  if r.storageLocation() == b.storageLocation() {
     t3 := r.tmp1[0:n]
     for j := 0; j < m; j++ {
       for i := 0; i < n; i++ {

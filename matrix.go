@@ -68,4 +68,6 @@ type Matrix interface {
   Hessian (f func(Vector) Scalar, x_ Vector) Matrix
   // json
   json.Marshaler
+  // private methods
+  storageLocation() uintptr
 }
