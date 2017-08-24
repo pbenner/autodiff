@@ -136,7 +136,7 @@ func householderBidiagonalization(A Matrix, inSitu *InSitu, epsilon float64) (Ma
       a.At(j1, 0).Set(nu.At(j1))
     }
 
-    if j <= n - 2 {
+    if j < n - 2 {
 
       a := A.Slice(j, m    , j+1, n)
       t := T.Slice(0, n-j-1, 0  , n-j-1)
