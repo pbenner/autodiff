@@ -82,7 +82,8 @@ func house(x DenseVector, inSitu *InSitu) (Vector, Scalar) {
   return nu, beta
 }
 
-func houseCol(A Matrix, j int, inSitu *InSitu) (Vector, Scalar) {
+func houseCol(j int, inSitu *InSitu) (Vector, Scalar) {
+  A := inSitu.A
   x := inSitu.X
 
   n, _ := A.Dims()
@@ -92,7 +93,8 @@ func houseCol(A Matrix, j int, inSitu *InSitu) (Vector, Scalar) {
   return house(x[j:n], inSitu)
 }
 
-func houseRow(A Matrix, j int, inSitu *InSitu) (Vector, Scalar) {
+func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
+  A := inSitu.A
   x := inSitu.X
 
   _, n := A.Dims()
