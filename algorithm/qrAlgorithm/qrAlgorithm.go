@@ -22,6 +22,7 @@ import   "fmt"
 import   "math"
 
 import . "github.com/pbenner/autodiff"
+import   "github.com/pbenner/autodiff/algorithm/givensRotation"
 import   "github.com/pbenner/autodiff/algorithm/gramSchmidt"
 import   "github.com/pbenner/autodiff/algorithm/hessenbergReduction"
 
@@ -65,25 +66,6 @@ func NewInSitu(t ScalarType, n int) InSitu {
 
 /* -------------------------------------------------------------------------- */
 
-func givens(a, b, c, s Scalar) {
-  // fake temporary variables
-  t1 := s
-  t2 := c
-
-  t1.Reset()
-  // t1 = a^2 + b^2
-  t2.Mul(a, a)
-  t1.Add(t1, t2)
-
-  t2.Mul(b, b)
-  t1.Add(t1, t2)
-  // t1 = sqrt(a^2 + b^2)
-  t1.Sqrt(t1)
-
-  c.Div(a, t1)
-  s.Div(b, t1)
-}
-
 func hessenbergQrAlgorithmStep(h, u Matrix, c, s Scalar, t1, t2, t3 Scalar, n int, shift bool) {
 
   N, _ := u.Dims()
@@ -96,7 +78,8 @@ func hessenbergQrAlgorithmStep(h, u Matrix, c, s Scalar, t1, t2, t3 Scalar, n in
     }
   }
   for i := 0; i < n-1; i++ {
-    givens(h.At(i, i), h.At(i+1, i), c, s)
+    givensRotation.Run(h.At(i, i), h.At(i+1, i), c, s)
+    s.Neg(s)
 
     // multiply with Givens matrix (G H)
     for j := 0; j < N; j++ {
