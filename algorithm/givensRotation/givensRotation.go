@@ -25,6 +25,42 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
+func RunApplyLeft(A Matrix, c, s Scalar, i, k int, t1, t2, t3 Scalar) {
+  _, n := A.Dims()
+
+  for j := 0; j < n; j++ {
+
+    t1.Mul(c, A.At(i,j))
+    t2.Mul(s, A.At(k,j))
+    t3.Sub(t1, t2)
+
+    t1.Mul(s, A.At(i,j))
+    t2.Mul(c, A.At(k,j))
+
+    A.At(i,j).Set(t3)
+    A.At(k,j).Add(t1, t2)
+  }
+}
+
+func RunApplyRight(A Matrix, c, s Scalar, i, k int, t1, t2, t3 Scalar) {
+  m, _ := A.Dims()
+
+  for j := 0; j < m; j++ {
+
+    t1.Mul(c, A.At(j,i))
+    t2.Mul(s, A.At(j,k))
+    t3.Sub(t1, t2)
+
+    t1.Mul(s, A.At(j,i))
+    t2.Mul(c, A.At(j,k))
+
+    A.At(j,i).Set(t3)
+    A.At(j,k).Add(t1, t2)
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 // Compute c and s such that
 // [  c  s ]^T  [ a ]  =  [ r ]
 // [ -s  c ]    [ b ]  =  [ 0 ]
