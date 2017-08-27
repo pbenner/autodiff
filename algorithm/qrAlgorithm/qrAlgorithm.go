@@ -68,8 +68,6 @@ func NewInSitu(t ScalarType, n int) InSitu {
 
 func hessenbergQrAlgorithmStep(h, u Matrix, c, s Scalar, t1, t2, t3 Scalar, n int, shift bool) {
 
-  N, _ := u.Dims()
-
   if shift {
     t3.Set(h.At(n-1, n-1))
     for i := 0; i < n; i++ {
@@ -79,56 +77,14 @@ func hessenbergQrAlgorithmStep(h, u Matrix, c, s Scalar, t1, t2, t3 Scalar, n in
   }
   for i := 0; i < n-1; i++ {
     givensRotation.Run(h.At(i, i), h.At(i+1, i), c, s)
-    s.Neg(s)
 
     // multiply with Givens matrix (G H)
-    for j := 0; j < N; j++ {
-      h1 := h.At(i+0, j)
-      h2 := h.At(i+1, j)
-      // backup h1
-      t1.Set(h1)       // t1 = h1
-      // update h1
-      h1.Mul(c, h1)    // h1 = c h1
-      t2.Mul(s, h2)    // t2 = s h2
-      h1.Add(h1, t2)   // h1 = c h1 + s h2
-      // update h2
-      t1.Mul(s, t1)    // t1 =  s h1
-      t1.Neg(t1)       // t1 = -s h1
-      t2.Mul(c, h2)    // t2 =  c h2
-      h2.Add(t1, t2)   // h2 = -s h1 + c h2
-    }
+    givensRotation.RunApplyLeft(h, c, s, i, i+1, t1, t2)
     // multiply with Givens matrix (H G)
-    for j := 0; j < N; j++ {
-      h1 := h.At(j, i+0)
-      h2 := h.At(j, i+1)
-      // backup h1
-      t1.Set(h1)       // t1 = h1
-      // update h1
-      h1.Mul(c, h1)    // h1 = c h1
-      t2.Mul(s, h2)    // t2 = s h2
-      h1.Add(h1, t2)   // h1 = c h1 + s h2
-      // update h2
-      t1.Mul(s, t1)    // t1 =  s h1
-      t1.Neg(t1)       // t1 = -s h1
-      t2.Mul(c, h2)    // t2 =  c h2
-      h2.Add(t1, t2)   // h2 = -s h1 + c h2
-    }
+    givensRotation.RunApplyRight(h, c, s, i, i+1, t1, t2)
+
     if u != nil {
-      for j := 0; j < N; j++ {
-        u1 := u.At(j, i+0)
-        u2 := u.At(j, i+1)
-        // backup u1
-        t1.Set(u1)       // t1 = u1
-        // update u1
-        u1.Mul(c, u1)    // u1 = c u1
-        t2.Mul(s, u2)    // t2 = s u2
-        u1.Add(u1, t2)   // u1 = c u1 + s u2
-        // update u2
-        t1.Mul(s, t1)    // t1 =  s u1
-        t1.Neg(t1)       // t1 = -s u1
-        t2.Mul(c, u2)    // t2 =  c u2
-        u2.Add(t1, t2)   // u2 = -s u1 + c u2
-      }
+      givensRotation.RunApplyRight(u, c, s, i, i+1, t1, t2)
     }
   }
   if shift {

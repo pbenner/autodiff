@@ -25,37 +25,45 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func RunApplyLeft(A Matrix, c, s Scalar, i, k int, t1, t2, t3 Scalar) {
+func RunApplyLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
   _, n := A.Dims()
 
   for j := 0; j < n; j++ {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
 
-    t1.Mul(c, A.At(i,j))
-    t2.Mul(s, A.At(k,j))
-    t3.Sub(t1, t2)
+    t1.Set(a1)
 
-    t1.Mul(s, A.At(i,j))
-    t2.Mul(c, A.At(k,j))
+    // update a1
+    a1.Mul(c, a1)
+    t2.Mul(s, a2)
+    a1.Sub(a1, t2)
 
-    A.At(i,j).Set(t3)
-    A.At(k,j).Add(t1, t2)
+    // update a2
+    a2.Mul(c, a2)
+    t2.Mul(s, t1)
+    a2.Add(a2, t2)
   }
 }
 
-func RunApplyRight(A Matrix, c, s Scalar, i, k int, t1, t2, t3 Scalar) {
+func RunApplyRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
   m, _ := A.Dims()
 
   for j := 0; j < m; j++ {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
 
-    t1.Mul(c, A.At(j,i))
-    t2.Mul(s, A.At(j,k))
-    t3.Sub(t1, t2)
+    t1.Set(a1)
 
-    t1.Mul(s, A.At(j,i))
-    t2.Mul(c, A.At(j,k))
+    // update a1
+    a1.Mul(c, a1)
+    t2.Mul(s, a2)
+    a1.Sub(a1, t2)
 
-    A.At(j,i).Set(t3)
-    A.At(j,k).Add(t1, t2)
+    // update a2
+    a2.Mul(c, a2)
+    t2.Mul(s, t1)
+    a2.Add(a2, t2)
   }
 }
 
