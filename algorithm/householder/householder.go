@@ -24,6 +24,37 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
+func RunApplyLeft(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
+  m, n := A.Dims()
+
+  t1.VdotM(nu, A)
+  t1.VmulS(t1, beta)
+
+  for i := 0; i < m; i++ {
+    for j := 0; j < n; j++ {
+      t2.Mul(nu.At(i), t1.At(j))
+
+      a := A.At(i,j)
+      a.Sub(a, t2)
+    }
+  }
+}
+
+func RunApplyRight(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
+  m, n := A.Dims()
+
+  t1.MdotV(A, nu)
+  t1.VmulS(t1, beta)
+
+  for i := 0; i < m; i++ {
+    for j := 0; j < n; j++ {
+      t2.Mul(t1.At(i), nu.At(j))
+
+      a := A.At(i,j)
+      a.Sub(a, t2)
+    }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 
