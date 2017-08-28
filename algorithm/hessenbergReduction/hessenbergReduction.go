@@ -21,123 +21,62 @@ package hessenbergReduction
 import   "fmt"
 
 import . "github.com/pbenner/autodiff"
+import   "github.com/pbenner/autodiff/algorithm/householder"
 
 /* -------------------------------------------------------------------------- */
+
+type ComputeU struct {
+  Value bool
+}
 
 type InSitu struct {
-  InitializeH bool
-  InitializeV bool
-  H Matrix
-  V Matrix
-  X Vector
-  U Vector
-  S Scalar
-}
-
-func NewInSitu(t ScalarType, n int) InSitu {
-  s := InSitu{}
-  s.InitializeH = true
-  s.InitializeV = true
-  s.H = NullMatrix(t, n, n)
-  s.V = NullMatrix(t, n, n)
-  s.X = NullVector(t, n)
-  s.U = NullVector(t, n)
-  s.S = NullScalar(t)
-  return s
+  H    Matrix
+  U    Matrix
+  X    DenseVector
+  Beta Scalar
+  Nu   DenseVector
+  T1   Scalar
+  T2   Scalar
+  T3   Scalar
+  T4   DenseVector
 }
 
 /* -------------------------------------------------------------------------- */
 
-func fu(x, u Vector, s Scalar) (Vector, bool) {
-  // s = ||x||
-  s.Vnorm(x)
-  if s.GetValue() == 0.0 {
-    // diagonal is already zero
-    return u, false
-  }
-  // s = -sign(x.At(0)) ||x||
-  if x.At(0).GetValue() > 0.0 {
-    s.Neg(s)
-  }
-  // u = x - s e_1
-  u.At(0).Sub(x.At(0), s)
-  for i := 1; i < x.Dim(); i++ {
-    u.At(i).Set(x.At(i))
-  }
-  // s = ||u||
-  s.Vnorm(u)
-  // u = u/s
-  u.VdivS(u, s)
-  return u, true
-}
+func hessenbergReduction(inSitu *InSitu) (Matrix, Matrix, error) {
+  H    := inSitu.H
+  U    := inSitu.U
+  x    := inSitu.X
+  beta := inSitu.Beta
+  nu   := inSitu.Nu
+  t1   := inSitu.T1
+  t2   := inSitu.T2
+  t3   := inSitu.T3
+  t4   := inSitu.T4
 
-func hessenbergReduction(a, v Matrix, x, u Vector, s Scalar) (Matrix, Matrix, error) {
-  n, _ := a.Dims()
+  n, _ := H.Dims()
 
   for k := 0; k < n-2; k++ {
-    // copy column below main diagonal from A to x,
-    // x = (A[k+1,k], A[k+2,k], ..., A[n-1,k])
+    // copy column below main diagonal from H to x,
+    // x = (H[k+1,k], H[k+2,k], ..., H[n-1,k])
     for i := k+1; i < n; i++ {
-      x.At(i).Set(a.At(i, k))
+      x.At(i).Set(H.At(i, k))
     }
-    if _, ok := fu(x.Slice(k+1,n), u.Slice(k+1,n), s); !ok {
-      continue
+    householder.Run(x.Slice(k+1,n), beta, nu.Slice(k+1,n), t1, t2, t3)
+    {
+      a := H.Slice(k+1,n,k,n)
+      householder.RunApplyLeft(a, beta, nu.Slice(k+1,n), t4[k:n], t1)
     }
-    // A <- P_k A = A - 2 u (u^t A)
-    // i) compute u^t A and store it in x
-    for j := k; j < n; j++ {
-      x.At(j).Reset()
-      for i := k+1; i < n; i++ {
-        s.Mul(u.At(i), a.At(i, j))
-        x.At(j).Add(x.At(j), s)
-      }
+    {
+      a := H.Slice(0,n,k+1,n)
+      householder.RunApplyRight(a, beta, nu.Slice(k+1,n), t4[0:n], t1)
     }
-    // ii) compute A - 2 u (u^t A) = A - 2 u x^t
-    for i := k+1; i < n; i++ {
-      for j := k; j < n; j++ {
-        s.Mul(u.At(i), x.At(j))
-        s.Add(s, s)
-        a.At(i, j).Sub(a.At(i, j), s)
-      }
-    }
-    // A <- A P_k = A - 2 (A u) u^t
-    // i) compute A u and store it in x
-    for i := 0; i < n; i++ {
-      x.At(i).Reset()
-      for j := k+1; j < n; j++ {
-        s.Mul(a.At(i, j), u.At(j))
-        x.At(i).Add(x.At(i), s)
-      }
-    }
-    // ii) compute A - 2 (A u) u^t = A - 2 x u^t
-    for i := 0; i < n; i++ {
-      for j := k+1; j < n; j++ {
-        s.Mul(x.At(i), u.At(j))
-        s.Add(s, s)
-        a.At(i, j).Sub(a.At(i, j), s)
-      }
-    }
-    if v != nil {
-      // A <- A P_k = A - 2 (A u) u^t
-      // i) compute A u and store it in x
-      for i := 0; i < n; i++ {
-        x.At(i).Reset()
-        for j := k+1; j < n; j++ {
-          s.Mul(v.At(i, j), u.At(j))
-          x.At(i).Add(x.At(i), s)
-        }
-      }
-      // ii) compute A - 2 (A u) u^t = A - 2 x u^t
-      for i := 0; i < n; i++ {
-        for j := k+1; j < n; j++ {
-          s.Mul(x.At(i), u.At(j))
-          s.Add(s, s)
-          v.At(i, j).Sub(v.At(i, j), s)
-        }
-      }
+    if U != nil {
+      nu.At(k).SetValue(0.0)
+      householder.RunApplyRight(U, beta, nu.Slice(0,n), t4[0:n], t1)
     }
   }
-  return a, v, nil
+  return H, U, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -150,65 +89,55 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   if n != m {
     return nil, nil, fmt.Errorf("`a' must be a square matrix")
   }
-
-  initializeH := true
-  initializeV := true
-
-  var h Matrix
-  var v Matrix
-  var x Vector
-  var u Vector
-  var s Scalar
+  inSitu   := &InSitu{}
+  computeU := false
 
   // loop over optional arguments
   for _, arg := range args {
     switch tmp := arg.(type) {
+    case ComputeU:
+      computeU = tmp.Value
+    case *InSitu:
+      inSitu = tmp
     case InSitu:
-      initializeH = tmp.InitializeH
-      initializeV = tmp.InitializeV
-      h = tmp.H
-      v = tmp.V
-      x = tmp.X
-      u = tmp.U
-      s = tmp.S
+      panic("InSitu must be passed by reference")
     }
   }
-  if h == nil {
-    h = a.CloneMatrix()
+  if inSitu.H == nil {
+    inSitu.H = a.CloneMatrix()
   } else {
-    if n1, m1 := h.Dims(); n1 != n || m1 != m {
-      return nil, nil, fmt.Errorf("q has invalid dimension (%dx%d instead of %dx%d)", n1, m1, n, m)
-    }
-    if a != h && initializeH {
-      h.Set(a)
+    if inSitu.H != a {
+      inSitu.H.Set(a)
     }
   }
-  if v == nil {
-    v = IdentityMatrix(t, n)
+  if inSitu.Beta == nil {
+    inSitu.Beta = NullScalar(t)
+  }
+  if inSitu.Nu == nil {
+    inSitu.Nu = NullDenseVector(t, n)
+  }
+  if inSitu.X == nil {
+    inSitu.X = NullDenseVector(t, n)
+  }
+  if computeU {
+    if inSitu.U == nil {
+      inSitu.U = NullDenseMatrix(t, n, n)
+    }
+    inSitu.U.SetIdentity()
   } else {
-    if n1, m1 := v.Dims(); n1 != n || m1 != m {
-      return nil, nil, fmt.Errorf("q has invalid dimension (%dx%d instead of %dx%d)", n1, m1, n, m)
-    }
-    if initializeV {
-      v.SetIdentity()
-    }
+    inSitu.U = nil
   }
-  if x == nil {
-    x = NullVector(t, n)
-  } else {
-    if n1 := x.Dim(); n1 != n {
-      return nil, nil, fmt.Errorf("x has invalid dimension (%d instead of %d)", n1, n)
-    }
+  if inSitu.T1 == nil {
+    inSitu.T1 = NullScalar(t)
   }
-  if u == nil {
-    u = NullVector(t, n)
-  } else {
-    if n1 := u.Dim(); n1 != n {
-      return nil, nil, fmt.Errorf("u has invalid dimension (%d instead of %d)", n1, n)
-    }
+  if inSitu.T2 == nil {
+    inSitu.T2 = NullScalar(t)
   }
-  if s == nil {
-    s = NullScalar(t)
+  if inSitu.T3 == nil {
+    inSitu.T3 = NullScalar(t)
   }
-  return hessenbergReduction(h, v, x, u, s)
+  if inSitu.T4 == nil {
+    inSitu.T4 = NullDenseVector(t, n)
+  }
+  return hessenbergReduction(inSitu)
 }

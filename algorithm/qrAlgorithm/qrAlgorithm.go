@@ -37,7 +37,7 @@ type Epsilon struct {
 }
 
 type InSitu struct {
-  Hessenberg hessenbergReduction.InSitu
+  Hessenberg  hessenbergReduction.InSitu
   InitializeH bool
   InitializeU bool
   H Matrix
@@ -45,23 +45,6 @@ type InSitu struct {
   C Scalar
   S Scalar
   T1, T2, T3 Scalar
-}
-
-func NewInSitu(t ScalarType, n int) InSitu {
-  s := InSitu{}
-  s.Hessenberg  = hessenbergReduction.NewInSitu(t, n)
-  s.Hessenberg.InitializeH = false
-  s.Hessenberg.InitializeV = false
-  s.InitializeH = true
-  s.InitializeU = true
-  s.H  = s.Hessenberg.H
-  s.U  = s.Hessenberg.V
-  s.C  = NullScalar(t)
-  s.S  = NullScalar(t)
-  s.T1 = NullScalar(t)
-  s.T2 = NullScalar(t)
-  s.T3 = NullScalar(t)
-  return s
 }
 
 /* -------------------------------------------------------------------------- */
@@ -107,7 +90,7 @@ func hessenbergQrAlgorithm(inSitu *InSitu, epsilon float64, shift bool) (Matrix,
 
   n, _ := h.Dims()
 
-  _, _, err := hessenbergReduction.Run(h, inSitu.Hessenberg)
+  _, _, err := hessenbergReduction.Run(h, &inSitu.Hessenberg)
   if err != nil {
     return nil, nil, err
   }
@@ -198,7 +181,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   }
   if inSitu.U == nil {
     inSitu.U = IdentityMatrix(t, n)
-    inSitu.Hessenberg.V = inSitu.U
+    inSitu.Hessenberg.U = inSitu.U
   } else {
     if n1, m1 := inSitu.U.Dims(); n1 != n || m1 != m {
       return nil, nil, fmt.Errorf("r has invalid dimension (%dx%d instead of %dx%d)", n1, m1, n, m)
@@ -221,6 +204,15 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   }
   if inSitu.T3 == nil {
     inSitu.T3 = NullScalar(t)
+  }
+  if inSitu.Hessenberg.T1 == nil {
+    inSitu.Hessenberg.T1 = inSitu.T1
+  }
+  if inSitu.Hessenberg.T2 == nil {
+    inSitu.Hessenberg.T2 = inSitu.T2
+  }
+  if inSitu.Hessenberg.T3 == nil {
+    inSitu.Hessenberg.T3 = inSitu.T3
   }
   return hessenbergQrAlgorithm(inSitu, epsilon, shift)
 }
