@@ -51,8 +51,7 @@ type InSitu struct {
   T1    Scalar
   T2    Scalar
   T3    Scalar
-  T4   *DenseMatrix
-  T5    DenseVector
+  T4    DenseVector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -93,77 +92,43 @@ func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
 
 func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, error) {
 
-  A  := inSitu.A
-  U  := inSitu.U
-  V  := inSitu.V
-  c1 := inSitu.C1
-  T  := inSitu.T4
+  A := inSitu.A
+  U := inSitu.U
+  V := inSitu.V
+  t := inSitu.T4
 
   m, n := A.Dims()
 
   for j := 0; j < n; j++ {
 
     a := A.Slice(j, m, j, n)
-    t := T.Slice(j, m, j, m)
 
     nu, beta := houseCol(j, inSitu)
 
-    // compute (I - beta nu nu^T)
-    for j1 := 0; j1 < m-j; j1++ {
-      for j2 := 0; j2 < m-j; j2++ {
-        s := t.At(j1, j2)
-        s.Mul(nu.At(j1), nu.At(j2))
-        s.Mul(s, beta)
-        if j1 == j2 {
-          s.Sub(c1, s)
-        } else {
-          s.Neg(s)
-        }
-      }
-    }
     // compute (I - beta nu nu^T) A(j:m, j:n)
-    householder.RunApplyLeft(a, beta, nu, inSitu.T5[j:n], inSitu.T1)
+    householder.RunApplyLeft(a, beta, nu, t[j:n], inSitu.T1)
     // accumulate U
     if U != nil {
+      nu := inSitu.Nu
       if j > 0 {
-        for k := 1; k < m; k++ {
-          T.At(j-1,k).SetValue(0.0)
-          T.At(k,j-1).SetValue(0.0)
-        }
-        T.At(j-1,j-1).SetValue(1.0)
+        nu.At(j-1).SetValue(0.0)
       }
-      U.MdotM(U, T)
+      householder.RunApplyRight(U, beta, nu, t[0:m], inSitu.T1)
     }
 
     if j < n - 2 {
 
       a := A.Slice(j+0, m, j+1, n)
-      t := T.Slice(j+1, n, j+1, n)
 
       nu, beta := houseRow(j, inSitu)
-      // compute (I - beta nu nu^T)
-      for j1 := 0; j1 < n-j-1; j1++ {
-        for j2 := 0; j2 < n-j-1; j2++ {
-          s := t.At(j1, j2)
-          s.Mul(nu.At(j1), nu.At(j2))
-          s.Mul(s, beta)
-          if j1 == j2 {
-            s.Sub(c1, s)
-          } else {
-            s.Neg(s)
-          }
-        }
-      }
+
       // compute A(j:m, j+1:n) (I - beta nu nu^T)
-      householder.RunApplyRight(a, beta, nu, inSitu.T5[j:m], inSitu.T1)
+      householder.RunApplyRight(a, beta, nu, t[j:m], inSitu.T1)
       // accumulate V
       if V != nil {
-        for k := 1; k < m; k++ {
-          T.At(j,k).SetValue(0.0)
-          T.At(k,j).SetValue(0.0)
-        }
-        T.At(j,j).SetValue(1.0)
-        V.MdotM(T.Slice(0,n,0,n), V)
+        nu := inSitu.Nu
+        nu.At(j).SetValue(0.0)
+        householder.RunApplyLeft(V, beta, nu[0:n], t[0:n], inSitu.T1)
       }
     }
   }
@@ -245,10 +210,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullDenseMatrix(t, m, m)
-  }
-  if inSitu.T5 == nil {
-    inSitu.T5 = NullDenseVector(t, m)
+    inSitu.T4 = NullDenseVector(t, m)
   }
   return householderBidiagonalization(inSitu, epsilon)
 }
