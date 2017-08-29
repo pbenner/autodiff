@@ -136,8 +136,9 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
   _, n := A.Dims()
 
   B, _, _, _ := householderBidiagonalization.Run(A)
+  B = B.Slice(0,n,0,n)
 
-  for p, q := n, 0; q != n-1; {
+  for p, q := n-1, 0; q != n-1; {
 
     for i := 0; i < n-1; i++ {
       b11 := B.At(i  ,i  ).GetValue()
@@ -149,14 +150,10 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
     }
     // try increasing q
     for q != n-1 {
+      // fix a column
       k := n-q-1
-      t := true
-      for j := 0; j < k; j++ {
-        if B.At(j,k).GetValue() != 0.0 {
-          t = false; break
-        }
-      }
-      if t {
+      // check if B33 is diagonal
+      if B.At(k-1,k).GetValue() == 0.0 {
         q += 1
       } else {
         break
@@ -167,17 +164,11 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
     }
     // try decreasing p
     for p > 0 {
-      k := p-1
-      t := true
-      for j := 0; j < k; j++ {
-        if B.At(j,k).GetValue() != 0.0 {
-          t = false; break
-        }
-      }
-      if t {
-        p -= 1
-      } else {
+      k := p
+      if B.At(k-1,k).GetValue() == 0.0 {
         break
+      } else {
+        p -= 1
       }
     }
     if q < n-1 {
@@ -194,7 +185,6 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
       }
     }
   }
-
   return nil, nil
 }
 
@@ -203,7 +193,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
 func Run(a Matrix, args ...interface{}) (Matrix, error) {
 
   m, n := a.Dims()
-//  t    := a.ElementType()
+  t    := a.ElementType()
 
   if m < n {
     return nil, fmt.Errorf("`a' has invalid dimensions")
@@ -221,6 +211,37 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
     case InSitu:
       panic("InSitu must be passed by reference")
     }
+  }
+  if inSitu.A == nil {
+    inSitu.A = a.CloneMatrix()
+  } else {
+    if inSitu.A != a {
+      inSitu.A.Set(a)
+    }
+  }
+  if inSitu.L1 == nil {
+    inSitu.L1 = NullScalar(t)
+  }
+  if inSitu.L2 == nil {
+    inSitu.L2 = NullScalar(t)
+  }
+  if inSitu.T1 == nil {
+    inSitu.T1 = NullScalar(t)
+  }
+  if inSitu.T2 == nil {
+    inSitu.T2 = NullScalar(t)
+  }
+  if inSitu.T3 == nil {
+    inSitu.T3 = NullScalar(t)
+  }
+  if inSitu.T4 == nil {
+    inSitu.T4 = NullScalar(t)
+  }
+  if inSitu.C2 == nil {
+    inSitu.C2 = NewBareReal(2.0)
+  }
+  if inSitu.C4 == nil {
+    inSitu.C4 = NewBareReal(4.0)
   }
   return golubKahanSVD(inSitu, epsilon)
 }
