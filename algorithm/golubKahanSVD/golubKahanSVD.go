@@ -22,6 +22,7 @@ import   "fmt"
 import   "math"
 
 import . "github.com/pbenner/autodiff"
+import   "github.com/pbenner/autodiff/algorithm/householderBidiagonalization"
 import   "github.com/pbenner/autodiff/algorithm/givensRotation"
 
 /* -------------------------------------------------------------------------- */
@@ -31,6 +32,7 @@ type Epsilon struct {
 }
 
 type InSitu struct {
+  A  Matrix
   T1 Scalar
   T2 Scalar
   T3 Scalar
@@ -129,7 +131,70 @@ func golubKahanSVDstep(B Matrix, inSitu *InSitu, epsilon float64) (Matrix, error
 
 func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
 
-  
+  A := inSitu.A
+
+  _, n := A.Dims()
+
+  B, _, _, _ := householderBidiagonalization.Run(A)
+
+  for p, q := n, 0; q != n-1; {
+
+    for i := 0; i < n-1; i++ {
+      b11 := B.At(i  ,i  ).GetValue()
+      b12 := B.At(i  ,i+1).GetValue()
+      b22 := B.At(i+1,i+1).GetValue()
+      if math.Abs(b12) <= epsilon*(math.Abs(b11) + math.Abs(b22)) {
+        B.At(i,i+1).SetValue(0.0)
+      }
+    }
+    // try increasing q
+    for q != n-1 {
+      k := n-q-1
+      t := true
+      for j := 0; j < k; j++ {
+        if B.At(j,k).GetValue() != 0.0 {
+          t = false; break
+        }
+      }
+      if t {
+        q += 1
+      } else {
+        break
+      }
+    }
+    if p > n-q {
+      p = n-q
+    }
+    // try decreasing p
+    for p > 0 {
+      k := p-1
+      t := true
+      for j := 0; j < k; j++ {
+        if B.At(j,k).GetValue() != 0.0 {
+          t = false; break
+        }
+      }
+      if t {
+        p -= 1
+      } else {
+        break
+      }
+    }
+    if q < n-1 {
+      // check diagonal elements in B22
+      t := true
+      for k := p; k < n-q-1; k++ {
+        if B.At(k,k).GetValue() == 0.0 {
+          B.At(k,k+1).SetValue(0.0); t = false
+        }
+      }
+      if t {
+        b := B.Slice(p,n-q,p,n-q)
+        golubKahanSVDstep(b, inSitu, epsilon)
+      }
+    }
+  }
+
   return nil, nil
 }
 
@@ -144,7 +209,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
     return nil, fmt.Errorf("`a' has invalid dimensions")
   }
   inSitu  := &InSitu{}
-  epsilon := 1e-18
+  epsilon := 1.11e-16
 
   // loop over optional arguments
   for _, arg := range args {
