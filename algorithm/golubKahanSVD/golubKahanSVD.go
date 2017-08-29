@@ -90,12 +90,12 @@ func golubKahanSVDstep(B Matrix, inSitu *InSitu, epsilon float64) (Matrix, error
   t3.SetValue(0.0)
   // compute:
   // trailing 2-by-2 submatrix of T = B^t B: [ t1, t3; t3, t2 ]
-  for i := 0; i < m; i++ {
-    t.Mul(B.At(i, n-2), B.At(i, n-2))
+  for i := m-2; i < m; i++ {
+    t.Mul(B.At(i-1, n-2), B.At(i-1, n-2))
     t1.Add(t1, t)
-    t.Mul(B.At(i, n-1), B.At(i, n-1))
+    t.Mul(B.At(i  , n-1), B.At(i  , n-1))
     t2.Add(t2, t)
-    t.Mul(B.At(i, n-1), B.At(i, n-2))
+    t.Mul(B.At(i  , n-1), B.At(i  , n-2))
     t3.Add(t3, t)
   }
   eigenvalues(t1, t2, t3, l1, l2, t, c2, c4)
