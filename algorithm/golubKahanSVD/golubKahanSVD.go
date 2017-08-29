@@ -49,13 +49,14 @@ type InSitu struct {
 // 2x2 matrix [ t1 t3; t3 t2 ] and store
 // the result in l1 and l2
 func eigenvalues(t1, t2, t3, l1, l2, t, c2, c4 Scalar) {
-  t.Sub(l1, l2)
+  t.Sub(t1, t2)
   t.Mul(t, t)
 
   l1.Mul(t3, t3)
   l1.Mul(c4, l1)
 
   t.Add(t, l1)
+  t.Sqrt(t)
 
   l2.Add(t1, t2)
   l1.Add(l2, t)
@@ -90,11 +91,11 @@ func golubKahanSVDstep(B Matrix, inSitu *InSitu, epsilon float64) (Matrix, error
   // compute:
   // trailing 2-by-2 submatrix of T = B^t B: [ t1, t3; t3, t2 ]
   for i := 0; i < m; i++ {
-    t.Mul(B.At(n-2, i), B.At(n-2, i))
+    t.Mul(B.At(i, n-2), B.At(i, n-2))
     t1.Add(t1, t)
-    t.Mul(B.At(n-1, i), B.At(n-1, i))
+    t.Mul(B.At(i, n-1), B.At(i, n-1))
     t2.Add(t2, t)
-    t.Mul(B.At(n-1, i), B.At(n-2, i))
+    t.Mul(B.At(i, n-1), B.At(i, n-2))
     t3.Add(t3, t)
   }
   eigenvalues(t1, t2, t3, l1, l2, t, c2, c4)
