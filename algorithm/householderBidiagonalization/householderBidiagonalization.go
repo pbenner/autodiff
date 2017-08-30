@@ -176,7 +176,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     if inSitu.U == nil {
       inSitu.U = NullDenseMatrix(t, m, m)
     }
-    inSitu.U.SetIdentity()
+    // initialized by householderBidiagonalization
   } else {
     inSitu.U = nil
   }
@@ -184,7 +184,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     if inSitu.V == nil {
       inSitu.V = NullDenseMatrix(t, n, n)
     }
-    inSitu.V.SetIdentity()
+    // initialized by householderBidiagonalization
   } else {
     inSitu.V = nil
   }
