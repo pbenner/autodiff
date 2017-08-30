@@ -27,12 +27,25 @@ import   "github.com/pbenner/autodiff/algorithm/givensRotation"
 
 /* -------------------------------------------------------------------------- */
 
+type ComputeU struct {
+  Value bool
+}
+
+type ComputeV struct {
+  Value bool
+}
+
+/* -------------------------------------------------------------------------- */
+
 type Epsilon struct {
   Value float64
 }
 
 type InSitu struct {
+  HouseholderBidiagonalization householderBidiagonalization.InSitu
   A  Matrix
+  U  Matrix
+  V  Matrix
   Mu Scalar
   C  Scalar
   S  Scalar
@@ -133,7 +146,10 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
 
   _, n := A.Dims()
 
-  B, _, _, _ := householderBidiagonalization.Run(A)
+  computeU := householderBidiagonalization.ComputeU{inSitu.U != nil}
+  computeV := householderBidiagonalization.ComputeV{inSitu.V != nil}
+
+  B, _, _, _ := householderBidiagonalization.Run(A, computeU, computeV, &inSitu.HouseholderBidiagonalization)
   B = B.Slice(0,n,0,n)
 
   for p, q := n-1, 0; q != n-1; {
@@ -183,7 +199,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
       }
     }
   }
-  return nil, nil
+  return B, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -196,12 +212,18 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
   if m < n {
     return nil, fmt.Errorf("`a' has invalid dimensions")
   }
-  inSitu  := &InSitu{}
-  epsilon := 1.11e-16
+  inSitu   := &InSitu{}
+  computeU := false
+  computeV := false
+  epsilon  := 1.11e-16
 
   // loop over optional arguments
   for _, arg := range args {
     switch tmp := arg.(type) {
+    case ComputeU:
+      computeU = tmp.Value
+    case ComputeV:
+      computeV = tmp.Value
     case Epsilon:
       epsilon = tmp.Value
     case *InSitu:
@@ -216,6 +238,22 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
     if inSitu.A != a {
       inSitu.A.Set(a)
     }
+  }
+  if computeU {
+    if inSitu.U == nil {
+      inSitu.U = NullDenseMatrix(t, m, m)
+    }
+    inSitu.U.SetIdentity()
+  } else {
+    inSitu.U = nil
+  }
+  if computeV {
+    if inSitu.V == nil {
+      inSitu.V = NullDenseMatrix(t, n, n)
+    }
+    inSitu.V.SetIdentity()
+  } else {
+    inSitu.V = nil
   }
   if inSitu.Mu == nil {
     inSitu.Mu = NullScalar(t)
@@ -246,6 +284,28 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
   }
   if inSitu.C4 == nil {
     inSitu.C4 = NewBareReal(4.0)
+  }
+  // HouseholderBidiagonalization InSitu
+  if inSitu.HouseholderBidiagonalization.A == nil {
+    inSitu.HouseholderBidiagonalization.A = inSitu.A
+  }
+  if inSitu.HouseholderBidiagonalization.U == nil {
+    inSitu.HouseholderBidiagonalization.U = inSitu.U
+  }
+  if inSitu.HouseholderBidiagonalization.V == nil {
+    inSitu.HouseholderBidiagonalization.V = inSitu.V
+  }
+  if inSitu.HouseholderBidiagonalization.Beta == nil {
+    inSitu.HouseholderBidiagonalization.Beta = inSitu.T4
+  }
+  if inSitu.HouseholderBidiagonalization.T1 == nil {
+    inSitu.HouseholderBidiagonalization.T1 = inSitu.T1
+  }
+  if inSitu.HouseholderBidiagonalization.T2 == nil {
+    inSitu.HouseholderBidiagonalization.T2 = inSitu.T2
+  }
+  if inSitu.HouseholderBidiagonalization.T3 == nil {
+    inSitu.HouseholderBidiagonalization.T3 = inSitu.T2
   }
   return golubKahanSVD(inSitu, epsilon)
 }

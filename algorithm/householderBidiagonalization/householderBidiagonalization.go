@@ -146,9 +146,9 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     return nil, nil, nil, fmt.Errorf("`a' has invalid dimensions")
   }
   inSitu   := &InSitu{}
-  epsilon  := 1e-18
   computeU := false
   computeV := false
+  epsilon  := 1.11e-16
 
   // loop over optional arguments
   for _, arg := range args {
