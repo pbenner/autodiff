@@ -33,99 +33,96 @@ type Epsilon struct {
 
 type InSitu struct {
   A  Matrix
+  Mu Scalar
+  C  Scalar
+  S  Scalar
   T1 Scalar
   T2 Scalar
   T3 Scalar
   T4 Scalar
-  L1 Scalar
-  L2 Scalar
+  T5 Scalar
   C2 Scalar
   C4 Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
-// compute eigenvalues of a symmetric
-// 2x2 matrix [ t1 t3; t3 t2 ] and store
-// the result in l1 and l2
-func eigenvalues(t1, t2, t3, l1, l2, t, c2, c4 Scalar) {
-  t.Sub(t1, t2)
-  t.Mul(t, t)
+// compute T = B^T B at rows/colums i,i+1
+func computeSquare(t11, t12, t22 Scalar, B Matrix, i int) {
+  b11 := B.At(i+0,i+0)
+  b12 := B.At(i+0,i+1)
+  b22 := B.At(i+1,i+1)
+  t11.Mul(b11, b11) // b11^2
+  t12.Mul(b12, b12) // b12^2
+  t22.Mul(b22, b22) // b22^2
+  t22.Add(t12, t22) // b12^2 + b22^2
+  t12.Mul(b11, b12) // b11 b12
+}
 
-  l1.Mul(t3, t3)
-  l1.Mul(c4, l1)
+/* -------------------------------------------------------------------------- */
 
-  t.Add(t, l1)
-  t.Sqrt(t)
+// compute the eigenvalue of a symmetric
+// 2x2 matrix [ t11 t12; t12 t22 ] closer
+// to t22
+func wilkinsonShift(mu, t11, t12, t22, c2, t1, t2 Scalar) {
+  d := t1
+  t := t2
+  d.Sub(t11, t22)
+  d.Div(d, c2)     // d = (t11 - t22)/2
 
-  l2.Add(t1, t2)
-  l1.Add(l2, t)
-  l2.Sub(l2, t)
+  t .Mul(t12, t12)
+  mu.Mul(d, d)
+  mu.Add(mu, t)    // mu = d^2 + t12^2
+  mu.Sqrt(mu)      // mu = sqrt(d^2 + t12^2)
 
-  l1.Div(l1, c2)
-  l2.Div(l2, c2)
+  if d.GetValue() < 0.0 {
+    mu.Neg(mu)
+  }
+  mu.Add(d, mu)    // mu = d + sign(d) sqrt(d^2 + t12^2)
+  mu.Div(t, mu)    // mu = t12^2 / (d + sign(d) sqrt(d^2 + t12^2))
+
+  mu.Sub(t22, mu)  // mu = t22 - t12^2 / (d + sign(d) sqrt(d^2 + t12^2))
 }
 
 /* -------------------------------------------------------------------------- */
 
 func golubKahanSVDstep(B Matrix, inSitu *InSitu, epsilon float64) (Matrix, error) {
 
-  var mu Scalar
-
-  m, n := B.Dims()
+  _, n := B.Dims()
 
   c2 := inSitu.C2
-  c4 := inSitu.C4
 
   // compute the eigenvalues of the trailing 2-by-2 submatrix of T = B^t B
-  l1 := inSitu.L1
-  l2 := inSitu.L2
-  t1 := inSitu.T1
-  t2 := inSitu.T2
-  t3 := inSitu.T3
-  t  := inSitu.T4
+  mu  := inSitu.Mu
+  t11 := inSitu.T1
+  t12 := inSitu.T2
+  t22 := inSitu.T3
+  t1  := inSitu.T4
+  t2  := inSitu.T5
 
-  t1.SetValue(0.0)
-  t2.SetValue(0.0)
-  t3.SetValue(0.0)
-  // compute:
-  // trailing 2-by-2 submatrix of T = B^t B: [ t1, t3; t3, t2 ]
-  for i := m-2; i < m; i++ {
-    t.Mul(B.At(i-1, n-2), B.At(i-1, n-2))
-    t1.Add(t1, t)
-    t.Mul(B.At(i  , n-1), B.At(i  , n-1))
-    t2.Add(t2, t)
-    t.Mul(B.At(i  , n-1), B.At(i  , n-2))
-    t3.Add(t3, t)
-  }
-  eigenvalues(t1, t2, t3, l1, l2, t, c2, c4)
+  computeSquare(t11, t12, t22, B, n-2)
+  wilkinsonShift(mu, t11, t12, t22, c2, t1, t2)
+  computeSquare(t11, t12, t22, B, 0)
 
-  if math.Abs(l1.GetValue() - t2.GetValue()) < math.Abs(l2.GetValue() - t2.GetValue()) {
-    // l1 is closer to t2
-    mu = l1
-  } else {
-    // l2 is closer to t2
-    mu = l2
-  }
-  y := t1
+  y := t11
   y.Sub(y, mu)
-  z := t3
-  c := t2
-  s := t
+  z := t12
+  c := inSitu.C
+  s := inSitu.S
 
   for k := 0; k < n-1; k++ {
     givensRotation.Run(y, z, c, s)
-    givensRotation.RunApplyRight(B, c, s, k, k+1, t1, t3)
+    givensRotation.RunApplyRight(B, c, s, k, k+1, t1, t2)
     y.Set(B.At(k+0, k))
     z.Set(B.At(k+1, k))
     givensRotation.Run(y, z, c, s)
-    givensRotation.RunApplyLeft(B, c, s, k, k+1, t1, t3)
+    givensRotation.RunApplyLeft(B, c, s, k, k+1, t1, t2)
     if k < n-2 {
       y.Set(B.At(k,k+1))
       z.Set(B.At(k,k+2))
     }
   }
-  return nil, nil
+  return B, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -220,11 +217,14 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
       inSitu.A.Set(a)
     }
   }
-  if inSitu.L1 == nil {
-    inSitu.L1 = NullScalar(t)
+  if inSitu.Mu == nil {
+    inSitu.Mu = NullScalar(t)
   }
-  if inSitu.L2 == nil {
-    inSitu.L2 = NullScalar(t)
+  if inSitu.C == nil {
+    inSitu.C = NullScalar(t)
+  }
+  if inSitu.S == nil {
+    inSitu.S = NullScalar(t)
   }
   if inSitu.T1 == nil {
     inSitu.T1 = NullScalar(t)
@@ -237,6 +237,9 @@ func Run(a Matrix, args ...interface{}) (Matrix, error) {
   }
   if inSitu.T4 == nil {
     inSitu.T4 = NullScalar(t)
+  }
+  if inSitu.T5 == nil {
+    inSitu.T5 = NullScalar(t)
   }
   if inSitu.C2 == nil {
     inSitu.C2 = NewBareReal(2.0)
