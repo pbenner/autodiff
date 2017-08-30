@@ -140,9 +140,11 @@ func golubKahanSVDstep(B Matrix, inSitu *InSitu, epsilon float64) (Matrix, error
 
 /* -------------------------------------------------------------------------- */
 
-func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
+func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, error) {
 
   A := inSitu.A
+  U := inSitu.U
+  V := inSitu.V
 
   _, n := A.Dims()
 
@@ -199,18 +201,18 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, error) {
       }
     }
   }
-  return B, nil
+  return B, U, V, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
-func Run(a Matrix, args ...interface{}) (Matrix, error) {
+func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
 
   m, n := a.Dims()
   t    := a.ElementType()
 
   if m < n {
-    return nil, fmt.Errorf("`a' has invalid dimensions")
+    return nil, nil, nil, fmt.Errorf("`a' has invalid dimensions")
   }
   inSitu   := &InSitu{}
   computeU := false
