@@ -99,7 +99,7 @@ func wilkinsonShift(mu, t11, t12, t22, c2, t1, t2 Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
-func golubKahanSVDstep(B Matrix, inSitu *InSitu, epsilon float64) (Matrix, error) {
+func golubKahanSVDstep(B, U, V Matrix, inSitu *InSitu, epsilon float64) (Matrix, error) {
 
   _, n := B.Dims()
 
@@ -126,10 +126,18 @@ func golubKahanSVDstep(B Matrix, inSitu *InSitu, epsilon float64) (Matrix, error
   for k := 0; k < n-1; k++ {
     givensRotation.Run(y, z, c, s)
     givensRotation.RunApplyRight(B, c, s, k, k+1, t1, t2)
+    if V != nil {
+      givensRotation.RunApplyRight(V, c, s, k, k+1, t1, t2)
+    }
     y.Set(B.At(k+0, k))
     z.Set(B.At(k+1, k))
     givensRotation.Run(y, z, c, s)
     givensRotation.RunApplyLeft(B, c, s, k, k+1, t1, t2)
+    if U != nil {
+      // transpose givens matrix
+      s.Neg(s)
+      givensRotation.RunApplyLeft(U, c, s, k, k+1, t1, t2)
+    }
     if k < n-2 {
       y.Set(B.At(k,k+1))
       z.Set(B.At(k,k+2))
@@ -197,7 +205,17 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
       }
       if t {
         b := B.Slice(p,n-q,p,n-q)
-        golubKahanSVDstep(b, inSitu, epsilon)
+        u := U
+        v := V
+        if U != nil {
+          u = U.Slice(p,n-q,p,n-q)
+        }
+        if V != nil {
+          v = V.Slice(p,n-q,p,n-q)
+        }
+        fmt.Println("p:",p)
+        fmt.Println("q:",q)
+        golubKahanSVDstep(b, u, v, inSitu, epsilon)
       }
     }
   }
