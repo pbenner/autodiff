@@ -99,7 +99,7 @@ func wilkinsonShift(mu, t11, t12, t22, c2, t1, t2 Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
-func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) (Matrix, error) {
+func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) {
 
   _, n := B.Dims()
 
@@ -141,7 +141,28 @@ func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) (
       z.Set(B.At(k,k+2))
     }
   }
-  return B, nil
+}
+
+/* -------------------------------------------------------------------------- */
+
+func zeroRow(B, U, V Matrix, k int, inSitu *InSitu) {
+
+  _, n := B.Dims()
+
+  c  := inSitu.C
+  s  := inSitu.S
+  t1 := inSitu.T4
+  t2 := inSitu.T5
+
+  for i := k+1; i < n; i++ {
+    y := B.At(i, i)
+    z := B.At(k, i)
+    givensRotation.Run(y, z, c, s)
+    givensRotation.RunApplyLeft(B, c, s, i, k, t1, t2)
+    if U != nil {
+      givensRotation.RunApplyLeft(U, c, s, i, k, t1, t2)
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -194,7 +215,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
       t := true
       for k := p; k < n-q-1; k++ {
         if B.At(k,k).GetValue() == 0.0 {
-          B.At(k,k+1).SetValue(0.0); t = false
+          zeroRow(B, U, V, k, inSitu); t = false
         }
       }
       if t {
