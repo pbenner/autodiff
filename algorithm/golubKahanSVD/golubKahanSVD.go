@@ -207,7 +207,10 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
       }
     }
   }
-  return B, U.T(), V, nil
+  if U != nil {
+    U = U.T()
+  }
+  return B, U, V, nil
 }
 
 /* -------------------------------------------------------------------------- */
