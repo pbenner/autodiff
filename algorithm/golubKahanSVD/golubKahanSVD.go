@@ -99,7 +99,7 @@ func wilkinsonShift(mu, t11, t12, t22, c2, t1, t2 Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
-func golubKahanSVDstep(B, U, V Matrix, inSitu *InSitu, epsilon float64) (Matrix, error) {
+func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) (Matrix, error) {
 
   _, n := B.Dims()
 
@@ -127,16 +127,14 @@ func golubKahanSVDstep(B, U, V Matrix, inSitu *InSitu, epsilon float64) (Matrix,
     givensRotation.Run(y, z, c, s)
     givensRotation.RunApplyRight(B, c, s, k, k+1, t1, t2)
     if V != nil {
-      givensRotation.RunApplyRight(V, c, s, k, k+1, t1, t2)
+      givensRotation.RunApplyRight(V, c, s, p+k, p+k+1, t1, t2)
     }
     y.Set(B.At(k+0, k))
     z.Set(B.At(k+1, k))
     givensRotation.Run(y, z, c, s)
     givensRotation.RunApplyLeft(B, c, s, k, k+1, t1, t2)
     if U != nil {
-      // transpose givens matrix
-      s.Neg(s)
-      givensRotation.RunApplyLeft(U, c, s, k, k+1, t1, t2)
+      givensRotation.RunApplyLeft(U, c, s, p+k, p+k+1, t1, t2)
     }
     if k < n-2 {
       y.Set(B.At(k,k+1))
@@ -151,15 +149,13 @@ func golubKahanSVDstep(B, U, V Matrix, inSitu *InSitu, epsilon float64) (Matrix,
 func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, error) {
 
   A := inSitu.A
-  U := inSitu.U
-  V := inSitu.V
 
   _, n := A.Dims()
 
   computeU := householderBidiagonalization.ComputeU{inSitu.U != nil}
   computeV := householderBidiagonalization.ComputeV{inSitu.V != nil}
 
-  B, _, _, _ := householderBidiagonalization.Run(A, computeU, computeV, &inSitu.HouseholderBidiagonalization)
+  B, U, V, _ := householderBidiagonalization.Run(A, computeU, computeV, &inSitu.HouseholderBidiagonalization)
   B = B.Slice(0,n,0,n)
 
   for p, q := n-1, 0; q != n-1; {
@@ -207,19 +203,11 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
         b := B.Slice(p,n-q,p,n-q)
         u := U
         v := V
-        if U != nil {
-          u = U.Slice(p,n-q,p,n-q)
-        }
-        if V != nil {
-          v = V.Slice(p,n-q,p,n-q)
-        }
-        fmt.Println("p:",p)
-        fmt.Println("q:",q)
-        golubKahanSVDstep(b, u, v, inSitu, epsilon)
+        golubKahanSVDstep(b, u, v, p, inSitu, epsilon)
       }
     }
   }
-  return B, U, V, nil
+  return B, U.T(), V, nil
 }
 
 /* -------------------------------------------------------------------------- */

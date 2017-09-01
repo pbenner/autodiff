@@ -24,6 +24,7 @@ import   "sort"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
+import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
@@ -49,5 +50,20 @@ func Test1(t *testing.T) {
     if math.Abs(r[i]-singularValues[i]) > 1e-5 {
       t.Errorf("test failed for singular value `%d'", i)
     }
+  }
+}
+
+func Test2(t *testing.T) {
+  a := NewMatrix(RealType, 3, 3, []float64{
+    1, 1, 0,
+    0, 2, 1,
+    0, 0, 3 })
+
+  h, u, v, _ := Run(a, ComputeU{true}, ComputeV{true})
+
+  d := MdotM(MdotM(u.T(), a), v)
+
+  if Mnorm(MsubM(d, h)).GetValue() > 1e-8 {
+    t.Error("test failed")
   }
 }
