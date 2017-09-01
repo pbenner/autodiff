@@ -158,7 +158,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
   H, U, V, _ := householderBidiagonalization.Run(A, computeU, computeV, &inSitu.HouseholderBidiagonalization)
   B := H.Slice(0,n,0,n)
 
-  for p, q := n-1, 0; q != n-1; {
+  for q := 0; q != n-1; {
 
     for i := 0; i < n-1; i++ {
       b11 := B.At(i  ,i  ).GetValue()
@@ -179,9 +179,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
         break
       }
     }
-    if p > n-q {
-      p = n-q
-    }
+    p := n-q-1
     // try decreasing p
     for p > 0 {
       k := p

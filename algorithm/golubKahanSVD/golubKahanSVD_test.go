@@ -90,3 +90,26 @@ func Test3(t *testing.T) {
     t.Error("test failed")
   }
 }
+
+func Test4(t *testing.T) {
+  a := NewMatrix(RealType, 7, 7, []float64{
+    1, 1, 0, 0, 0, 0, 0,
+    0, 2, 1, 0, 0, 0, 0,
+    0, 0, 3, 1, 0, 0, 0,
+    0, 0, 0, 4, 1, 0, 0,
+    0, 0, 0, 0, 1e-21, 1, 0,
+    0, 0, 0, 0, 0, 6, 1,
+    0, 0, 0, 0, 0, 0, 7 })
+
+  h, u, v, _ := Run(a, ComputeU{true}, ComputeV{true})
+
+  d := MdotM(MdotM(u.T(), a), v)
+  b := MdotM(MdotM(u, h), v.T())
+
+  if Mnorm(MsubM(d, h)).GetValue() > 1e-8 {
+    t.Error("test failed")
+  }
+  if Mnorm(MsubM(a, b)).GetValue() > 1e-8 {
+    t.Error("test failed")
+  }
+}
