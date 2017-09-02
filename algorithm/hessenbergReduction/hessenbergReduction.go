@@ -65,15 +65,15 @@ func hessenbergReduction(inSitu *InSitu) (Matrix, Matrix, error) {
     householder.Run(x.Slice(k+1,n), beta, nu.Slice(k+1,n), t1, t2, t3)
     {
       a := H.Slice(k+1,n,k,n)
-      householder.RunApplyLeft(a, beta, nu.Slice(k+1,n), t4[k:n], t1)
+      householder.ApplyLeft(a, beta, nu.Slice(k+1,n), t4[k:n], t1)
     }
     {
       a := H.Slice(0,n,k+1,n)
-      householder.RunApplyRight(a, beta, nu.Slice(k+1,n), t4[0:n], t1)
+      householder.ApplyRight(a, beta, nu.Slice(k+1,n), t4[0:n], t1)
     }
     if U != nil {
       nu.At(k).SetValue(0.0)
-      householder.RunApplyRight(U, beta, nu.Slice(0,n), t4[0:n], t1)
+      householder.ApplyRight(U, beta, nu.Slice(0,n), t4[0:n], t1)
     }
   }
   return H, U, nil

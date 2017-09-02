@@ -25,45 +25,86 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func RunApplyLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+func apply(a1, a2, c, s Scalar, t1, t2 Scalar) {
+  t1.Set(a1)
+  // update a1
+  a1.Mul(c, a1)
+  t2.Mul(s, a2)
+  a1.Sub(a1, t2)
+  // update a2
+  a2.Mul(c, a2)
+  t2.Mul(s, t1)
+  a2.Add(a2, t2)
+}
+
+/* -------------------------------------------------------------------------- */
+
+func ApplyBidiagLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+  _, n := A.Dims()
+  { j := i
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  { j := k
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := i+1; j < n && j != k {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := k+1; j < n && j != i {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+}
+
+func ApplyBidiagRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+  { j := i
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  { j := k
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := i-1; j >= 0 && j != k {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := k-1; j >= 0 && j != i {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+func ApplyLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
   _, n := A.Dims()
 
   for j := 0; j < n; j++ {
     a1 := A.At(i,j)
     a2 := A.At(k,j)
-
-    t1.Set(a1)
-
-    // update a1
-    a1.Mul(c, a1)
-    t2.Mul(s, a2)
-    a1.Sub(a1, t2)
-
-    // update a2
-    a2.Mul(c, a2)
-    t2.Mul(s, t1)
-    a2.Add(a2, t2)
+    apply(a1, a2, c, s, t1, t2)
   }
 }
 
-func RunApplyRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+func ApplyRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
   m, _ := A.Dims()
 
   for j := 0; j < m; j++ {
     a1 := A.At(j,i)
     a2 := A.At(j,k)
-
-    t1.Set(a1)
-
-    // update a1
-    a1.Mul(c, a1)
-    t2.Mul(s, a2)
-    a1.Sub(a1, t2)
-
-    // update a2
-    a2.Mul(c, a2)
-    t2.Mul(s, t1)
-    a2.Add(a2, t2)
+    apply(a1, a2, c, s, t1, t2)
   }
 }
 

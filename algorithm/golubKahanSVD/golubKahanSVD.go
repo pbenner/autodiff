@@ -125,16 +125,18 @@ func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) {
 
   for k := 0; k < n-1; k++ {
     givensRotation.Run(y, z, c, s)
-    givensRotation.RunApplyRight(B, c, s, k, k+1, t1, t2)
+    givensRotation.ApplyBidiagRight(B, c, s, k, k+1, t1, t2)
+    z.SetValue(0.0)
     if V != nil {
-      givensRotation.RunApplyRight(V, c, s, p+k, p+k+1, t1, t2)
+      givensRotation.ApplyRight(V, c, s, p+k, p+k+1, t1, t2)
     }
     y.Set(B.At(k+0, k))
     z.Set(B.At(k+1, k))
     givensRotation.Run(y, z, c, s)
-    givensRotation.RunApplyLeft(B, c, s, k, k+1, t1, t2)
+    givensRotation.ApplyBidiagLeft(B, c, s, k, k+1, t1, t2)
+    z.SetValue(0.0)
     if U != nil {
-      givensRotation.RunApplyLeft(U, c, s, p+k, p+k+1, t1, t2)
+      givensRotation.ApplyLeft(U, c, s, p+k, p+k+1, t1, t2)
     }
     if k < n-2 {
       y.Set(B.At(k,k+1))
@@ -158,10 +160,11 @@ func zeroRow(B, U, V Matrix, k int, inSitu *InSitu) {
     y := B.At(i, i)
     z := B.At(k, i)
     givensRotation.Run(y, z, c, s)
-    givensRotation.RunApplyLeft(B, c, s, i, k, t1, t2)
+    givensRotation.ApplyBidiagLeft(B, c, s, i, k, t1, t2)
     if U != nil {
-      givensRotation.RunApplyLeft(U, c, s, i, k, t1, t2)
+      givensRotation.ApplyLeft(U, c, s, i, k, t1, t2)
     }
+    z.SetValue(0.0)
   }
 }
 
@@ -273,7 +276,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     if inSitu.U == nil {
       inSitu.U = NullDenseMatrix(t, m, m)
     }
-    inSitu.U.SetIdentity()
+    // initialized by householderBidiagonalization
   } else {
     inSitu.U = nil
   }
@@ -281,7 +284,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     if inSitu.V == nil {
       inSitu.V = NullDenseMatrix(t, n, n)
     }
-    inSitu.V.SetIdentity()
+    // initialized by householderBidiagonalization
   } else {
     inSitu.V = nil
   }

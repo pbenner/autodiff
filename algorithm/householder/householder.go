@@ -24,7 +24,7 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func RunApplyLeft(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
+func ApplyLeft(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
   m, n := A.Dims()
 
   t1.VdotM(nu, A)
@@ -40,7 +40,7 @@ func RunApplyLeft(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
   }
 }
 
-func RunApplyRight(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
+func ApplyRight(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
   m, n := A.Dims()
 
   t1.MdotV(A, nu)

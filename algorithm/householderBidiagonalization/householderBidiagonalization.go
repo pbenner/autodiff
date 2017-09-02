@@ -106,14 +106,14 @@ func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Matr
     nu, beta := houseCol(j, inSitu)
 
     // compute (I - beta nu nu^T) A(j:m, j:n)
-    householder.RunApplyLeft(a, beta, nu, t[j:n], inSitu.T1)
+    householder.ApplyLeft(a, beta, nu, t[j:n], inSitu.T1)
     // accumulate U
     if U != nil {
       nu := inSitu.Nu
       if j > 0 {
         nu.At(j-1).SetValue(0.0)
       }
-      householder.RunApplyRight(U, beta, nu, t[0:m], inSitu.T1)
+      householder.ApplyRight(U, beta, nu, t[0:m], inSitu.T1)
     }
 
     if j < n - 2 {
@@ -123,12 +123,12 @@ func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Matr
       nu, beta := houseRow(j, inSitu)
 
       // compute A(j:m, j+1:n) (I - beta nu nu^T)
-      householder.RunApplyRight(a, beta, nu, t[j:m], inSitu.T1)
+      householder.ApplyRight(a, beta, nu, t[j:m], inSitu.T1)
       // accumulate V
       if V != nil {
         nu := inSitu.Nu
         nu.At(j).SetValue(0.0)
-        householder.RunApplyLeft(V, beta, nu[0:n], t[0:n], inSitu.T1)
+        householder.ApplyLeft(V, beta, nu[0:n], t[0:n], inSitu.T1)
       }
     }
   }
@@ -176,7 +176,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     if inSitu.U == nil {
       inSitu.U = NullDenseMatrix(t, m, m)
     }
-    // initialized by householderBidiagonalization
+    inSitu.U.SetIdentity()
   } else {
     inSitu.U = nil
   }
@@ -184,7 +184,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     if inSitu.V == nil {
       inSitu.V = NullDenseMatrix(t, n, n)
     }
-    // initialized by householderBidiagonalization
+    inSitu.V.SetIdentity()
   } else {
     inSitu.V = nil
   }

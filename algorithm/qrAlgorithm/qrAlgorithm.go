@@ -62,12 +62,12 @@ func hessenbergQrAlgorithmStep(h, u Matrix, c, s Scalar, t1, t2, t3 Scalar, n in
     givensRotation.Run(h.At(i, i), h.At(i+1, i), c, s)
 
     // multiply with Givens matrix (G H)
-    givensRotation.RunApplyLeft(h, c, s, i, i+1, t1, t2)
+    givensRotation.ApplyLeft(h, c, s, i, i+1, t1, t2)
     // multiply with Givens matrix (H G)
-    givensRotation.RunApplyRight(h, c, s, i, i+1, t1, t2)
+    givensRotation.ApplyRight(h, c, s, i, i+1, t1, t2)
 
     if u != nil {
-      givensRotation.RunApplyRight(u, c, s, i, i+1, t1, t2)
+      givensRotation.ApplyRight(u, c, s, i, i+1, t1, t2)
     }
   }
   if shift {
