@@ -82,6 +82,7 @@ The algorithms package contains more complex linear algebra and optimization rou
 | gaussJordan         | Gauss-Jordan algorithm                                  |
 | gradientDescent     | Vanilla gradient desent algorithm                       |
 | gramSchmidt         | Gram-Schmidt algorithm                                  |
+| golubKahanSVD       | Singular Value Decomposition (SVD)                      |
 | hessenbergReduction | Matrix Hessenberg reduction                             |
 | lineSearch          | Line-search (satisfying the Wolfe conditions)           |
 | matrixInverse       | Matrix inverse                                          |
