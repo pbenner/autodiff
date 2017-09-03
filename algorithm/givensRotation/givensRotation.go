@@ -88,6 +88,46 @@ func ApplyBidiagRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
+func ApplyHessenbergLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+  _, n := A.Dims()
+
+  var r int
+  if i < k {
+    r = i-1
+  } else {
+    r = k-1
+  }
+  if r < 0 {
+    r = 0
+  }
+  for j := r; j < n; j++ {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+}
+
+func ApplyHessenbergRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+  m, _ := A.Dims()
+
+  var r int
+  if i > k {
+    r = i+2
+  } else {
+    r = k+2
+  }
+  if r > m {
+    r = m
+  }
+  for j := 0; j < r; j++ {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 func ApplyLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
   _, n := A.Dims()
 
