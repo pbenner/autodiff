@@ -88,6 +88,76 @@ func ApplyBidiagRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
+func ApplyTridiagLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+  _, n := A.Dims()
+  { j := i
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  { j := k
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := i+1; j < n && j != k && j != k-1 {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := i-1; j >= 0 && j != k {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := k+1; j < n && j != i && j != i-1 {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := k-1; j >= 0 && j != i {
+    a1 := A.At(i,j)
+    a2 := A.At(k,j)
+    apply(a1, a2, c, s, t1, t2)
+  }
+}
+
+func ApplyTridiagRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
+  m, _ := A.Dims()
+  { j := i
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  { j := k
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := i-1; j >= 0 && j != k && j != k+1 {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := i+1; j < m && j != k {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := k-1; j >= 0 && j != i && j != i+1 {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+  if j := k+1; j < m && j != i {
+    a1 := A.At(j,i)
+    a2 := A.At(j,k)
+    apply(a1, a2, c, s, t1, t2)
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 func ApplyHessenbergLeft(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
   _, n := A.Dims()
 
