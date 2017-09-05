@@ -85,7 +85,7 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
     delta := 1e-8
     inSitu.QR.InitializeH = true
     inSitu.QR.InitializeU = true
-    h, u, _ := qrAlgorithm.Run(H, &inSitu.QR, qrAlgorithm.Shift{true})
+    h, u, _ := qrAlgorithm.Run(H, &inSitu.QR)
     for i := 0; i < g.Dim(); i++ {
         r := h.At(i, i)
       // elements on the diagonal are the eigenvalues, force them

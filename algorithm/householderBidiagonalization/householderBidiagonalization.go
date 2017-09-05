@@ -69,7 +69,8 @@ func houseCol(j int, inSitu *InSitu) (Vector, Scalar) {
   for k := j; k < n; k++ {
     x.At(k).Set(A.At(k, j))
   }
-  return householder.Run(x[j:n], beta, nu[j:n], t1, t2, t3)
+  householder.Run(x[j:n], beta, nu[j:n], t1, t2, t3)
+  return nu[j:n], beta
 }
 
 func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
@@ -85,7 +86,8 @@ func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
   for k := j+1; k < n; k++ {
     x.At(k).Set(A.At(j, k))
   }
-  return householder.Run(x[j+1:n], beta, nu[j+1:n], t1, t2, t3)
+  householder.Run(x[j+1:n], beta, nu[j+1:n], t1, t2, t3)
+  return nu[j+1:n], beta
 }
 
 /* -------------------------------------------------------------------------- */
