@@ -28,14 +28,14 @@ import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func TestQRAlgorithm1(t *testing.T) {
+func Test1(t *testing.T) {
   a := NewMatrix(RealType, 4, 4, []float64{
     1, 2,  3, 4,
     4, 4,  4, 4,
     0, 1, -1, 1,
     0, 0,  2, 3 })
 
-  h, u, _ := Run(a)
+  h, u, _ := Run(a, ComputeU{true})
 
   b := MdotM(MdotM(u, h), u.T())
 
@@ -57,7 +57,7 @@ func TestQRAlgorithm1(t *testing.T) {
   }
 }
 
-func TestQRAlgorithm2(t *testing.T) {
+func Test2(t *testing.T) {
   a := NewMatrix(RealType, 2, 2, []float64{
     2,  2,
     3, -2 })

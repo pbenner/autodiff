@@ -58,7 +58,7 @@ func ApplyRight(A Matrix, beta Scalar, nu Vector, t1 Vector, t2 Scalar) {
 
 /* -------------------------------------------------------------------------- */
 
-func Run(x Vector, beta Scalar, nu Vector, t1, t2, t3 Scalar) (Vector, Scalar) {
+func Run(x Vector, beta Scalar, nu Vector, t1, t2, t3 Scalar) {
   sigma := t1
   mu    := t2
   t     := t3
@@ -91,5 +91,4 @@ func Run(x Vector, beta Scalar, nu Vector, t1, t2, t3 Scalar) (Vector, Scalar) {
     t.Set(nu0)
     nu.VdivS(nu, t)
   }
-  return nu, beta
 }
