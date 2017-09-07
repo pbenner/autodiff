@@ -284,13 +284,17 @@ func qrAlgorithm(inSitu *InSitu, epsilon float64) (Matrix, Matrix, error) {
   for i := 0; i < n-1; i++ {
     for {
       h11 := h.At(i  ,i  ).GetValue()
+      h12 := h.At(i  ,i+1).GetValue()
       h21 := h.At(i+1,i  ).GetValue()
       h22 := h.At(i+1,i+1).GetValue()
       if math.Abs(h21) <= epsilon*(math.Abs(h11) + math.Abs(h22)) {
         h.At(i+1,i).SetValue(0.0)
         break
       } else {
-        QRstep(h, u, i, n-i-2, inSitu)
+        if (h11-h22)*(h11-h22) + 4*h12*h21 >= 0.0 {
+          // eigenvalues are real
+          QRstep(h, u, i, n-i-2, inSitu)
+        }
       }
     }
   }
