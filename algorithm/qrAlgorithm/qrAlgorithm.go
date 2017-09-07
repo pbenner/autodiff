@@ -287,7 +287,7 @@ func qrAlgorithm(inSitu *InSitu, epsilon float64) (Matrix, Matrix, error) {
     if h21 == 0.0 {
       continue
     }
-    // check if eigenvalue is comples
+    // check if eigenvalues are complex
     h11 := h.At(i  ,i  ).GetValue()
     h12 := h.At(i  ,i+1).GetValue()
     h22 := h.At(i+1,i+1).GetValue()
