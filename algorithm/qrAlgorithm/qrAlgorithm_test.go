@@ -159,3 +159,34 @@ func Test6(t *testing.T) {
     t.Error("test failed")
   }
 }
+
+func Test7(t *testing.T) {
+  a := NewMatrix(RealType, 6, 6, []float64{
+     7,  3,  4, -11, -9, -2,
+    -6,  4, -5,   7,  1, 12,
+    -1, -9,  2,   2,  9,  1,
+    -8,  0, -1,   5,  0,  8,
+    -4,  3, -5,   7,  2, 10,
+     6,  1,  4, -11, -7, -1})
+
+  h, u, _ := Run(a, ComputeU{true})
+
+  b := MdotM(MdotM(u, h), u.T())
+
+  eigenvalues := []float64{-1.561553e+00, -7.416574e-01, 2.561553e+00, 6.741657e+00}
+
+  r := []float64{}
+  for i := 0; i < 4; i++ {
+    r = append(r, h.At(i, i).GetValue())
+  }
+  sort.Float64s(r)
+
+  for i := 0; i < 4; i++ {
+    if math.Abs(r[i]-eigenvalues[i]) > 1e-5 {
+      t.Errorf("test failed for eigenvalue `%d'", i)
+    }
+  }
+  if math.Abs(Mnorm(MsubM(a, b)).GetValue()) > 1e-4 {
+    t.Errorf("test failed")
+  }
+}
