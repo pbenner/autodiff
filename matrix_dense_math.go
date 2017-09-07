@@ -230,11 +230,14 @@ func (r *DenseMatrix) MdotM(a, b Matrix) Matrix {
 // Matrix vector product of a and b. The result is stored in r.
 func (r DenseVector) MdotV(a Matrix, b Vector) Vector {
   n, m := a.Dims()
-  if r[0] == b.At(0) {
-    panic("result and argument must be different vectors")
-  }
   if r.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
+  }
+  if n == 0 || m == 0 {
+    return r
+  }
+  if r[0] == b.At(0) {
+    panic("result and argument must be different vectors")
   }
   t := NullScalar(a.ElementType())
   for i := 0; i < n; i++ {
@@ -252,11 +255,14 @@ func (r DenseVector) MdotV(a Matrix, b Vector) Vector {
 // Vector matrix product of a and b. The result is stored in r.
 func (r DenseVector) VdotM(a Vector, b Matrix) Vector {
   n, m := b.Dims()
-  if r[0] == a.At(0) {
-    panic("result and argument must be different vectors")
-  }
   if r.Dim() != m || a.Dim() != n {
     panic("matrix/vector dimensions do not match!")
+  }
+  if n == 0 || m == 0 {
+    return r
+  }
+  if r[0] == a.At(0) {
+    panic("result and argument must be different vectors")
   }
   t := NullScalar(a.ElementType())
   for i := 0; i < m; i++ {

@@ -55,9 +55,15 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-func QRstep(h, u Matrix, inSitu *InSitu) {
+func QRstep(H, U Matrix, p, q int, inSitu *InSitu) {
 
-  n, _ := h.Dims()
+  m, _ := H.Dims()
+  n    := m-p-q
+
+  H12  := H.Slice(0,p  ,p,m-q)
+  H23  := H.Slice(p,m-q,m-q,m)
+  H22  := H.Slice(p,m-q,p,m-q)
+  u    := U.Slice(0,m  ,p,m-q)
 
   c  := inSitu.S
   s  := inSitu.T
@@ -66,31 +72,39 @@ func QRstep(h, u Matrix, inSitu *InSitu) {
   t3 := inSitu.T3
 
   // shift
-  t3.Set(h.At(n-1, n-1))
+  t3.Set(H22.At(n-1, n-1))
   for i := 0; i < n; i++ {
-    g := h.At(i, i)
+    g := H22.At(i, i)
     g.Sub(g, t3)
   }
   for i := 0; i < n-1; i++ {
-    givensRotation.Run(h.At(i, i), h.At(i+1, i), c, s)
+    givensRotation.Run(H22.At(i, i), H22.At(i+1, i), c, s)
     // multiply with Givens matrix (G H)
-    givensRotation.ApplyHessenbergLeft(h, c, s, i, i+1, t1, t2)
+    givensRotation.ApplyHessenbergLeft(H22, c, s, i, i+1, t1, t2)
+    givensRotation.ApplyHessenbergLeft(H23, c, s, i, i+1, t1, t2)
     // multiply with Givens matrix (H G)
-    givensRotation.ApplyHessenbergRight(h, c, s, i, i+1, t1, t2)
+    givensRotation.ApplyHessenbergRight(H12, c, s, i, i+1, t1, t2)
+    givensRotation.ApplyHessenbergRight(H22, c, s, i, i+1, t1, t2)
     if u != nil {
       givensRotation.ApplyRight(u, c, s, i, i+1, t1, t2)
     }
   }
   // shift
   for i := 0; i < n; i++ {
-    g := h.At(i, i)
+    g := H22.At(i, i)
     g.Add(g, t3)
   }
 }
 
-func francisQRstep(h, u Matrix, inSitu *InSitu) {
+func francisQRstep(H, U Matrix, p, q int, inSitu *InSitu) {
 
-  n, _ := h.Dims()
+  m, _ := H.Dims()
+  n    := m-p-q
+
+  H12  := H.Slice(0,p  ,p,m-q)
+  H23  := H.Slice(p,m-q,m-q,m)
+  H22  := H.Slice(p,m-q,p,m-q)
+  u    := U.Slice(0,m  ,p,m-q)
 
   s  := inSitu.S
   t  := inSitu.T
@@ -103,20 +117,20 @@ func francisQRstep(h, u Matrix, inSitu *InSitu) {
   beta := inSitu.Beta
   nu   := inSitu.Nu
 
-  h11 := h.At(n-2,n-2)
-  h12 := h.At(n-2,n-1)
-  h21 := h.At(n-1,n-2)
-  h22 := h.At(n-1,n-1)
+  h11 := H22.At(n-2,n-2)
+  h12 := H22.At(n-2,n-1)
+  h21 := H22.At(n-1,n-2)
+  h22 := H22.At(n-1,n-1)
 
   s .Add(h11, h22)
   t1.Mul(h11, h22)
   t2.Mul(h12, h21)
   t .Sub(t1 , t2)
 
-  h11 = h.At(0,0)
-  h12 = h.At(0,1)
-  h21 = h.At(1,0)
-  h22 = h.At(1,1)
+  h11 = H22.At(0,0)
+  h12 = H22.At(0,1)
+  h21 = H22.At(1,0)
+  h22 = H22.At(1,1)
 
   t1  .Mul(h11 , h11)
   t2  .Mul(h12 , h21)
@@ -129,49 +143,97 @@ func francisQRstep(h, u Matrix, inSitu *InSitu) {
   x[1].Sub(x[1], s)
   x[1].Mul(x[1], h21)
 
-  x[2].Mul(h21 , h.At(2,1))
+  x[2].Mul(h21 , H22.At(2,1))
 
   for k := 0; k < n-2; k++ {
-    q := 1
+    s := 1
     r := n
-    if q < k {
-      q = k
+    if s < k {
+      s = k
     }
     if r > k+4 {
       r = k+4
     }
     householder.Run(x, beta, nu, t1, t2, t3)
     {
-      h := h.Slice(k, k+3, q-1, n)
-      householder.ApplyLeft(h, beta, nu, t4[q-1:n], t1)
+      h := H22.Slice(k, k+3, s-1, n)
+      householder.ApplyLeft(h, beta, nu, t4[s-1:n], t1)
     }
     {
-      h := h.Slice(0, r, k, k+3)
-      householder.ApplyRight(h, beta, nu, t4[0:r], t1)
+      h := H22.Slice(0, n, k, k+3)
+      householder.ApplyRight(h, beta, nu, t4[0:n], t1)
+    }
+    {
+      h := H12.Slice(0, p, k, k+3)
+      householder.ApplyRight(h, beta, nu, t4[0:p], t1)
+    }
+    {
+      h := H23.Slice(k, k+3, 0, q)
+      householder.ApplyLeft(h, beta, nu, t4[0:q], t1)
     }
     if u != nil {
-      u := u.Slice(0, r, k, k+3)
-      householder.ApplyRight(u, beta, nu, t4, t1)
+      u := u.Slice(0, m, k, k+3)
+      householder.ApplyRight(u, beta, nu, t4[0:m], t1)
     }
-    x[0].Set(h.At(k+1, k))
-    x[1].Set(h.At(k+2, k))
+    x[0].Set(H22.At(k+1, k))
+    x[1].Set(H22.At(k+2, k))
     if k < n-3 {
-      x[2].Set(h.At(k+3, k))
+      x[2].Set(H22.At(k+3, k))
     }
   }
   householder.Run(x[0:2], beta, nu[0:2], t1, t2, t3)
   {
-    h := h.Slice(n-2, n, n-3, n)
+    h := H22.Slice(n-2, n, n-3, n)
     householder.ApplyLeft(h, beta, nu[0:2], t4[n-3:n], t1)
   }
   {
-    h := h.Slice(0, n, n-2, n)
-    householder.ApplyRight(h, beta, nu[0:2], t4, t1)
+    h := H22.Slice(0, n, n-2, n)
+    householder.ApplyRight(h, beta, nu[0:2], t4[0:n], t1)
+  }
+  {
+    h := H12.Slice(0, p, n-2, n)
+    householder.ApplyRight(h, beta, nu[0:2], t4[0:p], t1)
+  }
+  {
+    h := H23.Slice(n-2, n, 0, q)
+    householder.ApplyLeft(h, beta, nu[0:2], t4[0:q], t1)
   }
   if u != nil {
-    u := u.Slice(0, n, n-2, n)
-    householder.ApplyRight(u, beta, nu[0:2], t4, t1)
+    u := u.Slice(0, m, n-2, n)
+    householder.ApplyRight(u, beta, nu[0:2], t4[0:m], t1)
   }
+}
+
+/* -------------------------------------------------------------------------- */
+
+func splitMatrix(h Matrix, q int) (int, int) {
+  n, _ := h.Dims()
+  // try increasing q
+  for i := q; i < n-1; i++ {
+    // k: start of the last block
+    if h.At(n-i-1,n-i-2).GetValue() == 0.0 {
+      q = i+1
+    }
+    if i > q {
+      break
+    }
+    if i == n-2 {
+      q = i+2
+    }
+  }
+  p := n-q-2
+  if p < 0 {
+    p = 0
+  }
+  // try decreasing p
+  for p > 0 {
+    if h.At(p,p-1).GetValue() != 0.0 {
+      p -= 1
+    } else {
+      break
+    }
+  }
+  return p, q
 }
 
 /* -------------------------------------------------------------------------- */
@@ -189,12 +251,37 @@ func qrAlgorithm(inSitu *InSitu, epsilon float64) (Matrix, Matrix, error) {
     u = u_
   }
 
-  for n > 2 {
-    if v := h.At(n-1, n-2); math.Abs(v.GetValue()) < epsilon {
-      n--
-    } else {
-      h := h.Slice(0,n,0,n)
-      francisQRstep(h, u, inSitu)
+  // apply Francis QR steps
+  for p, q := 0, 0; q < n-1; {
+
+    for i := 0; i < n-1; i++ {
+      h11 := h.At(i  ,i  ).GetValue()
+      h21 := h.At(i+1,i  ).GetValue()
+      h22 := h.At(i+1,i+1).GetValue()
+      if math.Abs(h21) <= epsilon*(math.Abs(h11) + math.Abs(h22)) {
+        h.At(i+1,i).SetValue(0.0)
+      }
+    }
+    // p: number of rows/cols in H11
+    // q: number of rows/cols in H33
+    p, q = splitMatrix(h, q)
+
+    if q < n-1 {
+      francisQRstep(h, u, p, q, inSitu)
+    }
+  }
+  // reduce 2x2 blocks along the diagonal
+  for i := 0; i < n-1; i++ {
+    for {
+      h11 := h.At(i  ,i  ).GetValue()
+      h21 := h.At(i+1,i  ).GetValue()
+      h22 := h.At(i+1,i+1).GetValue()
+      if math.Abs(h21) <= epsilon*(math.Abs(h11) + math.Abs(h22)) {
+        h.At(i+1,i).SetValue(0.0)
+        break
+      } else {
+        QRstep(h, u, i, n-i-2, inSitu)
+      }
     }
   }
   return h, u, nil

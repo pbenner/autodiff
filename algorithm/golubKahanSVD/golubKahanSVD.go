@@ -189,7 +189,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
       b12 := B.At(i  ,i+1).GetValue()
       b22 := B.At(i+1,i+1).GetValue()
       if math.Abs(b12) <= epsilon*(math.Abs(b11) + math.Abs(b22)) {
-        B.At(i,i+1).SetValue(0.0)
+        b12.SetValue(0.0)
       }
     }
     // try increasing q
