@@ -57,13 +57,18 @@ type InSitu struct {
 
 func QRstep(H, U Matrix, p, q int, inSitu *InSitu) {
 
+  var u Matrix
+
   m, _ := H.Dims()
   n    := m-p-q
 
   H12  := H.Slice(0,p  ,p,m-q)
   H23  := H.Slice(p,m-q,m-q,m)
   H22  := H.Slice(p,m-q,p,m-q)
-  u    := U.Slice(0,m  ,p,m-q)
+
+  if U != nil {
+    u = U.Slice(0,m  ,p,m-q)
+  }
 
   c  := inSitu.S
   s  := inSitu.T
@@ -98,13 +103,18 @@ func QRstep(H, U Matrix, p, q int, inSitu *InSitu) {
 
 func francisQRstep(H, U Matrix, p, q int, inSitu *InSitu) {
 
+  var u Matrix
+
   m, _ := H.Dims()
   n    := m-p-q
 
   H12  := H.Slice(0,p  ,p,m-q)
   H23  := H.Slice(p,m-q,m-q,m)
   H22  := H.Slice(p,m-q,p,m-q)
-  u    := U.Slice(0,m  ,p,m-q)
+
+  if U != nil {
+    u = U.Slice(0,m  ,p,m-q)
+  }
 
   s  := inSitu.S
   t  := inSitu.T
