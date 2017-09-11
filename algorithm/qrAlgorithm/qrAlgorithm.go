@@ -405,12 +405,32 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
 /* -------------------------------------------------------------------------- */
 
 func Eigenvalues(a Matrix, args... interface{}) (Vector, error) {
+  n, _      := a.Dims()
   h, _, err := Run(a, args...)
   if err != nil {
     return nil, err
   }
-  eigenvalues := h.Diag()
-  eigenvalues  = eigenvalues.SortVector(false)
+  eigenvalues := DenseVector{}
+  for i := 0; i < n-1; i++ {
+    if h.At(i+1,i).GetValue() == 0.0 {
+      // real eigenvalue
+      eigenvalues = append(eigenvalues, h.At(i,i))
+    } else {
+      c2 := BareReal(2.0)
+      // complex eigenvalues, drop complex part
+      h11 := h.At(i+0,i+0).CloneScalar()
+      h22 := h.At(i+1,i+1)
+      h11.Add(h11, h22)
+      h11.Div(h11, &c2)
+      eigenvalues = append(eigenvalues, h11)
+      eigenvalues = append(eigenvalues, h11)
+      i++
+    }
+  }
+  if h.At(n-1,n-2).GetValue() == 0.0 {
+    eigenvalues = append(eigenvalues, h.At(n-1, n-1))
+  }
+  eigenvalues = eigenvalues.Sort(true)
 
   return eigenvalues, nil
 }

@@ -173,16 +173,12 @@ func Test7(t *testing.T) {
 
   b := MdotM(MdotM(u, h), u.T())
 
-  eigenvalues := []float64{-1.561553e+00, -7.416574e-01, 2.561553e+00, 6.741657e+00}
+  eigenvalues := []float64{5, 5, 4, 3, 1, 1}
 
-  r := []float64{}
-  for i := 0; i < 4; i++ {
-    r = append(r, h.At(i, i).GetValue())
-  }
-  sort.Float64s(r)
+  r, _ := Eigenvalues(a)
 
   for i := 0; i < 4; i++ {
-    if math.Abs(r[i]-eigenvalues[i]) > 1e-5 {
+    if math.Abs(r.At(i).GetValue()-eigenvalues[i]) > 1e-5 {
       t.Errorf("test failed for eigenvalue `%d'", i)
     }
   }
