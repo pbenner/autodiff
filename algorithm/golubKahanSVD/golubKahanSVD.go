@@ -105,7 +105,6 @@ func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) {
 
   c2 := inSitu.C2
 
-  // compute the eigenvalues of the trailing 2-by-2 submatrix of T = B^t B
   mu  := inSitu.Mu
   t11 := inSitu.T1
   t12 := inSitu.T2
