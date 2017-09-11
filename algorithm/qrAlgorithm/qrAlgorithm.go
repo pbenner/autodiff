@@ -315,7 +315,7 @@ func qrAlgorithm(inSitu *InSitu, epsilon float64) (Matrix, Matrix, error) {
 func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
 
   n, m := a.Dims()
-  t := a.ElementType()
+  t    := a.ElementType()
 
   if n != m {
     return nil, nil, fmt.Errorf("`a' must be a square matrix")
