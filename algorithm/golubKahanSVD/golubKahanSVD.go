@@ -169,6 +169,34 @@ func zeroRow(B, U, V Matrix, k int, inSitu *InSitu) {
 
 /* -------------------------------------------------------------------------- */
 
+func splitMatrix(B Matrix, q int) (int, int) {
+  _, n := B.Dims()
+  // try increasing q
+  for q != n-1 {
+    // fix a column
+    k := n-q-1
+    // check if B33 is diagonal
+    if B.At(k-1,k).GetValue() == 0.0 {
+      q += 1
+    } else {
+      break
+    }
+  }
+  p := n-q-1
+  // try decreasing p
+  for p > 0 {
+    k := p
+    if B.At(k-1,k).GetValue() == 0.0 {
+      break
+    } else {
+      p -= 1
+    }
+  }
+  return p, q
+}
+
+/* -------------------------------------------------------------------------- */
+
 func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, error) {
 
   A := inSitu.A
@@ -181,37 +209,18 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
   H, U, V, _ := householderBidiagonalization.Run(A, computeU, computeV, &inSitu.HouseholderBidiagonalization)
   B := H.Slice(0,n,0,n)
 
-  for q := 0; q != n-1; {
+  for p, q := 0, 0; q != n-1; {
 
     for i := 0; i < n-1; i++ {
       b11 := B.At(i  ,i  ).GetValue()
       b12 := B.At(i  ,i+1).GetValue()
       b22 := B.At(i+1,i+1).GetValue()
       if math.Abs(b12) <= epsilon*(math.Abs(b11) + math.Abs(b22)) {
-        b12.SetValue(0.0)
+        B.At(i,i+1).SetValue(0.0)
       }
     }
-    // try increasing q
-    for q != n-1 {
-      // fix a column
-      k := n-q-1
-      // check if B33 is diagonal
-      if B.At(k-1,k).GetValue() == 0.0 {
-        q += 1
-      } else {
-        break
-      }
-    }
-    p := n-q-1
-    // try decreasing p
-    for p > 0 {
-      k := p
-      if B.At(k-1,k).GetValue() == 0.0 {
-        break
-      } else {
-        p -= 1
-      }
-    }
+    p, q = splitMatrix(B, q)
+
     if q < n-1 {
       // check diagonal elements in B22
       t := true
