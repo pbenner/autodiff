@@ -25,6 +25,10 @@ import   "github.com/pbenner/autodiff/algorithm/householder"
 
 /* -------------------------------------------------------------------------- */
 
+type SetZero struct {
+  Value bool
+}
+
 type ComputeU struct {
   Value bool
 }
@@ -43,7 +47,7 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-func hessenbergReduction(inSitu *InSitu) (Matrix, Matrix, error) {
+func hessenbergReduction(inSitu *InSitu, setZero bool) (Matrix, Matrix, error) {
   H    := inSitu.H
   U    := inSitu.U
   x    := inSitu.X
@@ -71,6 +75,11 @@ func hessenbergReduction(inSitu *InSitu) (Matrix, Matrix, error) {
       a := H.Slice(0,n,k+1,n)
       householder.ApplyRight(a, beta, nu.Slice(k+1,n), t4[0:n], t1)
     }
+    if setZero {
+      for i := k+2; i < n; i++ {
+        H.At(i,k).SetValue(0.0)
+      }
+    }
     if U != nil {
       nu.At(k).SetValue(0.0)
       householder.ApplyRight(U, beta, nu.Slice(0,n), t4[0:n], t1)
@@ -91,12 +100,15 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   }
   inSitu   := &InSitu{}
   computeU := false
+  setZero  := true
 
   // loop over optional arguments
   for _, arg := range args {
     switch tmp := arg.(type) {
     case ComputeU:
       computeU = tmp.Value
+    case SetZero:
+      setZero = tmp.Value
     case *InSitu:
       inSitu = tmp
     case InSitu:
@@ -139,5 +151,5 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   if inSitu.T4 == nil {
     inSitu.T4 = NullDenseVector(t, n)
   }
-  return hessenbergReduction(inSitu)
+  return hessenbergReduction(inSitu, setZero)
 }
