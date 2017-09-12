@@ -22,6 +22,7 @@ import   "fmt"
 import   "math"
 
 import . "github.com/pbenner/autodiff"
+import   "github.com/pbenner/autodiff/algorithm/backSubstitution"
 import   "github.com/pbenner/autodiff/algorithm/givensRotation"
 import   "github.com/pbenner/autodiff/algorithm/hessenbergReduction"
 import   "github.com/pbenner/autodiff/algorithm/householder"
@@ -33,6 +34,10 @@ type Epsilon struct {
 }
 
 type ComputeU struct {
+  Value bool
+}
+
+type Symmetric struct {
   Value bool
 }
 
@@ -404,45 +409,106 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func Eigenvalues(a Matrix, args... interface{}) (Vector, error) {
-  n, _      := a.Dims()
-  h, _, err := Run(a, args...)
-  if err != nil {
-    return nil, err
-  }
-  eigenvalues := DenseVector{}
+func getEigenvalues(eigenvalues DenseVector, h Matrix, sort bool) {
+  n, _ := h.Dims()
   for i := 0; i < n-1; i++ {
     if h.At(i+1,i).GetValue() == 0.0 {
       // real eigenvalue
-      eigenvalues = append(eigenvalues, h.At(i,i))
+      eigenvalues[i].Set(h.At(i,i).CloneScalar())
     } else {
       c2 := BareReal(2.0)
       // complex eigenvalues, drop complex part
-      h11 := h.At(i+0,i+0).CloneScalar()
+      h11 := h.At(i+0,i+0)
       h22 := h.At(i+1,i+1)
-      h11.Add(h11, h22)
-      h11.Div(h11, &c2)
-      eigenvalues = append(eigenvalues, h11)
-      eigenvalues = append(eigenvalues, h11)
+      eigenvalues[i+0].Add(h11, h22)
+      eigenvalues[i+0].Div(eigenvalues[i+0], &c2)
+      eigenvalues[i+1].Set(eigenvalues[i+0])
       i++
     }
   }
   if h.At(n-1,n-2).GetValue() == 0.0 {
-    eigenvalues = append(eigenvalues, h.At(n-1, n-1))
+    eigenvalues[n-1].Set(h.At(n-1, n-1))
   }
-  eigenvalues = eigenvalues.Sort(true)
+  if sort {
+    eigenvalues = eigenvalues.Sort(true)
+  }
+}
+
+func getEigenvector(eigenvector Vector, eigenvalue Scalar, h Matrix) {
+  n := eigenvector.Dim()
+
+  inSitu  := backSubstitution.InSitu{}
+  inSitu.X = eigenvector
+  // substract eigenvalue from diagonal
+  for i := 0; i < n; i++ {
+    h.At(i,i).Sub(h.At(i,i), eigenvalue)
+  }
+  backSubstitution.Run(h, nil, &inSitu)
+  // add eigenvalue to diagonal
+  for i := 0; i < n; i++ {
+    h.At(i,i).Sub(h.At(i,i), eigenvalue)
+  }
+}
+
+func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h Matrix) {
+  n := eigenvalues.Dim()
+
+  for i := 0; i < n; i++ {
+    getEigenvector(eigenvectors.Col(i), eigenvalues[i], h)
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+func Eigenvalues(a Matrix, args... interface{}) (Vector, error) {
+  n, _      := a.Dims()
+  t         := a.ElementType()
+  h, _, err := Run(a, args...)
+  if err != nil {
+    return nil, err
+  }
+  eigenvalues := NullDenseVector(t, n)
+
+  getEigenvalues(eigenvalues, h, true)
 
   return eigenvalues, nil
 }
 
-func Eigensystem(a Matrix, args... interface{}) (Vector, Matrix, error) {
-  // check if a is symmetric
-  if !a.IsSymmetric(1e-12) {
-    return nil, nil, fmt.Errorf("for computing eigenvectors `a' must be symmetric")
+func Eigensystem(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
+  n, _ := a.Dims()
+  t    := a.ElementType()
+  // default values for optional arguments
+  symmetric := false
+  // arguments passed on to the qrAlgorithm
+  var args []interface{}
+  // loop over optional arguments
+  for _, arg := range args {
+    switch tmp := arg.(type) {
+    case Symmetric:
+      symmetric = tmp.Value
+    case ComputeU:
+      // drop this option
+    default:
+      args = append(args, arg)
+    }
   }
-  h, u, err := Run(a, args...)
-  if err != nil {
-    return nil, nil, err
+  if symmetric {
+    h, u, err := Run(a, append(args, ComputeU{true})...)
+    if err != nil {
+      return nil, nil, err
+    }
+    return h.Diag(), u, nil
+  } else {
+    h, _, err := Run(a, append(args, ComputeU{false})...)
+    if err != nil {
+      return nil, nil, err
+    }
+    eigenvalues  := NullDenseVector(t, n)
+    eigenvectors := NullDenseMatrix(t, n, n)
+
+    getEigenvalues (eigenvalues, h, false)
+    getEigenvectors(eigenvectors, eigenvalues, h)
+
+    return eigenvalues, eigenvectors, nil
   }
-  return h.Diag(), u, nil
 }

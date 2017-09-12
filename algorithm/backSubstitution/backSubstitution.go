@@ -26,7 +26,7 @@ import . "github.com/pbenner/autodiff"
 
 type InSitu struct {
   A Matrix
-  X DenseVector
+  X Vector
   T Scalar
 }
 
@@ -40,14 +40,17 @@ func backSubstitution(inSitu *InSitu, b Vector) (Vector, error) {
 
   _, n := A.Dims()
 
-  for i := b.Dim()-1; i >= 0; i-- {
-    x[i].Set(b.At(i))
-
-    for j := i+1; j < n; j++ {
-      t.Mul(A.At(i,j), x[j])
-      x[i].Sub(x[i], t)
+  for i := n-1; i >= 0; i-- {
+    if b == nil {
+      x.At(i).SetValue(0.0)
+    } else {
+      x.At(i).Set(b.At(i))
     }
-    x[i].Div(x[i], A.At(i,i))
+    for j := i+1; j < n; j++ {
+      t.Mul(A.At(i,j), x.At(j))
+      x.At(i).Sub(x.At(i), t)
+    }
+    x.At(i).Div(x.At(i), A.At(i,i))
   }
   return x, nil
 }
@@ -61,7 +64,7 @@ func Run(A Matrix, b Vector, args ...interface{}) (Vector, error) {
   if m != n {
     return nil, fmt.Errorf("matrix must be square")
   }
-  if m != b.Dim() {
+  if b != nil && m != b.Dim() {
     return nil, fmt.Errorf("matrix vector dimensions do not match")
   }
   inSitu := &InSitu{}
