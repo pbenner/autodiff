@@ -20,6 +20,7 @@ package qrAlgorithm
 
 import   "fmt"
 import   "math"
+import   "sort"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/backSubstitution"
@@ -407,6 +408,21 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   return qrAlgorithm(inSitu, epsilon)
 }
 
+/* sort eigenvalues by absolute value
+ * -------------------------------------------------------------------------- */
+
+type sortEigenvaluesType DenseVector
+
+func (v sortEigenvaluesType) Len() int           { return len(v) }
+func (v sortEigenvaluesType) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
+func (v sortEigenvaluesType) Less(i, j int) bool {
+  return math.Abs(v[i].GetValue()) < math.Abs(v[j].GetValue())
+}
+
+func sortEigenvalues(v DenseVector) {
+  sort.Sort(sort.Reverse(sortEigenvaluesType(v)))
+}
+
 /* -------------------------------------------------------------------------- */
 
 func getEigenvalues(eigenvalues DenseVector, h Matrix, sort bool) {
@@ -430,7 +446,7 @@ func getEigenvalues(eigenvalues DenseVector, h Matrix, sort bool) {
     eigenvalues[n-1].Set(h.At(n-1, n-1))
   }
   if sort {
-    eigenvalues = eigenvalues.Sort(true)
+    sortEigenvalues(eigenvalues)
   }
 }
 
@@ -466,6 +482,21 @@ func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h, u Ma
   for i := 0; i < n; i++ {
     getEigenvector(eigenvectors.Col(i), eigenvalues[i], h, u, b, i)
   }
+}
+
+func sortEigensystem(eigenvectors *DenseMatrix, eigenvalues DenseVector) {
+  m := make(map[Scalar]int)
+  // permutation
+  p := make([]int, eigenvalues.Dim())
+  for i := 0; i < eigenvalues.Dim(); i++ {
+    m[eigenvalues.At(i)] = i
+  }
+  sortEigenvalues(eigenvalues)
+
+  for i := 0; i < eigenvalues.Dim(); i++ {
+    p[i] = m[eigenvalues.At(i)]
+  }
+  eigenvectors.PermuteColumns(p)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -513,13 +544,19 @@ func Eigensystem(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
   }
 
   if symmetric {
-    return h.Diag(), u, nil
+    eigenvalues  := h.Diag().CloneVector().ToDenseVector()
+    eigenvectors := u.ToDenseMatrix()
+
+    sortEigensystem(eigenvectors, eigenvalues)
+
+    return eigenvalues, eigenvectors, nil
   } else {
     eigenvalues  := NullDenseVector(t, n)
     eigenvectors := NullDenseMatrix(t, n, n)
 
     getEigenvalues (eigenvalues, h, false)
     getEigenvectors(eigenvectors, eigenvalues, h, u, inSitu.T4)
+    sortEigensystem(eigenvectors, eigenvalues)
 
     return eigenvalues, eigenvectors, nil
   }

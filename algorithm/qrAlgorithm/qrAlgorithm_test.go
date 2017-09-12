@@ -39,19 +39,6 @@ func Test1(t *testing.T) {
 
   b := MdotM(MdotM(u, h), u.T())
 
-  eigenvalues := []float64{-1.561553e+00, -7.416574e-01, 2.561553e+00, 6.741657e+00}
-
-  r := []float64{}
-  for i := 0; i < 4; i++ {
-    r = append(r, h.At(i, i).GetValue())
-  }
-  sort.Float64s(r)
-
-  for i := 0; i < 4; i++ {
-    if math.Abs(r[i]-eigenvalues[i]) > 1e-5 {
-      t.Errorf("test failed for eigenvalue `%d'", i)
-    }
-  }
   if math.Abs(Mnorm(MsubM(a, b)).GetValue()) > 1e-4 {
     t.Errorf("test failed")
   }
@@ -186,3 +173,31 @@ func Test7(t *testing.T) {
     t.Errorf("test failed")
   }
 }
+
+func Test8(t *testing.T) {
+  a := NewMatrix(RealType, 4, 4, []float64{
+    1, 2,  3, 4,
+    4, 4,  4, 4,
+    0, 1, -1, 1,
+    0, 0,  2, 3 })
+
+  eigenvalues  := NewVector(RealType, []float64{
+    6.741657e+00, 2.561553e+00, -1.561553e+00, -7.416574e-01})
+  eigenvectors := NewMatrix(RealType, 4, 4, []float64{
+    4.229518e-01, -6.818712e-02,  3.347805e-01, -7.125998e-01,
+    8.951414e-01, -8.649304e-01,  1.055702e-01,  4.020316e-01,
+    1.242021e-01, -1.064778e-01, -8.575579e-01,  5.070618e-01,
+    6.638882e-02,  4.857041e-01,  3.759939e-01, -2.710359e-01 })
+
+  if e, v, err := Eigensystem(a); err != nil {
+    t.Error(err)
+  } else {
+    if Vnorm(VsubV(eigenvalues, e)).GetValue() > 1e-4 {
+      t.Error("test failed")
+    }
+    if Mnorm(MsubM(eigenvectors, v)).GetValue() > 1e-4 {
+      t.Error("test failed")
+    }
+  }
+}
+
