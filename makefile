@@ -1,6 +1,7 @@
 
 SUBDIRS = \
 	. \
+	algorithm/backSubstitution \
 	algorithm/bfgs \
 	algorithm/blahut \
 	algorithm/cholesky \
