@@ -465,6 +465,8 @@ func getEigenvector(eigenvector Vector, eigenvalue Scalar, h, u Matrix, b Vector
   }
   b.Set(eigenvector)
   eigenvector.MdotV(u, b)
+  b.At(0).Vnorm(eigenvector)
+  eigenvector.VdivS(eigenvector, b.At(0))
 }
 
 func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h, u Matrix, b Vector) {
