@@ -435,33 +435,24 @@ func getEigenvalues(eigenvalues DenseVector, h Matrix, sort bool) {
 }
 
 func getEigenvector(eigenvector Vector, eigenvalue Scalar, h, u Matrix, b Vector, k int) {
-  n := eigenvector.Dim()
-
   inSitu := backSubstitution.InSitu{}
   // substract eigenvalue from diagonal
-  for i := 0; i < n; i++ {
+  for i := 0; i < k; i++ {
     h.At(i,i).Sub(h.At(i,i), eigenvalue)
   }
   // copy u
   for i := 0; i < k; i++ {
     b.At(i).Set(h.At(i,k))
-  }
-  // copy v
-  for i := k+1; i < n; i++ {
-    b.At(i).Set(h.At(k,i))
+    b.At(i).Neg(b.At(i))
   }
   if k > 0 {
     inSitu.X = eigenvector.Slice(0,k)
     backSubstitution.Run(h.Slice(0,k,0,k), b.Slice(0,k), &inSitu)
   }
-  if k < n {
-    inSitu.X = eigenvector.Slice(k+1,n)
-    backSubstitution.Run(h.Slice(k+1,n,k+1,n), b.Slice(k+1,n), &inSitu)
-  }
   eigenvector.At(k).SetValue(1.0)
   // add eigenvalue to diagonal
-  for i := 0; i < n; i++ {
-    h.At(i,i).Sub(h.At(i,i), eigenvalue)
+  for i := 0; i < k; i++ {
+    h.At(i,i).Add(h.At(i,i), eigenvalue)
   }
   b.Set(eigenvector)
   eigenvector.MdotV(u, b)
