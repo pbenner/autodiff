@@ -434,27 +434,44 @@ func getEigenvalues(eigenvalues DenseVector, h Matrix, sort bool) {
   }
 }
 
-func getEigenvector(eigenvector Vector, eigenvalue Scalar, h Matrix) {
+func getEigenvector(eigenvector Vector, eigenvalue Scalar, h, u Matrix, b Vector, k int) {
   n := eigenvector.Dim()
 
-  inSitu  := backSubstitution.InSitu{}
-  inSitu.X = eigenvector
+  inSitu := backSubstitution.InSitu{}
   // substract eigenvalue from diagonal
   for i := 0; i < n; i++ {
     h.At(i,i).Sub(h.At(i,i), eigenvalue)
   }
-  backSubstitution.Run(h, nil, &inSitu)
+  // copy u
+  for i := 0; i < k; i++ {
+    b.At(i).Set(h.At(i,k))
+  }
+  // copy v
+  for i := k+1; i < n; i++ {
+    b.At(i).Set(h.At(k,i))
+  }
+  if k > 0 {
+    inSitu.X = eigenvector.Slice(0,k)
+    backSubstitution.Run(h.Slice(0,k,0,k), b.Slice(0,k), &inSitu)
+  }
+  if k < n {
+    inSitu.X = eigenvector.Slice(k+1,n)
+    backSubstitution.Run(h.Slice(k+1,n,k+1,n), b.Slice(k+1,n), &inSitu)
+  }
+  eigenvector.At(k).SetValue(1.0)
   // add eigenvalue to diagonal
   for i := 0; i < n; i++ {
     h.At(i,i).Sub(h.At(i,i), eigenvalue)
   }
+  b.Set(eigenvector)
+  eigenvector.MdotV(u, b)
 }
 
-func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h Matrix) {
+func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h, u Matrix, b Vector) {
   n := eigenvalues.Dim()
 
   for i := 0; i < n; i++ {
-    getEigenvector(eigenvectors.Col(i), eigenvalues[i], h)
+    getEigenvector(eigenvectors.Col(i), eigenvalues[i], h, u, b, i)
   }
 }
 
@@ -479,6 +496,7 @@ func Eigensystem(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
   t    := a.ElementType()
   // default values for optional arguments
   symmetric := false
+  inSitu    := &InSitu{}
   // arguments passed on to the qrAlgorithm
   var args []interface{}
   // loop over optional arguments
@@ -488,26 +506,27 @@ func Eigensystem(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
       symmetric = tmp.Value
     case ComputeU:
       // drop this option
+    case *InSitu:
+      inSitu = tmp
     default:
       args = append(args, arg)
     }
   }
+  args = append(args, ComputeU{true})
+  args = append(args, inSitu)
+  h, u, err := Run(a, args...)
+  if err != nil {
+    return nil, nil, err
+  }
+
   if symmetric {
-    h, u, err := Run(a, append(args, ComputeU{true})...)
-    if err != nil {
-      return nil, nil, err
-    }
     return h.Diag(), u, nil
   } else {
-    h, _, err := Run(a, append(args, ComputeU{false})...)
-    if err != nil {
-      return nil, nil, err
-    }
     eigenvalues  := NullDenseVector(t, n)
     eigenvectors := NullDenseMatrix(t, n, n)
 
     getEigenvalues (eigenvalues, h, false)
-    getEigenvectors(eigenvectors, eigenvalues, h)
+    getEigenvectors(eigenvectors, eigenvalues, h, u, inSitu.T4)
 
     return eigenvalues, eigenvectors, nil
   }
