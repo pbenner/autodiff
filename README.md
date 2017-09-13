@@ -79,6 +79,7 @@ The algorithms package contains more complex linear algebra and optimization rou
 | blahut              | Blahut algorithm (channel capacity)                     |
 | cholesky            | Cholesky and LDL factorization                          |
 | determinant         | Matrix determinants                                     |
+| eigensystem         | Compute Eigenvalues and Eigenvectors                    |
 | gaussJordan         | Gauss-Jordan algorithm                                  |
 | gradientDescent     | Vanilla gradient desent algorithm                       |
 | gramSchmidt         | Gram-Schmidt algorithm                                  |
@@ -89,7 +90,7 @@ The algorithms package contains more complex linear algebra and optimization rou
 | msqrt               | Matrix square root                                      |
 | msqrtInv            | Inverse matrix square root                              |
 | newton              | Newton's method (root finding and optimization)         |
-| qrAlgorithm         | QR-Algorithm for computing eigenvalues and eigenvectors |
+| qrAlgorithm         | QR-Algorithm for computing Schur decompositions         |
 | rprop               | Resilient backpropagation                               |
 
 ## Basic usage
