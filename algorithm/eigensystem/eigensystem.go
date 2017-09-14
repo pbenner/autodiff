@@ -160,14 +160,16 @@ func eigensystem(a Matrix, inSitu *InSitu, computeEigenvectors, symmetric bool, 
     // no need to copy eigenvectors in this case
 
     sortEigensystem(eigenvectors, eigenvalues)
-
-    return eigenvalues, eigenvectors, nil
   } else {
     getEigenvalues (eigenvalues, h)
     getEigenvectors(eigenvectors, eigenvalues, h, u, inSitu.QrAlgorithm.T4)
     sortEigensystem(eigenvectors, eigenvalues)
-
+  }
+  if computeEigenvectors {
     return eigenvalues, eigenvectors, nil
+  } else {
+    // return explicit nil
+    return eigenvalues, nil, nil
   }
 }
 
