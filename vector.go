@@ -26,7 +26,7 @@ import "encoding/json"
 type Vector interface {
   ScalarContainer
   At              (int)                Scalar
-  SetReferenceAt  (Scalar, int)
+  SetReferenceAt  (int, Scalar)
   Reset           ()
   ResetDerivatives()
   // basic methods

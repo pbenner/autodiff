@@ -122,7 +122,7 @@ func (v DenseVector) BareRealAt(i int) *BareReal {
   return v[i].(*BareReal)
 }
 
-func (v DenseVector) SetReferenceAt(s Scalar, i int) {
+func (v DenseVector) SetReferenceAt(i int, s Scalar) {
   v[i] = s
 }
 

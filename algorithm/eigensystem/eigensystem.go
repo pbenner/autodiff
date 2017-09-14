@@ -37,47 +37,55 @@ type ComputeEigenvectors struct {
 }
 
 type InSitu struct {
-  QrAlgorithm   qrAlgorithm.InSitu
-  Eigenvalues   DenseVector
-  Eigenvectors *DenseMatrix
+  QrAlgorithm  qrAlgorithm.InSitu
+  Eigenvalues  Vector
+  Eigenvectors Matrix
 }
 
 /* sort eigenvalues by absolute value
  * -------------------------------------------------------------------------- */
 
-type sortEigenvaluesType DenseVector
-
-func (v sortEigenvaluesType) Len() int           { return len(v) }
-func (v sortEigenvaluesType) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
+type sortEigenvaluesType struct {
+  Vector
+}
+func (v sortEigenvaluesType) Len() int {
+  return v.Dim()
+}
+func (v sortEigenvaluesType) Swap(i, j int) {
+  ri := v.At(i)
+  rj := v.At(j)
+  v.SetReferenceAt(i, rj)
+  v.SetReferenceAt(j, ri)
+}
 func (v sortEigenvaluesType) Less(i, j int) bool {
-  return math.Abs(v[i].GetValue()) < math.Abs(v[j].GetValue())
+  return math.Abs(v.At(i).GetValue()) < math.Abs(v.At(j).GetValue())
 }
 
-func sortEigenvalues(v DenseVector) {
-  sort.Sort(sort.Reverse(sortEigenvaluesType(v)))
+func sortEigenvalues(v Vector) {
+  sort.Sort(sort.Reverse(sortEigenvaluesType{v}))
 }
 
 /* -------------------------------------------------------------------------- */
 
-func getEigenvalues(eigenvalues DenseVector, h Matrix) {
+func getEigenvalues(eigenvalues Vector, h Matrix) {
   n, _ := h.Dims()
   for i := 0; i < n-1; i++ {
     if h.At(i+1,i).GetValue() == 0.0 {
       // real eigenvalue
-      eigenvalues[i].Set(h.At(i,i).CloneScalar())
+      eigenvalues.At(i).Set(h.At(i,i))
     } else {
       c2 := BareReal(2.0)
       // complex eigenvalues, drop complex part
       h11 := h.At(i+0,i+0)
       h22 := h.At(i+1,i+1)
-      eigenvalues[i+0].Add(h11, h22)
-      eigenvalues[i+0].Div(eigenvalues[i+0], &c2)
-      eigenvalues[i+1].Set(eigenvalues[i+0])
+      eigenvalues.At(i+0).Add(h11, h22)
+      eigenvalues.At(i+0).Div(eigenvalues.At(i+0), &c2)
+      eigenvalues.At(i+1).Set(eigenvalues.At(i+0))
       i++
     }
   }
   if h.At(n-1,n-2).GetValue() == 0.0 {
-    eigenvalues[n-1].Set(h.At(n-1, n-1))
+    eigenvalues.At(n-1).Set(h.At(n-1, n-1))
   }
 }
 
@@ -107,18 +115,18 @@ func getEigenvector(eigenvector Vector, eigenvalue Scalar, h, u Matrix, b Vector
   eigenvector.VdivS(eigenvector, b.At(0))
 }
 
-func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h, u Matrix, b Vector) {
+func getEigenvectors(eigenvectors Matrix, eigenvalues Vector, h, u Matrix, b Vector) {
   if eigenvectors == nil {
     return
   }
   n := eigenvalues.Dim()
 
   for i := 0; i < n; i++ {
-    getEigenvector(eigenvectors.Col(i), eigenvalues[i], h, u, b, i)
+    getEigenvector(eigenvectors.Col(i), eigenvalues.At(i), h, u, b, i)
   }
 }
 
-func sortEigensystem(eigenvectors *DenseMatrix, eigenvalues DenseVector) {
+func sortEigensystem(eigenvectors Matrix, eigenvalues Vector) {
   if eigenvectors == nil {
     sortEigenvalues(eigenvalues)
   } else {
@@ -155,7 +163,7 @@ func eigensystem(a Matrix, inSitu *InSitu, computeEigenvectors, symmetric bool, 
     // eigenvalues are real, copy them from the
     // main diagonal of h
     for i := 0; i < n; i++ {
-      eigenvalues[i].Set(h.At(i,i))
+      eigenvalues.At(i).Set(h.At(i,i))
     }
     // no need to copy eigenvectors in this case
 
@@ -165,12 +173,7 @@ func eigensystem(a Matrix, inSitu *InSitu, computeEigenvectors, symmetric bool, 
     getEigenvectors(eigenvectors, eigenvalues, h, u, inSitu.QrAlgorithm.T4)
     sortEigensystem(eigenvectors, eigenvalues)
   }
-  if computeEigenvectors {
-    return eigenvalues, eigenvectors, nil
-  } else {
-    // return explicit nil
-    return eigenvalues, nil, nil
-  }
+  return eigenvalues, eigenvectors, nil
 }
 
 /* -------------------------------------------------------------------------- */

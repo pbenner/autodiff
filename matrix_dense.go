@@ -238,7 +238,7 @@ func (matrix *DenseMatrix) Diag() Vector {
   }
   v := NilVector(n)
   for i := 0; i < n; i++ {
-    v.SetReferenceAt(matrix.values[matrix.index(i, i)], i)
+    v.SetReferenceAt(i, matrix.values[matrix.index(i, i)])
   }
   return v
 }
@@ -308,7 +308,7 @@ func (matrix *DenseMatrix) BareRealAt(i, j int) *BareReal {
   return matrix.values[matrix.index(i, j)].(*BareReal)
 }
 
-func (matrix *DenseMatrix) SetReferenceAt(s Scalar, i, j int) {
+func (matrix *DenseMatrix) SetReferenceAt(i, j int, s Scalar) {
   matrix.values[matrix.index(i, j)] = s
 }
 

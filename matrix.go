@@ -26,7 +26,7 @@ import "encoding/json"
 type Matrix interface {
   ScalarContainer
   At                  (i, j int)           Scalar
-  SetReferenceAt      (v Scalar, i, j int)
+  SetReferenceAt      (i, j int, v Scalar)
   Reset               ()
   ResetDerivatives    ()
   // basic methods

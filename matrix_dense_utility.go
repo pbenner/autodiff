@@ -32,8 +32,8 @@ func (matrix *DenseMatrix) SwapRows(i, j int) error {
   for k := 0; k < m; k++ {
     v1 := matrix.At(i, k)
     v2 := matrix.At(j, k)
-    matrix.SetReferenceAt(v2, i, k)
-    matrix.SetReferenceAt(v1, j, k)
+    matrix.SetReferenceAt(i, k, v2)
+    matrix.SetReferenceAt(j, k, v1)
   }
   return nil
 }
@@ -46,8 +46,8 @@ func (matrix *DenseMatrix) SwapColumns(i, j int) error {
   for k := 0; k < n; k++ {
     v1 := matrix.At(k, i)
     v2 := matrix.At(k, j)
-    matrix.SetReferenceAt(v2, k, i)
-    matrix.SetReferenceAt(v1, k, j)
+    matrix.SetReferenceAt(k, i, v2)
+    matrix.SetReferenceAt(k, j, v1)
   }
   return nil
 }

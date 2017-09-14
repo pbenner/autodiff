@@ -6,6 +6,7 @@ SUBDIRS = \
 	algorithm/blahut \
 	algorithm/cholesky \
 	algorithm/determinant \
+	algorithm/eigensystem \
 	algorithm/gaussJordan \
 	algorithm/gradientDescent \
 	algorithm/gramSchmidt \
