@@ -49,7 +49,7 @@ func Test2(t *testing.T) {
     2,  2,
     3, -2 })
 
-  h, _, _ := Run(a)
+  h, u, _ := Run(a)
 
   r := []float64{}
   for i := 0; i < 2; i++ {
@@ -63,6 +63,9 @@ func Test2(t *testing.T) {
     if math.Abs(r[i]-eigenvalues[i]) > 1e-5 {
       t.Errorf("test failed for eigenvalue `%d'", i)
     }
+  }
+  if u != nil {
+    t.Error("test failed")
   }
 }
 
