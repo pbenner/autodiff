@@ -38,11 +38,13 @@ func Test1(t *testing.T) {
 
   eigenvalues := []float64{5, 5, 4, 3, 1, 1}
 
-  r, _ := Eigenvalues(a)
-
-  for i := 0; i < 4; i++ {
-    if math.Abs(r.At(i).GetValue()-eigenvalues[i]) > 1e-5 {
-      t.Errorf("test failed for eigenvalue `%d'", i)
+  if r, _, err := Run(a, ComputeEigenvectors{false}); err != nil {
+    t.Error("test failed")
+  } else {
+    for i := 0; i < 4; i++ {
+      if math.Abs(r.At(i).GetValue()-eigenvalues[i]) > 1e-5 {
+        t.Errorf("test failed for eigenvalue `%d'", i)
+      }
     }
   }
 }
@@ -62,7 +64,7 @@ func Test2(t *testing.T) {
     1.242021e-01, -1.064778e-01, -8.575579e-01,  5.070618e-01,
     6.638882e-02,  4.857041e-01,  3.759939e-01, -2.710359e-01 })
 
-  if e, v, err := Eigensystem(a); err != nil {
+  if e, v, err := Run(a); err != nil {
     t.Error(err)
   } else {
     if Vnorm(VsubV(eigenvalues, e)).GetValue() > 1e-4 {

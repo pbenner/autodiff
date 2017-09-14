@@ -32,8 +32,14 @@ type Symmetric struct {
   Value bool
 }
 
+type ComputeEigenvectors struct {
+  Value bool
+}
+
 type InSitu struct {
-  QrAlgorithm qrAlgorithm.InSitu
+  QrAlgorithm   qrAlgorithm.InSitu
+  Eigenvalues   DenseVector
+  Eigenvectors *DenseMatrix
 }
 
 /* sort eigenvalues by absolute value
@@ -53,7 +59,7 @@ func sortEigenvalues(v DenseVector) {
 
 /* -------------------------------------------------------------------------- */
 
-func getEigenvalues(eigenvalues DenseVector, h Matrix, sort bool) {
+func getEigenvalues(eigenvalues DenseVector, h Matrix) {
   n, _ := h.Dims()
   for i := 0; i < n-1; i++ {
     if h.At(i+1,i).GetValue() == 0.0 {
@@ -72,9 +78,6 @@ func getEigenvalues(eigenvalues DenseVector, h Matrix, sort bool) {
   }
   if h.At(n-1,n-2).GetValue() == 0.0 {
     eigenvalues[n-1].Set(h.At(n-1, n-1))
-  }
-  if sort {
-    sortEigenvalues(eigenvalues)
   }
 }
 
@@ -105,6 +108,9 @@ func getEigenvector(eigenvector Vector, eigenvalue Scalar, h, u Matrix, b Vector
 }
 
 func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h, u Matrix, b Vector) {
+  if eigenvectors == nil {
+    return
+  }
   n := eigenvalues.Dim()
 
   for i := 0; i < n; i++ {
@@ -113,65 +119,74 @@ func getEigenvectors(eigenvectors *DenseMatrix, eigenvalues DenseVector, h, u Ma
 }
 
 func sortEigensystem(eigenvectors *DenseMatrix, eigenvalues DenseVector) {
-  m := make(map[Scalar]int)
-  // permutation
-  p := make([]int, eigenvalues.Dim())
-  for i := 0; i < eigenvalues.Dim(); i++ {
-    m[eigenvalues.At(i)] = i
-  }
-  sortEigenvalues(eigenvalues)
+  if eigenvectors == nil {
+    sortEigenvalues(eigenvalues)
+  } else {
+    m := make(map[Scalar]int)
+    // permutation
+    p := make([]int, eigenvalues.Dim())
+    for i := 0; i < eigenvalues.Dim(); i++ {
+      m[eigenvalues.At(i)] = i
+    }
+    sortEigenvalues(eigenvalues)
 
-  for i := 0; i < eigenvalues.Dim(); i++ {
-    p[i] = m[eigenvalues.At(i)]
+    for i := 0; i < eigenvalues.Dim(); i++ {
+      p[i] = m[eigenvalues.At(i)]
+    }
+    eigenvectors.PermuteColumns(p)
   }
-  eigenvectors.PermuteColumns(p)
 }
 
 /* -------------------------------------------------------------------------- */
 
-func Eigenvalues(a Matrix, args_... interface{}) (Vector, error) {
-  // default values for optional arguments
-  inSitu := &InSitu{}
-  // arguments passed on to the qrAlgorithm
-  var args []interface{}
-  // loop over optional arguments
-  for _, arg := range args {
-    switch tmp := arg.(type) {
-    case qrAlgorithm.ComputeU:
-      // drop this option
-    case *InSitu:
-      inSitu = tmp
-    default:
-      args = append(args, arg)
-    }
-  }
-  args = append(args, qrAlgorithm.ComputeU{true})
+func eigensystem(a Matrix, inSitu *InSitu, computeEigenvectors, symmetric bool, args ...interface{}) (Vector, Matrix, error) {
+  eigenvalues  := inSitu.Eigenvalues
+  eigenvectors := inSitu.Eigenvectors
+
+  n, _ := a.Dims()
+
+  args = append(args, qrAlgorithm.ComputeU{computeEigenvectors})
   args = append(args, &inSitu.QrAlgorithm)
-
-  n, _      := a.Dims()
-  t         := a.ElementType()
-  h, _, err := qrAlgorithm.Run(a, args...)
+  h, u, err := qrAlgorithm.Run(a, args...)
   if err != nil {
-    return nil, err
+    return nil, nil, err
   }
-  eigenvalues := NullDenseVector(t, n)
+  if symmetric {
+    // eigenvalues are real, copy them from the
+    // main diagonal of h
+    for i := 0; i < n; i++ {
+      eigenvalues[i].Set(h.At(i,i))
+    }
+    // no need to copy eigenvectors in this case
 
-  getEigenvalues(eigenvalues, h, true)
+    sortEigensystem(eigenvectors, eigenvalues)
 
-  return eigenvalues, nil
+    return eigenvalues, eigenvectors, nil
+  } else {
+    getEigenvalues (eigenvalues, h)
+    getEigenvectors(eigenvectors, eigenvalues, h, u, inSitu.QrAlgorithm.T4)
+    sortEigensystem(eigenvectors, eigenvalues)
+
+    return eigenvalues, eigenvectors, nil
+  }
 }
 
-func Eigensystem(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
+/* -------------------------------------------------------------------------- */
+
+func Run(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
   n, _ := a.Dims()
   t    := a.ElementType()
   // default values for optional arguments
-  symmetric := false
-  inSitu    := &InSitu{}
+  computeEigenvectors := true
+  symmetric           := false
+  inSitu              := &InSitu{}
   // arguments passed on to the qrAlgorithm
   var args []interface{}
   // loop over optional arguments
-  for _, arg := range args {
+  for _, arg := range args_ {
     switch tmp := arg.(type) {
+    case ComputeEigenvectors:
+      computeEigenvectors = tmp.Value
     case Symmetric:
       symmetric = tmp.Value
     case qrAlgorithm.ComputeU:
@@ -182,28 +197,14 @@ func Eigensystem(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
       args = append(args, arg)
     }
   }
-  args = append(args, qrAlgorithm.ComputeU{true})
-  args = append(args, &inSitu.QrAlgorithm)
-  h, u, err := qrAlgorithm.Run(a, args...)
-  if err != nil {
-    return nil, nil, err
+  if inSitu.Eigenvalues == nil {
+    inSitu.Eigenvalues = NullDenseVector(t, n)
   }
-
-  if symmetric {
-    eigenvalues  := h.Diag().CloneVector().ToDenseVector()
-    eigenvectors := u.ToDenseMatrix()
-
-    sortEigensystem(eigenvectors, eigenvalues)
-
-    return eigenvalues, eigenvectors, nil
-  } else {
-    eigenvalues  := NullDenseVector(t, n)
-    eigenvectors := NullDenseMatrix(t, n, n)
-
-    getEigenvalues (eigenvalues, h, false)
-    getEigenvectors(eigenvectors, eigenvalues, h, u, inSitu.QrAlgorithm.T4)
-    sortEigensystem(eigenvectors, eigenvalues)
-
-    return eigenvalues, eigenvectors, nil
+  if inSitu.Eigenvectors == nil && computeEigenvectors {
+    inSitu.Eigenvectors = NullDenseMatrix(t, n, n)
+    if symmetric {
+      inSitu.QrAlgorithm.U = inSitu.Eigenvectors
+    }
   }
+  return eigensystem(a, inSitu, computeEigenvectors, symmetric, args)
 }
