@@ -83,7 +83,7 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
 
   _, n := A.Dims()
 
-  for k := 0; k < n-1; k++ {
+  for k := 0; k < n-2; k++ {
 
     nu, beta := houseCol(k, inSitu)
 
@@ -120,6 +120,8 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
         a.Sub(a, s)
       }
     }
+    A.At(k+0,k+2).SetValue(0.0)
+    A.At(k+2,k+0).SetValue(0.0)
   }
   return A, U, nil
 }
