@@ -120,8 +120,10 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
         a.Sub(a, s)
       }
     }
-    A.At(k+0,k+2).SetValue(0.0)
-    A.At(k+2,k+0).SetValue(0.0)
+    for j := k+2; j < n; j++ {
+      A.At(k,j).SetValue(0.0)
+      A.At(j,k).SetValue(0.0)
+    }
   }
   return A, U, nil
 }
