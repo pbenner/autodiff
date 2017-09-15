@@ -52,21 +52,21 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
-  A := inSitu.A
-  x := inSitu.X
+func houseCol(k int, inSitu *InSitu) (Vector, Scalar) {
+  A    := inSitu.A
+  x    := inSitu.X
   beta := inSitu.Beta
   nu   := inSitu.Nu
   t1   := inSitu.T1
   t2   := inSitu.T2
   t3   := inSitu.T3
 
-  _, n := A.Dims()
-  for k := j+1; k < n; k++ {
-    x.At(k).Set(A.At(j, k))
+  n, _ := A.Dims()
+  for j := k+1; j < n; j++ {
+    x.At(j).Set(A.At(j, k))
   }
-  householder.Run(x[j+1:n], beta, nu[j+1:n], t1, t2, t3)
-  return nu[j+1:n], beta
+  householder.Run(x[k+1:n], beta, nu[k+1:n], t1, t2, t3)
+  return nu[k+1:n], beta
 }
 
 /* -------------------------------------------------------------------------- */
@@ -85,7 +85,7 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
 
   for k := 0; k < n-1; k++ {
 
-    nu, beta := houseRow(k, inSitu)
+    nu, beta := houseCol(k, inSitu)
 
     a := A.Slice(k+1,n, k+1,n)
     p := p[k+1:n]
