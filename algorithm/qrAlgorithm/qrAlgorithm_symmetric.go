@@ -19,7 +19,7 @@ package qrAlgorithm
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-//import   "math"
+import   "math"
 
 import . "github.com/pbenner/autodiff"
 //import   "github.com/pbenner/autodiff/algorithm/givensRotation"
@@ -77,8 +77,8 @@ func qrAlgorithmSymmetric(inSitu *InSitu, epsilon float64) (Matrix, Matrix, erro
       t21 := T.At(i+1,i  ).GetValue()
       t22 := T.At(i+1,i+1).GetValue()
       if math.Abs(t21) <= epsilon*(math.Abs(t11) + math.Abs(t22)) {
-        t.At(i+1,i  ).SetValue(0.0)
-        t.At(i  ,i+1).SetValue(0.0)
+        T.At(i+1,i  ).SetValue(0.0)
+        T.At(i  ,i+1).SetValue(0.0)
       }
     }
     // p: number of rows/cols in H11
