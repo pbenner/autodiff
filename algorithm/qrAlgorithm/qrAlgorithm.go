@@ -25,6 +25,7 @@ import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/givensRotation"
 import   "github.com/pbenner/autodiff/algorithm/hessenbergReduction"
 import   "github.com/pbenner/autodiff/algorithm/householder"
+import   "github.com/pbenner/autodiff/algorithm/householderTridiagonalization"
 
 /* -------------------------------------------------------------------------- */
 
@@ -36,8 +37,13 @@ type ComputeU struct {
   Value bool
 }
 
+type Symmetric struct {
+  Value bool
+}
+
 type InSitu struct {
   Hessenberg  hessenbergReduction.InSitu
+  Householder householderTridiagonalization.InSitu
   InitializeH bool
   InitializeU bool
   H    Matrix
@@ -320,9 +326,10 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   if n != m {
     return nil, nil, fmt.Errorf("`a' must be a square matrix")
   }
-  inSitu   := &InSitu{}
-  epsilon  := 1e-18
-  computeU := false
+  inSitu    := &InSitu{}
+  epsilon   := 1e-18
+  computeU  := false
+  symmetric := false
 
   // loop over optional arguments
   for _, arg := range args {
@@ -331,6 +338,8 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
       computeU = tmp.Value
     case Epsilon:
       epsilon = tmp.Value
+    case Symmetric:
+      symmetric = tmp.Value
     case *InSitu:
       inSitu = tmp
     case InSitu:
@@ -390,14 +399,19 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   if inSitu.T4 == nil {
     inSitu.T4 = NullDenseVector(t, m)
   }
-  if inSitu.Hessenberg.T1 == nil {
-    inSitu.Hessenberg.T1 = inSitu.T1
+  if symmetric {
+    // TODO
+    return qrAlgorithmSymmetric(inSitu, epsilon)
+  } else {
+    if inSitu.Hessenberg.T1 == nil {
+      inSitu.Hessenberg.T1 = inSitu.T1
+    }
+    if inSitu.Hessenberg.T2 == nil {
+      inSitu.Hessenberg.T2 = inSitu.T2
+    }
+    if inSitu.Hessenberg.T3 == nil {
+      inSitu.Hessenberg.T3 = inSitu.T3
+    }
+    return qrAlgorithm(inSitu, epsilon)
   }
-  if inSitu.Hessenberg.T2 == nil {
-    inSitu.Hessenberg.T2 = inSitu.T2
-  }
-  if inSitu.Hessenberg.T3 == nil {
-    inSitu.Hessenberg.T3 = inSitu.T3
-  }
-  return qrAlgorithm(inSitu, epsilon)
 }
