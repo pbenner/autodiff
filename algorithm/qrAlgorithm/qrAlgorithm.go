@@ -42,21 +42,26 @@ type Symmetric struct {
 }
 
 type InSitu struct {
-  Hessenberg  hessenbergReduction.InSitu
-  Householder householderTridiagonalization.InSitu
   InitializeH bool
   InitializeU bool
   H    Matrix
   U    Matrix
+  T1   Scalar
+  T2   Scalar
+  T3   Scalar
   S    Scalar
+  // asymmetric case
+  Hessenberg  hessenbergReduction.InSitu
   Beta Scalar
   Nu   DenseVector
   X    DenseVector
   T    Scalar
-  T1   Scalar
-  T2   Scalar
-  T3   Scalar
   T4   DenseVector
+  // symmetric case
+  C    Scalar
+  Y    Scalar
+  Z    Scalar
+  Householder householderTridiagonalization.InSitu
 }
 
 /* -------------------------------------------------------------------------- */
@@ -372,21 +377,6 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   } else {
     inSitu.U = nil
   }
-  if inSitu.X == nil {
-    inSitu.X = NullDenseVector(t, 3)
-  }
-  if inSitu.Beta == nil {
-    inSitu.Beta = NullScalar(t)
-  }
-  if inSitu.Nu == nil {
-    inSitu.Nu = NullDenseVector(t, 3)
-  }
-  if inSitu.S == nil {
-    inSitu.S = NullScalar(t)
-  }
-  if inSitu.T == nil {
-    inSitu.T = NullScalar(t)
-  }
   if inSitu.T1 == nil {
     inSitu.T1 = NullScalar(t)
   }
@@ -399,10 +389,33 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   if inSitu.T4 == nil {
     inSitu.T4 = NullDenseVector(t, m)
   }
+  if inSitu.S == nil {
+    inSitu.S = NullScalar(t)
+  }
   if symmetric {
-    // TODO
+    if inSitu.C == nil {
+      inSitu.C = NullScalar(t)
+    }
+    if inSitu.Y == nil {
+      inSitu.Y = NullScalar(t)
+    }
+    if inSitu.Z == nil {
+      inSitu.Z = NullScalar(t)
+    }
     return qrAlgorithmSymmetric(inSitu, epsilon)
   } else {
+    if inSitu.X == nil {
+      inSitu.X = NullDenseVector(t, 3)
+    }
+    if inSitu.Beta == nil {
+      inSitu.Beta = NullScalar(t)
+    }
+    if inSitu.Nu == nil {
+      inSitu.Nu = NullDenseVector(t, 3)
+    }
+    if inSitu.T == nil {
+      inSitu.T = NullScalar(t)
+    }
     if inSitu.Hessenberg.T1 == nil {
       inSitu.Hessenberg.T1 = inSitu.T1
     }

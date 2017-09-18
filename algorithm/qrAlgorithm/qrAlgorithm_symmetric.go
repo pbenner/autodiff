@@ -22,7 +22,7 @@ package qrAlgorithm
 import   "math"
 
 import . "github.com/pbenner/autodiff"
-//import   "github.com/pbenner/autodiff/algorithm/givensRotation"
+import   "github.com/pbenner/autodiff/algorithm/givensRotation"
 import   "github.com/pbenner/autodiff/algorithm/householderTridiagonalization"
 
 /* -------------------------------------------------------------------------- */
@@ -53,6 +53,38 @@ func wilkinsonShift(mu, t11, t12, t22, c2, t1, t2 Scalar) {
 /* -------------------------------------------------------------------------- */
 
 func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
+  _, n := T.Dims()
+
+  c := inSitu.C
+  s := inSitu.S
+  y := inSitu.Y
+  z := inSitu.Z
+
+  mu := inSitu.T3
+  t1 := inSitu.T1
+  t2 := inSitu.T2
+  c2 := BareReal(2.0)
+
+  t11 := T.At(n-1,n-1)
+  t12 := T.At(n-1,n  )
+  t22 := T.At(n  ,n  )
+
+  wilkinsonShift(mu, t11, t12, t22, &c2, t1, t2)
+
+  y.Sub(T.At(1,1), mu)
+  z.Set(T.At(2,1))
+
+  for k := 0; k < n-1; k++ {
+
+    givensRotation.Run(y, z, c, s)
+    givensRotation.ApplyRight(T, c, s, k, k+1, t1, t2)
+    givensRotation.ApplyLeft (T, c, s, k, k+1, t1, t2)
+
+    if k < n-1 {
+      y.Set(T.At(k+1,k))
+      z.Set(T.At(k+2,k))
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
