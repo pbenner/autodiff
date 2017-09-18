@@ -71,6 +71,16 @@ func qrAlgorithmSymmetric(inSitu *InSitu, epsilon float64) (Matrix, Matrix, erro
   }
 
   for p, q := 0, 0; q < n; {
+
+    for i := 0; i < n-1; i++ {
+      t11 := T.At(i  ,i  ).GetValue()
+      t21 := T.At(i+1,i  ).GetValue()
+      t22 := T.At(i+1,i+1).GetValue()
+      if math.Abs(t21) <= epsilon*(math.Abs(t11) + math.Abs(t22)) {
+        t.At(i+1,i  ).SetValue(0.0)
+        t.At(i  ,i+1).SetValue(0.0)
+      }
+    }
     // p: number of rows/cols in H11
     // q: number of rows/cols in H33
     p, q = splitMatrix(T, q)
