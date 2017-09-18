@@ -124,6 +124,11 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
       A.At(k,j).SetValue(0.0)
       A.At(j,k).SetValue(0.0)
     }
+
+    if U != nil {
+      u := U.Slice(0,n,k+1,n)
+      householder.ApplyRight(u, beta, nu, inSitu.T4[0:n], inSitu.T1)
+    }
   }
   return A, U, nil
 }
