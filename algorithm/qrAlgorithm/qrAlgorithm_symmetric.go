@@ -80,6 +80,10 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
     givensRotation.ApplyRight(T, c, s, k, k+1, t1, t2)
     givensRotation.ApplyLeft (T, c, s, k, k+1, t1, t2)
 
+    if Z != nil {
+      givensRotation.ApplyRight(Z, c, s, p+k, p+k+1, t1, t2)
+    }
+
     if k < n-1 {
       y.Set(T.At(k+1,k))
       z.Set(T.At(k+2,k))
