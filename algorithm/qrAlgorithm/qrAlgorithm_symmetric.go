@@ -71,8 +71,8 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
 
   wilkinsonShift(mu, t11, t12, t22, &c2, t1, t2)
 
-  y.Sub(T.At(1,1), mu)
-  z.Set(T.At(2,1))
+  y.Sub(T.At(0,0), mu)
+  z.Set(T.At(1,0))
 
   for k := 0; k < n-1; k++ {
 
@@ -95,7 +95,7 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
 func splitMatrixSymmetric(T Matrix, q int) (int, int) {
   _, n := T.Dims()
   // try increasing q
-  for q != n-1 {
+  for q < n-1 {
     // fix a column
     k := n-q-1
     // check if T33 is diagonal
@@ -104,6 +104,9 @@ func splitMatrixSymmetric(T Matrix, q int) (int, int) {
     } else {
       break
     }
+  }
+  if q == n-1 {
+    q = n
   }
   p := n-q-1
   // try decreasing p

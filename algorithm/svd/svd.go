@@ -172,7 +172,7 @@ func zeroRow(B, U, V Matrix, k int, inSitu *InSitu) {
 func splitMatrix(B Matrix, q int) (int, int) {
   _, n := B.Dims()
   // try increasing q
-  for q != n-1 {
+  for q < n-1 {
     // fix a column
     k := n-q-1
     // check if B33 is diagonal
@@ -181,6 +181,9 @@ func splitMatrix(B Matrix, q int) (int, int) {
     } else {
       break
     }
+  }
+  if q == n-1 {
+    q = n
   }
   p := n-q-1
   // try decreasing p
@@ -209,7 +212,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
   H, U, V, _ := householderBidiagonalization.Run(A, computeU, computeV, &inSitu.HouseholderBidiagonalization)
   B := H.Slice(0,n,0,n)
 
-  for p, q := 0, 0; q != n-1; {
+  for p, q := 0, 0; q < n; {
 
     for i := 0; i < n-1; i++ {
       b11 := B.At(i  ,i  ).GetValue()
