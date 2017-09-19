@@ -77,8 +77,8 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
   for k := 0; k < n-1; k++ {
 
     givensRotation.Run(y, z, c, s)
-    givensRotation.ApplyRight(T, c, s, k, k+1, t1, t2)
-    givensRotation.ApplyLeft (T, c, s, k, k+1, t1, t2)
+    givensRotation.ApplyTridiagRight(T, c, s, k, k+1, t1, t2)
+    givensRotation.ApplyTridiagLeft (T, c, s, k, k+1, t1, t2)
 
     if Z != nil {
       givensRotation.ApplyRight(Z, c, s, p+k, p+k+1, t1, t2)
