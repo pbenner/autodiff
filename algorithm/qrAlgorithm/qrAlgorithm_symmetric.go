@@ -65,9 +65,9 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
   t2 := inSitu.T2
   c2 := BareReal(2.0)
 
-  t11 := T.At(n-1,n-1)
-  t12 := T.At(n-1,n  )
-  t22 := T.At(n  ,n  )
+  t11 := T.At(n-2,n-2)
+  t12 := T.At(n-2,n-1)
+  t22 := T.At(n-1,n-1)
 
   wilkinsonShift(mu, t11, t12, t22, &c2, t1, t2)
 
@@ -83,8 +83,7 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
     if Z != nil {
       givensRotation.ApplyRight(Z, c, s, p+k, p+k+1, t1, t2)
     }
-
-    if k < n-1 {
+    if k < n-2 {
       y.Set(T.At(k+1,k))
       z.Set(T.At(k+2,k))
     }

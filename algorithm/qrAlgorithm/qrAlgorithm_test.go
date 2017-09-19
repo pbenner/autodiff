@@ -167,3 +167,21 @@ func Test7(t *testing.T) {
     t.Errorf("test failed")
   }
 }
+
+func Test8(t *testing.T) {
+  a := NewMatrix(RealType, 6, 6, []float64{
+     20.2,   0.0,  10.8, -25.5, -12.8, -19.7,
+      0.0,  11.6,  -3.7,  -1.3, -10.5,   6.2,
+     10.8,  -3.7,   8.7, -15.9,  -6.1, -12.8,
+    -25.5,  -1.3, -15.9,  36.9,  21.5,  22.9,
+    -12.8, -10.5,  -6.1,  21.5,  21.6,   6.6,
+    -19.7,   6.2, -12.8,  22.9,   6.6,  31.4 })
+
+  h, u, _ := Run(a, ComputeU{true}, Symmetric{true})
+
+  b := MdotM(MdotM(u, h), u.T())
+
+  if math.Abs(Mnorm(MsubM(a, b)).GetValue()) > 1e-4 {
+    t.Errorf("test failed")
+  }
+}
