@@ -177,11 +177,21 @@ func Test8(t *testing.T) {
     -12.8, -10.5,  -6.1,  21.5,  21.6,   6.6,
     -19.7,   6.2, -12.8,  22.9,   6.6,  31.4 })
 
-  h, u, _ := Run(a, ComputeU{true}, Symmetric{true})
+  h1, u1, _ := Run(a, ComputeU{true}, Symmetric{true })
+  h2, u2, _ := Run(a, ComputeU{true}, Symmetric{false})
 
-  b := MdotM(MdotM(u, h), u.T())
+  b1 := MdotM(MdotM(u1, h1), u1.T())
+  b2 := MdotM(MdotM(u2, h2), u2.T())
 
-  if math.Abs(Mnorm(MsubM(a, b)).GetValue()) > 1e-4 {
+  if math.Abs(Mnorm(MsubM(a, b1)).GetValue()) > 1e-4 {
+    t.Errorf("test failed")
+  }
+  if math.Abs(Mnorm(MsubM(a, b2)).GetValue()) > 1e-4 {
+    t.Errorf("test failed")
+  }
+  v1 := h1.Diag().SortVector(true)
+  v2 := h2.Diag().SortVector(true)
+  if math.Abs(Vnorm(VsubV(v1, v2)).GetValue()) > 1e-4 {
     t.Errorf("test failed")
   }
 }
