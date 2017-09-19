@@ -89,6 +89,34 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
 
 /* -------------------------------------------------------------------------- */
 
+func splitMatrixSymmetric(T Matrix, q int) (int, int) {
+  _, n := T.Dims()
+  // try increasing q
+  for q != n-1 {
+    // fix a column
+    k := n-q-1
+    // check if T33 is diagonal
+    if T.At(k-1,k).GetValue() == 0.0 {
+      q += 1
+    } else {
+      break
+    }
+  }
+  p := n-q-1
+  // try decreasing p
+  for p > 0 {
+    k := p
+    if T.At(k-1,k).GetValue() == 0.0 {
+      break
+    } else {
+      p -= 1
+    }
+  }
+  return p, q
+}
+
+/* -------------------------------------------------------------------------- */
+
 func qrAlgorithmSymmetric(inSitu *InSitu, epsilon float64) (Matrix, Matrix, error) {
 
   T    := inSitu.H
@@ -115,9 +143,10 @@ func qrAlgorithmSymmetric(inSitu *InSitu, epsilon float64) (Matrix, Matrix, erro
     }
     // p: number of rows/cols in H11
     // q: number of rows/cols in H33
-    p, q = splitMatrix(T, q)
+    p, q = splitMatrixSymmetric(T, q)
 
     if q < n {
+      T := T.Slice(p,n-q,p,n-q)
       symmetricQRstep(T, Z, p, q, inSitu)
     }
   }
