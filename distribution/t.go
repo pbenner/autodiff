@@ -59,11 +59,9 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   sigmaDet, err := determinant  .Run(sigma, determinant  .PositiveDefinite{true})
   if err != nil { return nil, err }
 
-  c1 := NewScalar(t, 1.0)
-  c2 := NewScalar(t, 2.0)
-  d2 := NewScalar(t, float64(n)/2.0)
+  d2 := ConstReal(float64(n)/2.0)
   n2 := NewScalar(t, 0.0)
-  n2.Div(nu, c2)
+  n2.Div(nu, ConstReal(2.0))
   np := NewScalar(t, 0.0)
   np.Add(n2, d2)
   // +log Gamma(nu/2 + d/2)
@@ -73,7 +71,7 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   // -log Gamma(nu/2)
   z.Sub(z, t1.Lgamma(n2))
   // -1/2 log |Sigma|
-  z.Sub(z, t1.Div(t1.Log(sigmaDet), c2))
+  z.Sub(z, t1.Div(t1.Log(sigmaDet), ConstReal(2.0)))
   // -d/2 log nu*pi
   z.Sub(z, t1.Mul(d2, t1.Log(t1.Mul(nu, NewReal(math.Pi)))))
 
@@ -83,7 +81,6 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
     Sigma   : sigma,
     SigmaInv: sigmaInv,
     SigmaDet: sigmaDet,
-    c1      : c1,
     np      : np,
     t1      : NullVector(t, n),
     t2      : NullVector(t, n),
@@ -101,7 +98,6 @@ func (dist *TDistribution) Clone() *TDistribution {
     Sigma   : dist.Sigma   .CloneMatrix(),
     SigmaInv: dist.SigmaInv.CloneMatrix(),
     SigmaDet: dist.SigmaDet.CloneScalar(),
-    c1      : dist.c1      .CloneScalar(),
     np      : dist.np      .CloneScalar(),
     t1      : dist.t1      .CloneVector(),
     t2      : dist.t2      .CloneVector(),
@@ -143,7 +139,7 @@ func (dist *TDistribution) LogPdf(r Scalar, x Vector) error {
   s.VdotM(y, dist.SigmaInv)
   r.VdotV(s, y)
   r.Div(r, dist.Nu)
-  r.Add(r, dist.c1)
+  r.Add(r, ConstReal(1.0))
   // log r^[(v+p)/2]
   r.Log(r)
   r.Mul(r, dist.np)
