@@ -27,13 +27,7 @@ import "encoding/json"
 // this allows to idenfity the type of a scalar
 type ScalarType reflect.Type
 
-type ScalarState interface {
-  // allocate memory for derivatives of n variables
-  Alloc           (int, int)
-  // allocate enough memory for the derivatives of the given
-  // variable(s) and copy the order
-  AllocForOne     (Scalar)
-  AllocForTwo     (Scalar, Scalar)
+type ConstScalarState interface {
   // read access
   GetOrder        ()             int
   GetValue        ()             float64
@@ -41,11 +35,21 @@ type ScalarState interface {
   GetDerivative   (int)          float64
   GetHessian      (int, int)     float64
   GetN            ()             int
+}
+
+type ScalarState interface {
+  ConstScalarState
+  // allocate memory for derivatives of n variables
+  Alloc           (int, int)
+  // allocate enough memory for the derivatives of the given
+  // variable(s) and copy the order
+  AllocForOne     (ConstScalar)
+  AllocForTwo     (ConstScalar, ConstScalar)
   // set value and derivatives to zero
   Reset           ()
   ResetDerivatives()
   // write access
-  Set             (Scalar)
+  Set             (ConstScalar)
   setValue        (float64)
   SetValue        (float64)
   SetDerivative   (int, float64)
@@ -55,46 +59,56 @@ type ScalarState interface {
   json.Marshaler
 }
 
+type ConstScalar interface {
+  ConstScalarState
+  Equals     (ConstScalar, float64) bool
+  Greater    (ConstScalar)          bool
+  Smaller    (ConstScalar)          bool
+  Sign       ()                     int
+  // nice printing
+  fmt.Stringer
+}
+
 type Scalar interface {
   ScalarState
   CloneScalar()                Scalar
   // type reflections
   Type       ()                ScalarType
   // some basic operations on scalars
-  Equals     (Scalar, float64) bool
-  Greater    (Scalar)          bool
-  Smaller    (Scalar)          bool
-  Min        (Scalar, Scalar)  Scalar
-  Max        (Scalar, Scalar)  Scalar
-  Abs        (Scalar)          Scalar
+  Equals     (ConstScalar, float64) bool
+  Greater    (ConstScalar)          bool
+  Smaller    (ConstScalar)          bool
   Sign       ()                int
-  Neg        (Scalar)          Scalar
-  Add        (Scalar, Scalar)  Scalar
-  Sub        (Scalar, Scalar)  Scalar
-  Mul        (Scalar, Scalar)  Scalar
-  Div        (Scalar, Scalar)  Scalar
+  Min        (ConstScalar, ConstScalar)  Scalar
+  Max        (ConstScalar, ConstScalar)  Scalar
+  Abs        (ConstScalar)               Scalar
+  Neg        (ConstScalar)               Scalar
+  Add        (ConstScalar, ConstScalar)  Scalar
+  Sub        (ConstScalar, ConstScalar)  Scalar
+  Mul        (ConstScalar, ConstScalar)  Scalar
+  Div        (ConstScalar, ConstScalar)  Scalar
   // add/substract the first two variables on log-scale,
   // take the third argument as a temporary variable
-  LogAdd     (Scalar, Scalar, Scalar)  Scalar
-  LogSub     (Scalar, Scalar, Scalar)  Scalar
-  Pow        (Scalar, Scalar)  Scalar
-  Sqrt       (Scalar)          Scalar
-  Sin        (Scalar)          Scalar
-  Sinh       (Scalar)          Scalar
-  Cos        (Scalar)          Scalar
-  Cosh       (Scalar)          Scalar
-  Tan        (Scalar)          Scalar
-  Tanh       (Scalar)          Scalar
-  Exp        (Scalar)          Scalar
-  Log        (Scalar)          Scalar
-  Log1p      (Scalar)          Scalar
-  Erf        (Scalar)          Scalar
-  Erfc       (Scalar)          Scalar
-  LogErfc    (Scalar)          Scalar
-  Gamma      (Scalar)          Scalar
-  Lgamma     (Scalar)          Scalar
-  Mlgamma    (Scalar, int)     Scalar // multivariate log gamma
-  GammaP     (float64, Scalar) Scalar // regularized lower incomplete gamma
+  LogAdd     (ConstScalar, ConstScalar, Scalar)  Scalar
+  LogSub     (ConstScalar, ConstScalar, Scalar)  Scalar
+  Pow        (ConstScalar, ConstScalar)          Scalar
+  Sqrt       (ConstScalar)          Scalar
+  Sin        (ConstScalar)          Scalar
+  Sinh       (ConstScalar)          Scalar
+  Cos        (ConstScalar)          Scalar
+  Cosh       (ConstScalar)          Scalar
+  Tan        (ConstScalar)          Scalar
+  Tanh       (ConstScalar)          Scalar
+  Exp        (ConstScalar)          Scalar
+  Log        (ConstScalar)          Scalar
+  Log1p      (ConstScalar)          Scalar
+  Erf        (ConstScalar)          Scalar
+  Erfc       (ConstScalar)          Scalar
+  LogErfc    (ConstScalar)          Scalar
+  Gamma      (ConstScalar)          Scalar
+  Lgamma     (ConstScalar)          Scalar
+  Mlgamma    (ConstScalar, int)     Scalar // multivariate log gamma
+  GammaP     (float64, ConstScalar) Scalar // regularized lower incomplete gamma
   // vector operations
   Vmean      (a    Vector)     Scalar
   VdotV      (a, b Vector)     Scalar

@@ -19,57 +19,53 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 import "fmt"
-import "reflect"
+import "math"
 
 /* -------------------------------------------------------------------------- */
 
-type Real struct {
-  BasicState
-}
-
-/* register scalar type
- * -------------------------------------------------------------------------- */
-
-var RealType ScalarType = NewReal(0.0).Type()
-
-func init() {
-  f := func(value float64) Scalar { return NewReal(value) }
-  RegisterScalar(RealType, f)
-}
+type ConstReal float64
 
 /* constructors
  * -------------------------------------------------------------------------- */
 
-// Create a new real constant or variable.
-func NewReal(v float64) *Real {
-  s := Real{*NewBasicState(v)}
-  return &s
+func NewConstReal(v float64) ConstReal {
+  return ConstReal(v)
 }
 
-func NullReal() *Real {
-  s := Real{*NewBasicState(0.0)}
-  return &s
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (a *Real) Clone() *Real {
-  r := NewReal(0.0)
-  r.Set(a)
-  return r
-}
-
-func (a *Real) CloneScalar() Scalar {
-  return a.Clone()
-}
-
-func (a *Real) Type() ScalarType {
-  return reflect.TypeOf(a)
+func NullConstReal() ConstReal {
+  return ConstReal(0.0)
 }
 
 /* type conversion
  * -------------------------------------------------------------------------- */
 
-func (a *Real) String() string {
+func (a ConstReal) String() string {
   return fmt.Sprintf("%e", a.GetValue())
+}
+
+/* read access
+ * -------------------------------------------------------------------------- */
+
+func (a ConstReal) GetOrder() int {
+  return 0
+}
+
+func (a ConstReal) GetValue() float64 {
+  return float64(a)
+}
+
+func (a ConstReal) GetLogValue() float64 {
+  return math.Log(a.GetValue())
+}
+
+func (a ConstReal) GetDerivative(i int) float64 {
+  return 0.0
+}
+
+func (a ConstReal) GetHessian(i, j int) float64 {
+  return 0.0
+}
+
+func (a ConstReal) GetN() int {
+  return 0
 }

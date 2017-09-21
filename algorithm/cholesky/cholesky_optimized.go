@@ -59,7 +59,7 @@ func choleskyInSitu_RealDense(A *DenseMatrix) (*DenseMatrix, error) {
   Aii   := NewReal(0.0)
 
   for i := 0; i < n; i++ {
-    Aii.Copy(A.RealAt(i,i))
+    Aii.Set(A.RealAt(i,i))
     for j := 0; j < (i+1); j++ {
       s.Reset()
       for k := 0; k < j; k++ {
@@ -82,7 +82,7 @@ func choleskyInSitu_RealDense(A *DenseMatrix) (*DenseMatrix, error) {
   for i := 0; i < n; i++ {
     for j := 0; j < i; j++ {
       r := A.RealAt(j, i)
-      A.RealAt(j, i).Copy(r)
+      A.RealAt(j, i).Set(r)
       r.Reset()
     }
   }
@@ -125,7 +125,7 @@ func choleskyInSitu_BareRealDense(A *DenseMatrix) (*DenseMatrix, error) {
   Aii   := NewBareReal(0.0)
 
   for i := 0; i < n; i++ {
-    Aii.Copy(A.BareRealAt(i,i))
+    Aii.Set(A.BareRealAt(i,i))
     for j := 0; j < (i+1); j++ {
       s.Reset()
       for k := 0; k < j; k++ {
@@ -148,7 +148,7 @@ func choleskyInSitu_BareRealDense(A *DenseMatrix) (*DenseMatrix, error) {
   for i := 0; i < n; i++ {
     for j := 0; j < i; j++ {
       r := A.BareRealAt(j, i)
-      A.BareRealAt(j, i).Copy(r)
+      A.BareRealAt(j, i).Set(r)
       r.Reset()
     }
   }

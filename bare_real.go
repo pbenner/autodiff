@@ -73,17 +73,13 @@ func (a *BareReal) String() string {
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) Copy(b Scalar) {
-  *a = BareReal(b.GetValue())
-}
-
 func (a *BareReal) Alloc(n, order int) {
 }
 
-func (c *BareReal) AllocForOne(a Scalar) {
+func (c *BareReal) AllocForOne(a ConstScalar) {
 }
 
-func (c *BareReal) AllocForTwo(a, b Scalar) {
+func (c *BareReal) AllocForTwo(a, b ConstScalar) {
 }
 
 /* read access
@@ -126,7 +122,7 @@ func (a *BareReal) Reset() {
 func (a *BareReal) ResetDerivatives() {
 }
 
-func (a *BareReal) Set(b Scalar) {
+func (a *BareReal) Set(b ConstScalar) {
   *a = BareReal(b.GetValue())
 }
 

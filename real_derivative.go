@@ -28,7 +28,7 @@ package autodiff
 // - v0 = f(a)
 // - v1 = d/dx f(x) | x=a
 // - v2 = d^2/dx^2 f(x) | x=a
-func (c *Real) monadic(a Scalar, v0, v1, v2 float64) Scalar {
+func (c *Real) monadic(a ConstScalar, v0, v1, v2 float64) Scalar {
   c.AllocForOne(a)
   if c.Order >= 1 {
     if c.Order >= 2 {
@@ -52,7 +52,7 @@ func (c *Real) monadic(a Scalar, v0, v1, v2 float64) Scalar {
   return c
 }
 
-func (c *Real) monadicLazy(a Scalar, v0 float64, f1, f2 func () float64) Scalar {
+func (c *Real) monadicLazy(a ConstScalar, v0 float64, f1, f2 func () float64) Scalar {
   c.AllocForOne(a)
   if c.Order >= 1 {
     v1 := f1()
@@ -131,7 +131,7 @@ func (c *Real) realMonadicLazy(a *Real, v0 float64, f1, f2 func() float64) *Real
 /* derivatives of dyadic functions
  * -------------------------------------------------------------------------- */
 
-func (c *Real) dyadic(a, b Scalar, v0, v10, v01, v11, v20, v02 float64) *Real {
+func (c *Real) dyadic(a, b ConstScalar, v0, v10, v01, v11, v20, v02 float64) *Real {
   c.AllocForTwo(a, b)
   if c.Order >= 1 {
     if c.Order >= 2 {
@@ -159,7 +159,7 @@ func (c *Real) dyadic(a, b Scalar, v0, v10, v01, v11, v20, v02 float64) *Real {
   return c
 }
 
-func (c *Real) dyadicLazy(a, b Scalar, v0 float64, f1 func() (float64, float64), f2 func() (float64, float64, float64)) *Real {
+func (c *Real) dyadicLazy(a, b ConstScalar, v0 float64, f1 func() (float64, float64), f2 func() (float64, float64, float64)) *Real {
   c.AllocForTwo(a, b)
   if c.Order >= 1 {
     v10, v01 := f1()
@@ -217,7 +217,7 @@ func (c *Real) realDyadic(a, b *Real, v0, v10, v01, v11, v20, v02 float64) *Real
   return c
 }
 
-func (c *Real) realDyadicLazy(a, b Scalar, v0 float64, f1 func() (float64, float64), f2 func() (float64, float64, float64)) *Real {
+func (c *Real) realDyadicLazy(a, b ConstScalar, v0 float64, f1 func() (float64, float64), f2 func() (float64, float64, float64)) *Real {
   c.AllocForTwo(a, b)
   if c.Order >= 1 {
     v10, v01 := f1()

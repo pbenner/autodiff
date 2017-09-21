@@ -95,7 +95,7 @@ func gaussJordan_RealDense(a, x *DenseMatrix, b DenseVector, submatrix []bool) e
     if !submatrix[i] {
       continue
     }
-    c.Copy(a.RealAt(p[i], i))
+    c.Set(a.RealAt(p[i], i))
     for j := 0; j < i; j++ {
       if !submatrix[j] {
         continue
@@ -179,7 +179,7 @@ func gaussJordanUpperTriangular_RealDense(a, x *DenseMatrix, b DenseVector, subm
     if !submatrix[i] {
       continue
     }
-    c.Copy(a.RealAt(i, i))
+    c.Set(a.RealAt(i, i))
     for j := 0; j < i; j++ {
       if !submatrix[j] {
         continue
@@ -308,7 +308,7 @@ func gaussJordan_BareRealDense(a, x *DenseMatrix, b DenseVector, submatrix []boo
     if !submatrix[i] {
       continue
     }
-    c.Copy(a.BareRealAt(p[i], i))
+    c.Set(a.BareRealAt(p[i], i))
     for j := 0; j < i; j++ {
       if !submatrix[j] {
         continue
@@ -392,7 +392,7 @@ func gaussJordanUpperTriangular_BareRealDense(a, x *DenseMatrix, b DenseVector, 
     if !submatrix[i] {
       continue
     }
-    c.Copy(a.BareRealAt(i, i))
+    c.Set(a.BareRealAt(i, i))
     for j := 0; j < i; j++ {
       if !submatrix[j] {
         continue

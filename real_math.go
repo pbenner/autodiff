@@ -25,7 +25,7 @@ import "github.com/pbenner/autodiff/special"
 
 /* -------------------------------------------------------------------------- */
 
-func (a *Real) Equals(b Scalar, epsilon float64) bool {
+func (a *Real) Equals(b ConstScalar, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
@@ -35,7 +35,7 @@ func (a *Real) RealEquals(b *Real, epsilon float64) bool {
 
 /* -------------------------------------------------------------------------- */
 
-func (a *Real) Greater(b Scalar) bool {
+func (a *Real) Greater(b ConstScalar) bool {
   return a.GetValue() > b.GetValue()
 }
 
@@ -45,7 +45,7 @@ func (a *Real) RealGreater(b *Real) bool {
 
 /* -------------------------------------------------------------------------- */
 
-func (a *Real) Smaller(b Scalar) bool {
+func (a *Real) Smaller(b ConstScalar) bool {
   return a.GetValue() < b.GetValue()
 }
 
@@ -55,7 +55,7 @@ func (a *Real) RealSmaller(b *Real) bool {
 
 /* -------------------------------------------------------------------------- */
 
-func (r *Real) Min(a, b Scalar) Scalar {
+func (r *Real) Min(a, b ConstScalar) Scalar {
   if a.GetValue() < b.GetValue() {
     r.Set(a)
   } else {
@@ -75,7 +75,7 @@ func (r *Real) RealMin(a, b *Real) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
-func (r *Real) Max(a, b Scalar) Scalar {
+func (r *Real) Max(a, b ConstScalar) Scalar {
   if a.GetValue() > b.GetValue() {
     r.Set(a)
   } else {
@@ -95,7 +95,7 @@ func (r *Real) RealMax(a, b *Real) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Abs(a Scalar) Scalar {
+func (c *Real) Abs(a ConstScalar) Scalar {
   if c.Sign() == -1 {
     c.Neg(a)
   } else {
@@ -137,7 +137,7 @@ func (a *Real) RealSign() int {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Neg(a Scalar) Scalar {
+func (c *Real) Neg(a ConstScalar) Scalar {
   x := a.GetValue()
   return c.monadic(a, -x, -1, 0)
 }
@@ -149,7 +149,7 @@ func (c *Real) RealNeg(a *Real) *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Add(a, b Scalar) Scalar {
+func (c *Real) Add(a, b ConstScalar) Scalar {
   x := a.GetValue()
   y := b.GetValue()
   return c.dyadic(a, b, x+y, 1, 1, 0, 0, 0)
@@ -163,7 +163,7 @@ func (c *Real) RealAdd(a, b *Real) *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Sub(a, b Scalar) Scalar {
+func (c *Real) Sub(a, b ConstScalar) Scalar {
   x := a.GetValue()
   y := b.GetValue()
   return c.dyadic(a, b, x-y, 1, -1, 0, 0, 0)
@@ -177,7 +177,7 @@ func (c *Real) RealSub(a, b *Real) *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Mul(a, b Scalar) Scalar {
+func (c *Real) Mul(a, b ConstScalar) Scalar {
   x := a.GetValue()
   y := b.GetValue()
   return c.dyadic(a, b, x*y, y, x, 1, 0, 0)
@@ -191,7 +191,7 @@ func (c *Real) RealMul(a, b *Real) *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Div(a, b Scalar) Scalar {
+func (c *Real) Div(a, b ConstScalar) Scalar {
   x := a.GetValue()
   y := b.GetValue()
   return c.dyadic(a, b, x/y, 1/y, -x/(y*y), -1/(y*y), 0, 2*x/(y*y*y))
@@ -205,7 +205,7 @@ func (c *Real) RealDiv(a, b *Real) *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) LogAdd(a, b, t Scalar) Scalar {
+func (c *Real) LogAdd(a, b ConstScalar, t Scalar) Scalar {
   if a.Greater(b) {
     // swap
     a, b = b, a
@@ -224,7 +224,7 @@ func (c *Real) LogAdd(a, b, t Scalar) Scalar {
   return c
 }
 
-func (c *Real) LogSub(a, b, t Scalar) Scalar {
+func (c *Real) LogSub(a, b ConstScalar, t Scalar) Scalar {
   if math.IsInf(b.GetValue(), -1) {
     c.Set(a)
     return c
@@ -241,7 +241,7 @@ func (c *Real) LogSub(a, b, t Scalar) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Pow(a, k Scalar) Scalar {
+func (c *Real) Pow(a, k ConstScalar) Scalar {
   x := a.GetValue()
   y := k.GetValue()
   v0 := math.Pow(x, y)
@@ -299,7 +299,7 @@ func (c *Real) RealPow(a, k *Real) *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Sqrt(a Scalar) Scalar {
+func (c *Real) Sqrt(a ConstScalar) Scalar {
   return c.Pow(a, NewBareReal(1.0/2.0))
 }
 
@@ -309,7 +309,7 @@ func (c *Real) RealSqrt(a *Real) *Real {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *Real) Sin(a Scalar) Scalar {
+func (c *Real) Sin(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 := math.Sin(x)
   f1 := func() float64 { return  math.Cos(x) }
@@ -317,7 +317,7 @@ func (c *Real) Sin(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Sinh(a Scalar) Scalar {
+func (c *Real) Sinh(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 := math.Sinh(x)
   f1 := func() float64 { return  math.Cosh(x) }
@@ -325,7 +325,7 @@ func (c *Real) Sinh(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Cos(a Scalar) Scalar {
+func (c *Real) Cos(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 := math.Cos(x)
   f1 := func() float64 { return -math.Sin(x) }
@@ -333,7 +333,7 @@ func (c *Real) Cos(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Cosh(a Scalar) Scalar {
+func (c *Real) Cosh(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 := math.Cosh(x)
   f1 := func() float64 { return  math.Sinh(x) }
@@ -341,7 +341,7 @@ func (c *Real) Cosh(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Tan(a Scalar) Scalar {
+func (c *Real) Tan(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 := math.Tan(x)
   f1 := func() float64 { return  1.0+math.Pow(math.Tan(x), 2) }
@@ -349,7 +349,7 @@ func (c *Real) Tan(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Tanh(a Scalar) Scalar {
+func (c *Real) Tanh(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 :=  math.Tanh(x)
   f1 := func() float64 { return  1.0-math.Pow(math.Tanh(x), 2) }
@@ -357,7 +357,7 @@ func (c *Real) Tanh(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Exp(a Scalar) Scalar {
+func (c *Real) Exp(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 := math.Exp(x)
   f1 := func() float64 { return v0 }
@@ -365,7 +365,7 @@ func (c *Real) Exp(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Log(a Scalar) Scalar {
+func (c *Real) Log(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 :=  math.Log(x)
   f1 := func() float64 { return  1/x }
@@ -373,7 +373,7 @@ func (c *Real) Log(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Log1p(a Scalar) Scalar {
+func (c *Real) Log1p(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 :=  math.Log1p(x)
   f1 := func() float64 { return  1/ (1+x) }
@@ -381,7 +381,7 @@ func (c *Real) Log1p(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Erf(a Scalar) Scalar {
+func (c *Real) Erf(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 :=  math.Erf(x)
   f1 := func() float64 {
@@ -393,7 +393,7 @@ func (c *Real) Erf(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Erfc(a Scalar) Scalar {
+func (c *Real) Erfc(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 :=  math.Erf(x)
   f1 := func() float64 {
@@ -405,7 +405,7 @@ func (c *Real) Erfc(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) LogErfc(a Scalar) Scalar {
+func (c *Real) LogErfc(a ConstScalar) Scalar {
   x := a.GetValue()
   t := math.Erfc(x)
   v0 :=  special.LogErfc(x)
@@ -418,7 +418,7 @@ func (c *Real) LogErfc(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Gamma(a Scalar) Scalar {
+func (c *Real) Gamma(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 := math.Gamma(x)
   f1 := func() float64 {
@@ -433,7 +433,7 @@ func (c *Real) Gamma(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Lgamma(a Scalar) Scalar {
+func (c *Real) Lgamma(a ConstScalar) Scalar {
   x := a.GetValue()
   v0, s := math.Lgamma(a.GetValue())
   if s == -1 {
@@ -444,7 +444,7 @@ func (c *Real) Lgamma(a Scalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) Mlgamma(a Scalar, k int) Scalar {
+func (c *Real) Mlgamma(a ConstScalar, k int) Scalar {
   x := a.GetValue()
   v0 := special.Mlgamma(x, k)
   f1 := func() float64 {
@@ -464,7 +464,7 @@ func (c *Real) Mlgamma(a Scalar, k int) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
-func (c *Real) GammaP(a float64, b Scalar) Scalar {
+func (c *Real) GammaP(a float64, b ConstScalar) Scalar {
   x := b.GetValue()
   v0 := special.GammaP(a, x)
   f1 := func() float64 {

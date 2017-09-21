@@ -48,25 +48,6 @@ func NewBasicState(value float64) *BasicState {
 
 /* -------------------------------------------------------------------------- */
 
-// Copy the basic state from b. Allocate memory if needed.
-func (a *BasicState) Copy(b Scalar) {
-  a.Value = b.GetValue()
-  a.Order = b.GetOrder()
-  a.Alloc(b.GetN(), b.GetOrder())
-  if a.Order >= 1 {
-    for i := 0; i < b.GetN(); i++ {
-      a.Derivative[i] = b.GetDerivative(i)
-    }
-    if a.Order >= 2 {
-      for i := 0; i < b.GetN(); i++ {
-        for j := 0; j < b.GetN(); j++ {
-          a.Hessian[i][j] = b.GetHessian(i, j)
-        }
-      }
-    }
-  }
-}
-
 // Allocate memory for derivatives of n variables.
 func (a *BasicState) Alloc(n, order int) {
   if a.N != n || a.Order != order {
@@ -92,10 +73,10 @@ func (a *BasicState) Alloc(n, order int) {
 
 // Allocate memory for the results of mathematical operations on
 // the given variables.
-func (c *BasicState) AllocForOne(a Scalar) {
+func (c *BasicState) AllocForOne(a ConstScalar) {
   c.Alloc(a.GetN(), a.GetOrder())
 }
-func (c *BasicState) AllocForTwo(a, b Scalar) {
+func (c *BasicState) AllocForTwo(a, b ConstScalar) {
   c.Alloc(iMax(a.GetN(), b.GetN()), iMax(a.GetOrder(), b.GetOrder()))
 }
 
@@ -165,8 +146,22 @@ func (a *BasicState) ResetDerivatives() {
 }
 
 // Set the state to b. This includes the value and all derivatives.
-func (a *BasicState) Set(b Scalar) {
-  a.Copy(b)
+func (a *BasicState) Set(b ConstScalar) {
+  a.Value = b.GetValue()
+  a.Order = b.GetOrder()
+  a.Alloc(b.GetN(), b.GetOrder())
+  if a.Order >= 1 {
+    for i := 0; i < b.GetN(); i++ {
+      a.Derivative[i] = b.GetDerivative(i)
+    }
+    if a.Order >= 2 {
+      for i := 0; i < b.GetN(); i++ {
+        for j := 0; j < b.GetN(); j++ {
+          a.Hessian[i][j] = b.GetHessian(i, j)
+        }
+      }
+    }
+  }
 }
 
 // Set the value of the variable. All derivatives are reset to zero.
