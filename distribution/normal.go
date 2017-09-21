@@ -33,9 +33,7 @@ type NormalDistribution struct {
   SigmaInv Matrix
   SigmaDet Scalar
   logH     Scalar
-  c1       Scalar
-  c2       Scalar
-  c3       Scalar
+  cl       ConstScalar
   // state
   t1       Vector
   t2       Vector
@@ -63,10 +61,9 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
   t1 := NewScalar(t, 0.0)
 
   // -1/2 [ p log(2pi) + log|Sigma| ]
-  c1 := NewScalar(t, -0.5)
-  c2 := NewScalar(t, float64(n)*math.Log(2*math.Pi))
-  h  := NewScalar(t, 0.0)
-  h.Mul(c1, t1.Add(c2, t1.Log(t1.Abs(sigmaDet))))
+  c := ConstReal(float64(n)*math.Log(2*math.Pi))
+  h := NewScalar(t, 0.0)
+  h.Mul(ConstReal(-0.5), t1.Add(c, t1.Log(t1.Abs(sigmaDet))))
 
   result := NormalDistribution{
     Mu      : mu,
@@ -74,9 +71,7 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
     SigmaInv: sigmaInv,
     SigmaDet: sigmaDet,
     logH    : h,
-    c1      : NewScalar(t, 1.0),
-    c2      : NewScalar(t, 2.0),
-    c3      : NewScalar(t, math.Log(2.0)),
+    cl      : ConstReal(math.Log(2.0)),
     t1      : NullVector(t, n),
     t2      : NullVector(t, n),
     t3      : NullScalar(t) }
@@ -94,9 +89,7 @@ func (dist *NormalDistribution) Clone() *NormalDistribution {
     SigmaInv: dist.SigmaInv.CloneMatrix(),
     SigmaDet: dist.SigmaDet.CloneScalar(),
     logH    : dist.logH    .CloneScalar(),
-    c1      : dist.c1      .CloneScalar(),
-    c2      : dist.c2      .CloneScalar(),
-    c3      : dist.c3      .CloneScalar(),
+    cl      : dist.cl,
     t1      : dist.t1      .CloneVector(),
     t2      : dist.t2      .CloneVector(),
     t3      : dist.t3      .CloneScalar() }
@@ -134,7 +127,7 @@ func (dist *NormalDistribution) LogPdf(r Scalar, x Vector) error {
   y.VsubV(x, dist.Mu)
   s.VdotM(y, dist.SigmaInv)
   r.VdotV(s, y)
-  r.Div(r, dist.c2)
+  r.Div(r, ConstReal(2.0))
   r.Sub(h, r)
 
   return nil
@@ -153,14 +146,14 @@ func (dist *NormalDistribution) LogCdf(r Scalar, x Vector) error {
     panic("LogCdf(): not supported for more than one dimension.")
   }
   t := dist.t3
-  t.Mul(dist.c2, dist.Sigma.At(0,0))
+  t.Mul(ConstReal(2.0), dist.Sigma.At(0,0))
   t.Sqrt(t)
 
   r.Sub(x.At(0), dist.Mu.At(0))
   r.Div(r, t)
   r.Neg(r)
   r.LogErfc(r)
-  r.Sub(r, dist.c3)
+  r.Sub(r, dist.cl)
 
   // if computation of derivatives failed, return an approximation
   if r.GetOrder() >= 1 {
