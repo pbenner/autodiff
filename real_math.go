@@ -55,6 +55,28 @@ func (a *Real) RealSmaller(b *Real) bool {
 
 /* -------------------------------------------------------------------------- */
 
+func (a *Real) Sign() int {
+  if a.GetValue() < 0.0 {
+    return -1
+  }
+  if a.GetValue() > 0.0 {
+    return  1
+  }
+  return 0
+}
+
+func (a *Real) RealSign() int {
+  if a.GetValue() < 0.0 {
+    return -1
+  }
+  if a.GetValue() > 0.0 {
+    return  1
+  }
+  return 0
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (r *Real) Min(a, b ConstScalar) Scalar {
   if a.GetValue() < b.GetValue() {
     r.Set(a)
@@ -111,28 +133,6 @@ func (c *Real) RealAbs(a *Real) Scalar {
     c.Set(a)
   }
   return c
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (a *Real) Sign() int {
-  if a.GetValue() < 0.0 {
-    return -1
-  }
-  if a.GetValue() > 0.0 {
-    return  1
-  }
-  return 0
-}
-
-func (a *Real) RealSign() int {
-  if a.GetValue() < 0.0 {
-    return -1
-  }
-  if a.GetValue() > 0.0 {
-    return  1
-  }
-  return 0
 }
 
 /* -------------------------------------------------------------------------- */

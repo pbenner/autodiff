@@ -30,11 +30,11 @@ import   "github.com/pbenner/autodiff/algorithm/householderTridiagonalization"
 // compute the eigenvalue of a symmetric
 // 2x2 matrix [ t11 t12; t12 t22 ] closer
 // to t22
-func wilkinsonShift(mu, t11, t12, t22, c2, t1, t2 Scalar) {
+func wilkinsonShift(mu, t11, t12, t22, t1, t2 Scalar) {
   d := t1
   t := t2
   d.Sub(t11, t22)
-  d.Div(d, c2)     // d = (t11 - t22)/2
+  d.Div(d, ConstReal(2.0)) // d = (t11 - t22)/2
 
   t .Mul(t12, t12)
   mu.Mul(d, d)
@@ -63,13 +63,12 @@ func symmetricQRstep(T, Z Matrix, p, q int, inSitu *InSitu) {
   mu := inSitu.T3
   t1 := inSitu.T1
   t2 := inSitu.T2
-  c2 := BareReal(2.0)
 
   t11 := T.At(n-2,n-2)
   t12 := T.At(n-2,n-1)
   t22 := T.At(n-1,n-1)
 
-  wilkinsonShift(mu, t11, t12, t22, &c2, t1, t2)
+  wilkinsonShift(mu, t11, t12, t22, t1, t2)
 
   y.Sub(T.At(0,0), mu)
   z.Set(T.At(1,0))

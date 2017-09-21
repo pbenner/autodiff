@@ -37,3 +37,15 @@ func (a ConstReal) Greater(b ConstScalar) bool {
 func (a ConstReal) Smaller(b ConstScalar) bool {
   return a.GetValue() < b.GetValue()
 }
+
+/* -------------------------------------------------------------------------- */
+
+func (a ConstReal) Sign() int {
+  if a.GetValue() < 0.0 {
+    return -1
+  }
+  if a.GetValue() > 0.0 {
+    return  1
+  }
+  return 0
+}

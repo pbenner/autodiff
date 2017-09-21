@@ -54,8 +54,6 @@ type InSitu struct {
   T3 Scalar
   T4 Scalar
   T5 Scalar
-  C2 Scalar
-  C4 Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,11 +75,11 @@ func computeSquare(t11, t12, t22 Scalar, B Matrix, i int) {
 // compute the eigenvalue of a symmetric
 // 2x2 matrix [ t11 t12; t12 t22 ] closer
 // to t22
-func wilkinsonShift(mu, t11, t12, t22, c2, t1, t2 Scalar) {
+func wilkinsonShift(mu, t11, t12, t22, t1, t2 Scalar) {
   d := t1
   t := t2
   d.Sub(t11, t22)
-  d.Div(d, c2)     // d = (t11 - t22)/2
+  d.Div(d, ConstReal(2)) // d = (t11 - t22)/2
 
   t .Mul(t12, t12)
   mu.Mul(d, d)
@@ -103,8 +101,6 @@ func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) {
 
   _, n := B.Dims()
 
-  c2 := inSitu.C2
-
   mu  := inSitu.Mu
   t11 := inSitu.T1
   t12 := inSitu.T2
@@ -113,7 +109,7 @@ func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) {
   t2  := inSitu.T5
 
   computeSquare(t11, t12, t22, B, n-2)
-  wilkinsonShift(mu, t11, t12, t22, c2, t1, t2)
+  wilkinsonShift(mu, t11, t12, t22, t1, t2)
   computeSquare(t11, t12, t22, B, 0)
 
   y := t11
@@ -322,12 +318,6 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
   }
   if inSitu.T5 == nil {
     inSitu.T5 = NullScalar(t)
-  }
-  if inSitu.C2 == nil {
-    inSitu.C2 = NewBareReal(2.0)
-  }
-  if inSitu.C4 == nil {
-    inSitu.C4 = NewBareReal(4.0)
   }
   // HouseholderBidiagonalization InSitu
   if inSitu.HouseholderBidiagonalization.A == nil {
