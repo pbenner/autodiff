@@ -244,7 +244,7 @@ func (r *DenseMatrix) Outer(a, b ConstVector) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Compute the Jacobian of f at x_. The result is stored in r.
-func (r *DenseMatrix) Jacobian(f func(Vector) Vector, x_ Vector) Matrix {
+func (r *DenseMatrix) Jacobian(f func(ConstVector) ConstVector, x_ Vector) Matrix {
   n, m := r.Dims()
   x := x_.CloneVector()
   x.Variables(1)
@@ -259,14 +259,14 @@ func (r *DenseMatrix) Jacobian(f func(Vector) Vector, x_ Vector) Matrix {
   // copy derivatives
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.At(i, j).SetValue(y.At(i).GetDerivative(j))
+      r.At(i, j).SetValue(y.ConstAt(i).GetDerivative(j))
     }
   }
   return r
 }
 
 // Compute the Hessian of f at x_. The result is stored in r.
-func (r *DenseMatrix) Hessian(f func(Vector) Scalar, x_ Vector) Matrix {
+func (r *DenseMatrix) Hessian(f func(ConstVector) ConstScalar, x_ Vector) Matrix {
   n, m := r.Dims()
   // reallocate matrix if dimensions do not match
   if r == nil || x_.Dim() != n || n != m {

@@ -224,15 +224,15 @@ func TestMatrixJacobian(t *testing.T) {
   r1 := NullReal()
   r2 := NullReal()
 
-  f := func(x Vector) Vector {
+  f := func(x ConstVector) ConstVector {
     if x.Dim() != 2 {
       panic("Invalid input vector!")
     }
     y := NullDenseVector(RealType, 3)
     // x1^2 + y^2 - 6
-    y[0].Sub(r1.Add(r1.Pow(x.At(0), NewBareReal(2)), r2.Pow(x.At(1), NewBareReal(2))), NewBareReal(6))
+    y[0].Sub(r1.Add(r1.Pow(x.ConstAt(0), NewBareReal(2)), r2.Pow(x.ConstAt(1), NewBareReal(2))), NewBareReal(6))
     // x^3 - y^2
-    y[1].Sub(r1.Pow(x.At(0), NewBareReal(3)), r2.Pow(x.At(1), NewBareReal(2)))
+    y[1].Sub(r1.Pow(x.ConstAt(0), NewBareReal(3)), r2.Pow(x.ConstAt(1), NewBareReal(2)))
     y[2].SetValue(2)
 
     return y
@@ -260,8 +260,8 @@ func TestMatrixHessian(t *testing.T) {
   t2 := NullReal()
 
   // y = x^3 + y^3 + 3xy
-  f := func(x Vector) Scalar {
-    return t1.Sub(t1.Add(t1.Pow(x.At(0), k), t2.Pow(x.At(1), k)), t2.Mul(NewReal(3.0), t2.Mul(x.At(0), x.At(1))))
+  f := func(x ConstVector) ConstScalar {
+    return t1.Sub(t1.Add(t1.Pow(x.ConstAt(0), k), t2.Pow(x.ConstAt(1), k)), t2.Mul(NewReal(3.0), t2.Mul(x.ConstAt(0), x.ConstAt(1))))
   }
   r1 := NullMatrix(RealType, 2, 2)
   r2 :=  NewMatrix(RealType, 2, 2, []float64{

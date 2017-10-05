@@ -85,8 +85,8 @@ type Matrix interface {
   MdivS(a ConstMatrix, b ConstScalar)      Matrix
   MdotM(a,             b ConstMatrix)      Matrix
   Outer(a,             b ConstVector)      Matrix
-  Jacobian(f func(Vector) Vector, x_ Vector) Matrix
-  Hessian (f func(Vector) Scalar, x_ Vector) Matrix
+  Jacobian(f func(ConstVector) ConstVector, x_ Vector) Matrix
+  Hessian (f func(ConstVector) ConstScalar, x_ Vector) Matrix
   // json
   json.Marshaler
   // private methods
