@@ -142,37 +142,6 @@ func (matrix *DenseMatrix) CloneMatrix() Matrix {
   return matrix.Clone()
 }
 
-func (matrix *DenseMatrix) ShallowClone() *DenseMatrix {
-  return &DenseMatrix{
-    values    : matrix.values,
-    rows      : matrix.rows,
-    cols      : matrix.cols,
-    transposed: matrix.transposed,
-    rowOffset : matrix.rowOffset,
-    rowMax    : matrix.rowMax,
-    colOffset : matrix.colOffset,
-    colMax    : matrix.colMax,
-    tmp1      : matrix.tmp1,
-    tmp2      : matrix.tmp2 }
-}
-
-func (matrix *DenseMatrix) ShallowCloneMatrix() Matrix {
-  return matrix.ShallowClone()
-}
-
-func (a *DenseMatrix) Set(b Matrix) {
-  n1, m1 := a.Dims()
-  n2, m2 := b.Dims()
-  if n1 != n2 || m1 != m2 {
-    panic("Copy(): Matrix dimension does not match!")
-  }
-  for i := 0; i < n1; i++ {
-    for j := 0; j < m1; j++ {
-      a.At(i, j).Set(b.At(i, j).CloneScalar())
-    }
-  }
-}
-
 /* constructors for special types of matrices
  * -------------------------------------------------------------------------- */
 
@@ -343,6 +312,19 @@ func (matrix *DenseMatrix) Reset() {
 func (matrix *DenseMatrix) ResetDerivatives() {
   for i := 0; i < len(matrix.values); i++ {
     matrix.values[i].ResetDerivatives()
+  }
+}
+
+func (a *DenseMatrix) Set(b Matrix) {
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n2 || m1 != m2 {
+    panic("Copy(): Matrix dimension does not match!")
+  }
+  for i := 0; i < n1; i++ {
+    for j := 0; j < m1; j++ {
+      a.At(i, j).Set(b.At(i, j).CloneScalar())
+    }
   }
 }
 
