@@ -93,8 +93,9 @@ func TestReadVector(t *testing.T) {
     panic(err)
   }
   r := NewVector(RealType, []float64{1,2,3,4,5,6})
+  s := NullReal()
 
-  if Vnorm(v.VsubV(v, r)).GetValue() != 0.0 {
+  if s.Vnorm(v.VsubV(v, r)).GetValue() != 0.0 {
     t.Error("Read vector failed!")
   }
 }
@@ -107,8 +108,9 @@ func TestVectorMapReduce(t *testing.T) {
   a := NewVector(RealType, []float64{1, 2,3,4})
   a.Map(func(x Scalar) { x.Exp(x) })
   b := a.Reduce(func(x, y Scalar) Scalar { return x.Add(x, y) }, t1)
+  s := NullReal()
 
-  if Vnorm(a.VsubV(a,r1)).GetValue() > 1e-2 {
+  if s.Vnorm(a.VsubV(a,r1)).GetValue() > 1e-2 {
     t.Error("Vector map/reduce failed!")
   }
   if math.Abs(b.GetValue() - r2) > 1e-2 {

@@ -23,38 +23,51 @@ import "encoding/json"
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
+type ConstVector interface {
+  ConstScalarContainer
+  Dim             ()                     int
+  Equals          (ConstVector, float64) bool
+  Table           ()                     string
+  ConstAt         (int)                  ConstScalar
+  ConstSlice      (i, j int)             ConstVector
+}
+
 type Vector interface {
   ScalarContainer
-  At              (int)                Scalar
+  // const methods
+  ConstAt         (int)                  ConstScalar
+  ConstSlice      (i, j int)             ConstVector
+  Dim             ()                     int
+  Equals          (ConstVector, float64) bool
+  Table           ()                     string
+  // other methods
+  At              (int)                  Scalar
   SetReferenceAt  (int, Scalar)
   Reset           ()
   ResetDerivatives()
   // basic methods
-  CloneVector     ()                   Vector
-  Set             (Vector)
-  Dim             ()                   int
-  Table           ()                   string
-  Export          (string)             error
-  Permute         ([]int)              error
+  CloneVector     ()                     Vector
+  Set             (ConstVector)
+  Export          (string)               error
+  Permute         ([]int)                error
   ReverseOrder    ()
-  SortVector      (bool)               Vector
-  Slice           (i, j int)           Vector
-  Append          (...Scalar)          Vector
-  Equals          (Vector, float64)    bool
+  SortVector      (bool)                 Vector
+  Slice           (i, j int)             Vector
+  Append          (...Scalar)            Vector
   // type conversions
-  ToMatrix        (n, m int)           Matrix
-  ToDenseVector   ()                   DenseVector
+  ToMatrix        (n, m int)             Matrix
+  ToDenseVector   ()                     DenseVector
   // math operations
-  VaddV(a, b Vector) Vector
-  VaddS(a Vector, b Scalar) Vector
-  VsubV(a, b Vector) Vector
-  VsubS(a Vector, b Scalar) Vector
-  VmulV(a, b Vector) Vector
-  VmulS(a Vector, b Scalar) Vector
-  VdivV(a, b Vector) Vector
-  VdivS(a Vector, b Scalar) Vector
-  MdotV(a Matrix, b Vector) Vector
-  VdotM(a Vector, b Matrix) Vector
+  VaddV(a,             b ConstVector) Vector
+  VaddS(a ConstVector, b ConstScalar) Vector
+  VsubV(a,             b ConstVector) Vector
+  VsubS(a ConstVector, b ConstScalar) Vector
+  VmulV(a,             b ConstVector) Vector
+  VmulS(a ConstVector, b ConstScalar) Vector
+  VdivV(a,             b ConstVector) Vector
+  VdivS(a ConstVector, b ConstScalar) Vector
+  MdotV(a      Matrix, b ConstVector) Vector
+  VdotM(a ConstVector, b      Matrix) Vector
   // json
   json.Marshaler
 }

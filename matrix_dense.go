@@ -296,6 +296,28 @@ func (matrix *DenseMatrix) T() Matrix {
 
 /* -------------------------------------------------------------------------- */
 
+func (matrix *DenseMatrix) ConstAt(i, j int) ConstScalar {
+  return matrix.values[matrix.index(i, j)]
+}
+
+func (matrix *DenseMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
+  return matrix.Slice(rfrom, rto, cfrom, cto)
+}
+
+func (matrix *DenseMatrix) ConstRow(i int) ConstVector {
+  return matrix.Row(i)
+}
+
+func (matrix *DenseMatrix) ConstCol(i int) ConstVector {
+  return matrix.Col(i)
+}
+
+func (matrix *DenseMatrix) ConstDiag() ConstVector {
+  return matrix.Diag()
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (matrix *DenseMatrix) At(i, j int) Scalar {
   return matrix.values[matrix.index(i, j)]
 }

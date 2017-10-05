@@ -161,3 +161,9 @@ func Max(a, b Scalar) Scalar {
   c := a.CloneScalar()
   return c.Max(a, b)
 }
+
+func Vnorm(a Vector) Scalar {
+  r := NullScalar(a.ElementType())
+  r.Vnorm(a)
+  return r
+}

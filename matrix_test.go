@@ -162,7 +162,9 @@ func TestMatrixMdotV(t *testing.T) {
   v2.MdotV(m1, v1)
   v3 := NewVector(RealType, []float64{5, 11})
 
-  if Vnorm(v2.VsubV(v2, v3)).GetValue() > 1e-8  {
+  r := NullReal()
+
+  if r.Vnorm(v2.VsubV(v2, v3)).GetValue() > 1e-8  {
     t.Error("Matrix/Vector multiplication failed!")
   }
 }
@@ -175,7 +177,9 @@ func TestMatrixVdotM(t *testing.T) {
   v2.VdotM(v1, m1)
   v3 := NewVector(RealType, []float64{7, 10})
 
-  if Vnorm(v2.VsubV(v2, v3)).GetValue() > 1e-8  {
+  r := NullReal()
+
+  if r.Vnorm(v2.VsubV(v2, v3)).GetValue() > 1e-8  {
     t.Error("Matrix/Vector multiplication failed!")
   }
 }

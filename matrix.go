@@ -23,8 +23,32 @@ import "encoding/json"
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
+type ConstMatrix interface {
+  ConstScalarContainer
+  Dims        ()                           (int, int)
+  Equals      (ConstMatrix, float64)       bool
+  Table       ()                           string
+  ConstAt     (i, j int)                   ConstScalar
+  ConstSlice  (rfrom, rto, cfrom, cto int) ConstMatrix
+  ConstRow    (i int)                      ConstVector
+  ConstCol    (j int)                      ConstVector
+  ConstDiag   ()                           ConstVector
+  // private methods
+  storageLocation() uintptr
+}
+
 type Matrix interface {
   ScalarContainer
+  // const methods
+  Dims        ()                           (int, int)
+  Equals      (ConstMatrix, float64)       bool
+  Table       ()                           string
+  ConstAt     (i, j int)                   ConstScalar
+  ConstSlice  (rfrom, rto, cfrom, cto int) ConstMatrix
+  ConstRow    (i int)                      ConstVector
+  ConstCol    (j int)                      ConstVector
+  ConstDiag   ()                           ConstVector
+  // other methods
   At                  (i, j int)           Scalar
   SetReferenceAt      (i, j int, v Scalar)
   Reset               ()
@@ -32,12 +56,10 @@ type Matrix interface {
   // basic methods
   CloneMatrix         ()                   Matrix
   Set                 (Matrix)
-  Dims                ()                   (int, int)
   Row                 (i int)              Vector
   Col                 (j int)              Vector
   Diag                ()                   Vector
   T                   ()                   Matrix
-  Table               ()                   string
   Export              (string)             error
   Slice               (rfrom, rto, cfrom, cto int) Matrix
   SwapRows            (int, int) error
@@ -53,17 +75,16 @@ type Matrix interface {
   ToDenseMatrix       ()                  *DenseMatrix
   ToDenseVector       ()                   DenseVector
   // math operations
-  Equals(b Matrix, epsilon float64)    bool
-  MaddM(a, b Matrix) Matrix
-  MaddS(a Matrix, b Scalar) Matrix
-  MsubM(a, b Matrix) Matrix
-  MsubS(a Matrix, b Scalar) Matrix
-  MmulM(a, b Matrix) Matrix
-  MmulS(a Matrix, b Scalar) Matrix
-  MdivM(a, b Matrix) Matrix
-  MdivS(a Matrix, b Scalar) Matrix
-  MdotM(a, b Matrix) Matrix
-  Outer(a, b Vector) Matrix
+  MaddM(a,             b ConstMatrix)      Matrix
+  MaddS(a ConstMatrix, b ConstScalar)      Matrix
+  MsubM(a,             b ConstMatrix)      Matrix
+  MsubS(a ConstMatrix, b ConstScalar)      Matrix
+  MmulM(a,             b ConstMatrix)      Matrix
+  MmulS(a ConstMatrix, b ConstScalar)      Matrix
+  MdivM(a,             b ConstMatrix)      Matrix
+  MdivS(a ConstMatrix, b ConstScalar)      Matrix
+  MdotM(a,             b ConstMatrix)      Matrix
+  Outer(a,             b ConstVector)      Matrix
   Jacobian(f func(Vector) Vector, x_ Vector) Matrix
   Hessian (f func(Vector) Scalar, x_ Vector) Matrix
   // json

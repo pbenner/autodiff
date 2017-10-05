@@ -95,12 +95,12 @@ func (v DenseVector) CloneVector() Vector {
 
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
-func (v DenseVector) Set(w Vector) {
+func (v DenseVector) Set(w ConstVector) {
   if v.Dim() != w.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
   for i := 0; i < w.Dim(); i++ {
-    v[i].Set(w.At(i))
+    v[i].Set(w.ConstAt(i))
   }
 }
 
@@ -111,6 +111,10 @@ func (v DenseVector) Dim() int {
 }
 
 func (v DenseVector) At(i int) Scalar {
+  return v[i]
+}
+
+func (v DenseVector) ConstAt(i int) ConstScalar {
   return v[i]
 }
 
@@ -146,6 +150,10 @@ func (v DenseVector) ReverseOrder() {
 }
 
 func (v DenseVector) Slice(i, j int) Vector {
+  return v[i:j]
+}
+
+func (v DenseVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 

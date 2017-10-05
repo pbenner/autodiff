@@ -225,7 +225,7 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
     return x1, fmt.Errorf("invalid initial value: %s", err)
   }
   // evaluate stop criterion
-  if Vnorm(g1).GetValue() < epsilon.Value {
+  if t1.Vnorm(g1).GetValue() < epsilon.Value {
     return x1, fmt.Errorf("initial value satisfies stop criterium")
   }
   // execute hook if available
@@ -268,7 +268,7 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
         break
       }
       // evaluate stop criterion
-      if Vnorm(g2).GetValue() < epsilon.Value {
+      if t1.Vnorm(g2).GetValue() < epsilon.Value {
         break
       }
       if first_update {
