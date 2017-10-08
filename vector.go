@@ -54,6 +54,7 @@ type Vector interface {
   SortVector      (bool)                 Vector
   Slice           (i, j int)             Vector
   Append          (...Scalar)            Vector
+  Swap            (i, j int)
   // type conversions
   ToMatrix        (n, m int)             Matrix
   ToDenseVector   ()                     DenseVector

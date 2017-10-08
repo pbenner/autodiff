@@ -161,6 +161,10 @@ func (v DenseVector) Append(a ...Scalar) Vector {
   return append(v, a...)
 }
 
+func (v DenseVector) Swap(i, j int) {
+  v[i], v[j] = v[j], v[i]
+}
+
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 

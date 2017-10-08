@@ -48,15 +48,11 @@ type InSitu struct {
 type sortEigenvaluesType struct {
   Vector
 }
+
 func (v sortEigenvaluesType) Len() int {
   return v.Dim()
 }
-func (v sortEigenvaluesType) Swap(i, j int) {
-  ri := v.At(i)
-  rj := v.At(j)
-  v.SetReferenceAt(i, rj)
-  v.SetReferenceAt(j, ri)
-}
+
 func (v sortEigenvaluesType) Less(i, j int) bool {
   return math.Abs(v.At(i).GetValue()) < math.Abs(v.At(j).GetValue())
 }
