@@ -278,7 +278,9 @@ func TestMatrixHessian(t *testing.T) {
 
 func TestReadMatrix(t *testing.T) {
 
-  m, err := ReadMatrix(RealType, "matrix_test.table")
+  filename := "matrix_dense_test.table"
+
+  m, err := ReadMatrix(RealType, filename)
   if err != nil {
     panic(err)
   }
@@ -381,7 +383,7 @@ func TestMatrixJson(t *testing.T) {
     return nil
   }
   {
-    filename := "matrix_test.1.json"
+    filename := "matrix_dense_test.1.json"
 
     r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
     r2 := NilMatrix(0, 0)
@@ -395,9 +397,10 @@ func TestMatrixJson(t *testing.T) {
     if r1.At(0,0).GetValue() != r2.At(0,0).GetValue() {
       t.Error("test failed")
     }
+    os.Remove(filename)
   }
   {
-    filename := "matrix_test.2.json"
+    filename := "matrix_dense_test.2.json"
 
     r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
     r1.At(0,0).Alloc(1,2)
@@ -416,5 +419,6 @@ func TestMatrixJson(t *testing.T) {
     if r1.At(0,0).GetDerivative(0) != r2.At(0,0).GetDerivative(0) {
       t.Error("test failed")
     }
+    os.Remove(filename)
   }
 }

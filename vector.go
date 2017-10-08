@@ -42,7 +42,6 @@ type Vector interface {
   Table           ()                     string
   // other methods
   At              (int)                  Scalar
-  SetReferenceAt  (int, Scalar)
   Reset           ()
   ResetDerivatives()
   // basic methods

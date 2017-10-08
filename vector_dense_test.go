@@ -88,7 +88,9 @@ func TestVmulV(t *testing.T) {
 
 func TestReadVector(t *testing.T) {
 
-  v, err := ImportDenseVector(RealType, "vector_test.table")
+  filename := "vector_dense_test.table"
+
+  v, err := ImportDenseVector(RealType, filename)
   if err != nil {
     panic(err)
   }
@@ -149,7 +151,7 @@ func TestVectorJson(t *testing.T) {
     return nil
   }
   {
-    filename := "vector_test.1.json"
+    filename := "vector_dense_test.1.json"
 
     r1 := NewVector(RealType, []float64{1,2,3,4})
     r2 := NilDenseVector(0)
@@ -163,9 +165,10 @@ func TestVectorJson(t *testing.T) {
     if r1.At(0).GetValue() != r2.At(0).GetValue() {
       t.Error("test failed")
     }
+    os.Remove(filename)
   }
   {
-    filename := "vector_test.2.json"
+    filename := "vector_dense_test.2.json"
 
     r1 := NewVector(RealType, []float64{1,2,3,4})
     r1.At(0).Alloc(1,2)
@@ -184,5 +187,6 @@ func TestVectorJson(t *testing.T) {
     if r1.At(0).GetDerivative(0) != r2.At(0).GetDerivative(0) {
       t.Error("test failed")
     }
+    os.Remove(filename)
   }
 }

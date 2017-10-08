@@ -205,7 +205,7 @@ func (matrix *DenseMatrix) Diag() Vector {
   if n != m {
     panic("Diag(): not a square matrix!")
   }
-  v := NilVector(n)
+  v := NilDenseVector(n)
   for i := 0; i < n; i++ {
     v.SetReferenceAt(i, matrix.values[matrix.index(i, i)])
   }
@@ -221,6 +221,12 @@ func (matrix *DenseMatrix) Slice(rfrom, rto, cfrom, cto int) Matrix {
   // crop tmp vectors
   m.initTmp()
   return &m
+}
+
+func (matrix *DenseMatrix) Swap(i1, j1, i2, j2 int) {
+  k1 := matrix.index(i1, j1)
+  k2 := matrix.index(i2, j2)
+  matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
 
 func (matrix *DenseMatrix) ToVector() Vector {

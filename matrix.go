@@ -50,7 +50,6 @@ type Matrix interface {
   ConstDiag   ()                           ConstVector
   // other methods
   At                  (i, j int)           Scalar
-  SetReferenceAt      (i, j int, v Scalar)
   Reset               ()
   ResetDerivatives    ()
   // basic methods
@@ -62,6 +61,7 @@ type Matrix interface {
   T                   ()                   Matrix
   Export              (string)             error
   Slice               (rfrom, rto, cfrom, cto int) Matrix
+  Swap                (int, int, int, int)
   SwapRows            (int, int) error
   SwapColumns         (int, int) error
   PermuteRows         ([]int) error
