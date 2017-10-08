@@ -345,6 +345,7 @@ func TestRealJson(t *testing.T) {
     if r1.GetValue() != r2.GetValue() {
       t.Error("test failed")
     }
+    os.Remove(filename)
   }
   {
     filename := "real_test.2.json"
@@ -366,6 +367,7 @@ func TestRealJson(t *testing.T) {
     if r1.GetDerivative(0) != r2.GetDerivative(0) {
       t.Error("test failed")
     }
+    os.Remove(filename)
   }
   {
     filename := "real_test.3.json"
@@ -391,5 +393,6 @@ func TestRealJson(t *testing.T) {
     if r1.GetHessian(0, 0) != r2.GetHessian(0, 0) {
       t.Error("test failed")
     }
+    os.Remove(filename)
   }
 }
