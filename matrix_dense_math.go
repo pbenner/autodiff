@@ -203,7 +203,7 @@ func (r *DenseMatrix) MdotM(a, b ConstMatrix) Matrix {
         t3[i].Set(t2)
       }
       for i := 0; i < n; i++ {
-        r.At(i, j).Set(t3[i])
+        r.At(i, j).Set(t3.At(i))
       }
     }
   } else {
@@ -218,7 +218,7 @@ func (r *DenseMatrix) MdotM(a, b ConstMatrix) Matrix {
         t3[j].Set(t2)
       }
       for j := 0; j < m; j++ {
-        r.At(i, j).Set(t3[j])
+        r.At(i, j).Set(t3.At(j))
       }
     }
   }

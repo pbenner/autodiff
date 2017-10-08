@@ -120,7 +120,7 @@ func (matrix *DenseMatrix) initTmp() {
   }
 }
 
-/* copy and cloning
+/* cloning
  * -------------------------------------------------------------------------- */
 
 // Clone matrix including data.

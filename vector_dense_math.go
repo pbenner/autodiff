@@ -162,7 +162,7 @@ func (r DenseVector) MdotV(a Matrix, b ConstVector) Vector {
     r[i].Reset()
     for j := 0; j < m; j++ {
       t.Mul(a.At(i, j), b.ConstAt(j))
-      r[i].Add(r[i], t)
+      r[i].Add(r.At(i), t)
     }
   }
   return r
@@ -187,7 +187,7 @@ func (r DenseVector) VdotM(a ConstVector, b Matrix) Vector {
     r[i].Reset()
     for j := 0; j < n; j++ {
       t.Mul(a.ConstAt(j), b.At(j, i))
-      r[i].Add(r[i], t)
+      r[i].Add(r.At(i), t)
     }
   }
   return r
