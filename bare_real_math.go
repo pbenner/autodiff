@@ -238,6 +238,25 @@ func (c *BareReal) LogAdd(a, b ConstScalar, t Scalar) Scalar {
   return c
 }
 
+func (c *BareReal) BareRealLogAdd(a, b, t *BareReal) *BareReal {
+  if a.BareRealGreater(b) {
+    // swap
+    a, b = b, a
+  }
+  if math.IsInf(a.GetValue(), 0) {
+    // cases:
+    //  i) a = -Inf and b >= a    => c = b
+    // ii) a =  Inf and b  = Inf  => c = Inf
+    c.Set(b)
+    return c
+  }
+  t.BareRealSub(a, b)
+  t.BareRealExp(t)
+  t.BareRealLog1p(t)
+  c.BareRealAdd(t, b)
+  return c
+}
+
 func (c *BareReal) LogSub(a, b ConstScalar, t Scalar) Scalar {
   if math.IsInf(b.GetValue(), -1) {
     c.Set(a)
@@ -320,13 +339,31 @@ func (c *BareReal) Exp(a ConstScalar) Scalar {
   return c
 }
 
+func (c *BareReal) BareRealExp(a *BareReal) *BareReal {
+  checkBare(a)
+  *c = BareReal(math.Exp(a.GetValue()))
+  return c
+}
+
 func (c *BareReal) Log(a ConstScalar) Scalar {
   checkBare(a)
   *c = BareReal(math.Log(a.GetValue()))
   return c
 }
 
+func (c *BareReal) BareRealLog(a *BareReal) *BareReal {
+  checkBare(a)
+  *c = BareReal(math.Log(a.GetValue()))
+  return c
+}
+
 func (c *BareReal) Log1p(a ConstScalar) Scalar {
+  checkBare(a)
+  *c = BareReal(math.Log1p(a.GetValue()))
+  return c
+}
+
+func (c *BareReal) BareRealLog1p(a *BareReal) *BareReal {
   checkBare(a)
   *c = BareReal(math.Log1p(a.GetValue()))
   return c
