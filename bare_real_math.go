@@ -24,9 +24,15 @@ import "github.com/pbenner/autodiff/special"
 
 /* -------------------------------------------------------------------------- */
 
+const bareRealDebug = false
+
+/* -------------------------------------------------------------------------- */
+
 func checkBare(b ConstScalar) {
-  if b.GetOrder() > 0 {
-    panic("BareReal cannot carry any derivates!")
+  if bareRealDebug {
+    if b.GetOrder() > 0 {
+      panic("BareReal cannot carry any derivates!")
+    }
   }
 }
 
