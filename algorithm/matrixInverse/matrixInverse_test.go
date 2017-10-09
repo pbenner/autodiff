@@ -75,18 +75,18 @@ func TestMatrixInversePD(t *testing.T) {
 
 func TestMatrixPerformance(t *testing.T) {
 
-  kernelSquaredExponential := func(n int, t ScalarType, l, v Scalar) Matrix {
-    sigma := NullMatrix(t, n, n)
+  kernelSquaredExponential := func(sigma Matrix, l, v Scalar) Matrix {
+    n, m := sigma.Dims()
     for i := 0; i < n; i++ {
-      for j := 0; j < n; j++ {
+      for j := 0; j < m; j++ {
         sigma.At(i, j).Mul(v, Exp(Div(NewReal(-1.0/2.0*math.Pow(math.Abs(float64(i)-float64(j)), 2.0)), Mul(l, l))))
       }
     }
     return sigma
   }
 
-  m1 := kernelSquaredExponential(100,     RealType,     NewReal(1.0),     NewReal(1.0))
-  m2 := kernelSquaredExponential(100, BareRealType, NewBareReal(1.0), NewBareReal(1.0))
+  m1 := kernelSquaredExponential(NullDenseMatrix(    RealType, 100, 100),     NewReal(1.0),     NewReal(1.0))
+  m2 := kernelSquaredExponential(NullDenseMatrix(BareRealType, 100, 100), NewBareReal(1.0), NewBareReal(1.0))
 
   s1 := NewInSitu(    RealType, 100, true)
   s2 := NewInSitu(BareRealType, 100, true)
@@ -94,11 +94,11 @@ func TestMatrixPerformance(t *testing.T) {
   start := time.Now()
   Run(m1, PositiveDefinite{true}, &s1)
   elapsed := time.Since(start)
-  fmt.Printf("Inverting a 100x100 real positive definite matrix took %s.\n", elapsed)
+  fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseMatrix with scalar type Real) took %s.\n", elapsed)
 
   start = time.Now()
   Run(m2, PositiveDefinite{true}, &s2)
   elapsed = time.Since(start)
-  fmt.Printf("Inverting a 100x100 bare real positive definite matrix took %s.\n", elapsed)
+  fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseMatrix with scalar type BareReal) took %s.\n", elapsed)
 
 }
