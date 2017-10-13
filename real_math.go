@@ -29,17 +29,9 @@ func (a *Real) Equals(b ConstScalar, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
-func (a *Real) RealEquals(b *Real, epsilon float64) bool {
-  return math.Abs(a.GetValue() - b.GetValue()) < epsilon
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (a *Real) Greater(b ConstScalar) bool {
-  return a.GetValue() > b.GetValue()
-}
-
-func (a *Real) RealGreater(b *Real) bool {
   return a.GetValue() > b.GetValue()
 }
 
@@ -49,23 +41,9 @@ func (a *Real) Smaller(b ConstScalar) bool {
   return a.GetValue() < b.GetValue()
 }
 
-func (a *Real) RealSmaller(b *Real) bool {
-  return a.GetValue() < b.GetValue()
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (a *Real) Sign() int {
-  if a.GetValue() < 0.0 {
-    return -1
-  }
-  if a.GetValue() > 0.0 {
-    return  1
-  }
-  return 0
-}
-
-func (a *Real) RealSign() int {
   if a.GetValue() < 0.0 {
     return -1
   }
@@ -86,27 +64,9 @@ func (r *Real) Min(a, b ConstScalar) Scalar {
   return r
 }
 
-func (r *Real) RealMin(a, b *Real) Scalar {
-  if a.GetValue() < b.GetValue() {
-    r.Set(a)
-  } else {
-    r.Set(b)
-  }
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (r *Real) Max(a, b ConstScalar) Scalar {
-  if a.GetValue() > b.GetValue() {
-    r.Set(a)
-  } else {
-    r.Set(b)
-  }
-  return r
-}
-
-func (r *Real) RealMax(a, b *Real) Scalar {
   if a.GetValue() > b.GetValue() {
     r.Set(a)
   } else {
@@ -126,25 +86,11 @@ func (c *Real) Abs(a ConstScalar) Scalar {
   return c
 }
 
-func (c *Real) RealAbs(a *Real) Scalar {
-  if c.Sign() == -1 {
-    c.Neg(a)
-  } else {
-    c.Set(a)
-  }
-  return c
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *Real) Neg(a ConstScalar) Scalar {
   x := a.GetValue()
   return c.monadic(a, -x, -1, 0)
-}
-
-func (c *Real) RealNeg(a *Real) *Real {
-  x := a.GetValue()
-  return c.realMonadic(a, -x, -1, 0)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -155,24 +101,12 @@ func (c *Real) Add(a, b ConstScalar) Scalar {
   return c.dyadic(a, b, x+y, 1, 1, 0, 0, 0)
 }
 
-func (c *Real) RealAdd(a, b *Real) *Real {
-  x := a.GetValue()
-  y := b.GetValue()
-  return c.realDyadic(a, b, x+y, 1, 1, 0, 0, 0)
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *Real) Sub(a, b ConstScalar) Scalar {
   x := a.GetValue()
   y := b.GetValue()
   return c.dyadic(a, b, x-y, 1, -1, 0, 0, 0)
-}
-
-func (c *Real) RealSub(a, b *Real) *Real {
-  x := a.GetValue()
-  y := b.GetValue()
-  return c.realDyadic(a, b, x-y, 1, -1, 0, 0, 0)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,24 +117,12 @@ func (c *Real) Mul(a, b ConstScalar) Scalar {
   return c.dyadic(a, b, x*y, y, x, 1, 0, 0)
 }
 
-func (c *Real) RealMul(a, b *Real) *Real {
-  x := a.GetValue()
-  y := b.GetValue()
-  return c.realDyadic(a, b, x*y, y, x, 1, 0, 0)
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *Real) Div(a, b ConstScalar) Scalar {
   x := a.GetValue()
   y := b.GetValue()
   return c.dyadic(a, b, x/y, 1/y, -x/(y*y), -1/(y*y), 0, 2*x/(y*y*y))
-}
-
-func (c *Real) RealDiv(a, b *Real) *Real {
-  x := a.GetValue()
-  y := b.GetValue()
-  return c.realDyadic(a, b, x/y, 1/y, -x/(y*y), -1/(y*y), 0, 2*x/(y*y*y))
 }
 
 /* -------------------------------------------------------------------------- */
@@ -301,10 +223,6 @@ func (c *Real) RealPow(a, k *Real) *Real {
 
 func (c *Real) Sqrt(a ConstScalar) Scalar {
   return c.Pow(a, NewBareReal(1.0/2.0))
-}
-
-func (c *Real) RealSqrt(a *Real) *Real {
-  return c.RealPow(a, NewReal(1.0/2.0))
 }
 
 /* -------------------------------------------------------------------------- */

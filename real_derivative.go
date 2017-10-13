@@ -28,7 +28,7 @@ package autodiff
 // - v0 = f(a)
 // - v1 = d/dx f(x) | x=a
 // - v2 = d^2/dx^2 f(x) | x=a
-func (c *Real) monadic(a ConstScalar, v0, v1, v2 float64) Scalar {
+func (c *Real) monadic(a ConstScalar, v0, v1, v2 float64) *Real {
   c.AllocForOne(a)
   if c.Order >= 1 {
     if c.Order >= 2 {
@@ -52,7 +52,7 @@ func (c *Real) monadic(a ConstScalar, v0, v1, v2 float64) Scalar {
   return c
 }
 
-func (c *Real) monadicLazy(a ConstScalar, v0 float64, f1, f2 func () float64) Scalar {
+func (c *Real) monadicLazy(a ConstScalar, v0 float64, f1, f2 func () float64) *Real {
   c.AllocForOne(a)
   if c.Order >= 1 {
     v1 := f1()

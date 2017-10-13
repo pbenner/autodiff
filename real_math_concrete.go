@@ -18,53 +18,32 @@ package autodiff
 
 /* -------------------------------------------------------------------------- */
 
+//import "fmt"
 import "math"
 
 //import "github.com/pbenner/autodiff/special"
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) EQUALS(b ConstScalar, epsilon float64) bool {
+func (a *Real) EQUALS(b *Real, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) GREATER(b *BareReal) bool {
+func (a *Real) GREATER(b *Real) bool {
   return a.GetValue() > b.GetValue()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) SMALLER(b *BareReal) bool {
+func (a *Real) SMALLER(b *Real) bool {
   return a.GetValue() < b.GetValue()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (r *BareReal) MIN(a, b *BareReal) Scalar {
-  if a.GetValue() < b.GetValue() {
-    r.Set(a)
-  } else {
-    r.Set(b)
-  }
-  return r
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (r *BareReal) MAX(a, b *BareReal) Scalar {
-  if a.GetValue() > b.GetValue() {
-    r.Set(a)
-  } else {
-    r.Set(b)
-  }
-  return r
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (a *BareReal) SIGN() int {
+func (a *Real) SIGN() int {
   if a.GetValue() < 0.0 {
     return -1
   }
@@ -76,7 +55,29 @@ func (a *BareReal) SIGN() int {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) ABS(a *BareReal) Scalar {
+func (r *Real) MIN(a, b *Real) Scalar {
+  if a.GetValue() < b.GetValue() {
+    r.Set(a)
+  } else {
+    r.Set(b)
+  }
+  return r
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (r *Real) MAX(a, b *Real) Scalar {
+  if a.GetValue() > b.GetValue() {
+    r.Set(a)
+  } else {
+    r.Set(b)
+  }
+  return r
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c *Real) ABS(a *Real) Scalar {
   if c.Sign() == -1 {
     c.Neg(a)
   } else {
@@ -87,42 +88,46 @@ func (c *BareReal) ABS(a *BareReal) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) NEG(a *BareReal) *BareReal {
-  *c = BareReal(-a.GetValue())
-  return c
+func (c *Real) NEG(a *Real) *Real {
+  x := a.GetValue()
+  return c.realMonadic(a, -x, -1, 0)
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) ADD(a, b *BareReal) *BareReal {
-  *c = *a + *b
-  return c
+func (c *Real) ADD(a, b *Real) *Real {
+  x := a.GetValue()
+  y := b.GetValue()
+  return c.realDyadic(a, b, x+y, 1, 1, 0, 0, 0)
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) SUB(a, b *BareReal) *BareReal {
-  *c = *a - *b
-  return c
+func (c *Real) SUB(a, b *Real) *Real {
+  x := a.GetValue()
+  y := b.GetValue()
+  return c.realDyadic(a, b, x-y, 1, -1, 0, 0, 0)
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) MUL(a, b *BareReal) *BareReal {
-  *c = *a * *b
-  return c
+func (c *Real) MUL(a, b *Real) *Real {
+  x := a.GetValue()
+  y := b.GetValue()
+  return c.realDyadic(a, b, x*y, y, x, 1, 0, 0)
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) DIV(a, b *BareReal) *BareReal {
-  *c = *a / *b
-  return c
+func (c *Real) DIV(a, b *Real) *Real {
+  x := a.GetValue()
+  y := b.GetValue()
+  return c.realDyadic(a, b, x/y, 1/y, -x/(y*y), -1/(y*y), 0, 2*x/(y*y*y))
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) LOGADD(a, b, t *BareReal) *BareReal {
+func (c *Real) LOGADD(a, b, t *Real) *Real {
   if a.GREATER(b) {
     // swap
     a, b = b, a
@@ -141,7 +146,7 @@ func (c *BareReal) LOGADD(a, b, t *BareReal) *BareReal {
   return c
 }
 
-func (c *BareReal) LOGSUB(a, b, t *BareReal) *BareReal {
+func (c *Real) LOGSUB(a, b, t *Real) *Real {
   if math.IsInf(b.GetValue(), -1) {
     c.Set(a)
     return c
@@ -156,32 +161,62 @@ func (c *BareReal) LOGSUB(a, b, t *BareReal) *BareReal {
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) POW(a, k *BareReal) *BareReal {
-  *c = BareReal(math.Pow(a.GetValue(), k.GetValue()))
-  return c
+func (c *Real) POW(a, k *Real) *Real {
+  x := a.GetValue()
+  y := k.GetValue()
+  v0 := math.Pow(x, y)
+  if k.GetOrder() >= 1 {
+    f1 := func() (float64, float64) {
+      f10 := math.Pow(x, y-1)*y
+      f01 := math.Pow(x, y-0)*math.Log(x)
+      return f10, f01
+    }
+    f2 := func() (float64, float64, float64) {
+      f11 := math.Pow(x, y-1)*(1 + y*math.Log(x))
+      f20 := math.Pow(x, y-2)*(y - 1)*y
+      f02 := math.Pow(x, y-0)*math.Log(x)*math.Log(x)
+      return f11, f20, f02
+    }
+    return c.realDyadicLazy(a, k, v0, f1, f2)
+  } else {
+    f1 := func() (float64) {
+      return math.Pow(x, y-1)*y
+    }
+    f2 := func() (float64) {
+      return math.Pow(x, y-2)*(y - 1)*y
+    }
+    return c.realMonadicLazy(a, v0, f1, f2)
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c *BareReal) SQRT(a *BareReal) *BareReal {
-  return c.POW(a, NewBareReal(1.0/2.0))
+func (c *Real) SQRT(a *Real) *Real {
+  return c.POW(a, NewReal(0.5))
 }
 
+/* -------------------------------------------------------------------------- */
 
-func (c *BareReal) EXP(a *BareReal) *BareReal {
-  checkBare(a)
-  *c = BareReal(math.Exp(a.GetValue()))
-  return c
+func (c *Real) EXP(a *Real) *Real {
+  x := a.GetValue()
+  v0 := math.Exp(x)
+  f1 := func() float64 { return v0 }
+  f2 := func() float64 { return v0 }
+  return c.realMonadicLazy(a, v0, f1, f2)
 }
 
-func (c *BareReal) LOG(a *BareReal) *BareReal {
-  checkBare(a)
-  *c = BareReal(math.Log(a.GetValue()))
-  return c
+func (c *Real) LOG(a *Real) *Real {
+  x := a.GetValue()
+  v0 :=  math.Log(x)
+  f1 := func() float64 { return  1/x }
+  f2 := func() float64 { return -1/(x*x) }
+  return c.realMonadicLazy(a, v0, f1, f2)
 }
 
-func (c *BareReal) LOG1P(a *BareReal) *BareReal {
-  checkBare(a)
-  *c = BareReal(math.Log1p(a.GetValue()))
-  return c
+func (c *Real) LOG1P(a *Real) *Real {
+  x := a.GetValue()
+  v0 :=  math.Log1p(x)
+  f1 := func() float64 { return  1/ (1+x) }
+  f2 := func() float64 { return -1/((1+x)*(1+x)) }
+  return c.realMonadicLazy(a, v0, f1, f2)
 }
