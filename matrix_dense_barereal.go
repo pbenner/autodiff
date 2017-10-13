@@ -277,7 +277,7 @@ func (matrix *DenseBareRealMatrix) At(i, j int) Scalar {
   return &matrix.values[matrix.index(i, j)]
 }
 
-func (matrix *DenseBareRealMatrix) BareRealAt(i, j int) *BareReal {
+func (matrix *DenseBareRealMatrix) AT(i, j int) *BareReal {
   return &matrix.values[matrix.index(i, j)]
 }
 

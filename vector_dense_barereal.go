@@ -100,7 +100,7 @@ func (v DenseBareRealVector) At(i int) Scalar {
   return &v[i]
 }
 
-func (v DenseBareRealVector) BareRealAt(i int) *BareReal {
+func (v DenseBareRealVector) AT(i int) *BareReal {
   return &v[i]
 }
 
