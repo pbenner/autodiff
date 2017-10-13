@@ -35,17 +35,17 @@ func cholesky_RealDense(A *DenseMatrix) (*DenseMatrix, error) {
     for j := 0; j < (i+1); j++ {
       s.Reset()
       for k := 0; k < j; k++ {
-        t.RealMul(L.RealAt(i,k), L.RealAt(j,k))
-        s.RealAdd(s, t)
+        t.MUL(L.RealAt(i,k), L.RealAt(j,k))
+        s.ADD(s, t)
       }
-      t.RealSub(A.RealAt(i, j), s)
+      t.SUB(A.RealAt(i, j), s)
       if i == j {
         if t.GetValue() < 0.0 {
           return nil, errors.New("matrix is not positive definite")
         }
-        L.RealAt(i, j).RealSqrt(t)
+        L.RealAt(i, j).SQRT(t)
       } else {
-        L.RealAt(i, j).RealDiv(t, L.RealAt(j, j))
+        L.RealAt(i, j).DIV(t, L.RealAt(j, j))
       }
     }
   }
@@ -63,18 +63,18 @@ func choleskyInSitu_RealDense(A *DenseMatrix) (*DenseMatrix, error) {
     for j := 0; j < (i+1); j++ {
       s.Reset()
       for k := 0; k < j; k++ {
-        t.RealMul(A.RealAt(i,k), A.RealAt(j,k))
-        s.RealAdd(s, t)
+        t.MUL(A.RealAt(i,k), A.RealAt(j,k))
+        s.ADD(s, t)
       }
       if i == j {
-        t.RealSub(Aii, s)
+        t.SUB(Aii, s)
         if t.GetValue() < 0.0 {
           return nil, errors.New("matrix is not positive definite")
         }
-        A.RealAt(j, i).RealSqrt(t)
+        A.RealAt(j, i).SQRT(t)
       } else {
-        t.RealSub(A.RealAt(i, j), s)
-        A.RealAt(i, j).RealDiv(t, A.RealAt(j, j))
+        t.SUB(A.RealAt(i, j), s)
+        A.RealAt(i, j).DIV(t, A.RealAt(j, j))
       }
     }
   }
@@ -101,17 +101,17 @@ func cholesky_BareRealDense(A *DenseMatrix) (*DenseMatrix, error) {
     for j := 0; j < (i+1); j++ {
       s.Reset()
       for k := 0; k < j; k++ {
-        t.BareRealMul(L.BareRealAt(i,k), L.BareRealAt(j,k))
-        s.BareRealAdd(s, t)
+        t.MUL(L.BareRealAt(i,k), L.BareRealAt(j,k))
+        s.ADD(s, t)
       }
-      t.BareRealSub(A.BareRealAt(i, j), s)
+      t.SUB(A.BareRealAt(i, j), s)
       if i == j {
         if t.GetValue() < 0.0 {
           return nil, errors.New("matrix is not positive definite")
         }
-        L.BareRealAt(i, j).BareRealSqrt(t)
+        L.BareRealAt(i, j).SQRT(t)
       } else {
-        L.BareRealAt(i, j).BareRealDiv(t, L.BareRealAt(j, j))
+        L.BareRealAt(i, j).DIV(t, L.BareRealAt(j, j))
       }
     }
   }
@@ -129,18 +129,18 @@ func choleskyInSitu_BareRealDense(A *DenseMatrix) (*DenseMatrix, error) {
     for j := 0; j < (i+1); j++ {
       s.Reset()
       for k := 0; k < j; k++ {
-        t.BareRealMul(A.BareRealAt(i,k), A.BareRealAt(j,k))
-        s.BareRealAdd(s, t)
+        t.MUL(A.BareRealAt(i,k), A.BareRealAt(j,k))
+        s.ADD(s, t)
       }
       if i == j {
-        t.BareRealSub(Aii, s)
+        t.SUB(Aii, s)
         if t.GetValue() < 0.0 {
           return nil, errors.New("matrix is not positive definite")
         }
-        A.BareRealAt(j, i).BareRealSqrt(t)
+        A.BareRealAt(j, i).SQRT(t)
       } else {
-        t.BareRealSub(A.BareRealAt(i, j), s)
-        A.BareRealAt(i, j).BareRealDiv(t, A.BareRealAt(j, j))
+        t.SUB(A.BareRealAt(i, j), s)
+        A.BareRealAt(i, j).DIV(t, A.BareRealAt(j, j))
       }
     }
   }
