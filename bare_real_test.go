@@ -25,6 +25,9 @@ import "testing"
 
 func TestBareDiff1(t *testing.T) {
 
+  if !bareRealDebug {
+    return
+  }
   defer func() {
     if r := recover(); r == nil {
       t.Errorf("TestBareDiff1() failed!")

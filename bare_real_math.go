@@ -42,27 +42,15 @@ func (a *BareReal) Equals(b ConstScalar, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
-func (a *BareReal) BareRealEquals(b ConstScalar, epsilon float64) bool {
-  return math.Abs(a.GetValue() - b.GetValue()) < epsilon
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (a *BareReal) Greater(b ConstScalar) bool {
   return a.GetValue() > b.GetValue()
 }
 
-func (a *BareReal) BareRealGreater(b *BareReal) bool {
-  return a.GetValue() > b.GetValue()
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (a *BareReal) Smaller(b ConstScalar) bool {
-  return a.GetValue() < b.GetValue()
-}
-
-func (a *BareReal) BareRealSmaller(b *BareReal) bool {
   return a.GetValue() < b.GetValue()
 }
 
@@ -77,27 +65,9 @@ func (r *BareReal) Min(a, b ConstScalar) Scalar {
   return r
 }
 
-func (r *BareReal) BareRealMin(a, b *BareReal) Scalar {
-  if a.GetValue() < b.GetValue() {
-    r.Set(a)
-  } else {
-    r.Set(b)
-  }
-  return r
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (r *BareReal) Max(a, b ConstScalar) Scalar {
-  if a.GetValue() > b.GetValue() {
-    r.Set(a)
-  } else {
-    r.Set(b)
-  }
-  return r
-}
-
-func (r *BareReal) BareRealMax(a, b *BareReal) Scalar {
   if a.GetValue() > b.GetValue() {
     r.Set(a)
   } else {
@@ -118,28 +88,9 @@ func (a *BareReal) Sign() int {
   return 0
 }
 
-func (a *BareReal) RealSign() int {
-  if a.GetValue() < 0.0 {
-    return -1
-  }
-  if a.GetValue() > 0.0 {
-    return  1
-  }
-  return 0
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *BareReal) Abs(a ConstScalar) Scalar {
-  if c.Sign() == -1 {
-    c.Neg(a)
-  } else {
-    c.Set(a)
-  }
-  return c
-}
-
-func (c *BareReal) BareRealAbs(a *BareReal) Scalar {
   if c.Sign() == -1 {
     c.Neg(a)
   } else {
@@ -156,22 +107,12 @@ func (c *BareReal) Neg(a ConstScalar) Scalar {
   return c
 }
 
-func (c *BareReal) BareRealNeg(a *BareReal) *BareReal {
-  *c = BareReal(-a.GetValue())
-  return c
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *BareReal) Add(a, b ConstScalar) Scalar {
   checkBare(a)
   checkBare(b)
   *c = BareReal(a.GetValue() + b.GetValue())
-  return c
-}
-
-func (c *BareReal) BareRealAdd(a, b *BareReal) *BareReal {
-  *c = *a + *b
   return c
 }
 
@@ -184,11 +125,6 @@ func (c *BareReal) Sub(a, b ConstScalar) Scalar {
   return c
 }
 
-func (c *BareReal) BareRealSub(a, b *BareReal) *BareReal {
-  *c = *a - *b
-  return c
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *BareReal) Mul(a, b ConstScalar) Scalar {
@@ -198,22 +134,12 @@ func (c *BareReal) Mul(a, b ConstScalar) Scalar {
   return c
 }
 
-func (c *BareReal) BareRealMul(a, b *BareReal) *BareReal {
-  *c = *a * *b
-  return c
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *BareReal) Div(a, b ConstScalar) Scalar {
   checkBare(a)
   checkBare(b)
   *c = BareReal(a.GetValue() / b.GetValue())
-  return c
-}
-
-func (c *BareReal) BareRealDiv(a, b *BareReal) *BareReal {
-  *c = *a / *b
   return c
 }
 
@@ -235,25 +161,6 @@ func (c *BareReal) LogAdd(a, b ConstScalar, t Scalar) Scalar {
   t.Exp(t)
   t.Log1p(t)
   c.Add(t, b)
-  return c
-}
-
-func (c *BareReal) BareRealLogAdd(a, b, t *BareReal) *BareReal {
-  if a.BareRealGreater(b) {
-    // swap
-    a, b = b, a
-  }
-  if math.IsInf(a.GetValue(), 0) {
-    // cases:
-    //  i) a = -Inf and b >= a    => c = b
-    // ii) a =  Inf and b  = Inf  => c = Inf
-    c.Set(b)
-    return c
-  }
-  t.BareRealSub(a, b)
-  t.BareRealExp(t)
-  t.BareRealLog1p(t)
-  c.BareRealAdd(t, b)
   return c
 }
 
@@ -279,20 +186,11 @@ func (c *BareReal) Pow(a, k ConstScalar) Scalar {
   return c
 }
 
-func (c *BareReal) BareRealPow(a, k *BareReal) *BareReal {
-  *c = BareReal(math.Pow(a.GetValue(), k.GetValue()))
-  return c
-}
-
 /* -------------------------------------------------------------------------- */
 
 func (c *BareReal) Sqrt(a ConstScalar) Scalar {
   checkBare(a)
   return c.Pow(a, NewBareReal(1.0/2.0))
-}
-
-func (c *BareReal) BareRealSqrt(a *BareReal) *BareReal {
-  return c.BareRealPow(a, NewBareReal(1.0/2.0))
 }
 
 /* -------------------------------------------------------------------------- */
@@ -339,31 +237,13 @@ func (c *BareReal) Exp(a ConstScalar) Scalar {
   return c
 }
 
-func (c *BareReal) BareRealExp(a *BareReal) *BareReal {
-  checkBare(a)
-  *c = BareReal(math.Exp(a.GetValue()))
-  return c
-}
-
 func (c *BareReal) Log(a ConstScalar) Scalar {
   checkBare(a)
   *c = BareReal(math.Log(a.GetValue()))
   return c
 }
 
-func (c *BareReal) BareRealLog(a *BareReal) *BareReal {
-  checkBare(a)
-  *c = BareReal(math.Log(a.GetValue()))
-  return c
-}
-
 func (c *BareReal) Log1p(a ConstScalar) Scalar {
-  checkBare(a)
-  *c = BareReal(math.Log1p(a.GetValue()))
-  return c
-}
-
-func (c *BareReal) BareRealLog1p(a *BareReal) *BareReal {
   checkBare(a)
   *c = BareReal(math.Log1p(a.GetValue()))
   return c
