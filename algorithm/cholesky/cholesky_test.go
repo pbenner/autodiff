@@ -18,9 +18,10 @@ package cholesky
 
 /* -------------------------------------------------------------------------- */
 
-//import   "fmt"
-
+import   "fmt"
 import   "testing"
+import   "time"
+
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/simple"
 
@@ -91,4 +92,44 @@ func TestCholesky3(t *testing.T) {
       t.Error("Cholesky failed!")
     }
   }
+}
+
+
+func TestPerformance(t *testing.T) {
+  n := 100
+  a1 := NullDenseMatrix(RealType, n, n)
+  a1.SetIdentity()
+  l1 := NullDenseMatrix(RealType, n, n)
+  s1 := NewScalar(RealType, 0.0)
+  t1 := NewScalar(RealType, 0.0)
+  inSitu1 := InSitu{l1, nil, s1, t1}
+
+  a2 := NullDenseMatrix(BareRealType, n, n)
+  a2.SetIdentity()
+  l2 := NullDenseMatrix(RealType, n, n)
+  s2 := NewBareReal(0.0)
+  t2 := NewBareReal(0.0)
+  inSitu2 := InSitu{l2, nil, s2, t2}
+
+  a3 := NullDenseBareRealMatrix(n, n)
+  a3.SetIdentity()
+  l3 := NullDenseBareRealMatrix(n, n)
+  s3 := NewBareReal(0.0)
+  t3 := NewBareReal(0.0)
+  inSitu3 := InSitu{l3, nil, s3, t3}
+
+  start := time.Now()
+  Run(a1, &inSitu1)
+  elapsed := time.Since(start)
+  fmt.Printf("Cholesky on DenseMatrix with RealType took %s.\n", elapsed)
+
+  start = time.Now()
+  Run(a2, &inSitu2)
+  elapsed = time.Since(start)
+  fmt.Printf("Cholesky on DenseMatrix with BareRealType took %s.\n", elapsed)
+
+  start = time.Now()
+  Run(a3, &inSitu3)
+  elapsed = time.Since(start)
+  fmt.Printf("Cholesky on DenseBareRealMatrix took %s.\n", elapsed)
 }

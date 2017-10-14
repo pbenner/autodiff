@@ -49,18 +49,6 @@ type DenseMatrix struct {
 /* constructors
  * -------------------------------------------------------------------------- */
 
-func NewMatrix(t ScalarType, rows, cols int, values []float64) Matrix {
-  return NewDenseMatrix(t, rows, cols, values)
-}
-
-func NullMatrix(t ScalarType, rows, cols int) Matrix {
-  return NullDenseMatrix(t, rows, cols)
-}
-
-func NilMatrix(rows, cols int) Matrix {
-  return NilDenseMatrix(rows, cols)
-}
-
 func NewDenseMatrix(t ScalarType, rows, cols int, values []float64) *DenseMatrix {
   m := NilDenseMatrix(rows, cols)
   v := m.values

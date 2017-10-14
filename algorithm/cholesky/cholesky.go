@@ -222,11 +222,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     if inSitu.D == nil {
       inSitu.D = NullMatrix(t, n, n)
     } else {
-      for i := 0; i < n; i++ {
-        for j := 0; j < n; j++ {
-          inSitu.D.At(i,j).SetValue(0.0)
-        }
-      }
+      inSitu.D.Map(func(x Scalar) { x.SetValue(0.0) })
     }
   }
   if inSitu.S == nil {
@@ -254,6 +250,14 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
       return choleskyLDL(a, inSitu.L, inSitu.D, inSitu.S, inSitu.T)
     }
   } else {
-    return cholesky(a, inSitu.L, inSitu.S, inSitu.T)
+    switch A := a.(type) {
+    case *DenseBareRealMatrix:
+      L := inSitu.L.(*DenseBareRealMatrix)
+      s := inSitu.S.(*BareReal)
+      t := inSitu.T.(*BareReal)
+      return cholesky_DenseBareRealMatrix(A, L, s, t)
+    default:
+      return cholesky(a, inSitu.L, inSitu.S, inSitu.T)
+    }
   }
 }

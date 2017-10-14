@@ -92,3 +92,26 @@ type Matrix interface {
   // private methods
   storageLocation() uintptr
 }
+
+/* constructors
+ * -------------------------------------------------------------------------- */
+
+func NewMatrix(t ScalarType, rows, cols int, values []float64) Matrix {
+  if t == BareRealType {
+    return NewDenseBareRealMatrix(rows, cols, values)
+  } else {
+    return NewDenseMatrix(t, rows, cols, values)
+  }
+}
+
+func NullMatrix(t ScalarType, rows, cols int) Matrix {
+  if t == BareRealType {
+    return NullDenseBareRealMatrix(rows, cols)
+  } else {
+    return NullDenseMatrix(t, rows, cols)
+  }
+}
+
+func NilMatrix(rows, cols int) Matrix {
+  return NilDenseMatrix(rows, cols)
+}

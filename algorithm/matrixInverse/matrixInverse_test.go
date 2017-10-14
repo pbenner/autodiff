@@ -87,9 +87,11 @@ func TestMatrixPerformance(t *testing.T) {
 
   m1 := kernelSquaredExponential(NullDenseMatrix(    RealType, 100, 100),     NewReal(1.0),     NewReal(1.0))
   m2 := kernelSquaredExponential(NullDenseMatrix(BareRealType, 100, 100), NewBareReal(1.0), NewBareReal(1.0))
+  m3 := kernelSquaredExponential(NullDenseBareRealMatrix(100, 100), NewBareReal(1.0), NewBareReal(1.0))
 
   s1 := NewInSitu(    RealType, 100, true)
   s2 := NewInSitu(BareRealType, 100, true)
+  s3 := NewInSitu(BareRealType, 100, true)
 
   start := time.Now()
   Run(m1, PositiveDefinite{true}, &s1)
@@ -100,5 +102,10 @@ func TestMatrixPerformance(t *testing.T) {
   Run(m2, PositiveDefinite{true}, &s2)
   elapsed = time.Since(start)
   fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseMatrix with scalar type BareReal) took %s.\n", elapsed)
+
+  start = time.Now()
+  Run(m3, PositiveDefinite{true}, &s3)
+  elapsed = time.Since(start)
+  fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseBareRealMatrix) took %s.\n", elapsed)
 
 }
