@@ -167,7 +167,7 @@ func (v DenseBareRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Sca
 
 func (v DenseBareRealVector) ElementType() ScalarType {
   if len(v) > 0 {
-    return reflect.TypeOf(v[0])
+    return reflect.TypeOf(&v[0])
   }
   return nil
 }
