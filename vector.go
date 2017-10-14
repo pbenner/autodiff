@@ -71,3 +71,26 @@ type Vector interface {
   // json
   json.Marshaler
 }
+
+/* constructors
+ * -------------------------------------------------------------------------- */
+
+func NewVector(t ScalarType, values []float64) Vector {
+  if t == BareRealType {
+    return NewDenseBareRealVector(values)
+  } else {
+    return NewDenseVector(t, values)
+  }
+}
+
+func NullVector(t ScalarType, length int) Vector {
+  if t == BareRealType {
+    return NullDenseBareRealVector(length)
+  } else {
+    return NullDenseVector(t, length)
+  }
+}
+
+func NilVector(length int) Vector {
+  return NilDenseVector(length)
+}

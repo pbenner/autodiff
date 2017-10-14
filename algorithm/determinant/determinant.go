@@ -38,12 +38,6 @@ type InSitu struct {
   Cholesky cholesky.InSitu
 }
 
-func NewInSitu(t ScalarType, n int) InSitu {
-  s := InSitu{}
-  s.Cholesky = cholesky.NewInSitu(t, n, false)
-  return s
-}
-
 /* -------------------------------------------------------------------------- */
 
 func determinantNaive(a Matrix) Scalar {

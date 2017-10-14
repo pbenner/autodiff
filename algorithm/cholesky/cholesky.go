@@ -41,17 +41,6 @@ type ForcePD struct {
   Value bool
 }
 
-func NewInSitu(t ScalarType, n int, ldl bool) InSitu {
-  s := InSitu{}
-  s.L = NullMatrix(t, n, n)
-  s.S = NewScalar(t, 0.0)
-  s.T = NewScalar(t, 0.0)
-  if ldl {
-    s.D = NullMatrix(t, n, n)
-  }
-  return s
-}
-
 /* -------------------------------------------------------------------------- */
 
 func cholesky(A, L Matrix, s, t Scalar) (Matrix, Matrix, error) {
@@ -250,13 +239,13 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
       return choleskyLDL(a, inSitu.L, inSitu.D, inSitu.S, inSitu.T)
     }
   } else {
-    switch A := a.(type) {
-    case *DenseBareRealMatrix:
-      L := inSitu.L.(*DenseBareRealMatrix)
-      s := inSitu.S.(*BareReal)
-      t := inSitu.T.(*BareReal)
+    A, ok1 :=        a.(*DenseBareRealMatrix)
+    L, ok2 := inSitu.L.(*DenseBareRealMatrix)
+    s, ok3 := inSitu.S.(*BareReal)
+    t, ok4 := inSitu.T.(*BareReal)
+    if ok1 && ok2 && ok3 && ok4 {
       return cholesky_DenseBareRealMatrix(A, L, s, t)
-    default:
+    } else {
       return cholesky(a, inSitu.L, inSitu.S, inSitu.T)
     }
   }

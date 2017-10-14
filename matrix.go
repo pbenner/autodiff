@@ -115,3 +115,14 @@ func NullMatrix(t ScalarType, rows, cols int) Matrix {
 func NilMatrix(rows, cols int) Matrix {
   return NilDenseMatrix(rows, cols)
 }
+
+/* constructors for special types of matrices
+ * -------------------------------------------------------------------------- */
+
+func IdentityMatrix(t ScalarType, dim int) Matrix {
+  matrix := NullMatrix(t, dim, dim)
+  for i := 0; i < dim; i++ {
+    matrix.At(i, i).SetValue(1.0)
+  }
+  return matrix
+}

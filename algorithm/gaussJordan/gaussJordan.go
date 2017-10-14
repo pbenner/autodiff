@@ -273,20 +273,14 @@ func Run(a, x Matrix, b Vector, args ...interface{}) error {
       submatrix[i] = true
     }
   }
-  ad, ok1 := a.(*DenseMatrix)
-  bd, ok2 := b.( DenseVector)
-  xd, ok3 := x.(*DenseMatrix)
-  t1 := a.ElementType()
-  t2 := x.ElementType()
-  if ok1 && ok2 && ok3 && t1 == t2 {
-    if t1 == RealType && triangular == true {
-      return gaussJordanUpperTriangular_RealDense(ad, xd, bd, submatrix)
-    } else if t1 == BareRealType && triangular == true {
-      return gaussJordanUpperTriangular_BareRealDense(ad, xd, bd, submatrix)
-    } else if t1 == RealType && triangular == false {
-      return gaussJordan_RealDense(ad, xd, bd, submatrix)
-    } else if t1 == BareRealType && triangular == false {
-      return gaussJordan_BareRealDense(ad, xd, bd, submatrix)
+  ad, ok1 := a.(*DenseBareRealMatrix)
+  bd, ok2 := b.( DenseBareRealVector)
+  xd, ok3 := x.(*DenseBareRealMatrix)
+  if ok1 && ok2 && ok3 {
+    if triangular == true {
+      return gaussJordanUpperTriangular_DenseBareReal(ad, xd, bd, submatrix)
+    } else {
+      return gaussJordan_DenseBareReal(ad, xd, bd, submatrix)
     }
   }
   // call generic gaussJordan

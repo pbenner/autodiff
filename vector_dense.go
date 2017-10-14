@@ -38,18 +38,6 @@ type DenseVector []Scalar
 /* constructors
  * -------------------------------------------------------------------------- */
 
-func NewVector(t ScalarType, values []float64) Vector {
-  return NewDenseVector(t, values)
-}
-
-func NullVector(t ScalarType, length int) Vector {
-  return NullDenseVector(t, length)
-}
-
-func NilVector(length int) Vector {
-  return NilDenseVector(length)
-}
-
 // Allocate a vector for scalars of type t (i.e. RealType, or ProbabilityType).
 func NewDenseVector(t ScalarType, values []float64) DenseVector {
   v := NilDenseVector(len(values))

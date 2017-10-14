@@ -42,26 +42,6 @@ type InSitu struct {
   Cholesky cholesky.InSitu
 }
 
-func NewInSitu(t ScalarType, n int, args ...interface{}) InSitu {
-  // parse optional arguments
-  positiveDefinite := false
-  for _, arg := range args {
-    switch a := arg.(type) {
-    case PositiveDefinite:
-      positiveDefinite = a.Value
-    }
-  }
-  s := InSitu{}
-  s.Id = IdentityMatrix(t, n)
-  s.B  = NullVector(t, n)
-  if positiveDefinite {
-    s.Cholesky = cholesky.NewInSitu(t, n, false)
-  } else {
-    s.A = NullMatrix(t, n, n)
-  }
-  return s
-}
-
 /* -------------------------------------------------------------------------- */
 
 // compute the inverse of a matrix with a

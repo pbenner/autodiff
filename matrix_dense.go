@@ -130,17 +130,6 @@ func (matrix *DenseMatrix) CloneMatrix() Matrix {
   return matrix.Clone()
 }
 
-/* constructors for special types of matrices
- * -------------------------------------------------------------------------- */
-
-func IdentityMatrix(t ScalarType, dim int) Matrix {
-  matrix := NullMatrix(t, dim, dim)
-  for i := 0; i < dim; i++ {
-    matrix.At(i, i).Set(NewScalar(t, 1))
-  }
-  return matrix
-}
-
 /* field access
  * -------------------------------------------------------------------------- */
 
