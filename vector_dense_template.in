@@ -117,6 +117,9 @@ func (v VECTOR_TYPE) Reset() {
 }
 
 func (v VECTOR_TYPE) ResetDerivatives() {
+  for i := 0; i < len(v); i++ {
+    v[i].ResetDerivatives()
+  }
 }
 
 func (v VECTOR_TYPE) ReverseOrder() {

@@ -96,6 +96,9 @@ func (v DenseRealVector) Reset() {
   }
 }
 func (v DenseRealVector) ResetDerivatives() {
+  for i := 0; i < len(v); i++ {
+    v[i].ResetDerivatives()
+  }
 }
 func (v DenseRealVector) ReverseOrder() {
   n := len(v)
