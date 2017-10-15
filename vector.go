@@ -76,17 +76,23 @@ type Vector interface {
  * -------------------------------------------------------------------------- */
 
 func NewVector(t ScalarType, values []float64) Vector {
-  if t == BareRealType {
+  switch t {
+  case RealType:
+    return NewDenseRealVector(values)
+  case BareRealType:
     return NewDenseBareRealVector(values)
-  } else {
+  default:
     return NewDenseVector(t, values)
   }
 }
 
 func NullVector(t ScalarType, length int) Vector {
-  if t == BareRealType {
+  switch t {
+  case RealType:
+    return NullDenseRealVector(length)
+  case BareRealType:
     return NullDenseBareRealVector(length)
-  } else {
+  default:
     return NullDenseVector(t, length)
   }
 }

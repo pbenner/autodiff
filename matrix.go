@@ -97,17 +97,23 @@ type Matrix interface {
  * -------------------------------------------------------------------------- */
 
 func NewMatrix(t ScalarType, rows, cols int, values []float64) Matrix {
-  if t == BareRealType {
+  switch t {
+  case RealType:
+    return NewDenseRealMatrix(rows, cols, values)
+  case BareRealType:
     return NewDenseBareRealMatrix(rows, cols, values)
-  } else {
+  default:
     return NewDenseMatrix(t, rows, cols, values)
   }
 }
 
 func NullMatrix(t ScalarType, rows, cols int) Matrix {
-  if t == BareRealType {
+  switch t {
+  case RealType:
+    return NullDenseRealMatrix(rows, cols)
+  case BareRealType:
     return NullDenseBareRealMatrix(rows, cols)
-  } else {
+  default:
     return NullDenseMatrix(t, rows, cols)
   }
 }

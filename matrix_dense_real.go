@@ -57,7 +57,7 @@ func NewDenseRealMatrix(rows, cols int, values []float64) *DenseRealMatrix {
   m.initTmp()
   return m
 }
-func NULL_MATRIX_TYPE(rows, cols int) *DenseRealMatrix {
+func NullDenseRealMatrix(rows, cols int) *DenseRealMatrix {
   m := DenseRealMatrix{}
   m.values = NullDenseRealVector(rows*cols)
   m.rows = rows
@@ -460,7 +460,7 @@ func (m *DenseRealMatrix) Export(filename string) error {
 func (obj *DenseRealMatrix) MarshalJSON() ([]byte, error) {
   if obj.transposed || obj.rowMax > obj.rows || obj.colMax > obj.cols {
     n, m := obj.Dims()
-    tmp := NULL_MATRIX_TYPE(n, m)
+    tmp := NullDenseRealMatrix(n, m)
     tmp.Set(obj)
     obj = tmp
   }

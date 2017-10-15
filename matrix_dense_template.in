@@ -66,7 +66,7 @@ func NEW_MATRIX(rows, cols int, values []float64) *MATRIX_TYPE {
   return m
 }
 
-func NULL_MATRIX_TYPE(rows, cols int) *MATRIX_TYPE {
+func NULL_MATRIX(rows, cols int) *MATRIX_TYPE {
   m := MATRIX_TYPE{}
   m.values    = NULL_VECTOR(rows*cols)
   m.rows      = rows
@@ -527,7 +527,7 @@ func (m *MATRIX_TYPE) Export(filename string) error {
 func (obj *MATRIX_TYPE) MarshalJSON() ([]byte, error) {
   if obj.transposed || obj.rowMax > obj.rows || obj.colMax > obj.cols {
     n, m := obj.Dims()
-    tmp  := NULL_MATRIX_TYPE(n, m)
+    tmp  := NULL_MATRIX(n, m)
     tmp.Set(obj)
     obj = tmp
   }

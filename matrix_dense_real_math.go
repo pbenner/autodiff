@@ -1,4 +1,6 @@
-/* Copyright (C) 2015-2017 Philipp Benner
+/* -*- mode: go; -*-
+ *
+ * Copyright (C) 2015-2017 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -227,7 +229,7 @@ func (r *DenseRealMatrix) Jacobian(f func(ConstVector) ConstVector, x_ Vector) M
   if r == nil || x.Dim() != m || y.Dim() != n {
      n = y.Dim()
      m = x.Dim()
-    *r = *NULL_MATRIX_TYPE(n, m)
+    *r = *NullDenseRealMatrix(n, m)
   }
   // copy derivatives
   for i := 0; i < n; i++ {
@@ -244,7 +246,7 @@ func (r *DenseRealMatrix) Hessian(f func(ConstVector) ConstScalar, x_ Vector) Ma
   if r == nil || x_.Dim() != n || n != m {
      n = x_.Dim()
      m = x_.Dim()
-    *r = *NULL_MATRIX_TYPE(n, m)
+    *r = *NullDenseRealMatrix(n, m)
   }
   x := x_.CloneVector()
   x.Variables(2)
