@@ -30,46 +30,46 @@ import "strings"
 import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
-type DenseBareRealVector []BareReal
+type DenseRealVector []Real
 /* constructors
  * -------------------------------------------------------------------------- */
 // Allocate a vector for scalars of type t (i.e. RealType, or ProbabilityType).
-func NewDenseBareRealVector(values []float64) DenseBareRealVector {
-  v := NilDenseBareRealVector(len(values))
+func NewDenseRealVector(values []float64) DenseRealVector {
+  v := NilDenseRealVector(len(values))
   for i, _ := range values {
-    v[i] = *NewBareReal(values[i])
+    v[i] = *NewReal(values[i])
   }
   return v
 }
 // Allocate an empty vector of type t. All values are initialized to zero.
-func NullDenseBareRealVector(length int) DenseBareRealVector {
-  v := NilDenseBareRealVector(length)
+func NullDenseRealVector(length int) DenseRealVector {
+  v := NilDenseRealVector(length)
   if length > 0 {
     for i := 0; i < length; i++ {
-      v[i] = *NewBareReal(0.0)
+      v[i] = *NewReal(0.0)
     }
   }
   return v
 }
 // Create a vector without allocating memory for the scalar variables.
-func NilDenseBareRealVector(length int) DenseBareRealVector {
-  return make(DenseBareRealVector, length)
+func NilDenseRealVector(length int) DenseRealVector {
+  return make(DenseRealVector, length)
 }
 /* -------------------------------------------------------------------------- */
 // Create a deep copy of the vector.
-func (v DenseBareRealVector) Clone() DenseBareRealVector {
-  result := make(DenseBareRealVector, len(v))
+func (v DenseRealVector) Clone() DenseRealVector {
+  result := make(DenseRealVector, len(v))
   for i, _ := range v {
     result[i] = *v[i].Clone()
   }
   return result
 }
-func (v DenseBareRealVector) CloneVector() Vector {
+func (v DenseRealVector) CloneVector() Vector {
   return v.Clone()
 }
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
-func (v DenseBareRealVector) Set(w ConstVector) {
+func (v DenseRealVector) Set(w ConstVector) {
   if v.Dim() != w.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
@@ -78,78 +78,78 @@ func (v DenseBareRealVector) Set(w ConstVector) {
   }
 }
 /* -------------------------------------------------------------------------- */
-func (v DenseBareRealVector) Dim() int {
+func (v DenseRealVector) Dim() int {
   return len(v)
 }
-func (v DenseBareRealVector) At(i int) Scalar {
+func (v DenseRealVector) At(i int) Scalar {
   return &v[i]
 }
-func (v DenseBareRealVector) AT(i int) *BareReal {
+func (v DenseRealVector) AT(i int) *Real {
   return &v[i]
 }
-func (v DenseBareRealVector) ConstAt(i int) ConstScalar {
+func (v DenseRealVector) ConstAt(i int) ConstScalar {
   return &v[i]
 }
-func (v DenseBareRealVector) Reset() {
+func (v DenseRealVector) Reset() {
   for i := 0; i < len(v); i++ {
     v[i].Reset()
   }
 }
-func (v DenseBareRealVector) ResetDerivatives() {
+func (v DenseRealVector) ResetDerivatives() {
 }
-func (v DenseBareRealVector) ReverseOrder() {
+func (v DenseRealVector) ReverseOrder() {
   n := len(v)
   for i := 0; i < n/2; i++ {
     v[i], v[n-1-i] = v[n-1-i], v[i]
   }
 }
-func (v DenseBareRealVector) Slice(i, j int) Vector {
+func (v DenseRealVector) Slice(i, j int) Vector {
   return v[i:j]
 }
-func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
+func (v DenseRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
-func (v DenseBareRealVector) Append(a ...Scalar) Vector {
+func (v DenseRealVector) Append(a ...Scalar) Vector {
   for _, s := range a {
-    v = append(v, *NewBareReal(s.GetValue()))
+    v = append(v, *NewReal(s.GetValue()))
   }
   return v
 }
-func (v DenseBareRealVector) Swap(i, j int) {
+func (v DenseRealVector) Swap(i, j int) {
   v[i], v[j] = v[j], v[i]
 }
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
-func (v DenseBareRealVector) Map(f func(Scalar)) {
+func (v DenseRealVector) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
     f(&v[i])
   }
 }
-func (v DenseBareRealVector) MapSet(f func(Scalar) Scalar) {
+func (v DenseRealVector) MapSet(f func(Scalar) Scalar) {
   for i := 0; i < len(v); i++ {
     v[i].Set(f(&v[i]))
   }
 }
-func (v DenseBareRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
+func (v DenseRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
     r = f(r, &v[i])
   }
   return r
 }
-func (v DenseBareRealVector) ElementType() ScalarType {
+func (v DenseRealVector) ElementType() ScalarType {
   if len(v) > 0 {
     return reflect.TypeOf(&v[0])
   }
   return nil
 }
-func (v DenseBareRealVector) Variables(order int) {
+func (v DenseRealVector) Variables(order int) {
   for i, _ := range v {
     v[i].SetVariable(i, len(v), order)
   }
 }
 /* permutations
  * -------------------------------------------------------------------------- */
-func (v DenseBareRealVector) Permute(pi []int) error {
+func (v DenseRealVector) Permute(pi []int) error {
   if len(pi) != len(v) {
     return errors.New("Permute(): permutation vector has invalid length!")
   }
@@ -167,35 +167,35 @@ func (v DenseBareRealVector) Permute(pi []int) error {
 }
 /* sorting
  * -------------------------------------------------------------------------- */
-type sortDenseBareRealVectorByValue DenseBareRealVector
-func (v sortDenseBareRealVectorByValue) Len() int { return len(v) }
-func (v sortDenseBareRealVectorByValue) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
-func (v sortDenseBareRealVectorByValue) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
-func (v DenseBareRealVector) Sort(reverse bool) DenseBareRealVector {
+type sortDenseRealVectorByValue DenseRealVector
+func (v sortDenseRealVectorByValue) Len() int { return len(v) }
+func (v sortDenseRealVectorByValue) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
+func (v sortDenseRealVectorByValue) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
+func (v DenseRealVector) Sort(reverse bool) DenseRealVector {
   if reverse {
-    sort.Sort(sort.Reverse(sortDenseBareRealVectorByValue(v)))
+    sort.Sort(sort.Reverse(sortDenseRealVectorByValue(v)))
   } else {
-    sort.Sort(sortDenseBareRealVectorByValue(v))
+    sort.Sort(sortDenseRealVectorByValue(v))
   }
   return v
 }
-func (v DenseBareRealVector) SortVector(reverse bool) Vector {
+func (v DenseRealVector) SortVector(reverse bool) Vector {
   return v.Sort(reverse)
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
-func (v DenseBareRealVector) ToDenseVector() DenseVector {
+func (v DenseRealVector) ToDenseVector() DenseVector {
   r := NilDenseVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {
     r.SetReferenceAt(i, &v[i])
   }
   return r
 }
-func (v DenseBareRealVector) ToMatrix(n, m int) Matrix {
+func (v DenseRealVector) ToMatrix(n, m int) Matrix {
   if n*m != len(v) {
     panic("Matrix dimension does not fit input vector!")
   }
-  matrix := DenseBareRealMatrix{}
+  matrix := DenseRealMatrix{}
   matrix.values = v
   matrix.rows = n
   matrix.cols = m
@@ -206,14 +206,14 @@ func (v DenseBareRealVector) ToMatrix(n, m int) Matrix {
   matrix.initTmp()
   return &matrix
 }
-func (v DenseBareRealVector) SliceFloat64() []float64 {
+func (v DenseRealVector) SliceFloat64() []float64 {
   s := make([]float64, len(v))
   for i, _ := range v {
     s[i] = v[i].GetValue()
   }
   return s
 }
-func (v DenseBareRealVector) String() string {
+func (v DenseRealVector) String() string {
   var buffer bytes.Buffer
   buffer.WriteString("[")
   for i, _ := range v {
@@ -225,7 +225,7 @@ func (v DenseBareRealVector) String() string {
   buffer.WriteString("]")
   return buffer.String()
 }
-func (v DenseBareRealVector) Table() string {
+func (v DenseRealVector) Table() string {
   var buffer bytes.Buffer
   for i, _ := range v {
     if i != 0 {
@@ -235,7 +235,7 @@ func (v DenseBareRealVector) Table() string {
   }
   return buffer.String()
 }
-func (v DenseBareRealVector) Export(filename string) error {
+func (v DenseRealVector) Export(filename string) error {
   f, err := os.Create(filename)
   if err != nil {
     return err
@@ -248,7 +248,7 @@ func (v DenseBareRealVector) Export(filename string) error {
   }
   return nil
 }
-func (v *DenseBareRealVector) Import(filename string) error {
+func (v *DenseRealVector) Import(filename string) error {
   var scanner *bufio.Scanner
   // open file
   f, err := os.Open(filename)
@@ -272,7 +272,7 @@ func (v *DenseBareRealVector) Import(filename string) error {
     scanner = bufio.NewScanner(f)
   }
   // reset vector
-  *v = DenseBareRealVector{}
+  *v = DenseRealVector{}
   for scanner.Scan() {
     fields := strings.Fields(scanner.Text())
     if len(fields) == 0 {
@@ -286,24 +286,24 @@ func (v *DenseBareRealVector) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-      *v = append(*v, *NewBareReal(value))
+      *v = append(*v, *NewReal(value))
     }
   }
   return nil
 }
 /* json
  * -------------------------------------------------------------------------- */
-func (obj DenseBareRealVector) MarshalJSON() ([]byte, error) {
-  r := []BareReal{}
+func (obj DenseRealVector) MarshalJSON() ([]byte, error) {
+  r := []Real{}
   r = obj
   return json.MarshalIndent(r, "", "  ")
 }
-func (obj *DenseBareRealVector) UnmarshalJSON(data []byte) error {
-  r := []BareReal{}
+func (obj *DenseRealVector) UnmarshalJSON(data []byte) error {
+  r := []Real{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  *obj = NilDenseBareRealVector(len(r))
+  *obj = NilDenseRealVector(len(r))
   for i := 0; i < len(r); i++ {
     (*obj)[i] = r[i]
   }

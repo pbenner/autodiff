@@ -410,7 +410,6 @@ func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Ve
   var y Vector
   // copy of x for computing derivatives
   X := x.CloneVector()
-  X.ConvertElementType(RealType)
   // objective function
   f := func(x Vector) (Vector, Matrix, error) {
     X.Set(x)
@@ -449,9 +448,6 @@ func RunCrit(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Ve
   H := NullMatrix(BareRealType, n, n)
   // copy of x for computing derivatives
   X := x.CloneVector()
-  X.ConvertElementType(RealType)
-  P := x.CloneVector()
-  P.ConvertElementType(RealType)
   // objective function
   f := func(x Vector) (Vector, Matrix, error) {
     X.Set(x)
@@ -486,9 +482,7 @@ func RunMin(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vec
   H := NullMatrix(BareRealType, n, n)
   // copy of x for computing derivatives
   X := x.CloneVector()
-  X.ConvertElementType(RealType)
   P := x.CloneVector()
-  P.ConvertElementType(RealType)
   // objective function
   f := func(x Vector) (Scalar, Vector, Matrix, error) {
     X.Set(x)

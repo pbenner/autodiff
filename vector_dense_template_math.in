@@ -13,10 +13,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package autodiff
+
 /* -------------------------------------------------------------------------- */
+
 // Test if elements in a equal elements in b.
-func (a DenseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
+func (a VECTOR_TYPE) Equals(b ConstVector, epsilon float64) bool {
   if a.Dim() != b.Dim() {
     panic("VEqual(): Vector dimensions do not match!")
   }
@@ -27,9 +30,11 @@ func (a DenseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
   }
   return true
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise addition of two vectors. The result is stored in r.
-func (r DenseBareRealVector) VaddV(a, b ConstVector) Vector {
+func (r VECTOR_TYPE) VaddV(a, b ConstVector) Vector {
   n := len(r)
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
@@ -39,9 +44,11 @@ func (r DenseBareRealVector) VaddV(a, b ConstVector) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise addition of a vector and a scalar. The result is stored in r.
-func (r DenseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
+func (r VECTOR_TYPE) VaddS(a ConstVector, b ConstScalar) Vector {
   n := len(r)
   if a.Dim() != n {
     panic("vector dimensions do not match")
@@ -51,9 +58,11 @@ func (r DenseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise substraction of two vectors. The result is stored in r.
-func (r DenseBareRealVector) VsubV(a, b ConstVector) Vector {
+func (r VECTOR_TYPE) VsubV(a, b ConstVector) Vector {
   n := len(r)
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
@@ -63,9 +72,11 @@ func (r DenseBareRealVector) VsubV(a, b ConstVector) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
-func (r DenseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
+func (r VECTOR_TYPE) VsubS(a ConstVector, b ConstScalar) Vector {
   n := len(r)
   if a.Dim() != n {
     panic("vector dimensions do not match")
@@ -75,9 +86,11 @@ func (r DenseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise multiplication of two vectors. The result is stored in r.
-func (r DenseBareRealVector) VmulV(a, b ConstVector) Vector {
+func (r VECTOR_TYPE) VmulV(a, b ConstVector) Vector {
   n := len(r)
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
@@ -87,9 +100,11 @@ func (r DenseBareRealVector) VmulV(a, b ConstVector) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
-func (r DenseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
+func (r VECTOR_TYPE) VmulS(a ConstVector, s ConstScalar) Vector {
   n := len(r)
   if a.Dim() != n {
     panic("vector dimensions do not match")
@@ -99,9 +114,11 @@ func (r DenseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise division of two vectors. The result is stored in r.
-func (r DenseBareRealVector) VdivV(a, b ConstVector) Vector {
+func (r VECTOR_TYPE) VdivV(a, b ConstVector) Vector {
   n := len(r)
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
@@ -111,9 +128,11 @@ func (r DenseBareRealVector) VdivV(a, b ConstVector) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Element-wise division of a vector and a scalar. The result is stored in r.
-func (r DenseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
+func (r VECTOR_TYPE) VdivS(a ConstVector, s ConstScalar) Vector {
   n := len(r)
   if a.Dim() != n {
     panic("vector dimensions do not match")
@@ -123,9 +142,11 @@ func (r DenseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Matrix vector product of a and b. The result is stored in r.
-func (r DenseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
+func (r VECTOR_TYPE) MdotV(a Matrix, b ConstVector) Vector {
   n, m := a.Dims()
   if r.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
@@ -146,9 +167,11 @@ func (r DenseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
   }
   return r
 }
+
 /* -------------------------------------------------------------------------- */
+
 // Vector matrix product of a and b. The result is stored in r.
-func (r DenseBareRealVector) VdotM(a ConstVector, b Matrix) Vector {
+func (r VECTOR_TYPE) VdotM(a ConstVector, b Matrix) Vector {
   n, m := b.Dims()
   if r.Dim() != m || a.Dim() != n {
     panic("matrix/vector dimensions do not match!")

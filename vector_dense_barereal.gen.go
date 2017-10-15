@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2017 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,26 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* -------------------------------------------------------------------------- */
+
+//go:generate cpp -P -C -nostdinc -include vector_dense_barereal.gen.h vector_dense_template.in -o vector_dense_barereal.go
+//go:generate cpp -P -C -nostdinc -include vector_dense_barereal.gen.h vector_dense_template_math.in -o vector_dense_barereal_math.go
+
+/* -------------------------------------------------------------------------- */
+
 package autodiff
-
-/* -------------------------------------------------------------------------- */
-
-import "fmt"
-
-/* -------------------------------------------------------------------------- */
-
-type ConstScalarContainer interface {
-  ElementType() ScalarType
-  // nice printing
-  fmt.Stringer
-}
-
-type ScalarContainer interface {
-  Map   (f func(Scalar))
-  MapSet(f func(Scalar) Scalar)
-  Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar
-  Variables(int)
-  ElementType() ScalarType
-  // nice printing
-  fmt.Stringer
-}

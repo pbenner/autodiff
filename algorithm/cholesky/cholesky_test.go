@@ -53,8 +53,7 @@ func TestCholesky2(t *testing.T) {
     22, 70,  86,  62,
     54, 86, 174, 134,
     42, 62, 134, 106 })
-  s := NewInSitu(RealType, n, true)
-  l, d, _ := Run(a, &s, LDL{true})
+  l, d, _ := Run(a, LDL{true})
   r := MdotM(MdotM(l, d), l.T())
 
   if Mnorm(MsubM(r, a)).GetValue() > 1e-8 {
@@ -71,8 +70,7 @@ func TestCholesky3(t *testing.T) {
     1, 1,       2,
     1, 1+1e-20, 3,
     2, 3,       1 })
-  s := NewInSitu(RealType, n, true)
-  l, d, err := Run(a, &s, LDL{true}, ForcePD{true})
+  l, d, err := Run(a, LDL{true}, ForcePD{true})
 
   rl := NewMatrix(RealType, n, n, []float64{
     1.000000e+00, 0.000000e+00, 0.000000e+00,
