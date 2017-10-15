@@ -380,6 +380,84 @@ func (matrix *DenseBareRealMatrix) ConvertElementType(t ScalarType) {
 func (matrix *DenseBareRealMatrix) Variables(order int) {
 }
 
+/* permutations
+ * -------------------------------------------------------------------------- */
+
+func (matrix *DenseBareRealMatrix) SwapRows(i, j int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  for k := 0; k < m; k++ {
+    matrix.Swap(i, k, j, k)
+  }
+  return nil
+}
+
+func (matrix *DenseBareRealMatrix) SwapColumns(i, j int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  for k := 0; k < n; k++ {
+    matrix.Swap(k, i, k, j)
+  }
+  return nil
+}
+
+func (matrix *DenseBareRealMatrix) PermuteRows(pi []int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  // permute matrix
+  for i := 0; i < n; i++ {
+    if pi[i] < 0 || pi[i] > n {
+      return fmt.Errorf("SymmetricPermutation(): invalid permutation")
+    }
+    if i != pi[i] && pi[i] > i {
+      matrix.SwapRows(i, pi[i])
+    }
+  }
+  return nil
+}
+
+func (matrix *DenseBareRealMatrix) PermuteColumns(pi []int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  // permute matrix
+  for i := 0; i < m; i++ {
+    if pi[i] < 0 || pi[i] > n {
+      return fmt.Errorf("SymmetricPermutation(): invalid permutation")
+    }
+    if i != pi[i] && pi[i] > i {
+      matrix.SwapColumns(i, pi[i])
+    }
+  }
+  return nil
+}
+
+func (matrix *DenseBareRealMatrix) SymmetricPermutation(pi []int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  for i := 0; i < n; i++ {
+    if pi[i] < 0 || pi[i] > n {
+      return fmt.Errorf("SymmetricPermutation(): invalid permutation")
+    }
+    if pi[i] > i {
+      // permute rows
+      matrix.SwapRows(i, pi[i])
+      // permute colums
+      matrix.SwapColumns(i, pi[i])
+    }
+  }
+  return nil
+}
+
 /* type conversion
  * -------------------------------------------------------------------------- */
 

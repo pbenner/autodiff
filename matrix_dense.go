@@ -22,7 +22,6 @@ import "bytes"
 import "bufio"
 import "compress/gzip"
 import "encoding/json"
-import "errors"
 import "fmt"
 import "reflect"
 import "strconv"
@@ -394,6 +393,84 @@ func (matrix *DenseMatrix) Variables(order int) {
   Variables(order, matrix.values...)
 }
 
+/* permutations
+ * -------------------------------------------------------------------------- */
+
+func (matrix *DenseMatrix) SwapRows(i, j int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  for k := 0; k < m; k++ {
+    matrix.Swap(i, k, j, k)
+  }
+  return nil
+}
+
+func (matrix *DenseMatrix) SwapColumns(i, j int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  for k := 0; k < n; k++ {
+    matrix.Swap(k, i, k, j)
+  }
+  return nil
+}
+
+func (matrix *DenseMatrix) PermuteRows(pi []int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  // permute matrix
+  for i := 0; i < n; i++ {
+    if pi[i] < 0 || pi[i] > n {
+      return fmt.Errorf("SymmetricPermutation(): invalid permutation")
+    }
+    if i != pi[i] && pi[i] > i {
+      matrix.SwapRows(i, pi[i])
+    }
+  }
+  return nil
+}
+
+func (matrix *DenseMatrix) PermuteColumns(pi []int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  // permute matrix
+  for i := 0; i < m; i++ {
+    if pi[i] < 0 || pi[i] > n {
+      return fmt.Errorf("SymmetricPermutation(): invalid permutation")
+    }
+    if i != pi[i] && pi[i] > i {
+      matrix.SwapColumns(i, pi[i])
+    }
+  }
+  return nil
+}
+
+func (matrix *DenseMatrix) SymmetricPermutation(pi []int) error {
+  n, m := matrix.Dims()
+  if n != m {
+    return fmt.Errorf("SymmetricPermutation(): matrix is not a square matrix")
+  }
+  for i := 0; i < n; i++ {
+    if pi[i] < 0 || pi[i] > n {
+      return fmt.Errorf("SymmetricPermutation(): invalid permutation")
+    }
+    if pi[i] > i {
+      // permute rows
+      matrix.SwapRows(i, pi[i])
+      // permute colums
+      matrix.SwapColumns(i, pi[i])
+    }
+  }
+  return nil
+}
+
 /* type conversion
  * -------------------------------------------------------------------------- */
 
@@ -493,12 +570,12 @@ func ReadMatrix(t ScalarType, filename string) (Matrix, error) {
       cols = len(fields)
     }
     if cols != len(fields) {
-      return result, errors.New("invalid table")
+      return result, fmt.Errorf("invalid table")
     }
     for i := 0; i < len(fields); i++ {
       value, err := strconv.ParseFloat(fields[i], 64)
       if err != nil {
-        return result, errors.New("invalid table")
+        return result, fmt.Errorf("invalid table")
       }
       data = append(data, value)
     }

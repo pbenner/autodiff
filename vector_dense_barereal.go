@@ -178,6 +178,26 @@ func (v DenseBareRealVector) ConvertElementType(t ScalarType) {
 func (v DenseBareRealVector) Variables(order int) {
 }
 
+/* permutations
+ * -------------------------------------------------------------------------- */
+
+func (v DenseBareRealVector) Permute(pi []int) error {
+  if len(pi) != len(v) {
+    return errors.New("Permute(): permutation vector has invalid length!")
+  }
+  // permute vector
+  for i := 0; i < len(v); i++ {
+    if pi[i] < 0 || pi[i] > len(v) {
+      return errors.New("SymmetricPermutation(): invalid permutation")
+    }
+    if i != pi[i] && pi[i] > i {
+      // permute elements
+      v[pi[i]], v[i] = v[i], v[pi[i]]
+    }
+  }
+  return nil
+}
+
 /* sorting
  * -------------------------------------------------------------------------- */
 
