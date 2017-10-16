@@ -54,19 +54,11 @@ func NEW_MATRIX(rows, cols int, values []float64) *MATRIX_TYPE {
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
-#ifdef STORE_REFERENCE
-      v[i] = NEW_SCALAR(values[0])
-#else
       v[i] = *NEW_SCALAR(values[0])
-#endif
     }
   } else if len(values) == rows*cols {
     for i := 0; i < rows*cols; i++ {
-#ifdef STORE_REFERENCE
-      v[i] = NEW_SCALAR(values[i])
-#else
       v[i] = *NEW_SCALAR(values[i])
-#endif
     }
   } else {
     panic("NewMatrix(): Matrix dimension does not fit input values!")
@@ -286,19 +278,11 @@ func (matrix *MATRIX_TYPE) ConstDiag() ConstVector {
 /* -------------------------------------------------------------------------- */
 
 func (matrix *MATRIX_TYPE) At(i, j int) Scalar {
-#ifdef STORE_REFERENCE
-  return matrix.values[matrix.index(i, j)]
-#else
   return &matrix.values[matrix.index(i, j)]
-#endif
 }
 
 func (matrix *MATRIX_TYPE) AT(i, j int) *SCALAR_TYPE {
-#ifdef STORE_REFERENCE
-  return matrix.values[matrix.index(i, j)]
-#else
   return &matrix.values[matrix.index(i, j)]
-#endif
 }
 
 func (matrix *MATRIX_TYPE) Reset() {
