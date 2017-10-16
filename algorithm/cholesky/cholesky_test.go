@@ -109,12 +109,19 @@ func TestPerformance(t *testing.T) {
   t2 := NewBareReal(0.0)
   inSitu2 := InSitu{l2, nil, s2, t2}
 
-  a3 := NullDenseBareRealMatrix(n, n)
+  a3 := NullDenseRealMatrix(n, n)
   a3.SetIdentity()
-  l3 := NullDenseBareRealMatrix(n, n)
-  s3 := NewBareReal(0.0)
-  t3 := NewBareReal(0.0)
+  l3 := NullDenseRealMatrix(n, n)
+  s3 := NewReal(0.0)
+  t3 := NewReal(0.0)
   inSitu3 := InSitu{l3, nil, s3, t3}
+
+  a4 := NullDenseBareRealMatrix(n, n)
+  a4.SetIdentity()
+  l4 := NullDenseBareRealMatrix(n, n)
+  s4 := NewBareReal(0.0)
+  t4 := NewBareReal(0.0)
+  inSitu4 := InSitu{l4, nil, s4, t4}
 
   start := time.Now()
   Run(a1, &inSitu1)
@@ -128,6 +135,11 @@ func TestPerformance(t *testing.T) {
 
   start = time.Now()
   Run(a3, &inSitu3)
+  elapsed = time.Since(start)
+  fmt.Printf("Cholesky on DenseRealMatrix took %s.\n", elapsed)
+
+  start = time.Now()
+  Run(a4, &inSitu4)
   elapsed = time.Since(start)
   fmt.Printf("Cholesky on DenseBareRealMatrix took %s.\n", elapsed)
 }

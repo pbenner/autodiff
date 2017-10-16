@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2017 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,6 @@ package cholesky
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "errors"
-import   "math"
 
 import . "github.com/pbenner/autodiff"
 
@@ -39,139 +37,6 @@ type LDL struct {
 
 type ForcePD struct {
   Value bool
-}
-
-/* -------------------------------------------------------------------------- */
-
-func cholesky(A, L Matrix, s, t Scalar) (Matrix, Matrix, error) {
-  n, _  := A.Dims()
-
-  for i := 0; i < n; i++ {
-    for j := 0; j < (i+1); j++ {
-      s.Reset()
-      for k := 0; k < j; k++ {
-        t.Mul(L.At(i,k), L.At(j,k))
-        s.Add(s, t)
-      }
-      t.Sub(A.At(i, j), s)
-      if i == j {
-        if t.GetValue() < 0.0 {
-          return nil, nil, errors.New("matrix is not positive definite")
-        }
-        L.At(i, j).Sqrt(t)
-      } else {
-        L.At(i, j).Div(t, L.At(j, j))
-      }
-    }
-  }
-  return L, nil, nil
-}
-
-func choleskyLDL(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
-  n, _  := A.Dims()
-
-  c := t
-
-  for j := 0; j < n; j++ {
-    // compute diagonal entries
-    s.Reset()
-    for k := 0; k < j; k++ {
-      t.Mul(L.At(j,k), L.At(j,k))
-      t.Mul(D.At(k,k), t)
-      s.Add(s, t)
-    }
-    c.Sub(A.At(j, j), s)
-    D.At(j,j).Set(c)
-    if D.At(j,j).GetValue() <= 0.0 {
-      return nil, nil, errors.New("matrix is not positive definite")
-    }
-    L.At(j,j).SetValue(1.0)
-    // compute remaining entries
-    for i := j+1; i < n; i++ {
-      s.Reset()
-      for k := 0; k < j; k++ {
-        t.Mul(L.At(i,k), L.At(j,k))
-        t.Mul(D.At(k,k), t)
-        s.Add(s, t)
-      }
-      c.Sub(A.At(i, j), s)
-      L.At(i,j).Div(c, D.At(j,j))
-    }
-  }
-  return L, D, nil
-}
-
-func choleskyLDLforcePD(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
-  n, _  := A.Dims()
-
-  // compute beta and gamma
-  beta  := 0.0
-  gamma := math.Inf(-1)
-  nu    := math.Max(1, math.Sqrt(float64(n*n - 1)))
-  theta := math.Inf(-1)
-  xi    := math.Inf(-1)
-  delta := 1e-20
-
-  for i := 0; i < n; i++ {
-    for j := 0; j < n; j++ {
-      if i == j {
-        if r := math.Abs(A.At(i, i).GetValue()); r > gamma {
-          gamma = r
-        }
-      } else {
-        if r := math.Abs(A.At(i, j).GetValue()); r > xi {
-          xi = r
-        }
-      }
-    }
-  }
-  beta = math.Max(gamma, xi/nu)
-  beta = math.Max(beta,  1e-20)
-  beta = math.Sqrt(beta)
-
-  // loop over columns
-  for j := 0; j < n; j++ {
-    L.At(j,j).SetValue(1.0)
-    // compute c_jj (stored temporarily in d_j)
-    s.Reset()
-    for k := 0; k < j; k++ {
-      t.Mul(L.At(j,k), L.At(j,k))
-      t.Mul(D.At(k,k), t)
-      s.Add(s, t)
-    }
-    c_jj := D.At(j,j)
-    c_jj.Sub(A.At(j,j), s)
-    // reset theta_j
-    theta = math.Inf(-1)
-    // compute c_ij and theta_j
-    for i := j+1; i < n; i++ {
-      s.Reset()
-      for k := 0; k < j; k++ {
-        t.Mul(L.At(i,k), L.At(j,k))
-        t.Mul(D.At(k,k), t)
-        s.Add(s, t)
-      }
-      // result: L(i,j) <- c_ij
-      L.At(i,j).Sub(A.At(i,j), s)
-      // update theta_j
-      if r := math.Abs(L.At(i,j).GetValue()); r > theta {
-        theta = r
-      }
-    }
-    // compute d_j = max(|c_jj|, (theta_j/beta)^2, delta)
-    if j != n-1 {
-      D.At(j,j).SetValue(
-        math.Max(math.Max(math.Abs(c_jj.GetValue()), math.Pow((theta/beta), 2.0)), delta))
-    } else {
-      D.At(j,j).SetValue(
-        math.Max(math.Abs(c_jj.GetValue()), delta))
-    }
-    // compute l_ij = c_ij/d_j
-    for i := j+1; i < n; i++ {
-      L.At(i,j).Div(L.At(i,j), D.At(j,j))
-    }
-  }
-  return L, D, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -220,33 +85,60 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   if inSitu.T == nil {
     inSitu.T = NewScalar(t, 0.0)
   }
-  // if ad, ok := a.(*DenseMatrix); ok {
-  //   t := a.ElementType()
-  //   if t == RealType && inSitu == true {
-  //     return choleskyInSitu_RealDense(ad)
-  //   } else if t == RealType && inSitu == false {
-  //     return cholesky_RealDense(ad)
-  //   } else if t == BareRealType && inSitu == true {
-  //     return choleskyInSitu_BareRealDense(ad)
-  //   } else if t == BareRealType && inSitu == false {
-  //     return cholesky_BareRealDense(ad)
-  //   }
-  // }
   if ldl {
+    { // Real
+      A, ok1 :=        a.(*DenseRealMatrix)
+      L, ok2 := inSitu.L.(*DenseRealMatrix)
+      D, ok3 := inSitu.D.(*DenseRealMatrix)
+      s, ok4 := inSitu.S.(*Real)
+      t, ok5 := inSitu.T.(*Real)
+      if ok1 && ok2 && ok3 && ok4 && ok5 {
+        if forcePD {
+          return cholesky_ldl_forcepd_real(A, L, D, s, t)
+        } else {
+          return cholesky_ldl_real(A, L, D, s, t)
+        }
+      }
+    }
+    { // BareReal
+      A, ok1 :=        a.(*DenseBareRealMatrix)
+      L, ok2 := inSitu.L.(*DenseBareRealMatrix)
+      D, ok3 := inSitu.L.(*DenseBareRealMatrix)
+      s, ok4 := inSitu.S.(*BareReal)
+      t, ok5 := inSitu.T.(*BareReal)
+      if ok1 && ok2 && ok3 && ok4 && ok5 {
+        if forcePD {
+          return cholesky_ldl_forcepd_barereal(A, L, D, s, t)
+        } else {
+          return cholesky_ldl_barereal(A, L, D, s, t)
+        }
+      }
+    }
+    // generic
     if forcePD {
-      return choleskyLDLforcePD(a, inSitu.L, inSitu.D, inSitu.S, inSitu.T)
+      return cholesky_ldl_forcepd(a, inSitu.L, inSitu.D, inSitu.S, inSitu.T)
     } else {
-      return choleskyLDL(a, inSitu.L, inSitu.D, inSitu.S, inSitu.T)
+      return cholesky_ldl(a, inSitu.L, inSitu.D, inSitu.S, inSitu.T)
     }
   } else {
-    A, ok1 :=        a.(*DenseBareRealMatrix)
-    L, ok2 := inSitu.L.(*DenseBareRealMatrix)
-    s, ok3 := inSitu.S.(*BareReal)
-    t, ok4 := inSitu.T.(*BareReal)
-    if ok1 && ok2 && ok3 && ok4 {
-      return cholesky_DenseBareRealMatrix(A, L, s, t)
-    } else {
-      return cholesky(a, inSitu.L, inSitu.S, inSitu.T)
+    {
+      A, ok1 :=        a.(*DenseRealMatrix)
+      L, ok2 := inSitu.L.(*DenseRealMatrix)
+      s, ok3 := inSitu.S.(*Real)
+      t, ok4 := inSitu.T.(*Real)
+      if ok1 && ok2 && ok3 && ok4 {
+        return cholesky_real(A, L, s, t)
+      }
     }
+    {
+      A, ok1 :=        a.(*DenseBareRealMatrix)
+      L, ok2 := inSitu.L.(*DenseBareRealMatrix)
+      s, ok3 := inSitu.S.(*BareReal)
+      t, ok4 := inSitu.T.(*BareReal)
+      if ok1 && ok2 && ok3 && ok4 {
+        return cholesky_barereal(A, L, s, t)
+      }
+    }
+    return cholesky(a, inSitu.L, inSitu.S, inSitu.T)
   }
 }
