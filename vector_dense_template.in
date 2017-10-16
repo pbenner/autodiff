@@ -42,7 +42,7 @@ type VECTOR_TYPE []SCALAR_TYPE
 /* constructors
  * -------------------------------------------------------------------------- */
 
-// Allocate a vector for scalars of type t (i.e. RealType, or ProbabilityType).
+// Allocate a new vector. Scalars are set to the given values.
 func NEW_VECTOR(values []float64) VECTOR_TYPE {
   v := NIL_VECTOR(len(values))
   for i, _ := range values {
@@ -51,7 +51,7 @@ func NEW_VECTOR(values []float64) VECTOR_TYPE {
   return v
 }
 
-// Allocate an empty vector of type t. All values are initialized to zero.
+// Allocate a new vector. All scalars are set to zero.
 func NULL_VECTOR(length int) VECTOR_TYPE {
   v := NIL_VECTOR(length)
   if length > 0 {
@@ -62,7 +62,7 @@ func NULL_VECTOR(length int) VECTOR_TYPE {
   return v
 }
 
-// Create a vector without allocating memory for the scalar variables.
+// Create a empty vector without allocating memory for the scalar variables.
 func NIL_VECTOR(length int) VECTOR_TYPE {
   return make(VECTOR_TYPE, length)
 }

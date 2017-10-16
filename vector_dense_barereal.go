@@ -34,7 +34,7 @@ import "os"
 type DenseBareRealVector []BareReal
 /* constructors
  * -------------------------------------------------------------------------- */
-// Allocate a vector for scalars of type t (i.e. RealType, or ProbabilityType).
+// Allocate a new vector. Scalars are set to the given values.
 func NewDenseBareRealVector(values []float64) DenseBareRealVector {
   v := NilDenseBareRealVector(len(values))
   for i, _ := range values {
@@ -42,7 +42,7 @@ func NewDenseBareRealVector(values []float64) DenseBareRealVector {
   }
   return v
 }
-// Allocate an empty vector of type t. All values are initialized to zero.
+// Allocate a new vector. All scalars are set to zero.
 func NullDenseBareRealVector(length int) DenseBareRealVector {
   v := NilDenseBareRealVector(length)
   if length > 0 {
@@ -52,7 +52,7 @@ func NullDenseBareRealVector(length int) DenseBareRealVector {
   }
   return v
 }
-// Create a vector without allocating memory for the scalar variables.
+// Create a empty vector without allocating memory for the scalar variables.
 func NilDenseBareRealVector(length int) DenseBareRealVector {
   return make(DenseBareRealVector, length)
 }

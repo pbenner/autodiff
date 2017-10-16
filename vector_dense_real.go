@@ -34,7 +34,7 @@ import "os"
 type DenseRealVector []Real
 /* constructors
  * -------------------------------------------------------------------------- */
-// Allocate a vector for scalars of type t (i.e. RealType, or ProbabilityType).
+// Allocate a new vector. Scalars are set to the given values.
 func NewDenseRealVector(values []float64) DenseRealVector {
   v := NilDenseRealVector(len(values))
   for i, _ := range values {
@@ -42,7 +42,7 @@ func NewDenseRealVector(values []float64) DenseRealVector {
   }
   return v
 }
-// Allocate an empty vector of type t. All values are initialized to zero.
+// Allocate a new vector. All scalars are set to zero.
 func NullDenseRealVector(length int) DenseRealVector {
   v := NilDenseRealVector(length)
   if length > 0 {
@@ -52,7 +52,7 @@ func NullDenseRealVector(length int) DenseRealVector {
   }
   return v
 }
-// Create a vector without allocating memory for the scalar variables.
+// Create a empty vector without allocating memory for the scalar variables.
 func NilDenseRealVector(length int) DenseRealVector {
   return make(DenseRealVector, length)
 }
