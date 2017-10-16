@@ -292,6 +292,9 @@ func (matrix *MATRIX_TYPE) Reset() {
 }
 
 func (matrix *MATRIX_TYPE) ResetDerivatives() {
+  for i := 0; i < len(matrix.values); i++ {
+    matrix.values[i].ResetDerivatives()
+  }
 }
 
 func (a *MATRIX_TYPE) Set(b Matrix) {
@@ -378,10 +381,13 @@ func (matrix *MATRIX_TYPE) ElementType() ScalarType {
   return nil
 }
 
-func (matrix *MATRIX_TYPE) Variables(order int) {
+func (matrix *MATRIX_TYPE) Variables(order int) error {
   for i, _ := range matrix.values {
-    matrix.values[i].SetVariable(i, len(matrix.values), order)
+    if err := matrix.values[i].SetVariable(i, len(matrix.values), order); err != nil {
+      return err
+    }
   }
+  return nil
 }
 
 /* permutations

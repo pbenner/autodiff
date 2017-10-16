@@ -146,10 +146,13 @@ func (v DenseRealVector) ElementType() ScalarType {
   }
   return nil
 }
-func (v DenseRealVector) Variables(order int) {
+func (v DenseRealVector) Variables(order int) error {
   for i, _ := range v {
-    v[i].SetVariable(i, len(v), order)
+    if err := v[i].SetVariable(i, len(v), order); err != nil {
+      return err
+    }
   }
+  return nil
 }
 /* permutations
  * -------------------------------------------------------------------------- */

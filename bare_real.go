@@ -140,7 +140,8 @@ func (a *BareReal) SetDerivative(i int, v float64) {
 func (a *BareReal) SetHessian(i, j int, v float64) {
 }
 
-func (a *BareReal) SetVariable(i, n, order int) {
+func (a *BareReal) SetVariable(i, n, order int) error {
+  return fmt.Errorf("BareReal cannot be used as a variable")
 }
 
 /* json

@@ -32,7 +32,7 @@ type ScalarContainer interface {
   Map   (f func(Scalar))
   MapSet(f func(Scalar) Scalar)
   Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar
-  Variables(int)
+  Variables(int) error
   ElementType() ScalarType
   // nice printing
   fmt.Stringer

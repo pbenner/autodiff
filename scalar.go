@@ -54,7 +54,7 @@ type ScalarState interface {
   SetValue        (float64)
   SetDerivative   (int, float64)
   SetHessian      (int, int, float64)
-  SetVariable     (int, int, int)
+  SetVariable     (int, int, int) error
   // json
   json.Marshaler
 }
@@ -163,10 +163,13 @@ func NullScalar(t ScalarType) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
-func Variables(order int, reals ...Scalar) {
+func Variables(order int, reals ...Scalar) error {
   for i, _ := range reals {
-    reals[i].SetVariable(i, len(reals), order)
+    if err := reals[i].SetVariable(i, len(reals), order); err != nil {
+      return err
+    }
   }
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */

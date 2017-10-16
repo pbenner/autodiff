@@ -185,11 +185,15 @@ func (a *BasicState) SetHessian(i, j int, v float64) {
 
 // Allocate memory for n variables and set the derivative
 // of the ith variable to 1 (initial value).
-func (a *BasicState) SetVariable(i, n, order int) {
+func (a *BasicState) SetVariable(i, n, order int) error {
+  if order > 2 {
+    return fmt.Errorf("order `%d' not supported by this type", order)
+  }
   a.Alloc(n, order)
   if order > 0 {
     a.Derivative[i] = 1
   }
+  return nil
 }
 
 /* json

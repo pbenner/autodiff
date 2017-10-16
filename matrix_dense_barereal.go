@@ -253,6 +253,9 @@ func (matrix *DenseBareRealMatrix) Reset() {
   }
 }
 func (matrix *DenseBareRealMatrix) ResetDerivatives() {
+  for i := 0; i < len(matrix.values); i++ {
+    matrix.values[i].ResetDerivatives()
+  }
 }
 func (a *DenseBareRealMatrix) Set(b Matrix) {
   n1, m1 := a.Dims()
@@ -329,10 +332,13 @@ func (matrix *DenseBareRealMatrix) ElementType() ScalarType {
   }
   return nil
 }
-func (matrix *DenseBareRealMatrix) Variables(order int) {
+func (matrix *DenseBareRealMatrix) Variables(order int) error {
   for i, _ := range matrix.values {
-    matrix.values[i].SetVariable(i, len(matrix.values), order)
+    if err := matrix.values[i].SetVariable(i, len(matrix.values), order); err != nil {
+      return err
+    }
   }
+  return nil
 }
 /* permutations
  * -------------------------------------------------------------------------- */

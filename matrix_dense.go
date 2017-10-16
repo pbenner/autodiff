@@ -389,8 +389,8 @@ func (matrix *DenseMatrix) ConvertElementType(t ScalarType) {
   matrix.tmp2.ConvertElementType(t)
 }
 
-func (matrix *DenseMatrix) Variables(order int) {
-  Variables(order, matrix.values...)
+func (matrix *DenseMatrix) Variables(order int) error {
+  return Variables(order, matrix.values...)
 }
 
 /* permutations

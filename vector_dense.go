@@ -188,8 +188,8 @@ func (v DenseVector) ConvertElementType(t ScalarType) {
   }
 }
 
-func (v DenseVector) Variables(order int) {
-  Variables(order, v...)
+func (v DenseVector) Variables(order int) error {
+  return Variables(order, v...)
 }
 
 /* permutations
