@@ -36,7 +36,7 @@ type DenseRealVector []Real
  * -------------------------------------------------------------------------- */
 // Allocate a new vector. Scalars are set to the given values.
 func NewDenseRealVector(values []float64) DenseRealVector {
-  v := NilDenseRealVector(len(values))
+  v := nilDenseRealVector(len(values))
   for i, _ := range values {
     v[i] = *NewReal(values[i])
   }
@@ -44,7 +44,7 @@ func NewDenseRealVector(values []float64) DenseRealVector {
 }
 // Allocate a new vector. All scalars are set to zero.
 func NullDenseRealVector(length int) DenseRealVector {
-  v := NilDenseRealVector(length)
+  v := nilDenseRealVector(length)
   if length > 0 {
     for i := 0; i < length; i++ {
       v[i] = *NewReal(0.0)
@@ -53,7 +53,7 @@ func NullDenseRealVector(length int) DenseRealVector {
   return v
 }
 // Create a empty vector without allocating memory for the scalar variables.
-func NilDenseRealVector(length int) DenseRealVector {
+func nilDenseRealVector(length int) DenseRealVector {
   return make(DenseRealVector, length)
 }
 /* -------------------------------------------------------------------------- */
@@ -307,7 +307,7 @@ func (obj *DenseRealVector) UnmarshalJSON(data []byte) error {
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  *obj = NilDenseRealVector(len(r))
+  *obj = nilDenseRealVector(len(r))
   for i := 0; i < len(r); i++ {
     (*obj)[i] = r[i]
   }

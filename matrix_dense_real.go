@@ -42,7 +42,7 @@ type DenseRealMatrix struct {
 /* constructors
  * -------------------------------------------------------------------------- */
 func NewDenseRealMatrix(rows, cols int, values []float64) *DenseRealMatrix {
-  m := NilDenseRealMatrix(rows, cols)
+  m := nilDenseRealMatrix(rows, cols)
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
@@ -70,9 +70,9 @@ func NullDenseRealMatrix(rows, cols int) *DenseRealMatrix {
   m.initTmp()
   return &m
 }
-func NilDenseRealMatrix(rows, cols int) *DenseRealMatrix {
+func nilDenseRealMatrix(rows, cols int) *DenseRealMatrix {
   m := DenseRealMatrix{}
-  m.values = NilDenseRealVector(rows*cols)
+  m.values = nilDenseRealVector(rows*cols)
   m.rows = rows
   m.cols = cols
   m.rowOffset = 0
@@ -131,7 +131,7 @@ func (matrix *DenseRealMatrix) Dims() (int, int) {
 func (matrix *DenseRealMatrix) Row(i int) Vector {
   var v DenseRealVector
   if matrix.transposed {
-    v = NilDenseRealVector(matrix.cols)
+    v = nilDenseRealVector(matrix.cols)
     for j := 0; j < matrix.cols; j++ {
       v[j] = matrix.values[matrix.index(i, j)]
     }
@@ -147,7 +147,7 @@ func (matrix *DenseRealMatrix) Col(j int) Vector {
     j = matrix.index(0, j)
     v = matrix.values[j:j + matrix.rows]
   } else {
-    v = NilDenseRealVector(matrix.rows)
+    v = nilDenseRealVector(matrix.rows)
     for i := 0; i < matrix.rows; i++ {
       v[i] = matrix.values[matrix.index(i, j)]
     }
@@ -476,7 +476,7 @@ func (obj *DenseRealMatrix) UnmarshalJSON(data []byte) error {
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  obj.values = NilDenseRealVector(len(r.Values))
+  obj.values = nilDenseRealVector(len(r.Values))
   for i := 0; i < len(r.Values); i++ {
     obj.values[i] = r.Values[i]
   }

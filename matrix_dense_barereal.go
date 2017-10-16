@@ -42,7 +42,7 @@ type DenseBareRealMatrix struct {
 /* constructors
  * -------------------------------------------------------------------------- */
 func NewDenseBareRealMatrix(rows, cols int, values []float64) *DenseBareRealMatrix {
-  m := NilDenseBareRealMatrix(rows, cols)
+  m := nilDenseBareRealMatrix(rows, cols)
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
@@ -70,9 +70,9 @@ func NullDenseBareRealMatrix(rows, cols int) *DenseBareRealMatrix {
   m.initTmp()
   return &m
 }
-func NilDenseBareRealMatrix(rows, cols int) *DenseBareRealMatrix {
+func nilDenseBareRealMatrix(rows, cols int) *DenseBareRealMatrix {
   m := DenseBareRealMatrix{}
-  m.values = NilDenseBareRealVector(rows*cols)
+  m.values = nilDenseBareRealVector(rows*cols)
   m.rows = rows
   m.cols = cols
   m.rowOffset = 0
@@ -131,7 +131,7 @@ func (matrix *DenseBareRealMatrix) Dims() (int, int) {
 func (matrix *DenseBareRealMatrix) Row(i int) Vector {
   var v DenseBareRealVector
   if matrix.transposed {
-    v = NilDenseBareRealVector(matrix.cols)
+    v = nilDenseBareRealVector(matrix.cols)
     for j := 0; j < matrix.cols; j++ {
       v[j] = matrix.values[matrix.index(i, j)]
     }
@@ -147,7 +147,7 @@ func (matrix *DenseBareRealMatrix) Col(j int) Vector {
     j = matrix.index(0, j)
     v = matrix.values[j:j + matrix.rows]
   } else {
-    v = NilDenseBareRealVector(matrix.rows)
+    v = nilDenseBareRealVector(matrix.rows)
     for i := 0; i < matrix.rows; i++ {
       v[i] = matrix.values[matrix.index(i, j)]
     }
@@ -476,7 +476,7 @@ func (obj *DenseBareRealMatrix) UnmarshalJSON(data []byte) error {
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  obj.values = NilDenseBareRealVector(len(r.Values))
+  obj.values = nilDenseBareRealVector(len(r.Values))
   for i := 0; i < len(r.Values); i++ {
     obj.values[i] = r.Values[i]
   }

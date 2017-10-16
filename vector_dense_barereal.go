@@ -36,7 +36,7 @@ type DenseBareRealVector []BareReal
  * -------------------------------------------------------------------------- */
 // Allocate a new vector. Scalars are set to the given values.
 func NewDenseBareRealVector(values []float64) DenseBareRealVector {
-  v := NilDenseBareRealVector(len(values))
+  v := nilDenseBareRealVector(len(values))
   for i, _ := range values {
     v[i] = *NewBareReal(values[i])
   }
@@ -44,7 +44,7 @@ func NewDenseBareRealVector(values []float64) DenseBareRealVector {
 }
 // Allocate a new vector. All scalars are set to zero.
 func NullDenseBareRealVector(length int) DenseBareRealVector {
-  v := NilDenseBareRealVector(length)
+  v := nilDenseBareRealVector(length)
   if length > 0 {
     for i := 0; i < length; i++ {
       v[i] = *NewBareReal(0.0)
@@ -53,7 +53,7 @@ func NullDenseBareRealVector(length int) DenseBareRealVector {
   return v
 }
 // Create a empty vector without allocating memory for the scalar variables.
-func NilDenseBareRealVector(length int) DenseBareRealVector {
+func nilDenseBareRealVector(length int) DenseBareRealVector {
   return make(DenseBareRealVector, length)
 }
 /* -------------------------------------------------------------------------- */
@@ -307,7 +307,7 @@ func (obj *DenseBareRealVector) UnmarshalJSON(data []byte) error {
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  *obj = NilDenseBareRealVector(len(r))
+  *obj = nilDenseBareRealVector(len(r))
   for i := 0; i < len(r); i++ {
     (*obj)[i] = r[i]
   }
