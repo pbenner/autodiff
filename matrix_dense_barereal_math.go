@@ -1,4 +1,6 @@
-/* Copyright (C) 2015 Philipp Benner
+/* -*- mode: go; -*-
+ *
+ * Copyright (C) 2015-2017 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,15 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+/* -------------------------------------------------------------------------- */
 package autodiff
-
 /* -------------------------------------------------------------------------- */
-
 //import "fmt"
-
 /* -------------------------------------------------------------------------- */
-
 // True if matrix a equals b.
 func (a *DenseBareRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
   n1, m1 := a.Dims()
@@ -38,12 +36,10 @@ func (a *DenseBareRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
   }
   return true
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise addition of two matrices. The result is stored in r.
 func (r *DenseBareRealMatrix) MaddM(a, b ConstMatrix) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n || m1 != m || n2 != n || m2 != m {
@@ -56,12 +52,10 @@ func (r *DenseBareRealMatrix) MaddM(a, b ConstMatrix) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Add scalar b to all elements of a. The result is stored in r.
 func (r *DenseBareRealMatrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
@@ -73,12 +67,10 @@ func (r *DenseBareRealMatrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise substraction of two matrices. The result is stored in r.
 func (r *DenseBareRealMatrix) MsubM(a, b ConstMatrix) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n || m1 != m || n2 != n || m2 != m {
@@ -91,12 +83,10 @@ func (r *DenseBareRealMatrix) MsubM(a, b ConstMatrix) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Substract b from all elements of a. The result is stored in r.
 func (r *DenseBareRealMatrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
@@ -108,12 +98,10 @@ func (r *DenseBareRealMatrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise multiplication of two matrices. The result is stored in r.
 func (r *DenseBareRealMatrix) MmulM(a, b ConstMatrix) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n || m1 != m || n2 != n || m2 != m {
@@ -126,12 +114,10 @@ func (r *DenseBareRealMatrix) MmulM(a, b ConstMatrix) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Multiply all elements of a with b. The result is stored in r.
 func (r *DenseBareRealMatrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
@@ -143,12 +129,10 @@ func (r *DenseBareRealMatrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise division of two matrices. The result is stored in r.
 func (r *DenseBareRealMatrix) MdivM(a, b ConstMatrix) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n || m1 != m || n2 != n || m2 != m {
@@ -161,12 +145,10 @@ func (r *DenseBareRealMatrix) MdivM(a, b ConstMatrix) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Divide all elements of a by b. The result is stored in r.
 func (r *DenseBareRealMatrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
-  n,  m  := r.Dims()
+  n, m := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
@@ -178,12 +160,10 @@ func (r *DenseBareRealMatrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Matrix product of a and b. The result is stored in r.
 func (r *DenseBareRealMatrix) MdotM(a, b ConstMatrix) Matrix {
-  n , m  := r.Dims()
+  n , m := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n || m2 != m || m1 != n2 {
@@ -224,9 +204,7 @@ func (r *DenseBareRealMatrix) MdotM(a, b ConstMatrix) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Outer product of two vectors. The result is stored in r.
 func (r *DenseBareRealMatrix) Outer(a, b ConstVector) Matrix {
   n, m := r.Dims()
@@ -240,9 +218,7 @@ func (r *DenseBareRealMatrix) Outer(a, b ConstVector) Matrix {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Compute the Jacobian of f at x_. The result is stored in r.
 func (r *DenseBareRealMatrix) Jacobian(f func(ConstVector) ConstVector, x_ Vector) Matrix {
   n, m := r.Dims()
@@ -264,7 +240,6 @@ func (r *DenseBareRealMatrix) Jacobian(f func(ConstVector) ConstVector, x_ Vecto
   }
   return r
 }
-
 // Compute the Hessian of f at x_. The result is stored in r.
 func (r *DenseBareRealMatrix) Hessian(f func(ConstVector) ConstScalar, x_ Vector) Matrix {
   n, m := r.Dims()
