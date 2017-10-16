@@ -208,10 +208,7 @@ func (v VECTOR_TYPE) Permute(pi []int) error {
 /* sorting
  * -------------------------------------------------------------------------- */
 
-#define __SORT_TYPE(T) sort##T##ByValue
-
-#define _SORT_TYPE(T) __SORT_TYPE(T)
-#define SORT_TYPE _SORT_TYPE(VECTOR_TYPE)
+#define SORT_TYPE STR_CONCAT(STR_CONCAT(sort, VECTOR_TYPE), ByValue)
 
 type SORT_TYPE VECTOR_TYPE
 
