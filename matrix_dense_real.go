@@ -159,9 +159,9 @@ func (matrix *DenseRealMatrix) Diag() Vector {
   if n != m {
     panic("Diag(): not a square matrix!")
   }
-  v := NilDenseVector(n)
+  v := nilDenseRealVector(n)
   for i := 0; i < n; i++ {
-    v.SetReferenceAt(i, &matrix.values[matrix.index(i, i)])
+    v[i] = matrix.values[matrix.index(i, i)]
   }
   return v
 }
