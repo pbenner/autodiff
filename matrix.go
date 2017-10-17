@@ -120,6 +120,17 @@ func NilMatrix(rows, cols int) Matrix {
   return NilDenseMatrix(rows, cols)
 }
 
+func AsMatrix(t ScalarType, m Matrix) Matrix {
+  switch t {
+  case RealType:
+    return AsDenseRealMatrix(m)
+  case BareRealType:
+    return AsDenseBareRealMatrix(m)
+  default:
+    panic("unknown type")
+  }
+}
+
 /* constructors for special types of matrices
  * -------------------------------------------------------------------------- */
 

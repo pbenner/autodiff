@@ -100,3 +100,14 @@ func NullVector(t ScalarType, length int) Vector {
 func NilVector(length int) Vector {
   return NilDenseVector(length)
 }
+
+func AsVector(t ScalarType, v Vector) Vector {
+  switch t {
+  case RealType:
+    return AsDenseRealVector(v)
+  case BareRealType:
+    return AsDenseBareRealVector(v)
+  default:
+    panic("unknown type")
+  }
+}
