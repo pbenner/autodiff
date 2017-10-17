@@ -4,6 +4,8 @@
 
 /* -------------------------------------------------------------------------- */
 
+#define  SCALAR_REFLECT_TYPE STR_CONCAT(SCALAR_TYPE, Type)
+
 #define  NEW_SCALAR STR_CONCAT(New,  SCALAR_TYPE)
 #define NULL_SCALAR STR_CONCAT(Null, SCALAR_TYPE)
 

@@ -24,7 +24,6 @@ import "bufio"
 import "encoding/json"
 import "errors"
 import "compress/gzip"
-import "reflect"
 import "sort"
 import "strconv"
 import "strings"
@@ -141,10 +140,7 @@ func (v DenseBareRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Sca
   return r
 }
 func (v DenseBareRealVector) ElementType() ScalarType {
-  if len(v) > 0 {
-    return reflect.TypeOf(&v[0])
-  }
-  return nil
+  return BareRealType
 }
 func (v DenseBareRealVector) Variables(order int) error {
   for i, _ := range v {

@@ -28,7 +28,6 @@ import "bufio"
 import "encoding/json"
 import "errors"
 import "compress/gzip"
-import "reflect"
 import "sort"
 import "strconv"
 import "strings"
@@ -173,10 +172,7 @@ func (v VECTOR_TYPE) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
 }
 
 func (v VECTOR_TYPE) ElementType() ScalarType {
-  if len(v) > 0 {
-    return reflect.TypeOf(&v[0])
-  }
-  return nil
+  return SCALAR_REFLECT_TYPE
 }
 
 func (v VECTOR_TYPE) Variables(order int) error {
