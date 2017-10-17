@@ -55,6 +55,18 @@ func NullDenseBareRealVector(length int) DenseBareRealVector {
 func nilDenseBareRealVector(length int) DenseBareRealVector {
   return make(DenseBareRealVector, length)
 }
+// Convert vector type.
+func AsDenseBareRealVector(v Vector) DenseBareRealVector {
+  switch v_ := v.(type) {
+  case DenseBareRealVector:
+    return v_
+  }
+  r := NullDenseBareRealVector(v.Dim())
+  for i := 0; i < v.Dim(); i++ {
+    r.AT(i).Set(v.At(i))
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Create a deep copy of the vector.
 func (v DenseBareRealVector) Clone() DenseBareRealVector {

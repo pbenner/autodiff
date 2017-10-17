@@ -84,6 +84,20 @@ func nilDenseBareRealMatrix(rows, cols int) *DenseBareRealMatrix {
   m.colMax = cols
   return &m
 }
+func AsDenseBareRealMatrix(matrix Matrix) *DenseBareRealMatrix {
+  switch matrix_ := matrix.(type) {
+  case *DenseBareRealMatrix:
+    return matrix_
+  }
+  n, m := matrix.Dims()
+  r := NullDenseBareRealMatrix(n, m)
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i,j).Set(matrix.At(i,j))
+    }
+  }
+  return r
+}
 func (matrix *DenseBareRealMatrix) initTmp() {
   if len(matrix.tmp1) < matrix.rows {
     matrix.tmp1 = NullDenseBareRealVector(matrix.rows)

@@ -55,6 +55,18 @@ func NullDenseRealVector(length int) DenseRealVector {
 func nilDenseRealVector(length int) DenseRealVector {
   return make(DenseRealVector, length)
 }
+// Convert vector type.
+func AsDenseRealVector(v Vector) DenseRealVector {
+  switch v_ := v.(type) {
+  case DenseRealVector:
+    return v_
+  }
+  r := NullDenseRealVector(v.Dim())
+  for i := 0; i < v.Dim(); i++ {
+    r.AT(i).Set(v.At(i))
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Create a deep copy of the vector.
 func (v DenseRealVector) Clone() DenseRealVector {

@@ -84,6 +84,20 @@ func nilDenseRealMatrix(rows, cols int) *DenseRealMatrix {
   m.colMax = cols
   return &m
 }
+func AsDenseRealMatrix(matrix Matrix) *DenseRealMatrix {
+  switch matrix_ := matrix.(type) {
+  case *DenseRealMatrix:
+    return matrix_
+  }
+  n, m := matrix.Dims()
+  r := NullDenseRealMatrix(n, m)
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i,j).Set(matrix.At(i,j))
+    }
+  }
+  return r
+}
 func (matrix *DenseRealMatrix) initTmp() {
   if len(matrix.tmp1) < matrix.rows {
     matrix.tmp1 = NullDenseRealVector(matrix.rows)

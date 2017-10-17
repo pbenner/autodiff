@@ -96,6 +96,21 @@ func NIL_MATRIX(rows, cols int) *MATRIX_TYPE {
   return &m
 }
 
+func AS_MATRIX(matrix Matrix) *MATRIX_TYPE {
+  switch matrix_ := matrix.(type) {
+  case *MATRIX_TYPE:
+    return matrix_
+  }
+  n, m := matrix.Dims()
+  r := NULL_MATRIX(n, m)
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i,j).Set(matrix.At(i,j))
+    }
+  }
+  return r
+}
+
 func (matrix *MATRIX_TYPE) initTmp() {
   if len(matrix.tmp1) < matrix.rows {
     matrix.tmp1 = NULL_VECTOR(matrix.rows)
