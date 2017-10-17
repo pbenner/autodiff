@@ -163,5 +163,5 @@ func (obj *BareReal) MarshalJSON() ([]byte, error) {
 }
 
 func (obj *BareReal) UnmarshalJSON(data []byte) error {
-  return json.Unmarshal(data, obj)
+  return json.Unmarshal(data, (*float64)(obj))
 }
