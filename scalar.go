@@ -74,6 +74,7 @@ type Scalar interface {
   CloneScalar()                Scalar
   // type reflections
   Type       ()                ScalarType
+  ConvertType(ScalarType)      Scalar
   // some basic operations on scalars
   Equals     (ConstScalar, float64) bool
   Greater    (ConstScalar)          bool

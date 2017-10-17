@@ -24,7 +24,6 @@ import "bufio"
 import "encoding/json"
 import "errors"
 import "compress/gzip"
-import "reflect"
 import "sort"
 import "strconv"
 import "strings"
@@ -113,9 +112,14 @@ func (v DenseRealVector) Slice(i, j int) Vector {
 func (v DenseRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
-func (v DenseRealVector) Append(a ...Scalar) Vector {
-  for _, s := range a {
-    v = append(v, NewReal(s.GetValue()))
+func (v DenseRealVector) Append(scalars ...Scalar) Vector {
+  for _, scalar := range scalars {
+    switch s := scalar.(type) {
+    case *Real:
+      v = append(v, s)
+    default:
+      v = append(v, s.ConvertType(RealType).(*Real))
+    }
   }
   return v
 }
@@ -141,10 +145,7 @@ func (v DenseRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar 
   return r
 }
 func (v DenseRealVector) ElementType() ScalarType {
-  if len(v) > 0 {
-    return reflect.TypeOf(v[0])
-  }
-  return nil
+  return RealType
 }
 func (v DenseRealVector) Variables(order int) error {
   for i, _ := range v {

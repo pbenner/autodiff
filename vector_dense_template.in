@@ -28,7 +28,6 @@ import "bufio"
 import "encoding/json"
 import "errors"
 import "compress/gzip"
-import "reflect"
 import "sort"
 import "strconv"
 import "strings"
@@ -139,9 +138,14 @@ func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 
-func (v VECTOR_TYPE) Append(a ...Scalar) Vector {
-  for _, s := range a {
-    v = append(v, NEW_SCALAR(s.GetValue()))
+func (v VECTOR_TYPE) Append(scalars ...Scalar) Vector {
+  for _, scalar := range scalars {
+    switch s := scalar.(type) {
+    case *SCALAR_TYPE:
+      v = append(v, s)
+    default:
+      v = append(v, s.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE))
+    }
   }
   return v
 }
@@ -173,10 +177,7 @@ func (v VECTOR_TYPE) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
 }
 
 func (v VECTOR_TYPE) ElementType() ScalarType {
-  if len(v) > 0 {
-    return reflect.TypeOf(v[0])
-  }
-  return nil
+  return SCALAR_REFLECT_TYPE
 }
 
 func (v VECTOR_TYPE) Variables(order int) error {

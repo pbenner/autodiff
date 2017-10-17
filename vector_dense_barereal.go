@@ -24,7 +24,6 @@ import "bufio"
 import "encoding/json"
 import "errors"
 import "compress/gzip"
-import "reflect"
 import "sort"
 import "strconv"
 import "strings"
@@ -113,9 +112,14 @@ func (v DenseBareRealVector) Slice(i, j int) Vector {
 func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
-func (v DenseBareRealVector) Append(a ...Scalar) Vector {
-  for _, s := range a {
-    v = append(v, NewBareReal(s.GetValue()))
+func (v DenseBareRealVector) Append(scalars ...Scalar) Vector {
+  for _, scalar := range scalars {
+    switch s := scalar.(type) {
+    case *BareReal:
+      v = append(v, s)
+    default:
+      v = append(v, s.ConvertType(BareRealType).(*BareReal))
+    }
   }
   return v
 }
@@ -141,10 +145,7 @@ func (v DenseBareRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Sca
   return r
 }
 func (v DenseBareRealVector) ElementType() ScalarType {
-  if len(v) > 0 {
-    return reflect.TypeOf(v[0])
-  }
-  return nil
+  return BareRealType
 }
 func (v DenseBareRealVector) Variables(order int) error {
   for i, _ := range v {

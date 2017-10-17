@@ -64,6 +64,17 @@ func (a *BareReal) Type() ScalarType {
   return reflect.TypeOf(a)
 }
 
+func (a *BareReal) ConvertType(t ScalarType) Scalar {
+  switch t {
+  case RealType:
+    return NewReal(a.GetValue())
+  case BareRealType:
+    return a
+  default:
+    panic(fmt.Sprintf("cannot convert `BareReal' to type `%v'", t))
+  }
+}
+
 /* type conversion
  * -------------------------------------------------------------------------- */
 
