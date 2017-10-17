@@ -173,7 +173,7 @@ func (v VECTOR_TYPE) AppendVector(w_ Vector) Vector {
     return append(v, w...)
   default:
     for i := 0; i < w.Dim(); i++ {
-      v = append(v, w.At(i).ConvertType(BareRealType).(*SCALAR_TYPE))
+      v = append(v, w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE))
     }
     return v
   }

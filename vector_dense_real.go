@@ -144,7 +144,7 @@ func (v DenseRealVector) AppendVector(w_ Vector) Vector {
     return append(v, w...)
   default:
     for i := 0; i < w.Dim(); i++ {
-      v = append(v, w.At(i).ConvertType(BareRealType).(*Real))
+      v = append(v, w.At(i).ConvertType(RealType).(*Real))
     }
     return v
   }
