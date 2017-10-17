@@ -133,9 +133,9 @@ func (dist LogSkewNormalDistribution) Pdf(r Scalar, x Vector) error {
 
 func (dist *LogSkewNormalDistribution) GetParameters() Vector {
   p := dist.Normal1.Mu
-  p  = p.Append(dist.Omega.ToDenseVector()...)
-  p  = p.Append(dist.Alpha.ToDenseVector()...)
-  p  = p.Append(dist.Scale.ToDenseVector()...)
+  p  = p.AppendVector(dist.Omega.ToVector())
+  p  = p.AppendVector(dist.Alpha)
+  p  = p.AppendVector(dist.Scale)
   return p
 }
 

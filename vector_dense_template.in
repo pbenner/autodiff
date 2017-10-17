@@ -150,6 +150,18 @@ func (v VECTOR_TYPE) Append(scalars ...Scalar) Vector {
   return v
 }
 
+func (v VECTOR_TYPE) AppendVector(w_ Vector) Vector {
+  switch w := w_.(type) {
+  case VECTOR_TYPE:
+    return append(v, w...)
+  default:
+    for i := 0; i < w.Dim(); i++ {
+      v = append(v, w.At(i).ConvertType(BareRealType).(*SCALAR_TYPE))
+    }
+    return v
+  }
+}
+
 func (v VECTOR_TYPE) Swap(i, j int) {
   v[i], v[j] = v[j], v[i]
 }

@@ -149,6 +149,13 @@ func (v DenseVector) Append(a ...Scalar) Vector {
   return append(v, a...)
 }
 
+func (v DenseVector) AppendVector(w Vector) Vector {
+  for i := 0; i < w.Dim(); i++ {
+    v = append(v, w.At(i))
+  }
+  return v
+}
+
 func (v DenseVector) Swap(i, j int) {
   v[i], v[j] = v[j], v[i]
 }

@@ -53,6 +53,7 @@ type Vector interface {
   Sort            (bool)
   Slice           (i, j int)             Vector
   Append          (...Scalar)            Vector
+  AppendVector    (Vector)               Vector
   Swap            (i, j int)
   // type conversions
   ToMatrix        (n, m int)             Matrix

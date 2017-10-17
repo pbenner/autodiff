@@ -33,96 +33,96 @@ func (a DenseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VaddV(a, b ConstVector) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Add(a.ConstAt(i), b.ConstAt(i))
+    r.At(i).Add(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Add(a.ConstAt(i), b)
+    r.At(i).Add(a.ConstAt(i), b)
   }
   return r
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VsubV(a, b ConstVector) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Sub(a.ConstAt(i), b.ConstAt(i))
+    r.At(i).Sub(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Sub(a.ConstAt(i), b)
+    r.At(i).Sub(a.ConstAt(i), b)
   }
   return r
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise multiplication of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VmulV(a, b ConstVector) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Mul(a.ConstAt(i), b.ConstAt(i))
+    r.At(i).Mul(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Mul(a.ConstAt(i), s)
+    r.At(i).Mul(a.ConstAt(i), s)
   }
   return r
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise division of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VdivV(a, b ConstVector) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Div(a.ConstAt(i), b.ConstAt(i))
+    r.At(i).Div(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
-  n := len(r)
+  n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r[i].Div(a.ConstAt(i), s)
+    r.At(i).Div(a.ConstAt(i), s)
   }
   return r
 }
@@ -141,10 +141,10 @@ func (r DenseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
   }
   t := NullScalar(a.ElementType())
   for i := 0; i < n; i++ {
-    r[i].Reset()
+    r.At(i).Reset()
     for j := 0; j < m; j++ {
       t.Mul(a.At(i, j), b.ConstAt(j))
-      r[i].Add(r.At(i), t)
+      r.At(i).Add(r.At(i), t)
     }
   }
   return r
@@ -164,10 +164,10 @@ func (r DenseBareRealVector) VdotM(a ConstVector, b Matrix) Vector {
   }
   t := NullScalar(a.ElementType())
   for i := 0; i < m; i++ {
-    r[i].Reset()
+    r.At(i).Reset()
     for j := 0; j < n; j++ {
       t.Mul(a.ConstAt(j), b.At(j, i))
-      r[i].Add(r.At(i), t)
+      r.At(i).Add(r.At(i), t)
     }
   }
   return r

@@ -123,6 +123,17 @@ func (v DenseRealVector) Append(scalars ...Scalar) Vector {
   }
   return v
 }
+func (v DenseRealVector) AppendVector(w_ Vector) Vector {
+  switch w := w_.(type) {
+  case DenseRealVector:
+    return append(v, w...)
+  default:
+    for i := 0; i < w.Dim(); i++ {
+      v = append(v, w.At(i).ConvertType(BareRealType).(*Real))
+    }
+    return v
+  }
+}
 func (v DenseRealVector) Swap(i, j int) {
   v[i], v[j] = v[j], v[i]
 }
