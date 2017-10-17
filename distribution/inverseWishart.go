@@ -179,7 +179,7 @@ func (dist *InverseWishartDistribution) Pdf(r Scalar, x Matrix) error {
 
 func (dist *InverseWishartDistribution) GetParameters() Vector {
   p := dist.S.ToVector()
-  p  = p.Append(dist.Nu)
+  p  = p.AppendScalar(dist.Nu)
   return p
 }
 

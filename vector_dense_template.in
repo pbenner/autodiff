@@ -138,7 +138,11 @@ func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 
-func (v VECTOR_TYPE) Append(scalars ...Scalar) Vector {
+func (v VECTOR_TYPE) Append(w VECTOR_TYPE) Vector {
+  return append(v, w...)
+}
+
+func (v VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
   for _, scalar := range scalars {
     switch s := scalar.(type) {
     case *SCALAR_TYPE:

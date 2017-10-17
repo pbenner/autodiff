@@ -112,7 +112,10 @@ func (v DenseBareRealVector) Slice(i, j int) Vector {
 func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
-func (v DenseBareRealVector) Append(scalars ...Scalar) Vector {
+func (v DenseBareRealVector) Append(w DenseBareRealVector) Vector {
+  return append(v, w...)
+}
+func (v DenseBareRealVector) AppendScalar(scalars ...Scalar) Vector {
   for _, scalar := range scalars {
     switch s := scalar.(type) {
     case *BareReal:

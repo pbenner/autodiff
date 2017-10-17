@@ -145,7 +145,7 @@ func (v DenseVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 
-func (v DenseVector) Append(a ...Scalar) Vector {
+func (v DenseVector) AppendScalar(a ...Scalar) Vector {
   return append(v, a...)
 }
 

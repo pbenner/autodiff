@@ -52,7 +52,7 @@ type Vector interface {
   ReverseOrder    ()
   Sort            (bool)
   Slice           (i, j int)             Vector
-  Append          (...Scalar)            Vector
+  AppendScalar    (...Scalar)            Vector
   AppendVector    (Vector)               Vector
   Swap            (i, j int)
   // type conversions
