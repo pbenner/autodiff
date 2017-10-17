@@ -112,9 +112,14 @@ func (v DenseRealVector) Slice(i, j int) Vector {
 func (v DenseRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
-func (v DenseRealVector) Append(a ...Scalar) Vector {
-  for _, s := range a {
-    v = append(v, *NewReal(s.GetValue()))
+func (v DenseRealVector) Append(scalars ...Scalar) Vector {
+  for _, scalar := range scalars {
+    switch s := scalar.(type) {
+    case *Real:
+      v = append(v, *s)
+    default:
+      v = append(v, *s.ConvertType(RealType).(*Real))
+    }
   }
   return v
 }

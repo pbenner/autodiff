@@ -112,9 +112,14 @@ func (v DenseBareRealVector) Slice(i, j int) Vector {
 func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
-func (v DenseBareRealVector) Append(a ...Scalar) Vector {
-  for _, s := range a {
-    v = append(v, *NewBareReal(s.GetValue()))
+func (v DenseBareRealVector) Append(scalars ...Scalar) Vector {
+  for _, scalar := range scalars {
+    switch s := scalar.(type) {
+    case *BareReal:
+      v = append(v, *s)
+    default:
+      v = append(v, *s.ConvertType(BareRealType).(*BareReal))
+    }
   }
   return v
 }
