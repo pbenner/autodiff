@@ -57,7 +57,6 @@ type Vector interface {
   Swap            (i, j int)
   // type conversions
   ToMatrix        (n, m int)             Matrix
-  ToDenseVector   ()                     DenseVector
   // math operations
   VaddV(a,             b ConstVector) Vector
   VaddS(a ConstVector, b ConstScalar) Vector

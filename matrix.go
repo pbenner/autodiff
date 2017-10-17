@@ -72,8 +72,6 @@ type Matrix interface {
   // returns all elements of the matrix as
   // a vector, the order is unspecified
   ToVector            ()                   Vector
-  ToDenseMatrix       ()                  *DenseMatrix
-  ToDenseVector       ()                   DenseVector
   // math operations
   MaddM(a,             b ConstMatrix)      Matrix
   MaddS(a ConstMatrix, b ConstScalar)      Matrix

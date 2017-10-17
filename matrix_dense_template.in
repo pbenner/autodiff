@@ -208,36 +208,19 @@ func (matrix *MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
 }
 
 func (matrix *MATRIX_TYPE) ToVector() Vector {
-  return matrix.ToDenseVector()
-}
-
-func (matrix *MATRIX_TYPE) ToDenseVector() DenseVector {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()
-    v := NilDenseVector(n*m)
+    v := NIL_VECTOR(n*m)
     for i := 0; i < n; i++ {
       for j := 0; j < m; j++ {
-        v[i*matrix.cols + j] = matrix.At(i, j)
+        v[i*matrix.cols + j] = matrix.AT(i, j)
       }
     }
     return v
   } else {
-    return VECTOR_TYPE(matrix.values).ToDenseVector()
+    return VECTOR_TYPE(matrix.values)
   }
-}
-
-func (matrix *MATRIX_TYPE) ToDenseMatrix() *DenseMatrix {
-  r := DenseMatrix{}
-  r.values    = matrix.values.ToDenseVector()
-  r.rows      = matrix.rows
-  r.cols      = matrix.cols
-  r.rowOffset = matrix.rowOffset
-  r.rowMax    = matrix.rowMax
-  r.colOffset = matrix.colOffset
-  r.colMax    = matrix.colMax
-  r.initTmp()
-  return &r
 }
 
 /* -------------------------------------------------------------------------- */

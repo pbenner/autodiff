@@ -184,34 +184,19 @@ func (matrix *DenseRealMatrix) Swap(i1, j1, i2, j2 int) {
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
 func (matrix *DenseRealMatrix) ToVector() Vector {
-  return matrix.ToDenseVector()
-}
-func (matrix *DenseRealMatrix) ToDenseVector() DenseVector {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()
-    v := NilDenseVector(n*m)
+    v := nilDenseRealVector(n*m)
     for i := 0; i < n; i++ {
       for j := 0; j < m; j++ {
-        v[i*matrix.cols + j] = matrix.At(i, j)
+        v[i*matrix.cols + j] = matrix.AT(i, j)
       }
     }
     return v
   } else {
-    return DenseRealVector(matrix.values).ToDenseVector()
+    return DenseRealVector(matrix.values)
   }
-}
-func (matrix *DenseRealMatrix) ToDenseMatrix() *DenseMatrix {
-  r := DenseMatrix{}
-  r.values = matrix.values.ToDenseVector()
-  r.rows = matrix.rows
-  r.cols = matrix.cols
-  r.rowOffset = matrix.rowOffset
-  r.rowMax = matrix.rowMax
-  r.colOffset = matrix.colOffset
-  r.colMax = matrix.colMax
-  r.initTmp()
-  return &r
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseRealMatrix) T() Matrix {

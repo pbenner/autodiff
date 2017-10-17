@@ -184,34 +184,19 @@ func (matrix *DenseBareRealMatrix) Swap(i1, j1, i2, j2 int) {
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
 func (matrix *DenseBareRealMatrix) ToVector() Vector {
-  return matrix.ToDenseVector()
-}
-func (matrix *DenseBareRealMatrix) ToDenseVector() DenseVector {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()
-    v := NilDenseVector(n*m)
+    v := nilDenseBareRealVector(n*m)
     for i := 0; i < n; i++ {
       for j := 0; j < m; j++ {
-        v[i*matrix.cols + j] = matrix.At(i, j)
+        v[i*matrix.cols + j] = matrix.AT(i, j)
       }
     }
     return v
   } else {
-    return DenseBareRealVector(matrix.values).ToDenseVector()
+    return DenseBareRealVector(matrix.values)
   }
-}
-func (matrix *DenseBareRealMatrix) ToDenseMatrix() *DenseMatrix {
-  r := DenseMatrix{}
-  r.values = matrix.values.ToDenseVector()
-  r.rows = matrix.rows
-  r.cols = matrix.cols
-  r.rowOffset = matrix.rowOffset
-  r.rowMax = matrix.rowMax
-  r.colOffset = matrix.colOffset
-  r.colMax = matrix.colMax
-  r.initTmp()
-  return &r
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseBareRealMatrix) T() Matrix {

@@ -202,13 +202,6 @@ func (v DenseRealVector) Sort(reverse bool) {
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
-func (v DenseRealVector) ToDenseVector() DenseVector {
-  r := NilDenseVector(v.Dim())
-  for i := 0; i < v.Dim(); i++ {
-    r.SetReferenceAt(i, v[i])
-  }
-  return r
-}
 func (v DenseRealVector) ToMatrix(n, m int) Matrix {
   if n*m != len(v) {
     panic("Matrix dimension does not fit input vector!")
