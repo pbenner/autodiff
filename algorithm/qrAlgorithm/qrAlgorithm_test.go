@@ -189,8 +189,8 @@ func Test8(t *testing.T) {
   if math.Abs(Mnorm(MsubM(a, b2)).GetValue()) > 1e-4 {
     t.Errorf("test failed")
   }
-  v1 := h1.Diag().SortVector(true)
-  v2 := h2.Diag().SortVector(true)
+  v1 := h1.Diag(); v1.Sort(true)
+  v2 := h2.Diag(); v2.Sort(true)
   if math.Abs(Vnorm(VsubV(v1, v2)).GetValue()) > 1e-4 {
     t.Errorf("test failed")
   }
