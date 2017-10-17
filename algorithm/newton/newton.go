@@ -413,7 +413,9 @@ func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Ve
   // objective function
   f := func(x Vector) (Vector, Matrix, error) {
     X.Set(x)
-    X.Variables(1)
+    if err := X.Variables(1); err != nil {
+      return nil, nil, err
+    }
     // evaluate objective function
     Y, err := f_(X)
     if err != nil {
@@ -451,7 +453,9 @@ func RunCrit(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Ve
   // objective function
   f := func(x Vector) (Vector, Matrix, error) {
     X.Set(x)
-    X.Variables(2)
+    if err := X.Variables(2); err != nil {
+      return nil, nil, err
+    }
     // evaluate objective function
     Y, err := f_(X)
     if err != nil {
@@ -486,7 +490,9 @@ func RunMin(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vec
   // objective function
   f := func(x Vector) (Scalar, Vector, Matrix, error) {
     X.Set(x)
-    X.Variables(2)
+    if err := X.Variables(2); err != nil {
+      return nil, nil, nil, err
+    }
     // evaluate objective function
     Y, err := f_(X)
     if err != nil {
