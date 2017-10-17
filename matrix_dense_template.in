@@ -54,11 +54,11 @@ func NEW_MATRIX(rows, cols int, values []float64) *MATRIX_TYPE {
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
-      v[i] = *NEW_SCALAR(values[0])
+      v[i] = NEW_SCALAR(values[0])
     }
   } else if len(values) == rows*cols {
     for i := 0; i < rows*cols; i++ {
-      v[i] = *NEW_SCALAR(values[i])
+      v[i] = NEW_SCALAR(values[i])
     }
   } else {
     panic("NewMatrix(): Matrix dimension does not fit input values!")
@@ -256,7 +256,7 @@ func (matrix *MATRIX_TYPE) T() Matrix {
 /* -------------------------------------------------------------------------- */
 
 func (matrix *MATRIX_TYPE) ConstAt(i, j int) ConstScalar {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 
 func (matrix *MATRIX_TYPE) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
@@ -278,11 +278,11 @@ func (matrix *MATRIX_TYPE) ConstDiag() ConstVector {
 /* -------------------------------------------------------------------------- */
 
 func (matrix *MATRIX_TYPE) At(i, j int) Scalar {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 
 func (matrix *MATRIX_TYPE) AT(i, j int) *SCALAR_TYPE {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 
 func (matrix *MATRIX_TYPE) Reset() {
@@ -376,7 +376,7 @@ func (matrix *MATRIX_TYPE) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scala
 
 func (matrix *MATRIX_TYPE) ElementType() ScalarType {
   if matrix.rows > 0 && matrix.cols > 0 {
-    return reflect.TypeOf(&matrix.values[0])
+    return reflect.TypeOf(matrix.values[0])
   }
   return nil
 }
@@ -547,7 +547,7 @@ func (obj *MATRIX_TYPE) MarshalJSON() ([]byte, error) {
 }
 
 func (obj *MATRIX_TYPE) UnmarshalJSON(data []byte) error {
-  r := struct{Values []SCALAR_TYPE; Rows int; Cols int}{}
+  r := struct{Values []*SCALAR_TYPE; Rows int; Cols int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

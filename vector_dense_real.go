@@ -31,14 +31,14 @@ import "strings"
 import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
-type DenseRealVector []Real
+type DenseRealVector []*Real
 /* constructors
  * -------------------------------------------------------------------------- */
 // Allocate a new vector. Scalars are set to the given values.
 func NewDenseRealVector(values []float64) DenseRealVector {
   v := nilDenseRealVector(len(values))
   for i, _ := range values {
-    v[i] = *NewReal(values[i])
+    v[i] = NewReal(values[i])
   }
   return v
 }
@@ -47,7 +47,7 @@ func NullDenseRealVector(length int) DenseRealVector {
   v := nilDenseRealVector(length)
   if length > 0 {
     for i := 0; i < length; i++ {
-      v[i] = *NewReal(0.0)
+      v[i] = NewReal(0.0)
     }
   }
   return v
@@ -61,7 +61,7 @@ func nilDenseRealVector(length int) DenseRealVector {
 func (v DenseRealVector) Clone() DenseRealVector {
   result := make(DenseRealVector, len(v))
   for i, _ := range v {
-    result[i] = *v[i].Clone()
+    result[i] = v[i].Clone()
   }
   return result
 }
@@ -83,13 +83,13 @@ func (v DenseRealVector) Dim() int {
   return len(v)
 }
 func (v DenseRealVector) At(i int) Scalar {
-  return &v[i]
+  return v[i]
 }
 func (v DenseRealVector) AT(i int) *Real {
-  return &v[i]
+  return v[i]
 }
 func (v DenseRealVector) ConstAt(i int) ConstScalar {
-  return &v[i]
+  return v[i]
 }
 func (v DenseRealVector) Reset() {
   for i := 0; i < len(v); i++ {
@@ -115,7 +115,7 @@ func (v DenseRealVector) ConstSlice(i, j int) ConstVector {
 }
 func (v DenseRealVector) Append(a ...Scalar) Vector {
   for _, s := range a {
-    v = append(v, *NewReal(s.GetValue()))
+    v = append(v, NewReal(s.GetValue()))
   }
   return v
 }
@@ -126,23 +126,23 @@ func (v DenseRealVector) Swap(i, j int) {
  * -------------------------------------------------------------------------- */
 func (v DenseRealVector) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
-    f(&v[i])
+    f(v[i])
   }
 }
 func (v DenseRealVector) MapSet(f func(Scalar) Scalar) {
   for i := 0; i < len(v); i++ {
-    v[i].Set(f(&v[i]))
+    v[i].Set(f(v[i]))
   }
 }
 func (v DenseRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
-    r = f(r, &v[i])
+    r = f(r, v[i])
   }
   return r
 }
 func (v DenseRealVector) ElementType() ScalarType {
   if len(v) > 0 {
-    return reflect.TypeOf(&v[0])
+    return reflect.TypeOf(v[0])
   }
   return nil
 }
@@ -178,23 +178,19 @@ type sortDenseRealVectorByValue DenseRealVector
 func (v sortDenseRealVectorByValue) Len() int { return len(v) }
 func (v sortDenseRealVectorByValue) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
 func (v sortDenseRealVectorByValue) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
-func (v DenseRealVector) Sort(reverse bool) DenseRealVector {
+func (v DenseRealVector) Sort(reverse bool) {
   if reverse {
     sort.Sort(sort.Reverse(sortDenseRealVectorByValue(v)))
   } else {
     sort.Sort(sortDenseRealVectorByValue(v))
   }
-  return v
-}
-func (v DenseRealVector) SortVector(reverse bool) Vector {
-  return v.Sort(reverse)
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
 func (v DenseRealVector) ToDenseVector() DenseVector {
   r := NilDenseVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {
-    r.SetReferenceAt(i, &v[i])
+    r.SetReferenceAt(i, v[i])
   }
   return r
 }
@@ -293,7 +289,7 @@ func (v *DenseRealVector) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-      *v = append(*v, *NewReal(value))
+      *v = append(*v, NewReal(value))
     }
   }
   return nil
@@ -301,12 +297,12 @@ func (v *DenseRealVector) Import(filename string) error {
 /* json
  * -------------------------------------------------------------------------- */
 func (obj DenseRealVector) MarshalJSON() ([]byte, error) {
-  r := []Real{}
+  r := []*Real{}
   r = obj
   return json.MarshalIndent(r, "", "  ")
 }
 func (obj *DenseRealVector) UnmarshalJSON(data []byte) error {
-  r := []Real{}
+  r := []*Real{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

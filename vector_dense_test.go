@@ -41,8 +41,8 @@ func TestVectorSort(t *testing.T) {
   v1 := NewVector(RealType, []float64{4,3,7,4,1,29,6})
   v2 := NewVector(RealType, []float64{4,3,7,4,1,29,6})
 
-  v1.SortVector(false)
-  v2.SortVector(true)
+  v1.Sort(false)
+  v2.Sort(true)
 
   if v1.At(6).GetValue() != 29.0 {
     t.Error("Vector sorting failed!")

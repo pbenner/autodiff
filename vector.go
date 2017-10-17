@@ -50,7 +50,7 @@ type Vector interface {
   Export          (string)               error
   Permute         ([]int)                error
   ReverseOrder    ()
-  SortVector      (bool)                 Vector
+  Sort            (bool)
   Slice           (i, j int)             Vector
   Append          (...Scalar)            Vector
   Swap            (i, j int)

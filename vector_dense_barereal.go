@@ -31,14 +31,14 @@ import "strings"
 import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
-type DenseBareRealVector []BareReal
+type DenseBareRealVector []*BareReal
 /* constructors
  * -------------------------------------------------------------------------- */
 // Allocate a new vector. Scalars are set to the given values.
 func NewDenseBareRealVector(values []float64) DenseBareRealVector {
   v := nilDenseBareRealVector(len(values))
   for i, _ := range values {
-    v[i] = *NewBareReal(values[i])
+    v[i] = NewBareReal(values[i])
   }
   return v
 }
@@ -47,7 +47,7 @@ func NullDenseBareRealVector(length int) DenseBareRealVector {
   v := nilDenseBareRealVector(length)
   if length > 0 {
     for i := 0; i < length; i++ {
-      v[i] = *NewBareReal(0.0)
+      v[i] = NewBareReal(0.0)
     }
   }
   return v
@@ -61,7 +61,7 @@ func nilDenseBareRealVector(length int) DenseBareRealVector {
 func (v DenseBareRealVector) Clone() DenseBareRealVector {
   result := make(DenseBareRealVector, len(v))
   for i, _ := range v {
-    result[i] = *v[i].Clone()
+    result[i] = v[i].Clone()
   }
   return result
 }
@@ -83,13 +83,13 @@ func (v DenseBareRealVector) Dim() int {
   return len(v)
 }
 func (v DenseBareRealVector) At(i int) Scalar {
-  return &v[i]
+  return v[i]
 }
 func (v DenseBareRealVector) AT(i int) *BareReal {
-  return &v[i]
+  return v[i]
 }
 func (v DenseBareRealVector) ConstAt(i int) ConstScalar {
-  return &v[i]
+  return v[i]
 }
 func (v DenseBareRealVector) Reset() {
   for i := 0; i < len(v); i++ {
@@ -115,7 +115,7 @@ func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
 }
 func (v DenseBareRealVector) Append(a ...Scalar) Vector {
   for _, s := range a {
-    v = append(v, *NewBareReal(s.GetValue()))
+    v = append(v, NewBareReal(s.GetValue()))
   }
   return v
 }
@@ -126,23 +126,23 @@ func (v DenseBareRealVector) Swap(i, j int) {
  * -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
-    f(&v[i])
+    f(v[i])
   }
 }
 func (v DenseBareRealVector) MapSet(f func(Scalar) Scalar) {
   for i := 0; i < len(v); i++ {
-    v[i].Set(f(&v[i]))
+    v[i].Set(f(v[i]))
   }
 }
 func (v DenseBareRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
-    r = f(r, &v[i])
+    r = f(r, v[i])
   }
   return r
 }
 func (v DenseBareRealVector) ElementType() ScalarType {
   if len(v) > 0 {
-    return reflect.TypeOf(&v[0])
+    return reflect.TypeOf(v[0])
   }
   return nil
 }
@@ -178,23 +178,19 @@ type sortDenseBareRealVectorByValue DenseBareRealVector
 func (v sortDenseBareRealVectorByValue) Len() int { return len(v) }
 func (v sortDenseBareRealVectorByValue) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
 func (v sortDenseBareRealVectorByValue) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
-func (v DenseBareRealVector) Sort(reverse bool) DenseBareRealVector {
+func (v DenseBareRealVector) Sort(reverse bool) {
   if reverse {
     sort.Sort(sort.Reverse(sortDenseBareRealVectorByValue(v)))
   } else {
     sort.Sort(sortDenseBareRealVectorByValue(v))
   }
-  return v
-}
-func (v DenseBareRealVector) SortVector(reverse bool) Vector {
-  return v.Sort(reverse)
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) ToDenseVector() DenseVector {
   r := NilDenseVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {
-    r.SetReferenceAt(i, &v[i])
+    r.SetReferenceAt(i, v[i])
   }
   return r
 }
@@ -293,7 +289,7 @@ func (v *DenseBareRealVector) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-      *v = append(*v, *NewBareReal(value))
+      *v = append(*v, NewBareReal(value))
     }
   }
   return nil
@@ -301,12 +297,12 @@ func (v *DenseBareRealVector) Import(filename string) error {
 /* json
  * -------------------------------------------------------------------------- */
 func (obj DenseBareRealVector) MarshalJSON() ([]byte, error) {
-  r := []BareReal{}
+  r := []*BareReal{}
   r = obj
   return json.MarshalIndent(r, "", "  ")
 }
 func (obj *DenseBareRealVector) UnmarshalJSON(data []byte) error {
-  r := []BareReal{}
+  r := []*BareReal{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

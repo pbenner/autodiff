@@ -46,11 +46,11 @@ func NewDenseRealMatrix(rows, cols int, values []float64) *DenseRealMatrix {
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
-      v[i] = *NewReal(values[0])
+      v[i] = NewReal(values[0])
     }
   } else if len(values) == rows*cols {
     for i := 0; i < rows*cols; i++ {
-      v[i] = *NewReal(values[i])
+      v[i] = NewReal(values[i])
     }
   } else {
     panic("NewMatrix(): Matrix dimension does not fit input values!")
@@ -226,7 +226,7 @@ func (matrix *DenseRealMatrix) T() Matrix {
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseRealMatrix) ConstAt(i, j int) ConstScalar {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
   return matrix.Slice(rfrom, rto, cfrom, cto)
@@ -242,10 +242,10 @@ func (matrix *DenseRealMatrix) ConstDiag() ConstVector {
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseRealMatrix) At(i, j int) Scalar {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseRealMatrix) AT(i, j int) *Real {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseRealMatrix) Reset() {
   for i := 0; i < len(matrix.values); i++ {
@@ -328,7 +328,7 @@ func (matrix *DenseRealMatrix) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) S
 }
 func (matrix *DenseRealMatrix) ElementType() ScalarType {
   if matrix.rows > 0 && matrix.cols > 0 {
-    return reflect.TypeOf(&matrix.values[0])
+    return reflect.TypeOf(matrix.values[0])
   }
   return nil
 }
@@ -478,7 +478,7 @@ func (obj *DenseRealMatrix) MarshalJSON() ([]byte, error) {
   return json.MarshalIndent(r, "", "  ")
 }
 func (obj *DenseRealMatrix) UnmarshalJSON(data []byte) error {
-  r := struct{Values []Real; Rows int; Cols int}{}
+  r := struct{Values []*Real; Rows int; Cols int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

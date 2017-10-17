@@ -46,11 +46,11 @@ func NewDenseBareRealMatrix(rows, cols int, values []float64) *DenseBareRealMatr
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
-      v[i] = *NewBareReal(values[0])
+      v[i] = NewBareReal(values[0])
     }
   } else if len(values) == rows*cols {
     for i := 0; i < rows*cols; i++ {
-      v[i] = *NewBareReal(values[i])
+      v[i] = NewBareReal(values[i])
     }
   } else {
     panic("NewMatrix(): Matrix dimension does not fit input values!")
@@ -226,7 +226,7 @@ func (matrix *DenseBareRealMatrix) T() Matrix {
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseBareRealMatrix) ConstAt(i, j int) ConstScalar {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseBareRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
   return matrix.Slice(rfrom, rto, cfrom, cto)
@@ -242,10 +242,10 @@ func (matrix *DenseBareRealMatrix) ConstDiag() ConstVector {
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseBareRealMatrix) At(i, j int) Scalar {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseBareRealMatrix) AT(i, j int) *BareReal {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseBareRealMatrix) Reset() {
   for i := 0; i < len(matrix.values); i++ {
@@ -328,7 +328,7 @@ func (matrix *DenseBareRealMatrix) Reduce(f func(Scalar, Scalar) Scalar, r Scala
 }
 func (matrix *DenseBareRealMatrix) ElementType() ScalarType {
   if matrix.rows > 0 && matrix.cols > 0 {
-    return reflect.TypeOf(&matrix.values[0])
+    return reflect.TypeOf(matrix.values[0])
   }
   return nil
 }
@@ -478,7 +478,7 @@ func (obj *DenseBareRealMatrix) MarshalJSON() ([]byte, error) {
   return json.MarshalIndent(r, "", "  ")
 }
 func (obj *DenseBareRealMatrix) UnmarshalJSON(data []byte) error {
-  r := struct{Values []BareReal; Rows int; Cols int}{}
+  r := struct{Values []*BareReal; Rows int; Cols int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

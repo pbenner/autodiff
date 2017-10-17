@@ -37,7 +37,7 @@ import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
-type VECTOR_TYPE []SCALAR_TYPE
+type VECTOR_TYPE []*SCALAR_TYPE
 
 /* constructors
  * -------------------------------------------------------------------------- */
@@ -46,7 +46,7 @@ type VECTOR_TYPE []SCALAR_TYPE
 func NEW_VECTOR(values []float64) VECTOR_TYPE {
   v := NIL_VECTOR(len(values))
   for i, _ := range values {
-    v[i] = *NEW_SCALAR(values[i])
+    v[i] = NEW_SCALAR(values[i])
   }
   return v
 }
@@ -56,7 +56,7 @@ func NULL_VECTOR(length int) VECTOR_TYPE {
   v := NIL_VECTOR(length)
   if length > 0 {
     for i := 0; i < length; i++ {
-      v[i] = *NEW_SCALAR(0.0)
+      v[i] = NEW_SCALAR(0.0)
     }
   }
   return v
@@ -74,7 +74,7 @@ func (v VECTOR_TYPE) Clone() VECTOR_TYPE {
   result := make(VECTOR_TYPE, len(v))
 
   for i, _ := range v {
-    result[i] = *v[i].Clone()
+    result[i] = v[i].Clone()
   }
   return result
 }
@@ -101,15 +101,15 @@ func (v VECTOR_TYPE) Dim() int {
 }
 
 func (v VECTOR_TYPE) At(i int) Scalar {
-  return &v[i]
+  return v[i]
 }
 
 func (v VECTOR_TYPE) AT(i int) *SCALAR_TYPE {
-  return &v[i]
+  return v[i]
 }
 
 func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
-  return &v[i]
+  return v[i]
 }
 
 func (v VECTOR_TYPE) Reset() {
@@ -141,7 +141,7 @@ func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
 
 func (v VECTOR_TYPE) Append(a ...Scalar) Vector {
   for _, s := range a {
-    v = append(v, *NEW_SCALAR(s.GetValue()))
+    v = append(v, NEW_SCALAR(s.GetValue()))
   }
   return v
 }
@@ -155,26 +155,26 @@ func (v VECTOR_TYPE) Swap(i, j int) {
 
 func (v VECTOR_TYPE) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
-    f(&v[i])
+    f(v[i])
   }
 }
 
 func (v VECTOR_TYPE) MapSet(f func(Scalar) Scalar) {
   for i := 0; i < len(v); i++ {
-    v[i].Set(f(&v[i]))
+    v[i].Set(f(v[i]))
   }
 }
 
 func (v VECTOR_TYPE) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
-    r = f(r, &v[i])
+    r = f(r, v[i])
   }
   return r
 }
 
 func (v VECTOR_TYPE) ElementType() ScalarType {
   if len(v) > 0 {
-    return reflect.TypeOf(&v[0])
+    return reflect.TypeOf(v[0])
   }
   return nil
 }
@@ -219,17 +219,12 @@ func (v SORT_TYPE) Len() int           { return len(v) }
 func (v SORT_TYPE) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
 func (v SORT_TYPE) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
 
-func (v VECTOR_TYPE) Sort(reverse bool) VECTOR_TYPE {
+func (v VECTOR_TYPE) Sort(reverse bool) {
   if reverse {
     sort.Sort(sort.Reverse(SORT_TYPE(v)))
   } else {
     sort.Sort(SORT_TYPE(v))
   }
-  return v
-}
-
-func (v VECTOR_TYPE) SortVector(reverse bool) Vector {
-  return v.Sort(reverse)
 }
 
 /* type conversion
@@ -238,7 +233,7 @@ func (v VECTOR_TYPE) SortVector(reverse bool) Vector {
 func (v VECTOR_TYPE) ToDenseVector() DenseVector {
   r := NilDenseVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {
-    r.SetReferenceAt(i, &v[i])
+    r.SetReferenceAt(i, v[i])
   }
   return r
 }
@@ -350,7 +345,7 @@ func (v *VECTOR_TYPE) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-      *v = append(*v, *NEW_SCALAR(value))
+      *v = append(*v, NEW_SCALAR(value))
     }
   }
   return nil
@@ -360,13 +355,13 @@ func (v *VECTOR_TYPE) Import(filename string) error {
  * -------------------------------------------------------------------------- */
 
 func (obj VECTOR_TYPE) MarshalJSON() ([]byte, error) {
-  r := []SCALAR_TYPE{}
+  r := []*SCALAR_TYPE{}
   r  = obj
   return json.MarshalIndent(r, "", "  ")
 }
 
 func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
-  r := []SCALAR_TYPE{}
+  r := []*SCALAR_TYPE{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

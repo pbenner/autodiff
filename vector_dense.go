@@ -221,17 +221,12 @@ func (v sortDenseVectorByValue) Len() int           { return len(v) }
 func (v sortDenseVectorByValue) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
 func (v sortDenseVectorByValue) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
 
-func (v DenseVector) Sort(reverse bool) DenseVector {
+func (v DenseVector) Sort(reverse bool) {
   if reverse {
     sort.Sort(sort.Reverse(sortDenseVectorByValue(v)))
   } else {
     sort.Sort(sortDenseVectorByValue(v))
   }
-  return v
-}
-
-func (v DenseVector) SortVector(reverse bool) Vector {
-  return v.Sort(reverse)
 }
 
 /* type conversion
