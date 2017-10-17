@@ -20,9 +20,12 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 import "bytes"
 import "bufio"
+import "compress/gzip"
 import "encoding/json"
 import "fmt"
 import "reflect"
+import "strconv"
+import "strings"
 import "os"
 import "unsafe"
 /* matrix type declaration
@@ -460,6 +463,55 @@ func (m *DenseRealMatrix) Export(filename string) error {
   if _, err := fmt.Fprintf(w, "%s\n", m.Table()); err != nil {
     return err
   }
+  return nil
+}
+func (m *DenseRealMatrix) Import(filename string) error {
+  values := []float64{}
+  rows := 0
+  cols := 0
+  var scanner *bufio.Scanner
+  // open file
+  f, err := os.Open(filename)
+  if err != nil {
+    return err
+  }
+  defer f.Close()
+  isgzip, err := isGzip(filename)
+  if err != nil {
+    return err
+  }
+  // check if file is gzipped
+  if isgzip {
+    g, err := gzip.NewReader(f)
+    if err != nil {
+      return err
+    }
+    defer g.Close()
+    scanner = bufio.NewScanner(g)
+  } else {
+    scanner = bufio.NewScanner(f)
+  }
+  for scanner.Scan() {
+    fields := strings.Fields(scanner.Text())
+    if len(fields) == 0 {
+      continue
+    }
+    if cols == 0 {
+      cols = len(fields)
+    }
+    if cols != len(fields) {
+      return fmt.Errorf("invalid table")
+    }
+    for i := 0; i < len(fields); i++ {
+      value, err := strconv.ParseFloat(fields[i], 64)
+      if err != nil {
+        return fmt.Errorf("invalid table")
+      }
+      values = append(values, value)
+    }
+    rows++
+  }
+  *m = *NewDenseRealMatrix(rows, cols, values)
   return nil
 }
 /* json
