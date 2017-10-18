@@ -38,7 +38,7 @@ func (r DenseBareRealVector) VaddV(a, b ConstVector) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Add(a.ConstAt(i), b.ConstAt(i))
+    r.AT(i).Add(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
@@ -50,7 +50,7 @@ func (r DenseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Add(a.ConstAt(i), b)
+    r.AT(i).Add(a.ConstAt(i), b)
   }
   return r
 }
@@ -62,7 +62,7 @@ func (r DenseBareRealVector) VsubV(a, b ConstVector) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Sub(a.ConstAt(i), b.ConstAt(i))
+    r.AT(i).Sub(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
@@ -74,7 +74,7 @@ func (r DenseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Sub(a.ConstAt(i), b)
+    r.AT(i).Sub(a.ConstAt(i), b)
   }
   return r
 }
@@ -86,7 +86,7 @@ func (r DenseBareRealVector) VmulV(a, b ConstVector) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Mul(a.ConstAt(i), b.ConstAt(i))
+    r.AT(i).Mul(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
@@ -98,7 +98,7 @@ func (r DenseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Mul(a.ConstAt(i), s)
+    r.AT(i).Mul(a.ConstAt(i), s)
   }
   return r
 }
@@ -110,7 +110,7 @@ func (r DenseBareRealVector) VdivV(a, b ConstVector) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Div(a.ConstAt(i), b.ConstAt(i))
+    r.AT(i).Div(a.ConstAt(i), b.ConstAt(i))
   }
   return r
 }
@@ -122,7 +122,7 @@ func (r DenseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
     panic("vector dimensions do not match")
   }
   for i := 0; i < a.Dim(); i++ {
-    r.At(i).Div(a.ConstAt(i), s)
+    r.AT(i).Div(a.ConstAt(i), s)
   }
   return r
 }
@@ -139,12 +139,12 @@ func (r DenseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
   if r[0] == b.ConstAt(0) {
     panic("result and argument must be different vectors")
   }
-  t := NullScalar(a.ElementType())
+  t := NullBareReal()
   for i := 0; i < n; i++ {
-    r.At(i).Reset()
+    r.AT(i).Reset()
     for j := 0; j < m; j++ {
       t.Mul(a.At(i, j), b.ConstAt(j))
-      r.At(i).Add(r.At(i), t)
+      r.AT(i).ADD(r.AT(i), t)
     }
   }
   return r
@@ -162,12 +162,12 @@ func (r DenseBareRealVector) VdotM(a ConstVector, b Matrix) Vector {
   if r.At(0) == a.ConstAt(0) {
     panic("result and argument must be different vectors")
   }
-  t := NullScalar(a.ElementType())
+  t := NullBareReal()
   for i := 0; i < m; i++ {
-    r.At(i).Reset()
+    r.AT(i).Reset()
     for j := 0; j < n; j++ {
       t.Mul(a.ConstAt(j), b.At(j, i))
-      r.At(i).Add(r.At(i), t)
+      r.AT(i).ADD(r.AT(i), t)
     }
   }
   return r
