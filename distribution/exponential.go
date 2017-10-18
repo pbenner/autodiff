@@ -120,8 +120,8 @@ func (dist *ExponentialDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist ExponentialDistribution) GetParameters() Vector {
-  p   := NilDenseVector(1)
-  p[0] = dist.Lambda
+  p := NullVector(dist.ScalarType(), 1)
+  p.At(0).Set(dist.Lambda)
   return p
 }
 

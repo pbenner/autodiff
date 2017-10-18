@@ -142,8 +142,8 @@ func (dist *BinomialDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *BinomialDistribution) GetParameters() Vector {
-  p   := NilDenseVector(1)
-  p[0] = dist.Theta
+  p := NullVector(dist.ScalarType(), 1)
+  p.At(0).Set(dist.Theta)
   return p
 }
 

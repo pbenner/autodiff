@@ -199,10 +199,10 @@ func Run(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
     }
   }
   if inSitu.Eigenvalues == nil {
-    inSitu.Eigenvalues = NullDenseVector(t, n)
+    inSitu.Eigenvalues = NullVector(t, n)
   }
   if inSitu.Eigenvectors == nil && computeEigenvectors {
-    inSitu.Eigenvectors = NullDenseMatrix(t, n, n)
+    inSitu.Eigenvectors = NullMatrix(t, n, n)
     if symmetric {
       inSitu.QrAlgorithm.U = inSitu.Eigenvectors
     }

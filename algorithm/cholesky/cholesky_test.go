@@ -95,51 +95,28 @@ func TestCholesky3(t *testing.T) {
 
 func TestPerformance(t *testing.T) {
   n := 100
-  a1 := NullDenseMatrix(RealType, n, n)
+
+  a1 := NullDenseRealMatrix(n, n)
   a1.SetIdentity()
-  l1 := NullDenseMatrix(RealType, n, n)
-  s1 := NewScalar(RealType, 0.0)
-  t1 := NewScalar(RealType, 0.0)
+  l1 := NullDenseRealMatrix(n, n)
+  s1 := NewReal(0.0)
+  t1 := NewReal(0.0)
   inSitu1 := InSitu{l1, nil, s1, t1}
 
-  a2 := NullDenseMatrix(BareRealType, n, n)
+  a2 := NullDenseBareRealMatrix(n, n)
   a2.SetIdentity()
-  l2 := NullDenseMatrix(RealType, n, n)
+  l2 := NullDenseBareRealMatrix(n, n)
   s2 := NewBareReal(0.0)
   t2 := NewBareReal(0.0)
   inSitu2 := InSitu{l2, nil, s2, t2}
 
-  a3 := NullDenseRealMatrix(n, n)
-  a3.SetIdentity()
-  l3 := NullDenseRealMatrix(n, n)
-  s3 := NewReal(0.0)
-  t3 := NewReal(0.0)
-  inSitu3 := InSitu{l3, nil, s3, t3}
-
-  a4 := NullDenseBareRealMatrix(n, n)
-  a4.SetIdentity()
-  l4 := NullDenseBareRealMatrix(n, n)
-  s4 := NewBareReal(0.0)
-  t4 := NewBareReal(0.0)
-  inSitu4 := InSitu{l4, nil, s4, t4}
-
   start := time.Now()
   Run(a1, &inSitu1)
   elapsed := time.Since(start)
-  fmt.Printf("Cholesky on DenseMatrix with RealType took %s.\n", elapsed)
-
-  start = time.Now()
-  Run(a2, &inSitu2)
-  elapsed = time.Since(start)
-  fmt.Printf("Cholesky on DenseMatrix with BareRealType took %s.\n", elapsed)
-
-  start = time.Now()
-  Run(a3, &inSitu3)
-  elapsed = time.Since(start)
   fmt.Printf("Cholesky on DenseRealMatrix took %s.\n", elapsed)
 
   start = time.Now()
-  Run(a4, &inSitu4)
+  Run(a2, &inSitu2)
   elapsed = time.Since(start)
   fmt.Printf("Cholesky on DenseBareRealMatrix took %s.\n", elapsed)
 }

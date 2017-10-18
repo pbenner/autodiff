@@ -92,18 +92,18 @@ func (dist *LogSkewNormalDistribution) ScalarType() ScalarType {
 func (dist LogSkewNormalDistribution) LogPdf(r Scalar, x Vector) error {
   n := dist.Normal1.Dim()
   c := NewScalar(dist.ScalarType(), math.Log(2))
-  y := NullDenseVector(dist.ScalarType(), n)
-  z := NullDenseVector(dist.ScalarType(), n)
-  t := NullDenseVector(dist.ScalarType(), 1)
+  y := NullVector(dist.ScalarType(), n)
+  z := NullVector(dist.ScalarType(), n)
+  t := NullVector(dist.ScalarType(), 1)
   s := NewScalar(dist.ScalarType(), 0.0)
   for i := 0; i < n; i++ {
-    y[i].Log(s.Add(x.At(i), NewReal(1.0)))
-    z[i].Div(s.Sub(y.At(i), dist.Normal1.Mu.At(i)), dist.Scale.At(i))
+    y.At(i).Log(s.Add(x.At(i), NewReal(1.0)))
+    z.At(i).Div(s.Sub(y.At(i), dist.Normal1.Mu.At(i)), dist.Scale.At(i))
   }
-  t[0].VdotV(dist.Alpha, z)
+  t.At(0).VdotV(dist.Alpha, z)
   // add the det Jacobian of the variable transform to the constant c
   for i := 0; i < n; i++ {
-    c.Add(c, s.Neg(s.Log(y[i])))
+    c.Add(c, s.Neg(s.Log(y.At(i))))
   }
 
   r1 := r.CloneScalar()

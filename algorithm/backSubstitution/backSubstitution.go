@@ -86,7 +86,7 @@ func Run(A Matrix, b Vector, args ...interface{}) (Vector, error) {
     }
   }
   if inSitu.X == nil {
-    inSitu.X = NullDenseVector(t, n)
+    inSitu.X = NullVector(t, n)
   } else {
     if inSitu.X.Dim() != n {
       return nil, fmt.Errorf("x has invalid dimension")

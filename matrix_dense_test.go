@@ -228,12 +228,12 @@ func TestMatrixJacobian(t *testing.T) {
     if x.Dim() != 2 {
       panic("Invalid input vector!")
     }
-    y := NullDenseVector(RealType, 3)
+    y := NullVector(RealType, 3)
     // x1^2 + y^2 - 6
-    y[0].Sub(r1.Add(r1.Pow(x.ConstAt(0), NewBareReal(2)), r2.Pow(x.ConstAt(1), NewBareReal(2))), NewBareReal(6))
+    y.At(0).Sub(r1.Add(r1.Pow(x.ConstAt(0), NewBareReal(2)), r2.Pow(x.ConstAt(1), NewBareReal(2))), NewBareReal(6))
     // x^3 - y^2
-    y[1].Sub(r1.Pow(x.ConstAt(0), NewBareReal(3)), r2.Pow(x.ConstAt(1), NewBareReal(2)))
-    y[2].SetValue(2)
+    y.At(1).Sub(r1.Pow(x.ConstAt(0), NewBareReal(3)), r2.Pow(x.ConstAt(1), NewBareReal(2)))
+    y.At(2).SetValue(2)
 
     return y
   }
@@ -280,8 +280,9 @@ func TestReadMatrix(t *testing.T) {
 
   filename := "matrix_dense_test.table"
 
-  m, err := ReadMatrix(RealType, filename)
-  if err != nil {
+  m := &DenseRealMatrix{}
+  
+  if err := m.Import(filename); err != nil {
     panic(err)
   }
   r := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
@@ -386,7 +387,7 @@ func TestMatrixJson(t *testing.T) {
     filename := "matrix_dense_test.1.json"
 
     r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
-    r2 := NilMatrix(0, 0)
+    r2 := &DenseRealMatrix{}
 
     if err := writeJson(filename, r1); err != nil {
       t.Error(err); return
@@ -405,7 +406,7 @@ func TestMatrixJson(t *testing.T) {
     r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
     r1.At(0,0).Alloc(1,2)
     r1.At(0,0).SetDerivative(0, 2.3)
-    r2 := NilMatrix(0, 0)
+    r2 := &DenseRealMatrix{}
 
     if err := writeJson(filename, r1); err != nil {
       t.Error(err); return

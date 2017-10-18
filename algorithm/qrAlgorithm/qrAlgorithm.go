@@ -53,10 +53,10 @@ type InSitu struct {
   // asymmetric case
   Hessenberg  hessenbergReduction.InSitu
   Beta Scalar
-  Nu   DenseVector
-  X    DenseVector
+  Nu   Vector
+  X    Vector
   T    Scalar
-  T4   DenseVector
+  T4   Vector
   // symmetric case
   C    Scalar
   Y    Scalar
@@ -153,18 +153,18 @@ func francisQRstep(H, U Matrix, p, q int, inSitu *InSitu) {
   h21 = H22.At(1,0)
   h22 = H22.At(1,1)
 
-  t1  .Mul(h11 , h11)
-  t2  .Mul(h12 , h21)
-  t3  .Mul(s   , h11)
-  x[0].Add(t1  , t2)
-  x[0].Sub(x[0], t3)
-  x[0].Add(x[0], t)
+  t1     .Mul(h11    , h11)
+  t2     .Mul(h12    , h21)
+  t3     .Mul(s      , h11)
+  x.At(0).Add(t1     , t2)
+  x.At(0).Sub(x.At(0), t3)
+  x.At(0).Add(x.At(0), t)
 
-  x[1].Add(h11 , h22)
-  x[1].Sub(x[1], s)
-  x[1].Mul(x[1], h21)
+  x.At(1).Add(h11    , h22)
+  x.At(1).Sub(x.At(1), s)
+  x.At(1).Mul(x.At(1), h21)
 
-  x[2].Mul(h21 , H22.At(2,1))
+  x.At(2).Mul(h21 , H22.At(2,1))
 
   for k := 0; k < n-2; k++ {
     s := 1
@@ -178,50 +178,50 @@ func francisQRstep(H, U Matrix, p, q int, inSitu *InSitu) {
     householder.Run(x, beta, nu, t1, t2, t3)
     {
       h := H22.Slice(k, k+3, s-1, n)
-      householder.ApplyLeft(h, beta, nu, t4[s-1:n], t1)
+      householder.ApplyLeft(h, beta, nu, t4.Slice(s-1,n), t1)
     }
     {
       h := H22.Slice(0, n, k, k+3)
-      householder.ApplyRight(h, beta, nu, t4[0:n], t1)
+      householder.ApplyRight(h, beta, nu, t4.Slice(0,n), t1)
     }
     {
       h := H12.Slice(0, p, k, k+3)
-      householder.ApplyRight(h, beta, nu, t4[0:p], t1)
+      householder.ApplyRight(h, beta, nu, t4.Slice(0,p), t1)
     }
     {
       h := H23.Slice(k, k+3, 0, q)
-      householder.ApplyLeft(h, beta, nu, t4[0:q], t1)
+      householder.ApplyLeft(h, beta, nu, t4.Slice(0,q), t1)
     }
     if u != nil {
       u := u.Slice(0, m, k, k+3)
-      householder.ApplyRight(u, beta, nu, t4[0:m], t1)
+      householder.ApplyRight(u, beta, nu, t4.Slice(0,m), t1)
     }
-    x[0].Set(H22.At(k+1, k))
-    x[1].Set(H22.At(k+2, k))
+    x.At(0).Set(H22.At(k+1, k))
+    x.At(1).Set(H22.At(k+2, k))
     if k < n-3 {
-      x[2].Set(H22.At(k+3, k))
+      x.At(2).Set(H22.At(k+3, k))
     }
   }
-  householder.Run(x[0:2], beta, nu[0:2], t1, t2, t3)
+  householder.Run(x.Slice(0,2), beta, nu.Slice(0,2), t1, t2, t3)
   {
     h := H22.Slice(n-2, n, n-3, n)
-    householder.ApplyLeft(h, beta, nu[0:2], t4[n-3:n], t1)
+    householder.ApplyLeft(h, beta, nu.Slice(0,2), t4.Slice(n-3,n), t1)
   }
   {
     h := H22.Slice(0, n, n-2, n)
-    householder.ApplyRight(h, beta, nu[0:2], t4[0:n], t1)
+    householder.ApplyRight(h, beta, nu.Slice(0,2), t4.Slice(0,n), t1)
   }
   {
     h := H12.Slice(0, p, n-2, n)
-    householder.ApplyRight(h, beta, nu[0:2], t4[0:p], t1)
+    householder.ApplyRight(h, beta, nu.Slice(0,2), t4.Slice(0,p), t1)
   }
   {
     h := H23.Slice(n-2, n, 0, q)
-    householder.ApplyLeft(h, beta, nu[0:2], t4[0:q], t1)
+    householder.ApplyLeft(h, beta, nu.Slice(0,2), t4.Slice(0,q), t1)
   }
   if u != nil {
     u := u.Slice(0, m, n-2, n)
-    householder.ApplyRight(u, beta, nu[0:2], t4[0:m], t1)
+    householder.ApplyRight(u, beta, nu.Slice(0,2), t4.Slice(0,m), t1)
   }
 }
 
@@ -387,7 +387,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullDenseVector(t, m)
+    inSitu.T4 = NullVector(t, m)
   }
   if inSitu.S == nil {
     inSitu.S = NullScalar(t)
@@ -405,13 +405,13 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     return qrAlgorithmSymmetric(inSitu, epsilon)
   } else {
     if inSitu.X == nil {
-      inSitu.X = NullDenseVector(t, 3)
+      inSitu.X = NullVector(t, 3)
     }
     if inSitu.Beta == nil {
       inSitu.Beta = NullScalar(t)
     }
     if inSitu.Nu == nil {
-      inSitu.Nu = NullDenseVector(t, 3)
+      inSitu.Nu = NullVector(t, 3)
     }
     if inSitu.T == nil {
       inSitu.T = NullScalar(t)

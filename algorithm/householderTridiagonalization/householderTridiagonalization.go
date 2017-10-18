@@ -40,14 +40,14 @@ type InSitu struct {
   A     Matrix
   U     Matrix
   V     Matrix
-  X     DenseVector
+  X     Vector
   Beta  Scalar
-  Nu    DenseVector
+  Nu    Vector
   C1    Scalar
   T1    Scalar
   T2    Scalar
   T3    Scalar
-  T4    DenseVector
+  T4    Vector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -65,8 +65,8 @@ func houseCol(k int, inSitu *InSitu) (Vector, Scalar) {
   for j := k+1; j < n; j++ {
     x.At(j).Set(A.At(j, k))
   }
-  householder.Run(x[k+1:n], beta, nu[k+1:n], t1, t2, t3)
-  return nu[k+1:n], beta
+  householder.Run(x.Slice(k+1,n), beta, nu.Slice(k+1,n), t1, t2, t3)
+  return nu.Slice(k+1,n), beta
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,8 +88,8 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
     nu, beta := houseCol(k, inSitu)
 
     a := A.Slice(k+1,n, k+1,n)
-    p := p[k+1:n]
-    w := w[k+1:n]
+    p := p.Slice(k+1,n)
+    w := w.Slice(k+1,n)
 
     p.MdotV(a, nu)
     p.VmulS(p, beta)
@@ -127,7 +127,7 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
 
     if U != nil {
       u := U.Slice(0,n,k+1,n)
-      householder.ApplyRight(u, beta, nu, inSitu.T4[0:n], inSitu.T1)
+      householder.ApplyRight(u, beta, nu, inSitu.T4.Slice(0,n), inSitu.T1)
     }
   }
   return A, U, nil
@@ -169,20 +169,20 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   }
   if computeU {
     if inSitu.U == nil {
-      inSitu.U = NullDenseMatrix(t, m, m)
+      inSitu.U = NullMatrix(t, m, m)
     }
     inSitu.U.SetIdentity()
   } else {
     inSitu.U = nil
   }
   if inSitu.X == nil {
-    inSitu.X = NullDenseVector(t, m)
+    inSitu.X = NullVector(t, m)
   }
   if inSitu.Beta == nil {
     inSitu.Beta = NullScalar(t)
   }
   if inSitu.Nu == nil {
-    inSitu.Nu = NullDenseVector(t, m)
+    inSitu.Nu = NullVector(t, m)
   }
   if inSitu.C1 == nil {
     inSitu.C1 = NewScalar(t, 1.0)
@@ -197,7 +197,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullDenseVector(t, m)
+    inSitu.T4 = NullVector(t, m)
   }
   return householderTridiagonalization(inSitu, epsilon)
 }

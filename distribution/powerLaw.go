@@ -131,9 +131,9 @@ func (dist *PowerLawDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist PowerLawDistribution) GetParameters() Vector {
-  p   := NilDenseVector(2)
-  p[0] = dist.Alpha
-  p[1] = dist.Xmin
+  p := NullVector(dist.ScalarType(), 2)
+  p.At(0).Set(dist.Alpha)
+  p.At(1).Set(dist.Xmin)
   return p
 }
 

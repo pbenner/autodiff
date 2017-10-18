@@ -98,10 +98,10 @@ func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GeneralizedGammaDistribution) GetParameters() Vector {
-  p   := NilDenseVector(3)
-  p[0] = dist.A
-  p[1] = dist.D
-  p[2] = dist.P
+  p := NullVector(dist.ScalarType(), 3)
+  p.At(0).Set(dist.A)
+  p.At(1).Set(dist.D)
+  p.At(2).Set(dist.P)
   return p
 }
 

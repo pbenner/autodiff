@@ -37,7 +37,7 @@ type NormalDistribution struct {
   // state
   t1       Vector
   t2       Vector
-  t3       Scalar
+  t3       Vector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -74,7 +74,7 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
     cl      : ConstReal(math.Log(2.0)),
     t1      : NullVector(t, n),
     t2      : NullVector(t, n),
-    t3      : NullScalar(t) }
+    t3      : NullVector(t, 1) }
 
   return &result, nil
 
@@ -92,7 +92,7 @@ func (dist *NormalDistribution) Clone() *NormalDistribution {
     cl      : dist.cl,
     t1      : dist.t1      .CloneVector(),
     t2      : dist.t2      .CloneVector(),
-    t3      : dist.t3      .CloneScalar() }
+    t3      : dist.t3      .CloneVector() }
 }
 
 func (dist *NormalDistribution) Dim() int {
@@ -145,7 +145,7 @@ func (dist *NormalDistribution) LogCdf(r Scalar, x Vector) error {
   if x.Dim() != 1 {
     panic("LogCdf(): not supported for more than one dimension.")
   }
-  t := dist.t3
+  t := dist.t3.At(0)
   t.Mul(ConstReal(2.0), dist.Sigma.At(0,0))
   t.Sqrt(t)
 
@@ -178,13 +178,13 @@ func (dist *NormalDistribution) EllipticCdf(r Scalar, x Vector) error {
   d, _ := NewChiSquaredDistribution(2)
   y := dist.t1
   s := dist.t2
-  t := dist.t3
+  t := dist.t3.At(0)
   // t = T(x) = (x-mu)^T Sigma^-1 (x-mu)
   y.VsubV(x, dist.Mu)
   s.VdotM(y, dist.SigmaInv)
   t.VdotV(s, y)
   // T(x) ~ chi^2_2
-  return d.Cdf(r, DenseVector{t})
+  return d.Cdf(r, dist.t3)
 }
 
 /* -------------------------------------------------------------------------- */

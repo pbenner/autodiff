@@ -170,10 +170,10 @@ func (dist *GParetoDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GParetoDistribution) GetParameters() Vector {
-  p   := NilDenseVector(3)
-  p[0] = dist.Mu
-  p[1] = dist.Sigma
-  p[2] = dist.Xi
+  p := NullVector(dist.ScalarType(), 3)
+  p.At(0).Set(dist.Mu)
+  p.At(1).Set(dist.Sigma)
+  p.At(2).Set(dist.Xi)
   return p
 }
 

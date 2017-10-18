@@ -138,9 +138,9 @@ func (dist *ParetoDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist ParetoDistribution) GetParameters() Vector {
-  p   := NilDenseVector(2)
-  p[0] = dist.Lambda
-  p[1] = dist.Kappa
+  p := NullVector(dist.ScalarType(), 2)
+  p.At(0).Set(dist.Lambda)
+  p.At(1).Set(dist.Kappa)
   return p
 }
 

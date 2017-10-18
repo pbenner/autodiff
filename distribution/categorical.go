@@ -25,7 +25,7 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type CategoricalDistribution struct {
-  Theta DenseVector
+  Theta Vector
   t     Scalar
 }
 
@@ -36,7 +36,7 @@ func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error)
     return nil, fmt.Errorf("theta has invalid length")
   }
   t     := theta_.ElementType()
-  theta := NullDenseVector(t, theta_.Dim())
+  theta := NullVector(t, theta_.Dim())
 
   for i := 0; i < theta.Dim(); i++ {
     if theta_.At(i).GetValue() < 0 {
@@ -56,7 +56,7 @@ func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error)
 
 func (dist *CategoricalDistribution) Clone() *CategoricalDistribution {
   return &CategoricalDistribution{
-    Theta : dist.Theta.Clone(),
+    Theta : dist.Theta.CloneVector(),
     t     : dist.t    .CloneScalar() }
 }
 
@@ -91,7 +91,7 @@ func (dist *CategoricalDistribution) LogCdf(r Scalar, x Vector) error {
   r.Reset()
 
   for i := 0; i <= int(x.At(0).GetValue()); i++ {
-    r.LogAdd(r, dist.Theta[i], dist.t)
+    r.LogAdd(r, dist.Theta.At(i), dist.t)
   }
   return nil
 }

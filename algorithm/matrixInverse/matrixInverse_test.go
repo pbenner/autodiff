@@ -88,34 +88,22 @@ func TestMatrixPerformance(t *testing.T) {
 
   n  := 100
 
-  m1 := kernelSquaredExponential(NullDenseMatrix(    RealType, n, n),     NewReal(1.0),     NewReal(1.0))
-  m2 := kernelSquaredExponential(NullDenseMatrix(BareRealType, n, n), NewBareReal(1.0), NewBareReal(1.0))
-  m3 := kernelSquaredExponential(NullDenseBareRealMatrix(n, n), NewBareReal(1.0), NewBareReal(1.0))
+  m1 := kernelSquaredExponential(NullDenseRealMatrix(n, n), NewReal(1.0), NewReal(1.0))
+  m2 := kernelSquaredExponential(NullDenseBareRealMatrix(n, n), NewBareReal(1.0), NewBareReal(1.0))
 
   // manually initialize matrices
   s1 := InSitu{
-    Id: NullDenseMatrix(RealType, n, n),
+    Id: NullDenseRealMatrix(n, n),
     A : m1,
-    B : NullDenseVector(RealType, n),
+    B : NullDenseRealVector(n),
     Cholesky: cholesky.InSitu{
-      L: NullDenseMatrix(RealType, n, n),
+      L: NullDenseRealMatrix(n, n),
       D: nil,
       S: NullReal(),
       T: NullReal() }}
   s1.Id.SetIdentity()
 
   s2 := InSitu{
-    Id: NullDenseMatrix(BareRealType, n, n),
-    A : m1,
-    B : NullDenseVector(BareRealType, n),
-    Cholesky: cholesky.InSitu{
-      L: NullDenseMatrix(BareRealType, n, n),
-      D: nil,
-      S: NullBareReal(),
-      T: NullBareReal() }}
-  s2.Id.SetIdentity()
-
-  s3 := InSitu{
     Id: NullDenseBareRealMatrix(n, n),
     A : m1,
     B : NullDenseBareRealVector(n),
@@ -124,20 +112,15 @@ func TestMatrixPerformance(t *testing.T) {
       D: nil,
       S: NullBareReal(),
       T: NullBareReal() }}
-  s3.Id.SetIdentity()
+  s2.Id.SetIdentity()
 
   start := time.Now()
   Run(m1, PositiveDefinite{true}, &s1)
   elapsed := time.Since(start)
-  fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseMatrix with scalar type Real) took %s.\n", elapsed)
+  fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseRealMatrix) took %s.\n", elapsed)
 
   start = time.Now()
   Run(m2, PositiveDefinite{true}, &s2)
-  elapsed = time.Since(start)
-  fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseMatrix with scalar type BareReal) took %s.\n", elapsed)
-
-  start = time.Now()
-  Run(m3, PositiveDefinite{true}, &s3)
   elapsed = time.Since(start)
   fmt.Printf("Inverting a 100x100 positive definite matrix (type DenseBareRealMatrix) took %s.\n", elapsed)
 

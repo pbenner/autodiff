@@ -113,9 +113,9 @@ func (dist *GammaDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GammaDistribution) GetParameters() Vector {
-  p   := NilDenseVector(2)
-  p[0] = dist.Alpha
-  p[1] = dist.Beta
+  p := NullVector(dist.ScalarType(), 2)
+  p.At(0).Set(dist.Alpha)
+  p.At(1).Set(dist.Beta)
   return p
 }
 

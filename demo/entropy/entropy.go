@@ -56,16 +56,16 @@ func objective_f(px Vector) (Vector, error) {
   if px.Dim() != n+1 {
     return nil, errors.New("Input vector has invalid dimension!")
   }
-  gradient := NullDenseVector(RealType, n+1)
+  gradient := NullVector(RealType, n+1)
   // derivative with respect to px[i]
   for i := 0; i < n; i++ {
-    gradient[i] = Sub(NewReal(-1), Log(px.At(i)))
-    gradient[i] = Sub(gradient[i], px.At(n))
+    gradient.At(i).Sub(NewReal(-1), Log(px.At(i)))
+    gradient.At(i).Sub(gradient.At(i), px.At(n))
   }
   // derivative with respect to lambda
-  gradient[n] = NewReal(-1.0)
+  gradient.At(n).SetValue(-1.0)
   for i := 0; i < n; i++ {
-    gradient[n] = Add(gradient[n], px.At(i))
+    gradient.At(n).Add(gradient.At(n), px.At(i))
   }
   return gradient, nil
 }

@@ -120,9 +120,9 @@ func (dist *NegativeBinomialDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *NegativeBinomialDistribution) GetParameters() Vector {
-  p   := NilDenseVector(2)
-  p[0] = dist.R
-  p[1] = dist.P
+  p := NullVector(dist.ScalarType(), 2)
+  p.At(0).Set(dist.R)
+  p.At(1).Set(dist.P)
   return p
 }
 

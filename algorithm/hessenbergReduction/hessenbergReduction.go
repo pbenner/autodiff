@@ -36,13 +36,13 @@ type ComputeU struct {
 type InSitu struct {
   H    Matrix
   U    Matrix
-  X    DenseVector
+  X    Vector
   Beta Scalar
-  Nu   DenseVector
+  Nu   Vector
   T1   Scalar
   T2   Scalar
   T3   Scalar
-  T4   DenseVector
+  T4   Vector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -69,11 +69,11 @@ func hessenbergReduction(inSitu *InSitu, setZero bool) (Matrix, Matrix, error) {
     householder.Run(x.Slice(k+1,n), beta, nu.Slice(k+1,n), t1, t2, t3)
     {
       a := H.Slice(k+1,n,k,n)
-      householder.ApplyLeft(a, beta, nu.Slice(k+1,n), t4[k:n], t1)
+      householder.ApplyLeft(a, beta, nu.Slice(k+1,n), t4.Slice(k,n), t1)
     }
     {
       a := H.Slice(0,n,k+1,n)
-      householder.ApplyRight(a, beta, nu.Slice(k+1,n), t4[0:n], t1)
+      householder.ApplyRight(a, beta, nu.Slice(k+1,n), t4.Slice(0,n), t1)
     }
     if setZero {
       for i := k+2; i < n; i++ {
@@ -82,7 +82,7 @@ func hessenbergReduction(inSitu *InSitu, setZero bool) (Matrix, Matrix, error) {
     }
     if U != nil {
       nu.At(k).SetValue(0.0)
-      householder.ApplyRight(U, beta, nu.Slice(0,n), t4[0:n], t1)
+      householder.ApplyRight(U, beta, nu.Slice(0,n), t4.Slice(0,n), t1)
     }
   }
   return H, U, nil
@@ -126,14 +126,14 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.Beta = NullScalar(t)
   }
   if inSitu.Nu == nil {
-    inSitu.Nu = NullDenseVector(t, n)
+    inSitu.Nu = NullVector(t, n)
   }
   if inSitu.X == nil {
-    inSitu.X = NullDenseVector(t, n)
+    inSitu.X = NullVector(t, n)
   }
   if computeU {
     if inSitu.U == nil {
-      inSitu.U = NullDenseMatrix(t, n, n)
+      inSitu.U = NullMatrix(t, n, n)
     }
     inSitu.U.SetIdentity()
   } else {
@@ -149,7 +149,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullDenseVector(t, n)
+    inSitu.T4 = NullVector(t, n)
   }
   return hessenbergReduction(inSitu, setZero)
 }

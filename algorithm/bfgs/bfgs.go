@@ -81,7 +81,7 @@ func newObjectiveInSitu(f Objective) ObjectiveInSitu {
 
 func (f ObjectiveInSitu) Differentiate(x, g Vector, y Scalar) error {
   if f.X == nil {
-    f.X = NullDenseVector(RealType, x.Dim())
+    f.X = NullVector(RealType, x.Dim())
   }
   f.X.Set(x)
   f.X.Variables(1)

@@ -30,11 +30,11 @@ import . "github.com/pbenner/autodiff/simple"
 func TestNewtonRoot(t *testing.T) {
 
   f := func(x Vector) (Vector, error) {
-    y := NullDenseVector(RealType, 2)
+    y := NullVector(RealType, 2)
     // y1 = x1^2 + x2^2 - 6
-    y[0] = Sub(Add(Pow(x.At(0), NewReal(2)), Pow(x.At(1), NewReal(2))), NewReal(6))
+    y.At(0).Sub(Add(Pow(x.At(0), NewReal(2)), Pow(x.At(1), NewReal(2))), NewReal(6))
     // y2 = x1^3 - x2^2
-    y[1] = Sub(Pow(x.At(0), NewReal(3)), Pow(x.At(1), NewReal(2)))
+    y.At(1).Sub(Pow(x.At(0), NewReal(3)), Pow(x.At(1), NewReal(2)))
 
     return y, nil
   }

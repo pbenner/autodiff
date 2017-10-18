@@ -218,11 +218,11 @@ Find the root of a function *f* with initial value *x0 = (1,1)*
   import . "github.com/pbenner/autodiff/simple"
 
   f := func(x Vector) Vector {
-    y := NilDenseVector(2)
+    y := NilVector(2)
     // y1 = x1^2 + x2^2 - 6
     // y2 = x1^3 - x2^2
-    y[0] = Sub(Add(Pow(x.At(0), NewReal(2)), Pow(x.At(1), NewReal(2))), NewReal(6))
-    y[1] = Sub(Pow(x.At(0), NewReal(3)), Pow(x.At(1), NewReal(2)))
+    y.At(0).Sub(Add(Pow(x.At(0), NewReal(2)), Pow(x.At(1), NewReal(2))), NewReal(6))
+    y.At(1).Sub(Pow(x.At(0), NewReal(3)), Pow(x.At(1), NewReal(2)))
 
     return y
   }

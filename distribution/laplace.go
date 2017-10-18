@@ -59,6 +59,10 @@ func (dist *LaplaceDistribution) Dim() int {
   return 1
 }
 
+func (dist *LaplaceDistribution) ScalarType() ScalarType {
+  return dist.Mu.Type()
+}
+
 func (dist *LaplaceDistribution) LogPdf(r Scalar, x Vector) error {
 
   r.Sub(x.At(0), dist.Mu)
@@ -107,9 +111,9 @@ func (dist *LaplaceDistribution) Cdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *LaplaceDistribution) GetParameters() Vector {
-  p := NilDenseVector(2)
-  p[0] = dist.Mu
-  p[1] = dist.Sigma
+  p := NullVector(dist.ScalarType(), 2)
+  p.At(0).Set(dist.Mu)
+  p.At(1).Set(dist.Sigma)
   return p
 }
 

@@ -82,7 +82,7 @@ func NewVector(t ScalarType, values []float64) Vector {
   case BareRealType:
     return NewDenseBareRealVector(values)
   default:
-    return NewDenseVector(t, values)
+    panic("unknown type")
   }
 }
 
@@ -93,12 +93,8 @@ func NullVector(t ScalarType, length int) Vector {
   case BareRealType:
     return NullDenseBareRealVector(length)
   default:
-    return NullDenseVector(t, length)
+    panic("unknown type")
   }
-}
-
-func NilVector(length int) Vector {
-  return NilDenseVector(length)
 }
 
 func AsVector(t ScalarType, v Vector) Vector {

@@ -90,8 +90,9 @@ func TestReadVector(t *testing.T) {
 
   filename := "vector_dense_test.table"
 
-  v, err := ImportDenseVector(RealType, filename)
-  if err != nil {
+  v := DenseRealVector{}
+
+  if err := v.Import(filename); err != nil {
     panic(err)
   }
   r := NewVector(RealType, []float64{1,2,3,4,5,6})
@@ -154,7 +155,7 @@ func TestVectorJson(t *testing.T) {
     filename := "vector_dense_test.1.json"
 
     r1 := NewVector(RealType, []float64{1,2,3,4})
-    r2 := NilDenseVector(0)
+    r2 := DenseRealVector{}
 
     if err := writeJson(filename, r1); err != nil {
       t.Error(err); return
@@ -173,7 +174,7 @@ func TestVectorJson(t *testing.T) {
     r1 := NewVector(RealType, []float64{1,2,3,4})
     r1.At(0).Alloc(1,2)
     r1.At(0).SetDerivative(0, 2.3)
-    r2 := NilDenseVector(0)
+    r2 := DenseRealVector{}
 
     if err := writeJson(filename, r1); err != nil {
       t.Error(err); return

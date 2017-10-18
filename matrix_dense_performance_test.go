@@ -29,40 +29,6 @@ func TestMatrixPerformance(t *testing.T) {
   n := 1000
 
   {
-    a := NullDenseMatrix(RealType, n, n)
-    a.Map(func(x Scalar) { x.SetValue(2.0) })
-
-    start := time.Now()
-    for i := 0; i < n; i++ {
-      for j := 0; j < n; j++ {
-        a.At(i,j).Add(a.At(i,j), a.At(0,0))
-        a.At(i,j).Sub(a.At(i,j), a.At(0,0))
-        a.At(i,j).Mul(a.At(i,j), a.At(0,0))
-        a.At(i,j).Div(a.At(i,j), a.At(0,0))
-      }
-    }
-    elapsed := time.Since(start)
-    fmt.Printf("Operations on DenseMatrix with element type Real took %s.\n", elapsed)
-  }
-
-  {
-    a := NullDenseMatrix(BareRealType, n, n)
-    a.Map(func(x Scalar) { x.SetValue(2.0) })
-
-    start := time.Now()
-    for i := 0; i < n; i++ {
-      for j := 0; j < n; j++ {
-        a.At(i,j).Add(a.At(i,j), a.At(0,0))
-        a.At(i,j).Sub(a.At(i,j), a.At(0,0))
-        a.At(i,j).Mul(a.At(i,j), a.At(0,0))
-        a.At(i,j).Div(a.At(i,j), a.At(0,0))
-      }
-    }
-    elapsed := time.Since(start)
-    fmt.Printf("Operations on DenseMatrix with element type BareReal took %s.\n", elapsed)
-  }
-
-  {
     a := NullDenseRealMatrix(n, n)
     a.Map(func(x Scalar) { x.SetValue(2.0) })
 

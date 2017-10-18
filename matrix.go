@@ -101,7 +101,7 @@ func NewMatrix(t ScalarType, rows, cols int, values []float64) Matrix {
   case BareRealType:
     return NewDenseBareRealMatrix(rows, cols, values)
   default:
-    return NewDenseMatrix(t, rows, cols, values)
+    panic("unknown type")
   }
 }
 
@@ -112,12 +112,8 @@ func NullMatrix(t ScalarType, rows, cols int) Matrix {
   case BareRealType:
     return NullDenseBareRealMatrix(rows, cols)
   default:
-    return NullDenseMatrix(t, rows, cols)
+    panic("unknown type")
   }
-}
-
-func NilMatrix(rows, cols int) Matrix {
-  return NilDenseMatrix(rows, cols)
 }
 
 func AsMatrix(t ScalarType, m Matrix) Matrix {

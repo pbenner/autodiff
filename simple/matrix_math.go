@@ -99,7 +99,7 @@ func MdotM(a, b Matrix) Matrix {
 // Matrix vector product of a and b.
 func MdotV(a Matrix, b Vector) Vector {
   n, _ := a.Dims()
-  r := NullDenseVector(a.ElementType(), n)
+  r := NullVector(a.ElementType(), n)
   r.MdotV(a, b)
   return r
 }

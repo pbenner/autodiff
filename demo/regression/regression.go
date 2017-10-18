@@ -45,9 +45,9 @@ func gradientDescent(x, y Vector, l *Line) *Line {
   const step    = 0.1
 
   // get a vector of variables
-  variables := NullDenseVector(RealType, 2)
-  variables[0] = l.Slope()
-  variables[1] = l.Intercept()
+  variables := NullVector(RealType, 2)
+  variables.At(0).Set(l.Slope())
+  variables.At(1).Set(l.Intercept())
 
   // create the objective function
   f := func(v Vector) (Scalar, error) {
@@ -67,15 +67,15 @@ func gradientDescent(x, y Vector, l *Line) *Line {
 func main() {
 
   const n = 1000
-  x := NilDenseVector(n)
-  y := NilDenseVector(n)
+  x := NullVector(RealType, n)
+  y := NullVector(RealType, n)
 
   // random number generator
   r := rand.New(rand.NewSource(42))
 
   for i := 0; i < n; i++ {
-    x[i] = NewScalar(RealType, r.NormFloat64() + 0)
-    y[i] = NewScalar(RealType, r.NormFloat64() + 2*x[i].GetValue()+1)
+    x.At(i).SetValue(r.NormFloat64() + 0)
+    y.At(i).SetValue(r.NormFloat64() + 2*x.At(i).GetValue()+1)
   }
 
   l := NewLine(NewScalar(RealType, -1.23), NewScalar(RealType, 1));

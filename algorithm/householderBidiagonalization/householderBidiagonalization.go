@@ -44,14 +44,14 @@ type InSitu struct {
   A     Matrix
   U     Matrix
   V     Matrix
-  X     DenseVector
+  X     Vector
   Beta  Scalar
-  Nu    DenseVector
+  Nu    Vector
   C1    Scalar
   T1    Scalar
   T2    Scalar
   T3    Scalar
-  T4    DenseVector
+  T4    Vector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -69,8 +69,8 @@ func houseCol(j int, inSitu *InSitu) (Vector, Scalar) {
   for k := j; k < n; k++ {
     x.At(k).Set(A.At(k, j))
   }
-  householder.Run(x[j:n], beta, nu[j:n], t1, t2, t3)
-  return nu[j:n], beta
+  householder.Run(x.Slice(j,n), beta, nu.Slice(j,n), t1, t2, t3)
+  return nu.Slice(j,n), beta
 }
 
 func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
@@ -86,8 +86,8 @@ func houseRow(j int, inSitu *InSitu) (Vector, Scalar) {
   for k := j+1; k < n; k++ {
     x.At(k).Set(A.At(j, k))
   }
-  householder.Run(x[j+1:n], beta, nu[j+1:n], t1, t2, t3)
-  return nu[j+1:n], beta
+  householder.Run(x.Slice(j+1,n), beta, nu.Slice(j+1,n), t1, t2, t3)
+  return nu.Slice(j+1,n), beta
 }
 
 /* -------------------------------------------------------------------------- */
@@ -108,14 +108,14 @@ func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Matr
     nu, beta := houseCol(j, inSitu)
 
     // compute (I - beta nu nu^T) A(j:m, j:n)
-    householder.ApplyLeft(a, beta, nu, t[j:n], inSitu.T1)
+    householder.ApplyLeft(a, beta, nu, t.Slice(j,n), inSitu.T1)
     // accumulate U
     if U != nil {
       nu := inSitu.Nu
       if j > 0 {
         nu.At(j-1).SetValue(0.0)
       }
-      householder.ApplyRight(U, beta, nu, t[0:m], inSitu.T1)
+      householder.ApplyRight(U, beta, nu, t.Slice(0,m), inSitu.T1)
     }
 
     if j < n - 2 {
@@ -125,12 +125,12 @@ func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Matr
       nu, beta := houseRow(j, inSitu)
 
       // compute A(j:m, j+1:n) (I - beta nu nu^T)
-      householder.ApplyRight(a, beta, nu, t[j:m], inSitu.T1)
+      householder.ApplyRight(a, beta, nu, t.Slice(j,m), inSitu.T1)
       // accumulate V
       if V != nil {
         nu := inSitu.Nu
         nu.At(j).SetValue(0.0)
-        householder.ApplyLeft(V, beta, nu[0:n], t[0:n], inSitu.T1)
+        householder.ApplyLeft(V, beta, nu.Slice(0,n), t.Slice(0,n), inSitu.T1)
       }
     }
   }
@@ -176,7 +176,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
   }
   if computeU {
     if inSitu.U == nil {
-      inSitu.U = NullDenseMatrix(t, m, m)
+      inSitu.U = NullMatrix(t, m, m)
     }
     inSitu.U.SetIdentity()
   } else {
@@ -184,20 +184,20 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
   }
   if computeV {
     if inSitu.V == nil {
-      inSitu.V = NullDenseMatrix(t, n, n)
+      inSitu.V = NullMatrix(t, n, n)
     }
     inSitu.V.SetIdentity()
   } else {
     inSitu.V = nil
   }
   if inSitu.X == nil {
-    inSitu.X = NullDenseVector(t, m)
+    inSitu.X = NullVector(t, m)
   }
   if inSitu.Beta == nil {
     inSitu.Beta = NullScalar(t)
   }
   if inSitu.Nu == nil {
-    inSitu.Nu = NullDenseVector(t, m)
+    inSitu.Nu = NullVector(t, m)
   }
   if inSitu.C1 == nil {
     inSitu.C1 = NewScalar(t, 1.0)
@@ -212,7 +212,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullDenseVector(t, m)
+    inSitu.T4 = NullVector(t, m)
   }
   return householderBidiagonalization(inSitu, epsilon)
 }
