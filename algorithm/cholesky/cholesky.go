@@ -103,7 +103,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     { // BareReal
       A, ok1 :=        a.(*DenseBareRealMatrix)
       L, ok2 := inSitu.L.(*DenseBareRealMatrix)
-      D, ok3 := inSitu.L.(*DenseBareRealMatrix)
+      D, ok3 := inSitu.D.(*DenseBareRealMatrix)
       s, ok4 := inSitu.S.(*BareReal)
       t, ok5 := inSitu.T.(*BareReal)
       if ok1 && ok2 && ok3 && ok4 && ok5 {

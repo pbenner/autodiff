@@ -208,7 +208,9 @@ func Run(f_ func(Scalar) (Scalar, error), t ScalarType, args ...interface{}) (Sc
   f := func(x float64) (float64, float64, error) {
     X.Reset()
     X.SetValue(x)
-    Variables(1, X)
+    if err := Variables(1, X); err != nil {
+      return 0, 0, err
+    }
     // evaluate objective function
     Y, err := f_(X)
     if err != nil {

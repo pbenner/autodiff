@@ -67,8 +67,9 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
     gradient_new[i] = 1
     gradient_old[i] = 1
   }
-  x1.Variables(1)
-
+  if err := x1.Variables(1); err != nil {
+    return nil, err
+  }
   gradient_is_nan := func(s Scalar) bool {
     for i := 0; i < s.GetN(); i++ {
       if math.IsNaN(s.GetDerivative(i)) {
