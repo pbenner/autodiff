@@ -26,10 +26,10 @@ import   "github.com/pbenner/autodiff/algorithm/newton"
 import   "github.com/pbenner/autodiff/algorithm/blahut"
 import . "github.com/pbenner/autodiff/simple"
 
-import   "github.com/gonum/plot"
-import   "github.com/gonum/plot/plotter"
-import   "github.com/gonum/plot/plotutil"
-import   "github.com/gonum/plot/vg"
+import   "gonum.org/v1/plot"
+import   "gonum.org/v1/plot/plotter"
+import   "gonum.org/v1/plot/plotutil"
+import   "gonum.org/v1/plot/vg"
 
 /* plot methods
  * -------------------------------------------------------------------------- */
