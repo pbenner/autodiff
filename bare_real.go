@@ -137,6 +137,10 @@ func (a *BareReal) Set(b ConstScalar) {
   *a = BareReal(b.GetValue())
 }
 
+func (a *BareReal) SET(b *BareReal) {
+  *a = *b
+}
+
 func (a *BareReal) SetValue(v float64) {
   *a = BareReal(v)
 }

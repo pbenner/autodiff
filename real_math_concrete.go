@@ -57,9 +57,9 @@ func (a *Real) SIGN() int {
 
 func (r *Real) MIN(a, b *Real) Scalar {
   if a.GetValue() < b.GetValue() {
-    r.Set(a)
+    r.SET(a)
   } else {
-    r.Set(b)
+    r.SET(b)
   }
   return r
 }
@@ -68,9 +68,9 @@ func (r *Real) MIN(a, b *Real) Scalar {
 
 func (r *Real) MAX(a, b *Real) Scalar {
   if a.GetValue() > b.GetValue() {
-    r.Set(a)
+    r.SET(a)
   } else {
-    r.Set(b)
+    r.SET(b)
   }
   return r
 }
@@ -79,9 +79,9 @@ func (r *Real) MAX(a, b *Real) Scalar {
 
 func (c *Real) ABS(a *Real) Scalar {
   if c.Sign() == -1 {
-    c.Neg(a)
+    c.NEG(a)
   } else {
-    c.Set(a)
+    c.SET(a)
   }
   return c
 }
@@ -136,7 +136,7 @@ func (c *Real) LOGADD(a, b, t *Real) *Real {
     // cases:
     //  i) a = -Inf and b >= a    => c = b
     // ii) a =  Inf and b  = Inf  => c = Inf
-    c.Set(b)
+    c.SET(b)
     return c
   }
   t.SUB(a, b)
@@ -148,7 +148,7 @@ func (c *Real) LOGADD(a, b, t *Real) *Real {
 
 func (c *Real) LOGSUB(a, b, t *Real) *Real {
   if math.IsInf(b.GetValue(), -1) {
-    c.Set(a)
+    c.SET(a)
     return c
   }
   t.SUB(b, a)

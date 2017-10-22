@@ -78,6 +78,10 @@ func (a *Real) ConvertType(t ScalarType) Scalar {
   }
 }
 
+func (a *Real) SET(b *Real) {
+  a.BasicState.SET(&b.BasicState)
+}
+
 /* type conversion
  * -------------------------------------------------------------------------- */
 

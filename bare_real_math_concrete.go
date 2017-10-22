@@ -44,9 +44,9 @@ func (a *BareReal) SMALLER(b *BareReal) bool {
 
 func (r *BareReal) MIN(a, b *BareReal) Scalar {
   if a.GetValue() < b.GetValue() {
-    r.Set(a)
+    r.SET(a)
   } else {
-    r.Set(b)
+    r.SET(b)
   }
   return r
 }
@@ -55,9 +55,9 @@ func (r *BareReal) MIN(a, b *BareReal) Scalar {
 
 func (r *BareReal) MAX(a, b *BareReal) Scalar {
   if a.GetValue() > b.GetValue() {
-    r.Set(a)
+    r.SET(a)
   } else {
-    r.Set(b)
+    r.SET(b)
   }
   return r
 }
@@ -78,9 +78,9 @@ func (a *BareReal) SIGN() int {
 
 func (c *BareReal) ABS(a *BareReal) Scalar {
   if c.Sign() == -1 {
-    c.Neg(a)
+    c.NEG(a)
   } else {
-    c.Set(a)
+    c.SET(a)
   }
   return c
 }
@@ -131,7 +131,7 @@ func (c *BareReal) LOGADD(a, b, t *BareReal) *BareReal {
     // cases:
     //  i) a = -Inf and b >= a    => c = b
     // ii) a =  Inf and b  = Inf  => c = Inf
-    c.Set(b)
+    c.SET(b)
     return c
   }
   t.SUB(a, b)
@@ -143,7 +143,7 @@ func (c *BareReal) LOGADD(a, b, t *BareReal) *BareReal {
 
 func (c *BareReal) LOGSUB(a, b, t *BareReal) *BareReal {
   if math.IsInf(b.GetValue(), -1) {
-    c.Set(a)
+    c.SET(a)
     return c
   }
   t.SUB(b, a)

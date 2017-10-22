@@ -164,6 +164,24 @@ func (a *BasicState) Set(b ConstScalar) {
   }
 }
 
+func (a *BasicState) SET(b *BasicState) {
+  a.Value = b.GetValue()
+  a.Order = b.GetOrder()
+  a.Alloc(b.GetN(), b.GetOrder())
+  if a.Order >= 1 {
+    for i := 0; i < b.GetN(); i++ {
+      a.Derivative[i] = b.GetDerivative(i)
+    }
+    if a.Order >= 2 {
+      for i := 0; i < b.GetN(); i++ {
+        for j := 0; j < b.GetN(); j++ {
+          a.Hessian[i][j] = b.GetHessian(i, j)
+        }
+      }
+    }
+  }
+}
+
 // Set the value of the variable. All derivatives are reset to zero.
 func (a *BasicState) SetValue(v float64) {
   a.Value = v
