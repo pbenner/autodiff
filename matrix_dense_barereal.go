@@ -198,6 +198,9 @@ func (matrix *DenseBareRealMatrix) Swap(i1, j1, i2, j2 int) {
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
 func (matrix *DenseBareRealMatrix) ToVector() Vector {
+  return matrix.ToDenseBareRealVector()
+}
+func (matrix *DenseBareRealMatrix) ToDenseBareRealVector() DenseBareRealVector {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()

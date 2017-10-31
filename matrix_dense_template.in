@@ -223,6 +223,10 @@ func (matrix *MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
 }
 
 func (matrix *MATRIX_TYPE) ToVector() Vector {
+  return matrix.STR_CONCAT(To, VECTOR_TYPE)()
+}
+
+func (matrix *MATRIX_TYPE) STR_CONCAT(To, VECTOR_TYPE)() VECTOR_TYPE {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()

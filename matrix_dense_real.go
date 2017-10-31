@@ -198,6 +198,9 @@ func (matrix *DenseRealMatrix) Swap(i1, j1, i2, j2 int) {
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
 func (matrix *DenseRealMatrix) ToVector() Vector {
+  return matrix.ToDenseRealVector()
+}
+func (matrix *DenseRealMatrix) ToDenseRealVector() DenseRealVector {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()
