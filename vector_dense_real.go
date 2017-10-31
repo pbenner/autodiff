@@ -215,6 +215,9 @@ func (v DenseRealVector) Sort(reverse bool) {
 /* type conversion
  * -------------------------------------------------------------------------- */
 func (v DenseRealVector) ToMatrix(n, m int) Matrix {
+  return v.ToDenseRealMatrix(n, m)
+}
+func (v DenseRealVector) ToDenseRealMatrix(n, m int) *DenseRealMatrix {
   if n*m != len(v) {
     panic("Matrix dimension does not fit input vector!")
   }

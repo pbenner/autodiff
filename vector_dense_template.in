@@ -261,6 +261,10 @@ func (v VECTOR_TYPE) Sort(reverse bool) {
  * -------------------------------------------------------------------------- */
 
 func (v VECTOR_TYPE) ToMatrix(n, m int) Matrix {
+  return v.STR_CONCAT(To, MATRIX_TYPE)(n, m)
+}
+
+func (v VECTOR_TYPE) STR_CONCAT(To, MATRIX_TYPE)(n, m int) *MATRIX_TYPE {
   if n*m != len(v) {
     panic("Matrix dimension does not fit input vector!")
   }
