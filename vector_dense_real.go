@@ -124,7 +124,7 @@ func (v DenseRealVector) Slice(i, j int) Vector {
 func (v DenseRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
-func (v DenseRealVector) Append(w DenseRealVector) Vector {
+func (v DenseRealVector) Append(w DenseRealVector) DenseRealVector {
   return append(v, w...)
 }
 func (v DenseRealVector) AppendScalar(scalars ...Scalar) Vector {

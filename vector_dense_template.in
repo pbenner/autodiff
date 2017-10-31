@@ -151,7 +151,7 @@ func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 
-func (v VECTOR_TYPE) Append(w VECTOR_TYPE) Vector {
+func (v VECTOR_TYPE) Append(w VECTOR_TYPE) VECTOR_TYPE {
   return append(v, w...)
 }
 
