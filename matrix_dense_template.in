@@ -166,6 +166,10 @@ func (matrix *MATRIX_TYPE) Dims() (int, int) {
 }
 
 func (matrix *MATRIX_TYPE) Row(i int) Vector {
+  return matrix.ROW(i)
+}
+
+func (matrix *MATRIX_TYPE) ROW(i int) VECTOR_TYPE {
   var v VECTOR_TYPE
   if matrix.transposed {
     v = NIL_VECTOR(matrix.cols)
@@ -180,6 +184,10 @@ func (matrix *MATRIX_TYPE) Row(i int) Vector {
 }
 
 func (matrix *MATRIX_TYPE) Col(j int) Vector {
+  return matrix.COL(j)
+}
+
+func (matrix *MATRIX_TYPE) COL(j int) VECTOR_TYPE {
   var v VECTOR_TYPE
   if matrix.transposed {
     j = matrix.index(0, j)

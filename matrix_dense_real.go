@@ -146,6 +146,9 @@ func (matrix *DenseRealMatrix) Dims() (int, int) {
   }
 }
 func (matrix *DenseRealMatrix) Row(i int) Vector {
+  return matrix.ROW(i)
+}
+func (matrix *DenseRealMatrix) ROW(i int) DenseRealVector {
   var v DenseRealVector
   if matrix.transposed {
     v = nilDenseRealVector(matrix.cols)
@@ -159,6 +162,9 @@ func (matrix *DenseRealMatrix) Row(i int) Vector {
   return v
 }
 func (matrix *DenseRealMatrix) Col(j int) Vector {
+  return matrix.COL(j)
+}
+func (matrix *DenseRealMatrix) COL(j int) DenseRealVector {
   var v DenseRealVector
   if matrix.transposed {
     j = matrix.index(0, j)

@@ -146,6 +146,9 @@ func (matrix *DenseBareRealMatrix) Dims() (int, int) {
   }
 }
 func (matrix *DenseBareRealMatrix) Row(i int) Vector {
+  return matrix.ROW(i)
+}
+func (matrix *DenseBareRealMatrix) ROW(i int) DenseBareRealVector {
   var v DenseBareRealVector
   if matrix.transposed {
     v = nilDenseBareRealVector(matrix.cols)
@@ -159,6 +162,9 @@ func (matrix *DenseBareRealMatrix) Row(i int) Vector {
   return v
 }
 func (matrix *DenseBareRealMatrix) Col(j int) Vector {
+  return matrix.COL(j)
+}
+func (matrix *DenseBareRealMatrix) COL(j int) DenseBareRealVector {
   var v DenseBareRealVector
   if matrix.transposed {
     j = matrix.index(0, j)
