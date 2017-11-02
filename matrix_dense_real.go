@@ -235,6 +235,32 @@ func (matrix *DenseRealMatrix) T() Matrix {
     tmp1 : matrix.tmp2,
     tmp2 : matrix.tmp1 }
 }
+func (matrix *DenseRealMatrix) Tip() {
+  mn := len(matrix.values)
+  visited := make([]bool, mn)
+  k := 0
+  for cycle := 1; cycle < mn; cycle++ {
+    if visited[cycle] {
+      continue
+    }
+    k = cycle
+    for {
+      if k != mn-1 {
+        k = matrix.rows*k % (mn-1)
+      }
+      visited[k] = true
+      // swap
+      matrix.values[k], matrix.values[cycle] = matrix.values[cycle], matrix.values[k]
+      if k == cycle {
+        break
+      }
+    }
+  }
+  matrix.rows, matrix.cols = matrix.cols, matrix.rows
+  matrix.rowOffset, matrix.colOffset = matrix.colOffset, matrix.rowOffset
+  matrix.rowMax, matrix.colMax = matrix.colMax, matrix.rowMax
+  matrix.tmp1, matrix.tmp2 = matrix.tmp2, matrix.tmp1
+}
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseRealMatrix) ConstAt(i, j int) ConstScalar {
   return matrix.values[matrix.index(i, j)]

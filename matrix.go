@@ -59,6 +59,7 @@ type Matrix interface {
   Col                 (j int)              Vector
   Diag                ()                   Vector
   T                   ()                   Matrix
+  Tip                 ()
   Export              (string)             error
   Slice               (rfrom, rto, cfrom, cto int) Matrix
   Swap                (int, int, int, int)

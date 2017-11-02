@@ -423,3 +423,16 @@ func TestMatrixJson(t *testing.T) {
     os.Remove(filename)
   }
 }
+
+func TestMatrixTransposeInPlace(t *testing.T) {
+
+  m1 := NewMatrix(RealType, 2, 4, []float64{11,12,13,14,21,22,23,24})
+  m1.Tip()
+  m2 := NewMatrix(RealType, 4, 2, []float64{11,21,12,22,13,23,14,24})
+
+  s  := NullReal()
+
+  if s.Mnorm(m1.MsubM(m1, m2)).GetValue() != 0.0 {
+    t.Error("test failed")
+  }
+}
