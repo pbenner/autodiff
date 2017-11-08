@@ -157,9 +157,9 @@ adds the first two values in *v* and stores the result in the lower right elemen
 ```
 where the result is stored in w. Other operations, such as computing the eigenvalues and eigenvectors of a matrix, require importing the respective package from the algorithm library, i.e.
 ```go
-  import "github.com/pbenner/autodiff/algorithm/qrAlgorithm"
+  import "github.com/pbenner/autodiff/algorithm/eigensystem"
 
-  lambda := qrAlgorithm.Eigenvalues(m)
+  lambda, _, _ := eigensystem.Run(m)
 ```
 
 ## Examples
