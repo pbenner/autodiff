@@ -154,6 +154,137 @@ func modified_bessel_i1(x float64) float64 {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+
+// Compute I(v, x) and K(v, x) simultaneously by Temme's method, see
+// Temme, Journal of Computational Physics, vol 19, 324 (1975)
+func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
+  // Kv1 = K_(v+1), fv = I_(v+1) / I_v
+  // Ku1 = K_(u+1), fu = I_(u+1) / I_u
+  var u, I, K, Iv, Kv, Kv1, Ku, Ku1, fv float64
+  var W, current, prev, next float64
+  var n, k int
+
+  reflect  := false
+  org_kind := kind
+
+  if v < 0 {
+    reflect = true
+    v       = -v                            // v is non-negative from here
+    kind   |= need_k
+  }
+  n = iround(v)
+  u = v - float64(n)                        // -1/2 <= u < 1/2
+
+  if x < 0 {
+    panic(fmt.Sprintf("Got x = %f but real argument x must be non-negative, complex number result not supported.", x))
+  }
+  if x == 0.0 {
+    if v == 0.0 {
+      I = 1.0
+    } else {
+      I = 0.0
+    }
+    if kind & need_k {
+      K = math.Inf(1)
+    } else {
+      K = math.NaN() // any value will do
+    }
+    if reflect && (kind & need_i) {
+      z := u + n % 2
+      if math.Sin(math.Pi*z) != 0.0 {
+        I = math.Inf(1)
+      }
+    }
+    return I, K
+  }
+  // x is positive until reflection
+  W := 1.0/x                                 // Wronskian
+  if x <= 2 {                                // x in (0, 2]
+    Ku, Ku1 = temme_ik(u, x)                 // Temme series
+  } else {                                   // x in (2, \infty)
+    Ku, Ku1 = CF2_ik(u, x)                   // continued fraction CF2_ik
+  }
+  prev        = Ku
+  current     = Ku1
+  scale      := 1.0
+  scale_sign := 1.0
+  for k = 1; k <= n; k++ {                   // forward recurrence for K
+    fact := 2.0*(u + k) / x
+    if (math.MaxFloat64 - math.Abs(prev)) / fact < math.Abs(current) {
+      prev  /= current
+      scale /= current
+      if current < 0 {
+        scale_sign *= -1.0
+      }
+      current = 1
+    }
+    next    = fact * current + prev
+    prev    = current
+    current = next
+  }
+  Kv  = prev
+  Kv1 = current
+
+  if kind & need_i {
+    lim := (4.0 * v * v + 10.0) / (8.0 * x)
+    lim *= lim
+    lim *= lim
+    lim /= 24.0
+    if (lim < EpsilonFloat64 * 10.0) && (x > 100.0) {
+      // x is huge compared to v, CF1 may be very slow
+      // to converge so use asymptotic expansion for large
+      // x case instead.  Note that the asymptotic expansion
+      // isn't very accurate - so it's deliberately very hard
+      // to get here - probably we're going to overflow:
+      Iv = asymptotic_bessel_i_large_x(v, x, pol);
+    } else
+    if (v > 0.0) && (x / v < 0.25) {
+      Iv = bessel_i_small_z_series(v, x, pol);
+    } else {
+      fv = CF1_ik(v, x)                      // continued fraction CF1_ik
+      Iv = scale * W / (Kv * fv + Kv1)       // Wronskian relation
+    }
+  } else {
+    Iv = math.NaN() // any value will do
+  }
+  if reflect {
+    z     = u + n % 2
+    fact := 2.0 / math.Pi * math.Sin(math.Pi*z) * Kv
+    if(fact == 0) {
+      I = Iv
+    } else
+    if math.MaxFloat64 * scale < fact {
+      if org_kind & need_i {
+        if fact*scale_sign < 0 {
+          I = math.Inf(-1)
+        } else {
+          I = math.Inf( 1)
+        }
+      } else {
+        I = 0.0
+      }
+    } else {
+      I = Iv + fact / scale   // reflection formula
+    }
+  } else {
+    I = Iv
+  }
+  if math.MaxFloat64 * scale < Kv {
+    if org_kind & need_k {
+      if Kv * scale_sign < 0.0 {
+        K = math.Inf(-1)
+      } else {
+        K = math.Inf( 1)
+      }
+    } else {
+      K = 0.0
+    }
+  } else {
+    K = Kv / scale
+  }
+  return I, K
+}
 
 /* -------------------------------------------------------------------------- */
 
