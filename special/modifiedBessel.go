@@ -32,7 +32,7 @@ func iround(x float64) int {
 
 /* -------------------------------------------------------------------------- */
 
-func bessel_i0(x float64) float64 {
+func modified_bessel_i0(x float64) float64 {
   P1 := NewPolynomial([]float64{
     -2.2335582639474375249e+15,
     -5.5050369673018427753e+14,
@@ -94,7 +94,7 @@ func bessel_i0(x float64) float64 {
 
 /* -------------------------------------------------------------------------- */
 
-func bessel_i1(x float64) float64 {
+func modified_bessel_i1(x float64) float64 {
   P1 := NewPolynomial([]float64{
     -1.4577180278143463643e+15,
     -1.7732037840791591320e+14,
@@ -157,7 +157,7 @@ func bessel_i1(x float64) float64 {
 
 /* -------------------------------------------------------------------------- */
 
-func bessel_i_imp(v, x float64) float64 {
+func modified_bessel_i_imp(v, x float64) float64 {
   //
   // This handles all the bessel I functions, note that we don't optimise
   // for integer v, other than the v = 0 or 1 special cases, as Millers
@@ -167,7 +167,7 @@ func bessel_i_imp(v, x float64) float64 {
   if x < 0 {
     // better have integer v:
     if math.Floor(v) == v {
-      r := bessel_i_imp(v, -x)
+      r := modified_bessel_i_imp(v, -x)
       if iround(v) & 1 != 0 {
         return -r
       } else {
@@ -194,14 +194,14 @@ func bessel_i_imp(v, x float64) float64 {
     }
   }
   if v == 0 {
-    return bessel_i0(x)
+    return modified_bessel_i0(x)
   }
   if v == 1 {
-    return bessel_i1(x)
+    return modified_bessel_i1(x)
   }
   if v > 0 && x / v < 0.25 {
-    return bessel_i_small_z_series(v, x)
+    return modified_bessel_i_small_z_series(v, x)
   }
-  I, _ := bessel_ik(v, x, need_i)
+  I, _ := modified_bessel_ik(v, x, need_i)
   return I
 }
