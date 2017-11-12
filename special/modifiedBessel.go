@@ -191,7 +191,7 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
       K = math.NaN() // any value will do
     }
     if reflect && (kind & need_i) {
-      z := u + n % 2
+      z := u + float64(n % 2)
       if math.Sin(math.Pi*z) != 0.0 {
         I = math.Inf(1)
       }
@@ -199,7 +199,7 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
     return I, K
   }
   // x is positive until reflection
-  W := 1.0/x                                 // Wronskian
+  W = 1.0/x                                  // Wronskian
   if x <= 2 {                                // x in (0, 2]
     Ku, Ku1 = temme_ik(u, x)                 // Temme series
   } else {                                   // x in (2, \infty)
@@ -210,7 +210,7 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
   scale      := 1.0
   scale_sign := 1.0
   for k = 1; k <= n; k++ {                   // forward recurrence for K
-    fact := 2.0*(u + k) / x
+    fact := 2.0*(u + float64(k)) / x
     if (math.MaxFloat64 - math.Abs(prev)) / fact < math.Abs(current) {
       prev  /= current
       scale /= current
@@ -237,10 +237,10 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
       // x case instead.  Note that the asymptotic expansion
       // isn't very accurate - so it's deliberately very hard
       // to get here - probably we're going to overflow:
-      Iv = asymptotic_bessel_i_large_x(v, x, pol);
+      Iv = asymptotic_bessel_i_large_x(v, x)
     } else
     if (v > 0.0) && (x / v < 0.25) {
-      Iv = bessel_i_small_z_series(v, x, pol);
+      Iv = bessel_i_small_z_series(v, x)
     } else {
       fv = CF1_ik(v, x)                      // continued fraction CF1_ik
       Iv = scale * W / (Kv * fv + Kv1)       // Wronskian relation
@@ -249,7 +249,7 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
     Iv = math.NaN() // any value will do
   }
   if reflect {
-    z     = u + n % 2
+    z     = u + float64(n % 2)
     fact := 2.0 / math.Pi * math.Sin(math.Pi*z) * Kv
     if(fact == 0) {
       I = Iv
