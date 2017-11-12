@@ -20,6 +20,9 @@ import "math"
 
 const log_max_value float64 = 709.0
 
+const need_i = 1
+const need_k = 2
+
 /* -------------------------------------------------------------------------- */
 
 func iround(x float64) int {
@@ -185,12 +188,12 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
     } else {
       I = 0.0
     }
-    if kind & need_k {
+    if kind & need_k != 0 {
       K = math.Inf(1)
     } else {
       K = math.NaN() // any value will do
     }
-    if reflect && (kind & need_i) {
+    if reflect && (kind & need_i) != 0 {
       z := u + float64(n % 2)
       if math.Sin(math.Pi*z) != 0.0 {
         I = math.Inf(1)
@@ -226,7 +229,7 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
   Kv  = prev
   Kv1 = current
 
-  if kind & need_i {
+  if kind & need_i != 0 {
     lim := (4.0 * v * v + 10.0) / (8.0 * x)
     lim *= lim
     lim *= lim
@@ -249,13 +252,13 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
     Iv = math.NaN() // any value will do
   }
   if reflect {
-    z     = u + float64(n % 2)
+    z    := u + float64(n % 2)
     fact := 2.0 / math.Pi * math.Sin(math.Pi*z) * Kv
     if(fact == 0) {
       I = Iv
     } else
     if math.MaxFloat64 * scale < fact {
-      if org_kind & need_i {
+      if org_kind & need_i != 0 {
         if fact*scale_sign < 0 {
           I = math.Inf(-1)
         } else {
@@ -271,7 +274,7 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
     I = Iv
   }
   if math.MaxFloat64 * scale < Kv {
-    if org_kind & need_k {
+    if org_kind & need_k != 0 {
       if Kv * scale_sign < 0.0 {
         K = math.Inf(-1)
       } else {
