@@ -383,13 +383,28 @@ func (c *Real) Mlgamma(a ConstScalar, k int) Scalar {
 }
 
 func (c *Real) GammaP(a float64, b ConstScalar) Scalar {
-  x := b.GetValue()
+  x  := b.GetValue()
   v0 := special.GammaP(a, x)
   f1 := func() float64 {
     return special.GammaPfirstDerivative(a, x)
   }
   f2 := func() float64 {
     return special.GammaPsecondDerivative(a, x)
+  }
+  return c.monadicLazy(b, v0, f1, f2)
+}
+
+func (c *Real) BesselI(v float64, b ConstScalar) Scalar {
+  x  := b.GetValue()
+  v0 := special.BesselI(v, x)
+  f1 := func() float64 {
+    v1 := special.BesselI(v-1.0, x)
+    return v1 - v/x*v0
+  }
+  f2 := func() float64 {
+    v1 := special.BesselI(v-2.0, x)
+    v2 := special.BesselI(v+2.0, x)
+    return 0.25*(v1 + 2.0*v0 + v2)
   }
   return c.monadicLazy(b, v0, f1, f2)
 }

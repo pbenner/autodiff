@@ -295,6 +295,12 @@ func (c *BareReal) GammaP(a float64, x ConstScalar) Scalar {
   return c
 }
 
+func (c *BareReal) BesselI(v float64, x ConstScalar) Scalar {
+  checkBare(x)
+  *c = BareReal(special.BesselI(v, x.GetValue()))
+  return c
+}
+
 /* -------------------------------------------------------------------------- */
 
 func (r *BareReal) Vmean(a Vector) Scalar {

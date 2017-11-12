@@ -110,6 +110,7 @@ type Scalar interface {
   Lgamma     (ConstScalar)          Scalar
   Mlgamma    (ConstScalar, int)     Scalar // multivariate log gamma
   GammaP     (float64, ConstScalar) Scalar // regularized lower incomplete gamma
+  BesselI    (float64, ConstScalar) Scalar // modified bessel function of the first kind
   // vector operations
   Vmean      (a    Vector)     Scalar
   VdotV      (a, b Vector)     Scalar
