@@ -5,6 +5,7 @@
  */
 
 //  Copyright (c) 2006 Xiaogang Zhang
+//  Copyright (c) 2007 John Maddock
 //  Use, modification and distribution are subject to the
 //  Boost Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -155,6 +156,32 @@ func modified_bessel_i1(x float64) float64 {
     y := 1.0/w - 1.0/15
     return math.Exp(w) / math.Sqrt(w) * P2.Eval(y) / Q2.Eval(y)
   }
+}
+
+/* -------------------------------------------------------------------------- */
+
+func asymptotic_bessel_i_large_x(v, x float64) float64 {
+  s     := 1.0
+  mu    := 4.0 * v * v
+  ex    := 8.0 * x
+  num   := mu - 1.0
+  denom := ex
+
+  s -= num / denom
+
+  num   *= mu - 9
+  denom *= ex * 2
+  s     += num / denom
+
+  num   *= mu - 25
+  denom *= ex * 3
+  s     -= num / denom
+
+  e := math.Exp(x/2)
+
+  s = e * (e * s / math.Sqrt(2.0 * x * math.Pi))
+
+  return s
 }
 
 /* -------------------------------------------------------------------------- */
