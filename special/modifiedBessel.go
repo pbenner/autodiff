@@ -159,6 +159,41 @@ func modified_bessel_i1(x float64) float64 {
 
 /* -------------------------------------------------------------------------- */
 
+// Evaluate continued fraction fv = I_(v+1) / I_v, derived from
+// Abramowitz and Stegun, Handbook of Mathematical Functions, 1972, 9.1.73
+func CF1_ik(v, x float64) float64 {
+  var C, D, f, a, b, delta, tiny, tolerance float64
+
+  // |x| <= |v|, CF1_ik converges rapidly
+  // |x| > |v|, CF1_ik needs O(|x|) iterations to converge
+
+  // modified Lentz's method, see
+  // Lentz, Applied Optics, vol 15, 668 (1976)
+  tolerance = 2.0*EpsilonFloat64
+  tiny      = math.Sqrt(math.SmallestNonzeroFloat64)
+  C = tiny
+  f = tiny  // b0 = 0, replace with tiny
+  D = 0
+  for k := 1; k < SeriesIterationsMax; k++ {
+    a = 1
+    b = 2 * (v + float64(k)) / x
+    C = b + a / C
+    D = b + a * D
+    if (C == 0.0) { C = tiny }
+    if (D == 0.0) { D = tiny }
+    D = 1 / D
+    delta = C * D
+    f    *= delta
+    if (math.Abs(delta - 1.0) <= tolerance) {
+      break;
+    }
+  }
+
+  return f
+}
+
+/* -------------------------------------------------------------------------- */
+
 // Compute I(v, x) and K(v, x) simultaneously by Temme's method, see
 // Temme, Journal of Computational Physics, vol 19, 324 (1975)
 func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
