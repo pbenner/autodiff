@@ -591,3 +591,10 @@ func bessel_i_imp(v, x float64) float64 {
   I, _ := bessel_ik(v, x, need_i)
   return I
 }
+
+/* -------------------------------------------------------------------------- */
+
+// modified bessel function of the first kind
+func BesselI(v, x float64) float64 {
+  return bessel_i_imp(v, x)
+}
