@@ -19,8 +19,6 @@ import "math"
 
 /* -------------------------------------------------------------------------- */
 
-const log_max_value float64 = 709.0
-
 const need_i = 1
 const need_k = 2
 
@@ -574,7 +572,7 @@ func bessel_i_imp(v, x float64) float64 {
   }
   if v == 0.5 {
     // common special case, note try and avoid overflow in exp(x):
-    if x >= log_max_value {
+    if x >= MaxLogFloat64 {
       e := math.Exp(x/2.0)
       return e*(e/math.Sqrt(2.0*x*math.Pi))
     } else {
