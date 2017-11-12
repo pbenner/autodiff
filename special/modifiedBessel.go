@@ -194,6 +194,82 @@ func CF1_ik(v, x float64) float64 {
 
 /* -------------------------------------------------------------------------- */
 
+// Calculate K(v, x) and K(v+1, x) by evaluating continued fraction
+// z1 / z0 = U(v+1.5, 2v+1, 2x) / U(v+0.5, 2v+1, 2x), see
+// Thompson and Barnett, Computer Physics Communications, vol 47, 245 (1987)
+func CF2_ik(v, x float64) (float64, float64) {
+  var Kv, Kv1, S, C, Q, D, f, a, b, q, delta, tolerance, current, prev float64
+
+  // |x| >= |v|, CF2_ik converges rapidly
+  // |x| -> 0, CF2_ik fails to converge
+
+  if (math.Abs(x) <= 1) {
+    panic("internal error")
+  }
+
+  // Steed's algorithm, see Thompson and Barnett,
+  // Journal of Computational Physics, vol 64, 490 (1986)
+  tolerance = EpsilonFloat64
+  a = v * v - 0.25
+  b = 2 * (x + 1)                              // b1
+  D = 1 / b                                    // D1 = 1 / b1
+  f     = D
+  delta = D                                    // f1 = delta1 = D1, coincidence
+  prev    = 0                                  // q0
+  current = 1                                  // q1
+  Q = -a
+  C = -a                                       // Q1 = C1 because q1 = 1
+  S = 1 + Q * delta                            // S1
+
+  for k := 2; k < SeriesIterationsMax; k++ {    // starting from 2
+    // continued fraction f = z1 / z0
+    a -= 2 * (float64(k) - 1)
+    b += 2
+    D  = 1 / (b + a * D)
+    delta *= b * D - 1
+    f     += delta
+
+    // series summation S = 1 + \sum_{n=1}^{\infty} C_n * z_n / z_0
+    q = (prev - (b - 2) * current) / a
+    prev    = current
+    current = q                        // forward recurrence for q
+    C *= -a / float64(k)
+    Q += C * q
+    S += Q * delta
+    //
+    // Under some circumstances q can grow very small and C very
+    // large, leading to under/overflow.  This is particularly an
+    // issue for types which have many digits precision but a narrow
+    // exponent range.  A typical example being a "double double" type.
+    // To avoid this situation we can normalise q (and related prev/current)
+    // and C.  All other variables remain unchanged in value.  A typical
+    // test case occurs when x is close to 2, for example cyl_bessel_k(9.125, 2.125).
+    //
+    if(q < EpsilonFloat64) {
+      C       *= q
+      prev    /= q
+      current /= q
+      q = 1
+    }
+
+    // S converges slower than f
+    if (math.Abs(Q * delta) < math.Abs(S) * tolerance) {
+      break
+    }
+  }
+
+  if x >= MaxLogFloat64 {
+    Kv = math.Exp(0.5 * math.Log(math.Pi / (2.0 * x)) - x - math.Log(S))
+  } else {
+    Kv = math.Sqrt(math.Pi / (2.0 * x)) * math.Exp(-x) / S
+  }
+  Kv1 = Kv * (0.5 + v + x + (v * v - 0.25) * f) / x
+
+  return Kv, Kv1
+}
+
+/* -------------------------------------------------------------------------- */
+
 // Compute I(v, x) and K(v, x) simultaneously by Temme's method, see
 // Temme, Journal of Computational Physics, vol 19, 324 (1975)
 func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
