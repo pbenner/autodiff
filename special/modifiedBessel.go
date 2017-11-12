@@ -36,7 +36,7 @@ func iround(x float64) int {
 
 /* -------------------------------------------------------------------------- */
 
-func modified_bessel_i0(x float64) float64 {
+func bessel_i0(x float64) float64 {
   P1 := NewPolynomial([]float64{
     -2.2335582639474375249e+15,
     -5.5050369673018427753e+14,
@@ -98,7 +98,7 @@ func modified_bessel_i0(x float64) float64 {
 
 /* -------------------------------------------------------------------------- */
 
-func modified_bessel_i1(x float64) float64 {
+func bessel_i1(x float64) float64 {
   P1 := NewPolynomial([]float64{
     -1.4577180278143463643e+15,
     -1.7732037840791591320e+14,
@@ -156,6 +156,53 @@ func modified_bessel_i1(x float64) float64 {
     y := 1.0/w - 1.0/15
     return math.Exp(w) / math.Sqrt(w) * P2.Eval(y) / Q2.Eval(y)
   }
+}
+
+/* -------------------------------------------------------------------------- */
+
+type cyl_bessel_i_small_z struct {
+  k    int
+  v    float64
+  term float64
+  mult float64
+}
+
+func new_cyl_bessel_i_small_z(v, z float64) *cyl_bessel_i_small_z {
+  r := cyl_bessel_i_small_z{}
+  r.term = 1
+  r.k    = 0
+  r.v    = v
+  r.mult = z*z/4
+  return &r
+}
+
+func (obj *cyl_bessel_i_small_z) Eval() float64 {
+  r     := obj.term
+  obj.k += 1
+  obj.term *= obj.mult / float64(obj.k)
+  obj.term /= float64(obj.k) + obj.v
+  return r
+}
+
+/* -------------------------------------------------------------------------- */
+
+func bessel_i_small_z_series(v, x float64) float64 {
+  var prefix float64
+
+  if v < float64(MaxFactorial) {
+    prefix = math.Pow(x / 2.0, v) / math.Gamma(v + 1);
+  } else {
+    t, _  := math.Lgamma(v + 1)
+    prefix = math.Log(x / 2)*v - t
+    prefix = math.Exp(prefix)
+  }
+  if prefix == 0.0 {
+    return prefix
+  }
+
+  s := new_cyl_bessel_i_small_z(v, x)
+
+  return prefix * SumSeries(s, 0.0, 2.22045e-16, SeriesIterationsMax)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -368,7 +415,7 @@ func CF2_ik(v, x float64) (float64, float64) {
 
 // Compute I(v, x) and K(v, x) simultaneously by Temme's method, see
 // Temme, Journal of Computational Physics, vol 19, 324 (1975)
-func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
+func bessel_ik(v, x float64, kind int) (float64, float64) {
   // Kv1 = K_(v+1), fv = I_(v+1) / I_v
   // Ku1 = K_(u+1), fu = I_(u+1) / I_u
   var u, I, K, Iv, Kv, Kv1, Ku, Ku1, fv float64
@@ -498,7 +545,7 @@ func modified_bessel_ik(v, x float64, kind int) (float64, float64) {
 
 /* -------------------------------------------------------------------------- */
 
-func modified_bessel_i_imp(v, x float64) float64 {
+func bessel_i_imp(v, x float64) float64 {
   //
   // This handles all the bessel I functions, note that we don't optimise
   // for integer v, other than the v = 0 or 1 special cases, as Millers
@@ -508,7 +555,7 @@ func modified_bessel_i_imp(v, x float64) float64 {
   if x < 0 {
     // better have integer v:
     if math.Floor(v) == v {
-      r := modified_bessel_i_imp(v, -x)
+      r := bessel_i_imp(v, -x)
       if iround(v) & 1 != 0 {
         return -r
       } else {
@@ -535,14 +582,14 @@ func modified_bessel_i_imp(v, x float64) float64 {
     }
   }
   if v == 0 {
-    return modified_bessel_i0(x)
+    return bessel_i0(x)
   }
   if v == 1 {
-    return modified_bessel_i1(x)
+    return bessel_i1(x)
   }
   if v > 0 && x / v < 0.25 {
-    return modified_bessel_i_small_z_series(v, x)
+    return bessel_i_small_z_series(v, x)
   }
-  I, _ := modified_bessel_ik(v, x, need_i)
+  I, _ := bessel_ik(v, x, need_i)
   return I
 }
