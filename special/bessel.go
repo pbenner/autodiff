@@ -267,7 +267,7 @@ func temme_ik(v, x float64) (float64, float64) {
   if math.Abs(v) < EpsilonFloat64 {
     c = 1.0
   } else {
-    c = math.Sin(math.Pi*v) / (v * math.Pi)
+    c = SinPi(v) / (v * math.Pi)
   }
   if math.Abs(sigma) < EpsilonFloat64 {
     d = 1.0
@@ -461,7 +461,7 @@ func bessel_ik(v, x float64, kind int) (float64, float64) {
     }
     if reflect && (kind & need_i) != 0 {
       z := u + float64(n % 2)
-      if math.Sin(math.Pi*z) != 0.0 {
+      if SinPi(z) != 0.0 {
         I = math.Inf(1)
       }
     }
@@ -519,7 +519,7 @@ func bessel_ik(v, x float64, kind int) (float64, float64) {
   }
   if reflect {
     z    := u + float64(n % 2)
-    fact := 2.0 / math.Pi * math.Sin(math.Pi*z) * Kv
+    fact := 2.0 / math.Pi * SinPi(z) * Kv
     if(fact == 0) {
       I = Iv
     } else

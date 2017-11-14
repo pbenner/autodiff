@@ -31,8 +31,8 @@ typedef lanczos::undefined_lanczos lanczos_type;
 /* -------------------------------------------------------------------------- */
 
 void test_bessel_i() {
-        for (double  v = -4.0; v <= 4.0; v += 0.5) {
-                for (double x = 0.5; x <= 50; x += 0.5) {
+        for (double  v = -100.0; v <= 100.0; v += 3) {
+                for (double x = 0; x <= 100; x += 3) {
                         cout << "{"
                              << setw(4)
                              << setprecision( 1) << fixed << v << ", "
