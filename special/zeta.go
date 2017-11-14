@@ -268,7 +268,7 @@ func zeta_imp(s, sc float64) float64 {
       result = 0.0
     } else {
       if s > float64(factorialMax) {
-        mult   := math.Sin(math.Pi*0.5*sc)*2.0*zeta_imp(s, sc)
+        mult   := SinPi(0.5*sc)*2.0*zeta_imp(s, sc)
         v, _   := math.Lgamma(s)
         result  = v
         result -= s * math.Log(2.0*math.Pi)
@@ -289,7 +289,7 @@ func zeta_imp(s, sc float64) float64 {
         }
         result *= mult
       } else {
-        result = math.Sin(math.Pi*0.5*sc) * 2 * math.Pow(2.0*math.Pi, -s) * math.Gamma(s) * zeta_imp(s, sc)
+        result = SinPi(0.5*sc) * 2 * math.Pow(2.0*math.Pi, -s) * math.Gamma(s) * zeta_imp(s, sc)
       }
     }
   } else {

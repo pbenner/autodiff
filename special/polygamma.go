@@ -287,11 +287,11 @@ func poly_cot_pi(n int, x, xc float64) float64 {
   //
   s := 0.0
   if math.Abs(x) < math.Abs(xc) {
-    s = math.Sin(x*math.Pi)
+    s = SinPi(x)
   } else {
-    s = math.Sin(xc*math.Pi)
+    s = SinPi(xc)
   }
-  c := math.Cos(x*math.Pi)
+  c := CosPi(x)
 
   switch n {
   case 1:

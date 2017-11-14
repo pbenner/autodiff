@@ -93,9 +93,9 @@ func trigamma_imp(x float64) float64 {
     }
     s := 0.0
     if math.Abs(x) < math.Abs(z) {
-      s = math.Sin(math.Pi*x)
+      s = SinPi(x)
     } else {
-      s = math.Sin(math.Pi*z)
+      s = SinPi(z)
     }
     return -trigamma_imp(z) + math.Pow(math.Pi, 2)/(s*s)
   }
