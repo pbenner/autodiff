@@ -1,7 +1,7 @@
 /* Copyright (C) 2017 Philipp Benner
  *
  * Code ported from boost (boost.org).
- * boost/math/special_functions/bessel.hpp
+ * boost/math/special_functions/sin_pi.hpp
  */
 
 //  Copyright (c) 2007 John Maddock
