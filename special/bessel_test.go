@@ -1738,6 +1738,16 @@ func TestBesselI1(t *testing.T) {
         r[i][0], r[i][1], error, value, target)
     }
   }
+  for i := 0; i < len(r); i++ {
+    epsilon := 1e-11*math.Pow(10,math.Floor(math.Log10(math.Abs(r[i][2]))))
+    value   := math.Exp(LogBesselI(r[i][0], r[i][1]))
+    target  := r[i][2]
+    error   := math.Abs(value - target)
+    if error > epsilon {
+      t.Errorf("LogBesselI() failed for `(%f,%f) with error `%e', value=%e, target=%e\n",
+        r[i][0], r[i][1], error, value, target)
+    }
+  }
 
 }
 
@@ -4033,6 +4043,16 @@ func TestBesselI2(t *testing.T) {
         r[i][0], r[i][1], error, value, target)
     }
   }
+  for i := 0; i < len(r); i++ {
+    epsilon := 1e-11*math.Pow(10,math.Floor(math.Log10(math.Abs(r[i][2]))))
+    value   := math.Exp(LogBesselI(r[i][0], r[i][1]))
+    target  := r[i][2]
+    error   := math.Abs(value - target)
+    if error > epsilon {
+      t.Errorf("LogBesselI() failed for `(%f,%f) with error `%e', value=%e, target=%e\n",
+        r[i][0], r[i][1], error, value, target)
+    }
+  }
 
 }
 
@@ -4449,6 +4469,16 @@ func TestBesselI3(t *testing.T) {
     error   := math.Abs(value - target)
     if error > epsilon {
       t.Errorf("BesselI() failed for `(%f,%f) with error `%e', value=%e, target=%e\n",
+        r[i][0], r[i][1], error, value, target)
+    }
+  }
+  for i := 0; i < len(r); i++ {
+    epsilon := 1e-11*math.Pow(10,math.Floor(math.Log10(math.Abs(r[i][2]))))
+    value   := math.Exp(LogBesselI(r[i][0], r[i][1]))
+    target  := r[i][2]
+    error   := math.Abs(value - target)
+    if error > epsilon {
+      t.Errorf("LogBesselI() failed for `(%f,%f) with error `%e', value=%e, target=%e\n",
         r[i][0], r[i][1], error, value, target)
     }
   }

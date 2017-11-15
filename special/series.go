@@ -39,3 +39,15 @@ func SumSeries(series Series, init_value, factor float64, max_terms int) float64
   }
   return result
 }
+
+func SumLogSeries(series Series, init_value, logFactor float64, max_terms int) float64 {
+  result := math.Inf(-1)
+  for i := 0; i < max_terms; i++ {
+    next_term := series.Eval()
+    result     = logAdd(result, next_term)
+    if logFactor + result >= next_term {
+      break
+    }
+  }
+  return result
+}
