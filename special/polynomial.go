@@ -18,6 +18,10 @@ package special
 
 /* -------------------------------------------------------------------------- */
 
+import "math"
+
+/* -------------------------------------------------------------------------- */
+
 type Polynomial struct {
   coefficients []float64
 }
@@ -50,10 +54,10 @@ func (p Polynomial) Eval(z float64) float64 {
 
 func (p Polynomial) LogEval(logz float64) float64 {
   count := len(p.coefficients)
-  sum := p.coefficients[count - 1]
+  sum := math.Log(p.coefficients[count - 1])
   for i := count - 2; i >= 0; i-- {
     sum += logz
-    sum  = logAdd(sum, p.coefficients[i])
+    sum  = logAdd(sum, math.Log(p.coefficients[i]))
   }
   return sum
 }
