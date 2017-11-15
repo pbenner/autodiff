@@ -18,16 +18,16 @@ package special
 
 /* -------------------------------------------------------------------------- */
 
-import "math"
-
-/* -------------------------------------------------------------------------- */
-
 type Polynomial struct {
   coefficients []float64
 }
 
 type EvenPolynomial struct {
   Polynomial
+}
+
+type LogPolynomial struct {
+  coefficients []float64
 }
 
 /* -------------------------------------------------------------------------- */
@@ -38,6 +38,10 @@ func NewPolynomial(coefficients []float64) Polynomial {
 
 func NewEvenPolynomial(coefficients []float64) EvenPolynomial {
   return EvenPolynomial{NewPolynomial(coefficients)}
+}
+
+func NewLogPolynomial(coefficients []float64) LogPolynomial {
+  return LogPolynomial{coefficients}
 }
 
 /* -------------------------------------------------------------------------- */
@@ -52,16 +56,16 @@ func (p Polynomial) Eval(z float64) float64 {
   return sum
 }
 
-func (p Polynomial) LogEval(logz float64) float64 {
-  count := len(p.coefficients)
-  sum := math.Log(p.coefficients[count - 1])
-  for i := count - 2; i >= 0; i-- {
-    sum += logz
-    sum  = logAdd(sum, math.Log(p.coefficients[i]))
-  }
-  return sum
-}
-
 func (p EvenPolynomial) Eval(z float64) float64 {
   return p.Polynomial.Eval(z*z)
+}
+
+func (p LogPolynomial) Eval(logz float64) float64 {
+  count := len(p.coefficients)
+  sum := p.coefficients[count - 1]
+  for i := count - 2; i >= 0; i-- {
+    sum += logz
+    sum  = logAdd(sum, p.coefficients[i])
+  }
+  return sum
 }
