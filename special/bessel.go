@@ -55,8 +55,8 @@ func bessel_i0(x float64) float64 {
       2.63417742690109154e-20,
       1.13943037744822825e-22,
       9.07926920085624812e-25 })
-      a := x * x / 4
-      return a * P.Eval(a) + 1.0
+    a := x * x / 4
+    return a * P.Eval(a) + 1.0
   } else
   if x < 500 {
     // Max error in interpolated form : 1.685e-16
@@ -84,7 +84,7 @@ func bessel_i0(x float64) float64 {
        2.02391097391687777e+15,
       -3.08675715295370878e+15,
        2.17587543863819074e+15 })
-      return math.Exp(x) * P.Eval(1.0 / x) / math.Sqrt(x)
+    return math.Exp(x) * P.Eval(1.0 / x) / math.Sqrt(x)
    } else {
      // Max error in interpolated form : 2.437e-18
      // Max Error found at double precision = Poly : 1.216719e-16

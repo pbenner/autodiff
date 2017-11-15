@@ -40,12 +40,22 @@ func NewEvenPolynomial(coefficients []float64) EvenPolynomial {
 
 func (p Polynomial) Eval(z float64) float64 {
   count := len(p.coefficients)
-  sum := p.coefficients[count - 1];
+  sum := p.coefficients[count - 1]
   for i := count - 2; i >= 0; i-- {
-    sum *= z;
-    sum += p.coefficients[i];
+    sum *= z
+    sum += p.coefficients[i]
   }
-  return sum;
+  return sum
+}
+
+func (p Polynomial) LogEval(logz float64) float64 {
+  count := len(p.coefficients)
+  sum := p.coefficients[count - 1]
+  for i := count - 2; i >= 0; i-- {
+    sum += logz
+    sum  = logAdd(sum, p.coefficients[i])
+  }
+  return sum
 }
 
 func (p EvenPolynomial) Eval(z float64) float64 {
