@@ -34,6 +34,10 @@ type PoissonDistribution struct {
 
 func NewPoissonDistribution(lambda Scalar) (*PoissonDistribution, error) {
 
+  if lambda.GetValue() <= 0.0 {
+    return nil, fmt.Errorf("invalid parameter")
+  }
+
   result := PoissonDistribution{}
   result.Lambda = lambda.CloneScalar()
   result.t      = lambda.CloneScalar()
