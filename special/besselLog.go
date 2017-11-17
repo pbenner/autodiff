@@ -394,12 +394,8 @@ func CF2_ik_log(v, x float64) (float64, float64) {
     }
   }
 
-  if x >= MaxLogFloat64 {
-    Kv = math.Exp(0.5 * math.Log(math.Pi / (2.0 * x)) - x - math.Log(S))
-  } else {
-    Kv = math.Sqrt(math.Pi / (2.0 * x)) * math.Exp(-x) / S
-  }
-  Kv1 = Kv * (0.5 + v + x + (v * v - 0.25) * f) / x
+  Kv  = 0.5 * math.Log(math.Pi / (2.0 * x)) - x - math.Log(S)
+  Kv1 = Kv  + math.Log(0.5 + v + x + (v * v - 0.25) * f) - math.Log(x)
 
   return Kv, Kv1
 }
@@ -454,6 +450,8 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
     Ku, Ku1 = temme_ik_log(u, x)             // Temme series
   } else {                                   // x in (2, \infty)
     Ku, Ku1 = CF2_ik_log(u, x)               // continued fraction CF2_ik
+    Ku      = math.Exp(Ku)
+    Ku1     = math.Exp(Ku1)
   }
   prev        = Ku
   current     = Ku1
