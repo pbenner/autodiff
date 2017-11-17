@@ -428,17 +428,21 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
   }
 
   if reflect {
-    z    := u + float64(n % 2)
-    fact := math.Log(2.0 / math.Pi * SinPi(z)) + Kv
-    if math.IsInf(fact, -1) {
+    z := u + float64(n % 2)
+    t := 2.0 / math.Pi * SinPi(z)
+    if t == 0.0 || math.IsInf(Kv, -1) {
       I = Iv
     } else {
-      I = logAdd(Iv, fact - scale)   // reflection formula
+      if t < 0.0 {
+        I = logSub(Iv, math.Log(-t) + Kv - scale)   // reflection formula
+      } else {
+        I = logAdd(Iv, math.Log( t) + Kv - scale)   // reflection formula
+      }
     }
   } else {
     I = Iv
   }
-  K = Kv / scale
+  K = Kv - scale
 
   return I, K
 }
