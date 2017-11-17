@@ -301,6 +301,12 @@ func (c *BareReal) BesselI(v float64, x ConstScalar) Scalar {
   return c
 }
 
+func (c *BareReal) LogBesselI(v float64, x ConstScalar) Scalar {
+  checkBare(x)
+  *c = BareReal(special.LogBesselI(v, x.GetValue()))
+  return c
+}
+
 /* -------------------------------------------------------------------------- */
 
 func (r *BareReal) Vmean(a Vector) Scalar {

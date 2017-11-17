@@ -409,6 +409,23 @@ func (c *Real) BesselI(v float64, b ConstScalar) Scalar {
   return c.monadicLazy(b, v0, f1, f2)
 }
 
+func (c *Real) LogBesselI(v float64, b ConstScalar) Scalar {
+  x  := b.GetValue()
+  v0 := special.LogBesselI(v, x)
+  f1 := func() float64 {
+    v1 := special.LogBesselI(v-1.0, x)
+    return math.Exp(v1-v0) - v/x
+  }
+  f2 := func() float64 {
+    v1 := special.LogBesselI(v-2.0, x)
+    v2 := special.LogBesselI(v+2.0, x)
+    t1 := 0.25*(math.Exp(v1-v0) + 2.0 + math.Exp(v2-v0))
+    t2 := math.Exp(v1-v0) - v/x
+    return t1 - t2*t2
+  }
+  return c.monadicLazy(b, v0, f1, f2)
+}
+
 /* -------------------------------------------------------------------------- */
 
 func (r *Real) Vmean(a Vector) Scalar {
