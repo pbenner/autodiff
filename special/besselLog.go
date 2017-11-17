@@ -227,75 +227,6 @@ func asymptotic_bessel_i_large_x_log(v, x float64) float64 {
 
 /* -------------------------------------------------------------------------- */
 
-func temme_ik_log(v, x float64) (float64, float64) {
-  var K, K1, f, h, p, q, coef, sum, sum1, tolerance float64
-  var a, b, c, d, sigma, gamma1, gamma2 float64
-
-  // |x| <= 2, Temme series converge rapidly
-  // |x| > 2, the larger the |x|, the slower the convergence
-  if math.Abs(x) > 2 {
-    panic("internal error")
-  }
-  if math.Abs(v) > 0.5 {
-    panic("internal error")
-  }
-
-  gp := tgamma1pm1( v)
-  gm := tgamma1pm1(-v)
-
-  a = math.Log(x / 2)
-  b = math.Exp(v * a)
-  sigma = -a * v
-  if math.Abs(v) < EpsilonFloat64 {
-    c = 1.0
-  } else {
-    c = SinPi(v) / (v * math.Pi)
-  }
-  if math.Abs(sigma) < EpsilonFloat64 {
-    d = 1.0
-  } else {
-    d = math.Sinh(sigma) / sigma
-  }
-  if math.Abs(v) < EpsilonFloat64 {
-    gamma1 = -M_EULER
-  } else {
-    gamma1 = (0.5 / v) * (gp - gm) * c
-  }
-  gamma2 = (2 + gp + gm) * c / 2
-
-  // initial values
-  p = (gp + 1) / (2 * b)
-  q = (1 + gm) * b / 2
-  f = (math.Cosh(sigma) * gamma1 + d * (-a) * gamma2) / c
-  h = p
-  coef = 1
-  sum  = coef * f
-  sum1 = coef * h
-
-  // series summation
-  tolerance = EpsilonFloat64
-  for k := 1; k < SeriesIterationsMax; k++ {
-    kf := float64(k)
-    f   = (kf * f + p + q) / (kf*kf - v*v)
-    p  /=  kf - v
-    q  /=  kf + v
-    h   = p - kf * f
-    coef *= x * x / (4 * kf)
-    sum  += coef * f
-    sum1 += coef * h
-    if math.Abs(coef * f) < math.Abs(sum) * tolerance {
-      break
-    }
-  }
-
-  K  = sum
-  K1 = 2 * sum1 / x
-
-  return K, K1
-}
-
-/* -------------------------------------------------------------------------- */
-
 // Evaluate continued fraction fv = I_(v+1) / I_v, derived from
 // Abramowitz and Stegun, Handbook of Mathematical Functions, 1972, 9.1.73
 func CF1_ik_log(v, x float64) float64 {
@@ -446,7 +377,7 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
   // x is positive until reflection
   W = -math.Log(x)                           // Wronskian
   if x <= 2 {                                // x in (0, 2]
-    Ku, Ku1 = temme_ik_log(u, x)             // Temme series
+    Ku, Ku1 = temme_ik(u, x)                 // Temme series
     Ku      = math.Log(Ku)
     Ku1     = math.Log(Ku1)
   } else {                                   // x in (2, \infty)
