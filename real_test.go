@@ -278,6 +278,28 @@ func TestGammaP(t *testing.T) {
   }
 }
 
+func TestLogBessel(t *testing.T) {
+
+  v := NewReal(10.0)
+  x := NewReal(20.0)
+  r := NewReal(0.0)
+
+  Variables(2, x)
+
+  r.LogBesselI(v.GetValue(), x)
+
+  if math.Abs(r.GetValue() - 15.0797) > 1e-4 {
+    t.Error("Differentiation failed!")
+  }
+  if math.Abs(r.GetDerivative(0) - 1.09804) > 1e-4 {
+    t.Error("Differentiation failed!")
+  }
+  if math.Abs(r.GetHessian(0, 0) - -0.0106002) > 1e-4 {
+    t.Error("Differentiation failed!")
+  }
+
+}
+
 func TestHessian(t *testing.T) {
   x := NewReal(1.5)
   y := NewReal(2.5)
