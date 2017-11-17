@@ -334,8 +334,8 @@ func CF1_ik(v, x float64) float64 {
     b = 2 * (v + float64(k)) / x
     C = b + a / C
     D = b + a * D
-    if (C == 0.0) { C = tiny }
-    if (D == 0.0) { D = tiny }
+    if C == 0.0 { C = tiny }
+    if D == 0.0 { D = tiny }
     D = 1 / D
     delta = C * D
     f    *= delta

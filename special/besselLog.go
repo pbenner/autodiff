@@ -299,29 +299,28 @@ func temme_ik_log(v, x float64) (float64, float64) {
 // Evaluate continued fraction fv = I_(v+1) / I_v, derived from
 // Abramowitz and Stegun, Handbook of Mathematical Functions, 1972, 9.1.73
 func CF1_ik_log(v, x float64) float64 {
-  var C, D, f, a, b, delta, tiny, tolerance float64
+  var C, D, f, b, delta, tiny, tolerance float64
 
   // |x| <= |v|, CF1_ik converges rapidly
-  // |x| > |v|, CF1_ik needs O(|x|) iterations to converge
+  // |x|  > |v|, CF1_ik needs O(|x|) iterations to converge
 
   // modified Lentz's method, see
   // Lentz, Applied Optics, vol 15, 668 (1976)
   tolerance = 2.0*EpsilonFloat64
-  tiny      = math.Sqrt(math.SmallestNonzeroFloat64)
+  tiny      = 0.5*math.Log(math.SmallestNonzeroFloat64)
   C = tiny
   f = tiny  // b0 = 0, replace with tiny
-  D = 0
+  D = math.Inf(-1)
   for k := 1; k < SeriesIterationsMax; k++ {
-    a = 1
-    b = 2 * (v + float64(k)) / x
-    C = b + a / C
-    D = b + a * D
-    if (C == 0.0) { C = tiny }
-    if (D == 0.0) { D = tiny }
-    D = 1 / D
-    delta = C * D
-    f    *= delta
-    if (math.Abs(delta - 1.0) <= tolerance) {
+    b = math.Log(2 * (v + float64(k))) - math.Log(x)
+    C = logAdd(b, -C)
+    D = logAdd(b,  D)
+    if math.IsInf(C, -1) { C = tiny }
+    if math.IsInf(D, -1) { D = tiny }
+    D     = -D
+    delta = C + D
+    f    += delta
+    if math.Abs(math.Exp(delta) - 1.0) <= tolerance {
       break
     }
   }
@@ -494,6 +493,7 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
       Iv = bessel_i_small_z_series_log(v, x)
     } else {
       fv = CF1_ik_log(v, x)                  // continued fraction CF1_ik
+      fv = math.Exp(fv)
       Iv = scale * W / (Kv * fv + Kv1)       // Wronskian relation
     }
   } else {
