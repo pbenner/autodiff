@@ -517,10 +517,11 @@ func bessel_ik(v, x float64, kind int) (float64, float64) {
   } else {
     Iv = math.NaN() // any value will do
   }
+
   if reflect {
     z    := u + float64(n % 2)
     fact := 2.0 / math.Pi * SinPi(z) * Kv
-    if(fact == 0) {
+    if fact == 0 {
       I = Iv
     } else
     if math.MaxFloat64 * scale < fact {

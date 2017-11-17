@@ -412,7 +412,6 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
   var n, k int
 
   reflect  := false
-  org_kind := kind
 
   if v < 0 {
     reflect = true
@@ -445,29 +444,29 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
     return I, K
   }
   // x is positive until reflection
-  W = 1.0/x                                  // Wronskian
+  W = -math.Log(x)                           // Wronskian
   if x <= 2 {                                // x in (0, 2]
     Ku, Ku1 = temme_ik_log(u, x)             // Temme series
+    Ku      = math.Log(Ku)
+    Ku1     = math.Log(Ku1)
   } else {                                   // x in (2, \infty)
     Ku, Ku1 = CF2_ik_log(u, x)               // continued fraction CF2_ik
-    Ku      = math.Exp(Ku)
-    Ku1     = math.Exp(Ku1)
   }
   prev        = Ku
   current     = Ku1
-  scale      := 1.0
+  scale      := 0.0
   scale_sign := 1.0
   for k = 1; k <= n; k++ {                   // forward recurrence for K
-    fact := 2.0*(u + float64(k)) / x
-    if (math.MaxFloat64 - math.Abs(prev)) / fact < math.Abs(current) {
-      prev  /= current
-      scale /= current
+    fact := math.Log(2.0*(u + float64(k))) - math.Log(x)
+    if logSub(MaxLogFloat64, prev) - fact < current {
+      prev  -= current
+      scale -= current
       if current < 0 {
         scale_sign *= -1.0
       }
-      current = 1
+      current = 0.0
     }
-    next    = fact * current + prev
+    next    = logAdd(fact + current, prev)
     prev    = current
     current = next
   }
@@ -490,48 +489,26 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
     if (v > 0.0) && (x / v < 0.25) {
       Iv = bessel_i_small_z_series_log(v, x)
     } else {
-      fv = CF1_ik_log(v, x)                  // continued fraction CF1_ik
-      fv = math.Exp(fv)
-      Iv = scale * W / (Kv * fv + Kv1)       // Wronskian relation
+      fv = CF1_ik_log(v, x)                            // continued fraction CF1_ik
+      Iv = scale + W - logAdd(Kv + fv, Kv1)  // Wronskian relation
     }
   } else {
     Iv = math.NaN() // any value will do
   }
+
   if reflect {
     z    := u + float64(n % 2)
-    fact := 2.0 / math.Pi * SinPi(z) * Kv
-    if(fact == 0) {
+    fact := math.Log(2.0 / math.Pi * SinPi(z)) + Kv
+    if math.IsInf(fact, -1) {
       I = Iv
-    } else
-    if math.MaxFloat64 * scale < fact {
-      if org_kind & need_i != 0 {
-        if fact*scale_sign < 0 {
-          I = math.Inf(-1)
-        } else {
-          I = math.Inf( 1)
-        }
-      } else {
-        I = 0.0
-      }
     } else {
-      I = Iv + fact / scale   // reflection formula
+      I = logAdd(Iv, fact - scale)   // reflection formula
     }
   } else {
     I = Iv
   }
-  if math.MaxFloat64 * scale < Kv {
-    if org_kind & need_k != 0 {
-      if Kv * scale_sign < 0.0 {
-        K = math.Inf(-1)
-      } else {
-        K = math.Inf( 1)
-      }
-    } else {
-      K = 0.0
-    }
-  } else {
-    K = Kv / scale
-  }
+  K = Kv / scale
+
   return I, K
 }
 
@@ -582,7 +559,7 @@ func bessel_i_log(v, x float64) float64 {
     return bessel_i_small_z_series_log(v, x)
   }
   I, _ := bessel_ik_log(v, x, need_i)
-  return math.Log(I)
+  return I
 }
 
 /* -------------------------------------------------------------------------- */
