@@ -201,6 +201,344 @@ func bessel_i_small_z_series_log(v, x float64) float64 {
 
 /* -------------------------------------------------------------------------- */
 
+func asymptotic_bessel_i_large_x_log(v, x float64) float64 {
+  s     := 1.0
+  mu    := 4.0 * v * v
+  ex    := 8.0 * x
+  num   := mu - 1.0
+  denom := ex
+
+  s -= num / denom
+
+  num   *= mu - 9
+  denom *= ex * 2
+  s     += num / denom
+
+  num   *= mu - 25
+  denom *= ex * 3
+  s     -= num / denom
+
+  e := math.Exp(x/2)
+
+  s = e * (e * s / math.Sqrt(2.0 * x * math.Pi))
+
+  return s
+}
+
+/* -------------------------------------------------------------------------- */
+
+func temme_ik_log(v, x float64) (float64, float64) {
+  var K, K1, f, h, p, q, coef, sum, sum1, tolerance float64
+  var a, b, c, d, sigma, gamma1, gamma2 float64
+
+  // |x| <= 2, Temme series converge rapidly
+  // |x| > 2, the larger the |x|, the slower the convergence
+  if math.Abs(x) > 2 {
+    panic("internal error")
+  }
+  if math.Abs(v) > 0.5 {
+    panic("internal error")
+  }
+
+  gp := tgamma1pm1( v)
+  gm := tgamma1pm1(-v)
+
+  a = math.Log(x / 2)
+  b = math.Exp(v * a)
+  sigma = -a * v
+  if math.Abs(v) < EpsilonFloat64 {
+    c = 1.0
+  } else {
+    c = SinPi(v) / (v * math.Pi)
+  }
+  if math.Abs(sigma) < EpsilonFloat64 {
+    d = 1.0
+  } else {
+    d = math.Sinh(sigma) / sigma
+  }
+  if math.Abs(v) < EpsilonFloat64 {
+    gamma1 = -M_EULER
+  } else {
+    gamma1 = (0.5 / v) * (gp - gm) * c
+  }
+  gamma2 = (2 + gp + gm) * c / 2
+
+  // initial values
+  p = (gp + 1) / (2 * b)
+  q = (1 + gm) * b / 2
+  f = (math.Cosh(sigma) * gamma1 + d * (-a) * gamma2) / c
+  h = p
+  coef = 1
+  sum  = coef * f
+  sum1 = coef * h
+
+  // series summation
+  tolerance = EpsilonFloat64
+  for k := 1; k < SeriesIterationsMax; k++ {
+    kf := float64(k)
+    f   = (kf * f + p + q) / (kf*kf - v*v)
+    p  /=  kf - v
+    q  /=  kf + v
+    h   = p - kf * f
+    coef *= x * x / (4 * kf)
+    sum  += coef * f
+    sum1 += coef * h
+    if math.Abs(coef * f) < math.Abs(sum) * tolerance {
+      break
+    }
+  }
+
+  K  = sum
+  K1 = 2 * sum1 / x
+
+  return K, K1
+}
+
+/* -------------------------------------------------------------------------- */
+
+// Evaluate continued fraction fv = I_(v+1) / I_v, derived from
+// Abramowitz and Stegun, Handbook of Mathematical Functions, 1972, 9.1.73
+func CF1_ik_log(v, x float64) float64 {
+  var C, D, f, a, b, delta, tiny, tolerance float64
+
+  // |x| <= |v|, CF1_ik converges rapidly
+  // |x| > |v|, CF1_ik needs O(|x|) iterations to converge
+
+  // modified Lentz's method, see
+  // Lentz, Applied Optics, vol 15, 668 (1976)
+  tolerance = 2.0*EpsilonFloat64
+  tiny      = math.Sqrt(math.SmallestNonzeroFloat64)
+  C = tiny
+  f = tiny  // b0 = 0, replace with tiny
+  D = 0
+  for k := 1; k < SeriesIterationsMax; k++ {
+    a = 1
+    b = 2 * (v + float64(k)) / x
+    C = b + a / C
+    D = b + a * D
+    if (C == 0.0) { C = tiny }
+    if (D == 0.0) { D = tiny }
+    D = 1 / D
+    delta = C * D
+    f    *= delta
+    if (math.Abs(delta - 1.0) <= tolerance) {
+      break
+    }
+  }
+
+  return f
+}
+
+/* -------------------------------------------------------------------------- */
+
+// Calculate K(v, x) and K(v+1, x) by evaluating continued fraction
+// z1 / z0 = U(v+1.5, 2v+1, 2x) / U(v+0.5, 2v+1, 2x), see
+// Thompson and Barnett, Computer Physics Communications, vol 47, 245 (1987)
+func CF2_ik_log(v, x float64) (float64, float64) {
+  var Kv, Kv1, S, C, Q, D, f, a, b, q, delta, tolerance, current, prev float64
+
+  // |x| >= |v|, CF2_ik converges rapidly
+  // |x| -> 0, CF2_ik fails to converge
+
+  if (math.Abs(x) <= 1) {
+    panic("internal error")
+  }
+
+  // Steed's algorithm, see Thompson and Barnett,
+  // Journal of Computational Physics, vol 64, 490 (1986)
+  tolerance = EpsilonFloat64
+  a = v * v - 0.25
+  b = 2 * (x + 1)                              // b1
+  D = 1 / b                                    // D1 = 1 / b1
+  f     = D
+  delta = D                                    // f1 = delta1 = D1, coincidence
+  prev    = 0                                  // q0
+  current = 1                                  // q1
+  Q = -a
+  C = -a                                       // Q1 = C1 because q1 = 1
+  S = 1 + Q * delta                            // S1
+
+  for k := 2; k < SeriesIterationsMax; k++ {    // starting from 2
+    // continued fraction f = z1 / z0
+    a -= 2 * (float64(k) - 1)
+    b += 2
+    D  = 1 / (b + a * D)
+    delta *= b * D - 1
+    f     += delta
+
+    // series summation S = 1 + \sum_{n=1}^{\infty} C_n * z_n / z_0
+    q = (prev - (b - 2) * current) / a
+    prev    = current
+    current = q                        // forward recurrence for q
+    C *= -a / float64(k)
+    Q += C * q
+    S += Q * delta
+    //
+    // Under some circumstances q can grow very small and C very
+    // large, leading to under/overflow.  This is particularly an
+    // issue for types which have many digits precision but a narrow
+    // exponent range.  A typical example being a "double double" type.
+    // To avoid this situation we can normalise q (and related prev/current)
+    // and C.  All other variables remain unchanged in value.  A typical
+    // test case occurs when x is close to 2, for example cyl_bessel_k(9.125, 2.125).
+    //
+    if(q < EpsilonFloat64) {
+      C       *= q
+      prev    /= q
+      current /= q
+      q = 1
+    }
+
+    // S converges slower than f
+    if (math.Abs(Q * delta) < math.Abs(S) * tolerance) {
+      break
+    }
+  }
+
+  if x >= MaxLogFloat64 {
+    Kv = math.Exp(0.5 * math.Log(math.Pi / (2.0 * x)) - x - math.Log(S))
+  } else {
+    Kv = math.Sqrt(math.Pi / (2.0 * x)) * math.Exp(-x) / S
+  }
+  Kv1 = Kv * (0.5 + v + x + (v * v - 0.25) * f) / x
+
+  return Kv, Kv1
+}
+
+/* -------------------------------------------------------------------------- */
+
+// Compute I(v, x) and K(v, x) simultaneously by Temme's method, see
+// Temme, Journal of Computational Physics, vol 19, 324 (1975)
+func bessel_ik_log(v, x float64, kind int) (float64, float64) {
+  // Kv1 = K_(v+1), fv = I_(v+1) / I_v
+  // Ku1 = K_(u+1), fu = I_(u+1) / I_u
+  var u, I, K, Iv, Kv, Kv1, Ku, Ku1, fv float64
+  var W, current, prev, next float64
+  var n, k int
+
+  reflect  := false
+  org_kind := kind
+
+  if v < 0 {
+    reflect = true
+    v       = -v                            // v is non-negative from here
+    kind   |= need_k
+  }
+  n = iround(v)
+  u = v - float64(n)                        // -1/2 <= u < 1/2
+
+  if x < 0 {
+    panic(fmt.Sprintf("Got x = %f but real argument x must be non-negative, complex number result not supported.", x))
+  }
+  if x == 0.0 {
+    if v == 0.0 {
+      I = 0.0
+    } else {
+      I = math.Inf(-1)
+    }
+    if kind & need_k != 0 {
+      K = math.Inf(1)
+    } else {
+      K = math.NaN() // any value will do
+    }
+    if reflect && (kind & need_i) != 0 {
+      z := u + float64(n % 2)
+      if SinPi(z) != 0.0 {
+        I = math.Inf(1)
+      }
+    }
+    return I, K
+  }
+  // x is positive until reflection
+  W = 1.0/x                                  // Wronskian
+  if x <= 2 {                                // x in (0, 2]
+    Ku, Ku1 = temme_ik_log(u, x)             // Temme series
+  } else {                                   // x in (2, \infty)
+    Ku, Ku1 = CF2_ik_log(u, x)               // continued fraction CF2_ik
+  }
+  prev        = Ku
+  current     = Ku1
+  scale      := 1.0
+  scale_sign := 1.0
+  for k = 1; k <= n; k++ {                   // forward recurrence for K
+    fact := 2.0*(u + float64(k)) / x
+    if (math.MaxFloat64 - math.Abs(prev)) / fact < math.Abs(current) {
+      prev  /= current
+      scale /= current
+      if current < 0 {
+        scale_sign *= -1.0
+      }
+      current = 1
+    }
+    next    = fact * current + prev
+    prev    = current
+    current = next
+  }
+  Kv  = prev
+  Kv1 = current
+
+  if kind & need_i != 0 {
+    lim := (4.0 * v * v + 10.0) / (8.0 * x)
+    lim *= lim
+    lim *= lim
+    lim /= 24.0
+    if (lim < EpsilonFloat64 * 10.0) && (x > 100.0) {
+      // x is huge compared to v, CF1 may be very slow
+      // to converge so use asymptotic expansion for large
+      // x case instead.  Note that the asymptotic expansion
+      // isn't very accurate - so it's deliberately very hard
+      // to get here - probably we're going to overflow:
+      Iv = asymptotic_bessel_i_large_x_log(v, x)
+    } else
+    if (v > 0.0) && (x / v < 0.25) {
+      Iv = bessel_i_small_z_series_log(v, x)
+    } else {
+      fv = CF1_ik_log(v, x)                  // continued fraction CF1_ik
+      Iv = scale * W / (Kv * fv + Kv1)       // Wronskian relation
+    }
+  } else {
+    Iv = math.NaN() // any value will do
+  }
+  if reflect {
+    z    := u + float64(n % 2)
+    fact := 2.0 / math.Pi * SinPi(z) * Kv
+    if(fact == 0) {
+      I = Iv
+    } else
+    if math.MaxFloat64 * scale < fact {
+      if org_kind & need_i != 0 {
+        if fact*scale_sign < 0 {
+          I = math.Inf(-1)
+        } else {
+          I = math.Inf( 1)
+        }
+      } else {
+        I = 0.0
+      }
+    } else {
+      I = Iv + fact / scale   // reflection formula
+    }
+  } else {
+    I = Iv
+  }
+  if math.MaxFloat64 * scale < Kv {
+    if org_kind & need_k != 0 {
+      if Kv * scale_sign < 0.0 {
+        K = math.Inf(-1)
+      } else {
+        K = math.Inf( 1)
+      }
+    } else {
+      K = 0.0
+    }
+  } else {
+    K = Kv / scale
+  }
+  return I, K
+}
+
+/* -------------------------------------------------------------------------- */
+
 func bessel_i_log(v, x float64) float64 {
   //
   // This handles all the bessel I functions, note that we don't optimise
@@ -245,7 +583,7 @@ func bessel_i_log(v, x float64) float64 {
   if v > 0 && x / v < 0.25 {
     return bessel_i_small_z_series_log(v, x)
   }
-  I, _ := bessel_ik(v, x, need_i)
+  I, _ := bessel_ik_log(v, x, need_i)
   return math.Log(I)
 }
 
