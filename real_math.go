@@ -417,9 +417,10 @@ func (c *Real) LogBesselI(v float64, b ConstScalar) Scalar {
     return math.Exp(v1-v0) - v/x
   }
   f2 := func() float64 {
-    v1 := special.LogBesselI(v-2.0, x)
-    v2 := special.LogBesselI(v+2.0, x)
-    t1 := 0.25*(math.Exp(v1-v0) + 2.0 + math.Exp(v2-v0))
+    v1 := special.LogBesselI(v-1.0, x)
+    v2 := special.LogBesselI(v-2.0, x)
+    v3 := special.LogBesselI(v+2.0, x)
+    t1 := 0.25*(math.Exp(v2-v0) + 2.0 + math.Exp(v3-v0))
     t2 := math.Exp(v1-v0) - v/x
     return t1 - t2*t2
   }
