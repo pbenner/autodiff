@@ -35,7 +35,7 @@ func TestGevDistribution1(t *testing.T) {
 
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewVector(RealType, []float64{100})
+  x := NewReal(100)
   y := NewReal(0.0)
   z := NewReal(0.0)
 
@@ -58,7 +58,7 @@ func TestGevDistribution2(t *testing.T) {
 
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewVector(RealType, []float64{10})
+  x := NewReal(10)
   y := NewReal(0.0)
   z := NewReal(0.0)
 
@@ -81,7 +81,7 @@ func TestGevDistribution3(t *testing.T) {
 
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewVector(RealType, []float64{100})
+  x := NewReal(100)
   y := NewReal(0.0)
   z := NewReal(0.0)
 

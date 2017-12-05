@@ -57,21 +57,19 @@ func (dist *LogCauchyDistribution) Clone() *LogCauchyDistribution {
   return r
 }
 
-func (dist *LogCauchyDistribution) Dim() int {
-  return 1
-}
+/* -------------------------------------------------------------------------- */
 
 func (dist *LogCauchyDistribution) ScalarType() ScalarType {
   return dist.Mu.Type()
 }
 
-func (dist *LogCauchyDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x.At(0).GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+func (dist *LogCauchyDistribution) LogPdf(r Scalar, x Scalar) error {
+  if v := x.GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
   }
   t := dist.t
-  r.Log(x.At(0))
+  r.Log(x)
   t.Set(r)
   r.Neg(r)
   t.Sub(t, dist.Mu)
@@ -84,7 +82,7 @@ func (dist *LogCauchyDistribution) LogPdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *LogCauchyDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *LogCauchyDistribution) Pdf(r Scalar, x Scalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

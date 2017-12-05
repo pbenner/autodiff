@@ -60,9 +60,7 @@ func (dist *GammaDistribution) Clone() *GammaDistribution {
   return r
 }
 
-func (dist *GammaDistribution) Dim() int {
-  return 1
-}
+/* -------------------------------------------------------------------------- */
 
 func (dist *GammaDistribution) ScalarType() ScalarType {
   return dist.Alpha.Type()
@@ -73,22 +71,22 @@ func (dist *GammaDistribution) Mean() Scalar {
   return r.Div(dist.Alpha, dist.Beta)
 }
 
-func (dist *GammaDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x.At(0).GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+func (dist *GammaDistribution) LogPdf(r Scalar, x Scalar) error {
+  if v := x.GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
   }
   t := dist.t
-  t.Mul(x.At(0), dist.Beta)
+  t.Mul(x, dist.Beta)
 
-  r.Log(x.At(0))
+  r.Log(x)
   r.Mul(r, dist.Omega)
   r.Sub(r, t)
   r.Add(r, dist.Z)
   return nil
 }
 
-func (dist *GammaDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *GammaDistribution) Pdf(r Scalar, x Scalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -96,7 +94,7 @@ func (dist *GammaDistribution) Pdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *GammaDistribution) LogCdf(r Scalar, x Vector) error {
+func (dist *GammaDistribution) LogCdf(r Scalar, x Scalar) error {
   if err := dist.Cdf(r, x); err != nil {
     return err
   }
@@ -104,8 +102,8 @@ func (dist *GammaDistribution) LogCdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *GammaDistribution) Cdf(r Scalar, x Vector) error {
-  r.Mul(x.At(0), dist.Beta)
+func (dist *GammaDistribution) Cdf(r Scalar, x Scalar) error {
+  r.Mul(x, dist.Beta)
   r.GammaP(dist.Alpha.GetValue(), r)
   return nil
 }

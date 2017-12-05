@@ -88,14 +88,14 @@ func (dist *BetaDistribution) ScalarType() ScalarType {
   return dist.Alpha.Type()
 }
 
-func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
+func (dist *BetaDistribution) LogPdf(r Scalar, x Scalar) error {
   if dist.LogScale {
-    if v := x.At(0).GetValue(); v > 0.0 {
+    if v := x.GetValue(); v > 0.0 {
       r.SetValue(math.Inf(-1))
       return nil
     }
   } else {
-    if v := x.At(0).GetValue(); v < 0.0 || v > 1.0 {
+    if v := x.GetValue(); v < 0.0 || v > 1.0 {
       r.SetValue(math.Inf(-1))
       return nil
     }
@@ -108,7 +108,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
       t2.SetValue(0.0)
     } else {
       // t2 = log(1-theta)
-      t2.LogSub(dist.c1, x.At(0), t1)
+      t2.LogSub(dist.c1, x, t1)
       // t2 = beta*log(1-theta)
       t2.Mul(t2, dist.bs1)
     }
@@ -116,14 +116,14 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
       t1.SetValue(0.0)
     } else {
       // t1 = alpha*log(theta)
-      t1.Mul(dist.as1, x.At(0))
+      t1.Mul(dist.as1, x)
     }
   } else {
     if v := dist.bs1.GetValue(); v == 0.0 {
       t2.SetValue(0.0)
     } else {
       // t2 = 1-theta
-      t2.Sub(dist.c1, x.At(0))
+      t2.Sub(dist.c1, x)
       // t2 = log(1-theta)
       t2.Log(t2)
       // t2 = beta*log(1-theta)
@@ -133,7 +133,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
       t1.SetValue(0.0)
     } else {
       // t1 = log(theta)
-      t1.Log(x.At(0))
+      t1.Log(x)
       // t1 = alpha*log(theta)
       t1.Mul(t1, dist.as1)
     }
@@ -148,7 +148,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *BetaDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *BetaDistribution) Pdf(r Scalar, x Scalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -159,14 +159,19 @@ func (dist *BetaDistribution) Pdf(r Scalar, x Vector) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *BetaDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 2)
+  p := NullVector(dist.ScalarType(), 3)
   p.At(0).Set(dist.Alpha)
   p.At(1).Set(dist.Beta)
+  if dist.LogScale {
+    p.At(2).SetValue(1.0)
+  } else {
+    p.At(2).SetValue(0.0)
+  }
   return p
 }
 
 func (dist *BetaDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewBetaDistribution(parameters.At(0), parameters.At(1), dist.LogScale); err != nil {
+  if tmp, err := NewBetaDistribution(parameters.At(0), parameters.At(1), parameters.At(2).GetValue() == 1.0); err != nil {
     return err
   } else {
     *dist = *tmp

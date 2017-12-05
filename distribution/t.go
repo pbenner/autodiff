@@ -18,7 +18,7 @@ package distribution
 
 /* -------------------------------------------------------------------------- */
 
-//import   "fmt"
+import   "fmt"
 import   "math"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/determinant"
@@ -49,10 +49,10 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   n, m := sigma.Dims()
 
   if n != m {
-    panic("NewTDistribution(): sigma is not a square matrix!")
+    return nil, fmt.Errorf("NewTDistribution(): sigma is not a square matrix!")
   }
   if n != mu.Dim() {
-    panic("NewTDistribution(): dimensions of mu and sigma do not match!")
+    return nil, fmt.Errorf("NewTDistribution(): dimensions of mu and sigma do not match!")
   }
   sigmaInv, err := matrixInverse.Run(sigma, matrixInverse.PositiveDefinite{true})
   if err != nil { return nil, err }
@@ -73,7 +73,7 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   // -1/2 log |Sigma|
   z.Sub(z, t1.Div(t1.Log(sigmaDet), ConstReal(2.0)))
   // -d/2 log nu*pi
-  z.Sub(z, t1.Mul(d2, t1.Log(t1.Mul(nu, NewReal(math.Pi)))))
+  z.Sub(z, t1.Mul(d2, t1.Log(t1.Mul(nu, ConstReal(math.Pi)))))
 
   result := TDistribution{
     Nu      : nu.CloneScalar(),
@@ -112,23 +112,23 @@ func (dist *TDistribution) Dim() int {
   return dist.Mu.Dim()
 }
 
-func (dist *TDistribution) Mean() Vector {
+func (dist *TDistribution) Mean() (Vector, error) {
   if dist.Nu.GetValue() <= 1.0 {
-    panic("mean undefined for given parameters")
+    return nil, fmt.Errorf("mean undefined for given parameters")
   }
-  return dist.Mu.CloneVector()
+  return dist.Mu.CloneVector(), nil
 }
 
-func (dist *TDistribution) Variance() Vector {
+func (dist *TDistribution) Variance() (Vector, error) {
   if dist.Nu.GetValue() <= 2.0 {
-    panic("variance undefined for given parameters")
+    return nil, fmt.Errorf("variance undefined for given parameters")
   }
   n := dist.Dim()
   t := NullScalar(dist.ScalarType())
   m := NullMatrix(dist.ScalarType(), n, n)
-  m.MmulS(dist.Sigma, t.Div(dist.Nu, t.Sub(dist.Nu, NewReal(2.0))))
+  m.MmulS(dist.Sigma, t.Div(dist.Nu, t.Sub(dist.Nu, ConstReal(2.0))))
 
-  return m.Diag()
+  return m.Diag(), nil
 }
 
 func (dist *TDistribution) LogPdf(r Scalar, x Vector) error {

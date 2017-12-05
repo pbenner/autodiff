@@ -18,7 +18,7 @@ package distribution
 
 /* -------------------------------------------------------------------------- */
 
-//import   "fmt"
+import   "fmt"
 
 import . "github.com/pbenner/autodiff"
 
@@ -42,7 +42,7 @@ func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (
   n, m := lambda.Dims()
 
   if n != m || n != mu.Dim() {
-    panic("invalid parameters")
+    return nil, fmt.Errorf("invalid parameters")
   }
 
   iw, err := NewInverseWishartDistribution(nu, lambda)
@@ -81,47 +81,67 @@ func (dist *NormalIWishartDistribution) Dim() int {
   return dist.Mu.Dim()
 }
 
-func (dist *NormalIWishartDistribution) MarginalMu() *TDistribution {
+func (dist *NormalIWishartDistribution) MarginalMu() (*TDistribution, error) {
   n := dist.Dim()
   d := NewScalar(dist.ScalarType(), float64(dist.Dim()))
   c := NewScalar(dist.ScalarType(), 0.0)
-  c.Add(c.Sub(dist.Nu, d), NewReal(1.0)) // (nu - d + 1)
+  c.Add(c.Sub(dist.Nu, d), ConstReal(1.0)) // (nu - d + 1)
   c.Mul(c, dist.Kappa)                   // (nu - d + 1)kappa
   lambda := NullMatrix(dist.ScalarType(), n, n)
   lambda.MdivS(dist.S, c)
 
   r, err := NewTDistribution(dist.Nu, dist.Mu, lambda)
   if err != nil {
-    panic(err)
+    return nil, err
   }
-  return r
+  return r, nil
 }
 
-func (dist *NormalIWishartDistribution) MarginalSigma() *InverseWishartDistribution {
+func (dist *NormalIWishartDistribution) MarginalSigma() (*InverseWishartDistribution, error) {
   r, err := NewInverseWishartDistribution(dist.Nu, dist.S)
   if err != nil {
-    panic(err)
+    return nil, err
   }
-  return r
+  return r, nil
 }
 
-func (dist *NormalIWishartDistribution) Mean() (Vector, Matrix) {
-  t := dist.MarginalMu()
-  w := dist.MarginalSigma()
-  return t.Mean(), w.Mean()
+func (dist *NormalIWishartDistribution) Mean() (Vector, Matrix, error) {
+  t, err := dist.MarginalMu(); if err != nil {
+    return nil, nil, err
+  }
+  w, err := dist.MarginalSigma(); if err != nil {
+    return nil, nil, err
+  }
+  mu1, err := t.Mean(); if err != nil {
+    return nil, nil, err
+  }
+  mu2, err := w.Mean(); if err != nil {
+    return nil, nil, err
+  }
+  return mu1, mu2, nil
 }
 
-func (dist *NormalIWishartDistribution) Variance() (Vector, Matrix) {
-  t := dist.MarginalMu()
-  w := dist.MarginalSigma()
-  return t.Variance(), w.Variance()
+func (dist *NormalIWishartDistribution) Variance() (Vector, Matrix, error) {
+  t, err := dist.MarginalMu(); if err != nil {
+    return nil, nil, err
+  }
+  w, err := dist.MarginalSigma(); if err != nil {
+    return nil, nil, err
+  }
+  var1, err := t.Variance(); if err != nil {
+    return nil, nil, err
+  }
+  var2, err := w.Variance(); if err != nil {
+    return nil, nil, err
+  }
+  return var1, var2, nil
 }
 
 func (dist *NormalIWishartDistribution) LogPdf(r Scalar, mu Vector, sigma Matrix) error {
   r1 := dist.r1
   r2 := dist.r2
   sigmap := dist.sigmap
-  sigmap.MmulS(sigma, r1.Div(NewReal(1.0), dist.Kappa))
+  sigmap.MmulS(sigma, r1.Div(ConstReal(1.0), dist.Kappa))
   if normal, err := NewNormalDistribution(dist.Mu, sigmap); err != nil {
     return err
   } else {

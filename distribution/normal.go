@@ -48,10 +48,10 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
   t    := mu.ElementType()
 
   if n != m {
-    panic("NewNormalDistribution(): sigma is not a square matrix!")
+    return nil, fmt.Errorf("NewNormalDistribution(): sigma is not a square matrix!")
   }
   if n != mu.Dim() {
-    panic("NewNormalDistribution(): dimensions of mu and sigma do not match!")
+    return nil, fmt.Errorf("NewNormalDistribution(): dimensions of mu and sigma do not match!")
   }
   sigmaInv, err := matrixInverse.Run(sigma, matrixInverse.PositiveDefinite{true})
   if err != nil { return nil, err }
@@ -143,7 +143,7 @@ func (dist *NormalDistribution) Pdf(r Scalar, x Vector) error {
 
 func (dist *NormalDistribution) LogCdf(r Scalar, x Vector) error {
   if x.Dim() != 1 {
-    panic("LogCdf(): not supported for more than one dimension.")
+    return fmt.Errorf("LogCdf(): not supported for more than one dimension.")
   }
   t := dist.t3.At(0)
   t.Mul(ConstReal(2.0), dist.Sigma.At(0,0))

@@ -18,7 +18,7 @@ package distribution
 
 /* -------------------------------------------------------------------------- */
 
-//import   "fmt"
+import   "fmt"
 import   "math"
 
 import . "github.com/pbenner/autodiff"
@@ -43,7 +43,7 @@ func NewLogSkewNormalDistribution(xi Vector, omega Matrix, alpha, scale Vector) 
     (n != alpha.Dim()) ||
     (n != scale.Dim()) ||
     (n != m) {
-    panic("NewLogSkewNormalDistribution(): Parameter dimensions do not match!")
+    return nil, fmt.Errorf("NewLogSkewNormalDistribution(): Parameter dimensions do not match!")
   }
   t  := xi.ElementType()
   t1 := NewScalar(t, 0.0)

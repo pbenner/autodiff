@@ -31,7 +31,7 @@ func TestGammaDistribution1(t *testing.T) {
   beta   := NewBareReal(4.0)
   dist,_ := NewGammaDistribution(alpha, beta)
 
-  x := NewVector(BareRealType, []float64{0.2})
+  x := NewReal(0.2)
   y := NewReal(0.0)
 
   dist.LogPdf(y, x)

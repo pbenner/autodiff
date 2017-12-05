@@ -63,31 +63,29 @@ func (dist *GeneralizedGammaDistribution) Clone() *GeneralizedGammaDistribution 
   return r
 }
 
-func (dist *GeneralizedGammaDistribution) Dim() int {
-  return 1
-}
+/* -------------------------------------------------------------------------- */
 
 func (dist *GeneralizedGammaDistribution) ScalarType() ScalarType {
   return dist.A.Type()
 }
 
-func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x Vector) error {
-  if v := x.At(0).GetValue(); v <= 0.0 || math.IsInf(v, 1) {
+func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x Scalar) error {
+  if v := x.GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
   }
   t := dist.t
-  t.Div(x.At(0), dist.A)
+  t.Div(x, dist.A)
   t.Pow(t, dist.P)
 
-  r.Log(x.At(0))
+  r.Log(x)
   r.Mul(r, dist.dm1)
   r.Sub(r, t)
   r.Add(r, dist.z)
   return nil
 }
 
-func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x Scalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

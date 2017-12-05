@@ -78,17 +78,13 @@ func (dist *GParetoDistribution) Clone() *GParetoDistribution {
     cs    : dist.cs   .CloneScalar() }
 }
 
-func (dist *GParetoDistribution) Dim() int {
-  return 1
-}
+/* -------------------------------------------------------------------------- */
 
 func (dist *GParetoDistribution) ScalarType() ScalarType {
   return dist.Mu.Type()
 }
 
-func (dist *GParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_.At(0)
-
+func (dist *GParetoDistribution) LogPdf(r Scalar, x Scalar) error {
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
     if x.GetValue() < dist.Mu.GetValue() {
@@ -118,7 +114,7 @@ func (dist *GParetoDistribution) LogPdf(r Scalar, x_ Vector) error {
   return nil
 }
 
-func (dist *GParetoDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *GParetoDistribution) Pdf(r Scalar, x Scalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -126,9 +122,7 @@ func (dist *GParetoDistribution) Pdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *GParetoDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_.At(0)
-
+func (dist *GParetoDistribution) LogCdf(r Scalar, x Scalar) error {
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
     if x.GetValue() < dist.Mu.GetValue() {
@@ -159,7 +153,7 @@ func (dist *GParetoDistribution) LogCdf(r Scalar, x_ Vector) error {
   return nil
 }
 
-func (dist *GParetoDistribution) Cdf(r Scalar, x Vector) error {
+func (dist *GParetoDistribution) Cdf(r Scalar, x Scalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

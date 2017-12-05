@@ -18,7 +18,7 @@ package distribution
 
 /* -------------------------------------------------------------------------- */
 
-//import   "fmt"
+import   "fmt"
 //import   "math"
 
 import . "github.com/pbenner/autodiff"
@@ -52,7 +52,7 @@ func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribu
   n, m := s.Dims()
 
   if n != m {
-    panic("NewInverseWishartDistribution(): S is not a square matrix!")
+    return nil, fmt.Errorf("NewInverseWishartDistribution(): S is not a square matrix!")
   }
   sDet, err := determinant.Run(s, determinant.PositiveDefinite{true})
   if err != nil {
@@ -104,20 +104,20 @@ func (dist *InverseWishartDistribution) Dim() int {
   return n
 }
 
-func (dist *InverseWishartDistribution) Mean() Matrix {
+func (dist *InverseWishartDistribution) Mean() (Matrix, error) {
   n := dist.Dim()
   if dist.Nu.GetValue() <= float64(n) - 1.0 {
-    panic("mean is not defined for the given parameters")
+    return nil, fmt.Errorf("mean is not defined for the given parameters")
   }
   t1 := NullScalar(dist.ScalarType())
   t2 := NullMatrix(dist.ScalarType(), n, n)
-  return t2.MdivS(dist.S, t1.Sub(t1.Sub(dist.Nu, dist.d), NewReal(1.0)))
+  return t2.MdivS(dist.S, t1.Sub(t1.Sub(dist.Nu, dist.d), ConstReal(1.0))), nil
 }
 
-func (dist *InverseWishartDistribution) Variance() Matrix {
+func (dist *InverseWishartDistribution) Variance() (Matrix, error) {
   n := dist.Dim()
   if dist.Nu.GetValue() <= float64(n) - 1.0 {
-    panic("variance is not defined for the given parameters")
+    return nil, fmt.Errorf("variance is not defined for the given parameters")
   }
   m := NullMatrix(RealType, n, n)
   // some constants
@@ -129,9 +129,9 @@ func (dist *InverseWishartDistribution) Variance() Matrix {
   c4 := NewScalar(dist.ScalarType(), 0.0)
   c5 := NewScalar(dist.ScalarType(), 0.0)
   c1.Sub(dist.Nu, dist.d)           // (nu - d)
-  c2.Add(c1, NewReal(1.0))          // (nu - d + 1)
-  c3.Sub(c1, NewReal(1.0))          // (nu - d - 1)
-  c4.Sub(c1, NewReal(3.0))          // (nu - d - 3)
+  c2.Add(c1, ConstReal(1.0))          // (nu - d + 1)
+  c3.Sub(c1, ConstReal(1.0))          // (nu - d - 1)
+  c4.Sub(c1, ConstReal(3.0))          // (nu - d - 3)
   c5.Mul(t1.Mul(c1, t1.Mul(c3, c3)), c4)  // (nu - d)(nu - d - 1)^2 (nu - d - 3)
 
   for i := 0; i < n; i++ {
@@ -143,7 +143,7 @@ func (dist *InverseWishartDistribution) Variance() Matrix {
       m.At(i, j).Div(x.Add(x.Mul(c2, x), y.Mul(c3, y)), c5)
     }
   }
-  return m
+  return m, nil
 }
 
 func (dist *InverseWishartDistribution) LogPdf(r Scalar, x Matrix) error {

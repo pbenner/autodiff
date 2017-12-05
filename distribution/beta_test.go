@@ -28,7 +28,7 @@ import . "github.com/pbenner/autodiff"
 
 func TestBeta1(t *testing.T) {
   d, _ := NewBetaDistribution(NewReal(3), NewReal(5), false)
-  x := NewVector(RealType, []float64{0.8})
+  x := NewReal(0.8)
   r := NewReal(0.0)
 
   if err := d.LogPdf(r, x); err != nil {
@@ -41,7 +41,7 @@ func TestBeta1(t *testing.T) {
 
 func TestBeta2(t *testing.T) {
   d, _ := NewBetaDistribution(NewReal(3), NewReal(5), true)
-  x := NewVector(RealType, []float64{math.Log(0.8)})
+  x := NewReal(math.Log(0.8))
   r := NewReal(0.0)
 
   if err := d.LogPdf(r, x); err != nil {
@@ -54,7 +54,7 @@ func TestBeta2(t *testing.T) {
 
 func TestBeta3(t *testing.T) {
   d, _ := NewBetaDistribution(NewReal(1), NewReal(1), true)
-  x := NewVector(RealType, []float64{0.0})
+  x := NewReal(0.0)
   r := NewReal(0.0)
 
   if err := d.LogPdf(r, x); err != nil {
@@ -67,8 +67,8 @@ func TestBeta3(t *testing.T) {
 
 func TestBeta4(t *testing.T) {
   d, _ := NewBetaDistribution(NewReal(0.5), NewReal(0.6), false)
-  x1 := NewVector(RealType, []float64{0.0})
-  x2 := NewVector(RealType, []float64{1.0})
+  x1 := NewReal(0.0)
+  x2 := NewReal(1.0)
   r1 := NewReal(0.0)
   r2 := NewReal(0.0)
 

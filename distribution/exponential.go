@@ -61,17 +61,13 @@ func (dist *ExponentialDistribution) Clone() *ExponentialDistribution {
     c1       : dist.c1       .CloneScalar() }
 }
 
-func (dist *ExponentialDistribution) Dim() int {
-  return 1
-}
+/* -------------------------------------------------------------------------- */
 
 func (dist *ExponentialDistribution) ScalarType() ScalarType {
   return dist.Lambda.Type()
 }
 
-func (dist *ExponentialDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_.At(0)
-
+func (dist *ExponentialDistribution) LogPdf(r Scalar, x Scalar) error {
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -84,7 +80,7 @@ func (dist *ExponentialDistribution) LogPdf(r Scalar, x_ Vector) error {
   return nil
 }
 
-func (dist *ExponentialDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *ExponentialDistribution) Pdf(r Scalar, x Scalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -92,9 +88,7 @@ func (dist *ExponentialDistribution) Pdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *ExponentialDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_.At(0)
-
+func (dist *ExponentialDistribution) LogCdf(r Scalar, x Scalar) error {
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -109,7 +103,7 @@ func (dist *ExponentialDistribution) LogCdf(r Scalar, x_ Vector) error {
   return nil
 }
 
-func (dist *ExponentialDistribution) Cdf(r Scalar, x Vector) error {
+func (dist *ExponentialDistribution) Cdf(r Scalar, x Scalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

@@ -28,7 +28,7 @@ import . "github.com/pbenner/autodiff"
 
 func TestNegativeBinomial(t *testing.T) {
   d, _ := NewNegativeBinomialDistribution(NewReal(3), NewReal(0.3))
-  x := NewVector(RealType, []float64{12})
+  x := NewReal(12.0)
   r := NewReal(0.0)
 
   if err := d.LogPdf(r, x); err != nil {

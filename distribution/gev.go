@@ -76,16 +76,13 @@ func (dist *GevDistribution) Clone() *GevDistribution {
     t     : dist.t    .CloneScalar() }
 }
 
-func (dist *GevDistribution) Dim() int {
-  return 1
-}
+/* -------------------------------------------------------------------------- */
 
 func (dist *GevDistribution) ScalarType() ScalarType {
   return dist.Mu.Type()
 }
 
-func (dist *GevDistribution) LogPdf(r Scalar, x_ Vector) error {
-  x := x_.At(0)
+func (dist *GevDistribution) LogPdf(r Scalar, x Scalar) error {
 
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
@@ -121,7 +118,7 @@ func (dist *GevDistribution) LogPdf(r Scalar, x_ Vector) error {
   return nil
 }
 
-func (dist *GevDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *GevDistribution) Pdf(r Scalar, x Scalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -129,9 +126,7 @@ func (dist *GevDistribution) Pdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *GevDistribution) LogCdf(r Scalar, x_ Vector) error {
-  x := x_.At(0)
-
+func (dist *GevDistribution) LogCdf(r Scalar, x Scalar) error {
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -154,7 +149,7 @@ func (dist *GevDistribution) LogCdf(r Scalar, x_ Vector) error {
   return nil
 }
 
-func (dist *GevDistribution) Cdf(r Scalar, x Vector) error {
+func (dist *GevDistribution) Cdf(r Scalar, x Scalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }
