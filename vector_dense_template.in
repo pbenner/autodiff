@@ -108,6 +108,24 @@ func (v VECTOR_TYPE) Set(w ConstVector) {
 
 /* -------------------------------------------------------------------------- */
 
+func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
+  return v[i]
+}
+
+func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
+  return v[i:j]
+}
+
+func (v VECTOR_TYPE) GetValues() []float64 {
+  s := make([]float64, v.Dim())
+  for i := 0; i < v.Dim(); i++ {
+    s[i] = v.ConstAt(i).GetValue()
+  }
+  return s
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (v VECTOR_TYPE) Dim() int {
   return len(v)
 }
@@ -117,10 +135,6 @@ func (v VECTOR_TYPE) At(i int) Scalar {
 }
 
 func (v VECTOR_TYPE) AT(i int) *SCALAR_TYPE {
-  return v[i]
-}
-
-func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
   return v[i]
 }
 
@@ -144,10 +158,6 @@ func (v VECTOR_TYPE) ReverseOrder() {
 }
 
 func (v VECTOR_TYPE) Slice(i, j int) Vector {
-  return v[i:j]
-}
-
-func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 

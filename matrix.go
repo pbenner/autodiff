@@ -33,6 +33,7 @@ type ConstMatrix interface {
   ConstRow    (i int)                      ConstVector
   ConstCol    (j int)                      ConstVector
   ConstDiag   ()                           ConstVector
+  GetValues   ()                           []float64
   // private methods
   storageLocation() uintptr
 }
@@ -48,6 +49,7 @@ type Matrix interface {
   ConstRow    (i int)                      ConstVector
   ConstCol    (j int)                      ConstVector
   ConstDiag   ()                           ConstVector
+  GetValues   ()                           []float64
   // other methods
   At                  (i, j int)           Scalar
   Reset               ()

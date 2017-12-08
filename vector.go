@@ -30,16 +30,18 @@ type ConstVector interface {
   Table           ()                     string
   ConstAt         (int)                  ConstScalar
   ConstSlice      (i, j int)             ConstVector
+  GetValues       ()                     []float64
 }
 
 type Vector interface {
   ScalarContainer
   // const methods
-  ConstAt         (int)                  ConstScalar
-  ConstSlice      (i, j int)             ConstVector
   Dim             ()                     int
   Equals          (ConstVector, float64) bool
   Table           ()                     string
+  ConstAt         (int)                  ConstScalar
+  ConstSlice      (i, j int)             ConstVector
+  GetValues       ()                     []float64
   // other methods
   At              (int)                  Scalar
   Reset           ()

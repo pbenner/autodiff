@@ -277,6 +277,16 @@ func (matrix *DenseRealMatrix) ConstCol(i int) ConstVector {
 func (matrix *DenseRealMatrix) ConstDiag() ConstVector {
   return matrix.Diag()
 }
+func (matrix *DenseRealMatrix) GetValues() []float64 {
+  n, m := matrix.Dims()
+  s := make([]float64, n*m)
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      s[i*m+j] = matrix.ConstAt(i,j).GetValue()
+    }
+  }
+  return s
+}
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseRealMatrix) At(i, j int) Scalar {
   return matrix.values[matrix.index(i, j)]

@@ -90,6 +90,20 @@ func (v DenseBareRealVector) Set(w ConstVector) {
   }
 }
 /* -------------------------------------------------------------------------- */
+func (v DenseBareRealVector) ConstAt(i int) ConstScalar {
+  return v[i]
+}
+func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
+  return v[i:j]
+}
+func (v DenseBareRealVector) GetValues() []float64 {
+  s := make([]float64, v.Dim())
+  for i := 0; i < v.Dim(); i++ {
+    s[i] = v.ConstAt(i).GetValue()
+  }
+  return s
+}
+/* -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) Dim() int {
   return len(v)
 }
@@ -97,9 +111,6 @@ func (v DenseBareRealVector) At(i int) Scalar {
   return v[i]
 }
 func (v DenseBareRealVector) AT(i int) *BareReal {
-  return v[i]
-}
-func (v DenseBareRealVector) ConstAt(i int) ConstScalar {
   return v[i]
 }
 func (v DenseBareRealVector) Reset() {
@@ -119,9 +130,6 @@ func (v DenseBareRealVector) ReverseOrder() {
   }
 }
 func (v DenseBareRealVector) Slice(i, j int) Vector {
-  return v[i:j]
-}
-func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 func (v DenseBareRealVector) Append(w DenseBareRealVector) DenseBareRealVector {

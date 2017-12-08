@@ -317,6 +317,17 @@ func (matrix *MATRIX_TYPE) ConstDiag() ConstVector {
   return matrix.Diag()
 }
 
+func (matrix *MATRIX_TYPE) GetValues() []float64 {
+  n, m := matrix.Dims()
+  s := make([]float64, n*m)
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      s[i*m+j] = matrix.ConstAt(i,j).GetValue()
+    }
+  }
+  return s
+}
+
 /* -------------------------------------------------------------------------- */
 
 func (matrix *MATRIX_TYPE) At(i, j int) Scalar {
