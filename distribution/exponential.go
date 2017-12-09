@@ -38,15 +38,13 @@ func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error)
     return nil, fmt.Errorf("invalid value for parameter lambda: %f", lambda.GetValue())
   }
   // some constants
-  c1 := NewBareReal(1.0)
   l1 := lambda.CloneScalar()
   l2 := lambda.CloneScalar()
   l2.Log(l1)
 
   result := ExponentialDistribution{
     Lambda   : l1,
-    LambdaLog: l2,
-    c1       : c1 }
+    LambdaLog: l2 }
 
   return &result, nil
 
@@ -57,8 +55,7 @@ func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error)
 func (dist *ExponentialDistribution) Clone() *ExponentialDistribution {
   return &ExponentialDistribution{
     Lambda   : dist.Lambda   .CloneScalar(),
-    LambdaLog: dist.LambdaLog.CloneScalar(),
-    c1       : dist.c1       .CloneScalar() }
+    LambdaLog: dist.LambdaLog.CloneScalar() }
 }
 
 /* -------------------------------------------------------------------------- */
