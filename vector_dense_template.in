@@ -290,14 +290,6 @@ func (v VECTOR_TYPE) STR_CONCAT(To, MATRIX_TYPE)(n, m int) *MATRIX_TYPE {
   return &matrix
 }
 
-func (v VECTOR_TYPE) SliceFloat64() []float64 {
-  s := make([]float64, len(v))
-  for i, _ := range v {
-    s[i] = v[i].GetValue()
-  }
-  return s
-}
-
 func (v VECTOR_TYPE) String() string {
   var buffer bytes.Buffer
 

@@ -240,13 +240,6 @@ func (v DenseRealVector) ToDenseRealMatrix(n, m int) *DenseRealMatrix {
   matrix.initTmp()
   return &matrix
 }
-func (v DenseRealVector) SliceFloat64() []float64 {
-  s := make([]float64, len(v))
-  for i, _ := range v {
-    s[i] = v[i].GetValue()
-  }
-  return s
-}
 func (v DenseRealVector) String() string {
   var buffer bytes.Buffer
   buffer.WriteString("[")
