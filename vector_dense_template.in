@@ -270,7 +270,7 @@ func (v VECTOR_TYPE) Sort(reverse bool) {
 /* type conversion
  * -------------------------------------------------------------------------- */
 
-func (v VECTOR_TYPE) ToMatrix(n, m int) Matrix {
+func (v VECTOR_TYPE) AsMatrix(n, m int) Matrix {
   return v.STR_CONCAT(To, MATRIX_TYPE)(n, m)
 }
 

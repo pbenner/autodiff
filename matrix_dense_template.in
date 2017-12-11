@@ -230,7 +230,7 @@ func (matrix *MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
 
-func (matrix *MATRIX_TYPE) ToVector() Vector {
+func (matrix *MATRIX_TYPE) AsVector() Vector {
   return matrix.STR_CONCAT(To, VECTOR_TYPE)()
 }
 

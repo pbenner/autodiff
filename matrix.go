@@ -74,7 +74,7 @@ type Matrix interface {
   IsSymmetric         (float64)            bool
   // returns all elements of the matrix as
   // a vector, the order is unspecified
-  ToVector            ()                   Vector
+  AsVector            ()                   Vector
   // math operations
   MaddM(a,             b ConstMatrix)      Matrix
   MaddS(a ConstMatrix, b ConstScalar)      Matrix

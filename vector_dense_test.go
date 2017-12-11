@@ -52,10 +52,10 @@ func TestVectorSort(t *testing.T) {
   }
 }
 
-func TestVectorToMatrix(t *testing.T) {
+func TestVectorAsMatrix(t *testing.T) {
 
   v := NewVector(RealType, []float64{1,2,3,4,5,6})
-  m := v.ToMatrix(2, 3)
+  m := v.AsMatrix(2, 3)
 
   if m.At(1,0).GetValue() != 4 {
     t.Error("Vector to matrix conversion failed!")

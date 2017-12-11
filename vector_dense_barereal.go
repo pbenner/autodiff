@@ -222,7 +222,7 @@ func (v DenseBareRealVector) Sort(reverse bool) {
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
-func (v DenseBareRealVector) ToMatrix(n, m int) Matrix {
+func (v DenseBareRealVector) AsMatrix(n, m int) Matrix {
   return v.ToDenseBareRealMatrix(n, m)
 }
 func (v DenseBareRealVector) ToDenseBareRealMatrix(n, m int) *DenseBareRealMatrix {

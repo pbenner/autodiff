@@ -58,7 +58,7 @@ type Vector interface {
   AppendVector    (Vector)               Vector
   Swap            (i, j int)
   // type conversions
-  ToMatrix        (n, m int)             Matrix
+  AsMatrix        (n, m int)             Matrix
   // math operations
   VaddV(a,             b ConstVector) Vector
   VaddS(a ConstVector, b ConstScalar) Vector

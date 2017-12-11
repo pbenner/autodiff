@@ -203,7 +203,7 @@ func (matrix *DenseRealMatrix) Swap(i1, j1, i2, j2 int) {
   k2 := matrix.index(i2, j2)
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
-func (matrix *DenseRealMatrix) ToVector() Vector {
+func (matrix *DenseRealMatrix) AsVector() Vector {
   return matrix.ToDenseRealVector()
 }
 func (matrix *DenseRealMatrix) ToDenseRealVector() DenseRealVector {

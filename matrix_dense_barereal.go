@@ -203,7 +203,7 @@ func (matrix *DenseBareRealMatrix) Swap(i1, j1, i2, j2 int) {
   k2 := matrix.index(i2, j2)
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
-func (matrix *DenseBareRealMatrix) ToVector() Vector {
+func (matrix *DenseBareRealMatrix) AsVector() Vector {
   return matrix.ToDenseBareRealVector()
 }
 func (matrix *DenseBareRealMatrix) ToDenseBareRealVector() DenseBareRealVector {
