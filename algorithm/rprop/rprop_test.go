@@ -39,12 +39,12 @@ func TestRProp(t *testing.T) {
   I := IdentityMatrix(m1.ElementType(), rows)
   // objective function
   f := func(x Vector) (Scalar, error) {
-    m2.ToVector().Set(x)
+    m2.AsVector().Set(x)
     s := Mnorm(MsubM(MdotM(m1, m2), I))
     return s, nil
   }
-  x, _ := Run(f, m2.ToVector(), 0.01, []float64{2, 0.1})
-  m2.ToVector().Set(x)
+  x, _ := Run(f, m2.AsVector(), 0.01, []float64{2, 0.1})
+  m2.AsVector().Set(x)
 
   if Mnorm(MsubM(m2, m3)).GetValue() > 1e-8 {
     t.Error("Inverting matrix failed!")

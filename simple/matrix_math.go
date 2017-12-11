@@ -135,7 +135,7 @@ func Mnorm(a Matrix) Scalar {
   c := NewBareReal(2.0)
   t := NewScalar(a.ElementType(), 0.0)
   s := NewScalar(a.ElementType(), 0.0)
-  v := a.ToVector()
+  v := a.AsVector()
   s.Pow(v.At(0), NewBareReal(2.0))
   for i := 1; i < v.Dim(); i++ {
     t.Pow(v.At(i), c)

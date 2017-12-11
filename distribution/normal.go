@@ -191,14 +191,14 @@ func (dist *NormalDistribution) EllipticCdf(r Scalar, x Vector) error {
 
 func (dist *NormalDistribution) GetParameters() Vector {
   p := dist.Mu
-  p  = p.AppendVector(dist.Sigma.ToVector())
+  p  = p.AppendVector(dist.Sigma.AsVector())
   return p
 }
 
 func (dist *NormalDistribution) SetParameters(parameters Vector) error {
   n := dist.Dim()
   mu    := parameters.Slice(0,n)
-  sigma := parameters.Slice(n,n+n*n).ToMatrix(n, n)
+  sigma := parameters.Slice(n,n+n*n).AsMatrix(n, n)
   if tmp, err := NewNormalDistribution(mu, sigma); err != nil {
     return err
   } else {

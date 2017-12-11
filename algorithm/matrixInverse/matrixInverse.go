@@ -56,12 +56,12 @@ func mInverseGradient(matrix Matrix) (Matrix, error) {
   s := NewScalar(matrix.ElementType(), 0.0)
   // objective function
   f := func(x Vector) (Scalar, error) {
-    r.ToVector().Set(x)
+    r.AsVector().Set(x)
     s.Mnorm(r.MsubM(r.MdotM(matrix, r), I))
     return s, nil
   }
-  x, _ := rprop.Run(f, r.ToVector(), 0.01, []float64{2.0, 0.1})
-  r.ToVector().Set(x)
+  x, _ := rprop.Run(f, r.AsVector(), 0.01, []float64{2.0, 0.1})
+  r.AsVector().Set(x)
   return r, nil
 }
 

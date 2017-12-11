@@ -178,14 +178,14 @@ func (dist *InverseWishartDistribution) Pdf(r Scalar, x Matrix) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *InverseWishartDistribution) GetParameters() Vector {
-  p := dist.S.ToVector()
+  p := dist.S.AsVector()
   p  = p.AppendScalar(dist.Nu)
   return p
 }
 
 func (dist *InverseWishartDistribution) SetParameters(parameters Vector) error {
   n := dist.Dim()
-  s  := parameters.Slice(0, n*n).ToMatrix(n, n)
+  s  := parameters.Slice(0, n*n).AsMatrix(n, n)
   nu := parameters.At(n*n)
   if tmp, err := NewInverseWishartDistribution(nu, s); err != nil {
     return err

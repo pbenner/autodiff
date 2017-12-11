@@ -133,7 +133,7 @@ func (dist LogSkewNormalDistribution) Pdf(r Scalar, x Vector) error {
 
 func (dist *LogSkewNormalDistribution) GetParameters() Vector {
   p := dist.Normal1.Mu
-  p  = p.AppendVector(dist.Omega.ToVector())
+  p  = p.AppendVector(dist.Omega.AsVector())
   p  = p.AppendVector(dist.Alpha)
   p  = p.AppendVector(dist.Scale)
   return p
@@ -142,7 +142,7 @@ func (dist *LogSkewNormalDistribution) GetParameters() Vector {
 func (dist *LogSkewNormalDistribution) SetParameters(parameters Vector) error {
   n := dist.Dim()
   xi    := parameters.Slice(0*n+0*n*n,1*n+0*n*n)
-  omega := parameters.Slice(1*n+0*n*n,1*n+1*n*n).ToMatrix(n, n)
+  omega := parameters.Slice(1*n+0*n*n,1*n+1*n*n).AsMatrix(n, n)
   alpha := parameters.Slice(1*n+1*n*n,2*n+1*n*n)
   scale := parameters.Slice(2*n+1*n*n,3*n+1*n*n)
   if tmp, err := NewLogSkewNormalDistribution(xi, omega, alpha, scale); err != nil {
