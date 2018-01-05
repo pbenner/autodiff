@@ -14,42 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package special
+package generic
 
 /* -------------------------------------------------------------------------- */
 
-import   "math"
+//import   "fmt"
 
-import . "github.com/pbenner/autodiff/logarithmetic"
-
-/* -------------------------------------------------------------------------- */
-
-type Series interface {
-  Eval() float64
-}
+import . "github.com/pbenner/autodiff/statistics"
 
 /* -------------------------------------------------------------------------- */
 
-func SumSeries(series Series, init_value, factor float64, max_terms int) float64 {
-  result := 0.0
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result    += next_term
-    if math.Abs(factor*result) >= math.Abs(next_term) {
-      break
-    }
-  }
-  return result
-}
-
-func SumLogSeries(series Series, init_value, logFactor float64, max_terms int) float64 {
-  result := math.Inf(-1)
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result     = LogAdd(result, next_term)
-    if logFactor + result >= next_term {
-      break
-    }
-  }
-  return result
+type BasicMixture interface {
+  BasicDistribution
+  String() string
 }

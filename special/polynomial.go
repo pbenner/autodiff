@@ -18,6 +18,10 @@ package special
 
 /* -------------------------------------------------------------------------- */
 
+import . "github.com/pbenner/autodiff/logarithmetic"
+
+/* -------------------------------------------------------------------------- */
+
 type Polynomial struct {
   coefficients []float64
 }
@@ -65,7 +69,7 @@ func (p LogPolynomial) Eval(logz float64) float64 {
   sum := p.coefficients[count - 1]
   for i := count - 2; i >= 0; i-- {
     sum += logz
-    sum  = logAdd(sum, p.coefficients[i])
+    sum  = LogAdd(sum, p.coefficients[i])
   }
   return sum
 }

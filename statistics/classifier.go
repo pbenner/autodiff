@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2017 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,42 +14,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package special
+package statistics
 
 /* -------------------------------------------------------------------------- */
 
-import   "math"
+//import   "fmt"
 
-import . "github.com/pbenner/autodiff/logarithmetic"
+import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type Series interface {
-  Eval() float64
+type ScalarClassifier interface {
+  Eval(r Vector, x Scalar) error
+  CloneScalarClassifier() ScalarClassifier
+}
+
+type VectorClassifier interface {
+  Eval(r Vector, x Vector) error
+  Dim() int
+  CloneVectorClassifier() VectorClassifier
+}
+
+type MatrixClassifier interface {
+  Eval(r Vector, x Matrix) error
+  Dims() (int, int)
+  CloneMatrixClassifier() MatrixClassifier
 }
 
 /* -------------------------------------------------------------------------- */
 
-func SumSeries(series Series, init_value, factor float64, max_terms int) float64 {
-  result := 0.0
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result    += next_term
-    if math.Abs(factor*result) >= math.Abs(next_term) {
-      break
-    }
-  }
-  return result
+type ScalarBatchClassifier interface {
+  Eval(r Scalar, x Scalar) error
+  CloneScalarBatchClassifier() ScalarBatchClassifier
 }
 
-func SumLogSeries(series Series, init_value, logFactor float64, max_terms int) float64 {
-  result := math.Inf(-1)
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result     = LogAdd(result, next_term)
-    if logFactor + result >= next_term {
-      break
-    }
-  }
-  return result
+type VectorBatchClassifier interface {
+  Eval(r Scalar, x Vector) error
+  Dim() int
+  CloneVectorBatchClassifier() VectorBatchClassifier
+}
+
+type MatrixBatchClassifier interface {
+  Eval(r Scalar, x Matrix) error
+  Dims() (int, int)
+  CloneMatrixBatchClassifier() MatrixBatchClassifier
 }

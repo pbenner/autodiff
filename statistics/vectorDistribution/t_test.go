@@ -14,42 +14,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package special
+package vectorDistribution
 
 /* -------------------------------------------------------------------------- */
 
+//import   "fmt"
 import   "math"
+import   "testing"
 
-import . "github.com/pbenner/autodiff/logarithmetic"
-
-/* -------------------------------------------------------------------------- */
-
-type Series interface {
-  Eval() float64
-}
+import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func SumSeries(series Series, init_value, factor float64, max_terms int) float64 {
-  result := 0.0
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result    += next_term
-    if math.Abs(factor*result) >= math.Abs(next_term) {
-      break
-    }
-  }
-  return result
-}
+func TestTDistribution1(t *testing.T) {
 
-func SumLogSeries(series Series, init_value, logFactor float64, max_terms int) float64 {
-  result := math.Inf(-1)
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result     = LogAdd(result, next_term)
-    if logFactor + result >= next_term {
-      break
-    }
+  nu     := NewReal(1.0)
+  mu     := NewVector(RealType, []float64{2,3})
+  sigma  := NewMatrix(RealType, 2, 2, []float64{2,1,1,2})
+
+  distribution, _ := NewTDistribution(nu, mu, sigma)
+
+  x := NewVector(RealType, []float64{1,2})
+  y := NewReal(0.0)
+
+  distribution.LogPdf(y, x)
+
+  if math.Abs(y.GetValue() - -3.153422e+00) > 1e-4 {
+    t.Error("T LogPdf failed!")
   }
-  return result
 }

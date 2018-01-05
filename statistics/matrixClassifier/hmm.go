@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2017 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,42 +14,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package special
+package matrixClassifier
 
 /* -------------------------------------------------------------------------- */
 
-import   "math"
+import   "fmt"
 
-import . "github.com/pbenner/autodiff/logarithmetic"
+import . "github.com/pbenner/autodiff"
+import . "github.com/pbenner/autodiff/statistics"
+import . "github.com/pbenner/autodiff/statistics/matrixDistribution"
 
 /* -------------------------------------------------------------------------- */
 
-type Series interface {
-  Eval() float64
+type HmmClassifier struct {
+  *Hmm
 }
 
 /* -------------------------------------------------------------------------- */
 
-func SumSeries(series Series, init_value, factor float64, max_terms int) float64 {
-  result := 0.0
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result    += next_term
-    if math.Abs(factor*result) >= math.Abs(next_term) {
-      break
-    }
-  }
-  return result
+func (obj HmmClassifier) CloneMatrixClassifier() MatrixClassifier {
+  return HmmClassifier{obj.Clone()}
 }
 
-func SumLogSeries(series Series, init_value, logFactor float64, max_terms int) float64 {
-  result := math.Inf(-1)
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result     = LogAdd(result, next_term)
-    if logFactor + result >= next_term {
-      break
+/* -------------------------------------------------------------------------- */
+
+func (obj HmmClassifier) Dims() (int, int) {
+  return obj.Hmm.Dims()
+}
+
+func (obj HmmClassifier) Eval(r Vector, x Matrix) error {
+  m, _ := x.Dims()
+  if r.Dim() != m {
+    return fmt.Errorf("r has invalid length")
+  }
+  if p, err := obj.Viterbi(x); err != nil {
+    return err
+  } else {
+    for i := 0; i < m; i++ {
+      r.At(i).SetValue(float64(p[i]))
     }
   }
-  return result
+  return nil
 }

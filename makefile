@@ -25,9 +25,19 @@ SUBDIRS = \
 	demo/example1 \
 	demo/regression \
 	demo/rosenbrock \
-	distribution \
 	simple \
-	special
+	special \
+	statistics \
+	statistics/generic \
+	statistics/matrixDistribution \
+	statistics/matrixEstimator \
+	statistics/scalarDistribution \
+	statistics/scalarEstimator \
+	statistics/vectorDistribution \
+	statistics/vectorEstimator \
+	statistics/matrixClassifier \
+	statistics/vectorClassifier \
+	statistics/scalarClassifier \
 
 all:
 

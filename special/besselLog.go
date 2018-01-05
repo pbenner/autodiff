@@ -14,8 +14,10 @@ package special
 
 /* -------------------------------------------------------------------------- */
 
-import "fmt"
-import "math"
+import   "fmt"
+import   "math"
+
+import . "github.com/pbenner/autodiff/logarithmetic"
 
 /* -------------------------------------------------------------------------- */
 
@@ -41,7 +43,7 @@ func bessel_i0_log(x float64) float64 {
       math.Log(1.13943037744822825e-22),
       math.Log(9.07926920085624812e-25) })
     a := 2.0*logx - math.Log(4)
-    return logAdd(a + P.Eval(a), 0.0)
+    return LogAdd(a + P.Eval(a), 0.0)
   } else
   if x < 500 {
     // Max error in interpolated form : 1.685e-16
@@ -178,7 +180,7 @@ func (obj *cyl_bessel_i_small_z_log) Eval() float64 {
   lk := math.Log(float64(obj.k+1))
   obj.k    += 1
   obj.term += obj.mult - lk
-  obj.term -= logAdd(lk, obj.v)
+  obj.term -= LogAdd(lk, obj.v)
   return r
 }
 
@@ -244,8 +246,8 @@ func CF1_ik_log(v, x float64) float64 {
   D = math.Inf(-1)
   for k := 1; k < SeriesIterationsMax; k++ {
     b = math.Log(2 * (v + float64(k))) - math.Log(x)
-    C = logAdd(b, -C)
-    D = logAdd(b,  D)
+    C = LogAdd(b, -C)
+    D = LogAdd(b,  D)
     if math.IsInf(C, -1) { C = tiny }
     if math.IsInf(D, -1) { D = tiny }
     D     = -D
@@ -389,7 +391,7 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
   scale_sign := 1.0
   for k = 1; k <= n; k++ {                   // forward recurrence for K
     fact := math.Log(2.0*(u + float64(k))) - math.Log(x)
-    if logSub(MaxLogFloat64, prev) - fact < current {
+    if LogSub(MaxLogFloat64, prev) - fact < current {
       prev  -= current
       scale -= current
       if current < 0 {
@@ -397,7 +399,7 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
       }
       current = 0.0
     }
-    next    = logAdd(fact + current, prev)
+    next    = LogAdd(fact + current, prev)
     prev    = current
     current = next
   }
@@ -421,7 +423,7 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
       Iv = bessel_i_small_z_series_log(v, x)
     } else {
       fv = CF1_ik_log(v, x)                            // continued fraction CF1_ik
-      Iv = scale + W - logAdd(Kv + fv, Kv1)  // Wronskian relation
+      Iv = scale + W - LogAdd(Kv + fv, Kv1)  // Wronskian relation
     }
   } else {
     Iv = math.NaN() // any value will do
@@ -434,9 +436,9 @@ func bessel_ik_log(v, x float64, kind int) (float64, float64) {
       I = Iv
     } else {
       if t < 0.0 {
-        I = logSub(Iv, math.Log(-t) + Kv - scale)   // reflection formula
+        I = LogSub(Iv, math.Log(-t) + Kv - scale)   // reflection formula
       } else {
-        I = logAdd(Iv, math.Log( t) + Kv - scale)   // reflection formula
+        I = LogAdd(Iv, math.Log( t) + Kv - scale)   // reflection formula
       }
     }
   } else {

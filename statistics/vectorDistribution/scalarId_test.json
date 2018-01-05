@@ -1,0 +1,22 @@
+{
+  "Name": "vector:scalar id",
+  "Parameters": null,
+  "Distributions": [
+    {
+      "Name": "scalar:gamma distribution",
+      "Parameters": [
+        1,
+        2
+      ],
+      "Distributions": null
+    },
+    {
+      "Name": "scalar:gamma distribution",
+      "Parameters": [
+        2,
+        3
+      ],
+      "Distributions": null
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2015 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,36 +20,22 @@ package special
 
 import   "math"
 
-import . "github.com/pbenner/autodiff/logarithmetic"
-
 /* -------------------------------------------------------------------------- */
 
-type Series interface {
-  Eval() float64
+func LogAdd(a, b float64) float64 {
+  if a > b {
+    // swap
+    a, b = b, a
+  }
+  if math.IsInf(a, -1) {
+    return b
+  }
+  return b + math.Log1p(math.Exp(a-b))
 }
 
-/* -------------------------------------------------------------------------- */
-
-func SumSeries(series Series, init_value, factor float64, max_terms int) float64 {
-  result := 0.0
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result    += next_term
-    if math.Abs(factor*result) >= math.Abs(next_term) {
-      break
-    }
+func LogSub(a, b float64) float64 {
+  if math.IsInf(b, -1) {
+    return a
   }
-  return result
-}
-
-func SumLogSeries(series Series, init_value, logFactor float64, max_terms int) float64 {
-  result := math.Inf(-1)
-  for i := 0; i < max_terms; i++ {
-    next_term := series.Eval()
-    result     = LogAdd(result, next_term)
-    if logFactor + result >= next_term {
-      break
-    }
-  }
-  return result
+  return a + math.Log1p(-math.Exp(b-a))
 }
