@@ -26,7 +26,7 @@ import . "github.com/pbenner/autodiff/statistics"
 
 /* -------------------------------------------------------------------------- */
 
-type LogCauchyDistribution struct {
+type CauchyDistribution struct {
   Mu    Scalar
   Sigma Scalar
   z     Scalar
@@ -35,14 +35,14 @@ type LogCauchyDistribution struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewLogCauchyDistribution(mu, sigma Scalar) (*LogCauchyDistribution, error) {
+func NewCauchyDistribution(mu, sigma Scalar) (*CauchyDistribution, error) {
   if sigma.GetValue() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
   t  := mu.Type()
   t1 := NewScalar(t, 0.0)
   t2 := NewScalar(t, 0.0)
-  r := LogCauchyDistribution{}
+  r := CauchyDistribution{}
   r.Mu    = mu   .CloneScalar()
   r.Sigma = sigma.CloneScalar()
   r.z     = t1.Log(t1.Div(sigma, ConstReal(math.Pi)))
@@ -52,22 +52,22 @@ func NewLogCauchyDistribution(mu, sigma Scalar) (*LogCauchyDistribution, error) 
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *LogCauchyDistribution) Clone() *LogCauchyDistribution {
-  r, _ := NewLogCauchyDistribution(obj.Mu, obj.Sigma)
+func (obj *CauchyDistribution) Clone() *CauchyDistribution {
+  r, _ := NewCauchyDistribution(obj.Mu, obj.Sigma)
   return r
 }
 
-func (obj *LogCauchyDistribution) CloneScalarPdf() ScalarPdf {
+func (obj *CauchyDistribution) CloneScalarPdf() ScalarPdf {
   return obj.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *LogCauchyDistribution) ScalarType() ScalarType {
+func (obj *CauchyDistribution) ScalarType() ScalarType {
   return obj.Mu.Type()
 }
 
-func (obj *LogCauchyDistribution) LogPdf(r Scalar, x Scalar) error {
+func (obj *CauchyDistribution) LogPdf(r Scalar, x Scalar) error {
   r.Sub(x, obj.Mu)
   r.Mul(r, r)
   r.Add(r, obj.s2)
@@ -77,7 +77,7 @@ func (obj *LogCauchyDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (obj *LogCauchyDistribution) Pdf(r Scalar, x Scalar) error {
+func (obj *CauchyDistribution) Pdf(r Scalar, x Scalar) error {
   if err := obj.LogPdf(r, x); err != nil {
     return err
   }
@@ -87,15 +87,15 @@ func (obj *LogCauchyDistribution) Pdf(r Scalar, x Scalar) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *LogCauchyDistribution) GetParameters() Vector {
+func (obj *CauchyDistribution) GetParameters() Vector {
   p := NullVector(obj.ScalarType(), 2)
   p.At(0).Set(obj.Mu)
   p.At(1).Set(obj.Sigma)
   return p
 }
 
-func (obj *LogCauchyDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewLogCauchyDistribution(parameters.At(0), parameters.At(1)); err != nil {
+func (obj *CauchyDistribution) SetParameters(parameters Vector) error {
+  if tmp, err := NewCauchyDistribution(parameters.At(0), parameters.At(1)); err != nil {
     return err
   } else {
     *obj = *tmp
@@ -105,7 +105,7 @@ func (obj *LogCauchyDistribution) SetParameters(parameters Vector) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *LogCauchyDistribution) ImportConfig(config ConfigDistribution, t ScalarType) error {
+func (obj *CauchyDistribution) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
   if parameters, ok := config.GetParametersAsFloats(); !ok {
     return fmt.Errorf("invalid config file")
@@ -113,7 +113,7 @@ func (obj *LogCauchyDistribution) ImportConfig(config ConfigDistribution, t Scal
     mu    := NewScalar(t, parameters[0])
     sigma := NewScalar(t, parameters[1])
 
-    if tmp, err := NewLogCauchyDistribution(mu, sigma); err != nil {
+    if tmp, err := NewCauchyDistribution(mu, sigma); err != nil {
       return err
     } else {
       *obj = *tmp
@@ -122,7 +122,7 @@ func (obj *LogCauchyDistribution) ImportConfig(config ConfigDistribution, t Scal
   }
 }
 
-func (obj *LogCauchyDistribution) ExportConfig() ConfigDistribution {
+func (obj *CauchyDistribution) ExportConfig() ConfigDistribution {
 
   return NewConfigDistribution("scalar:cauchy distribution", obj.GetParameters())
 }

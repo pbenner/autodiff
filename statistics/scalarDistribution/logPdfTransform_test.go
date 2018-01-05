@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2018 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,22 +23,26 @@ import   "math"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
+import . "github.com/pbenner/autodiff/statistics"
 
 /* -------------------------------------------------------------------------- */
 
-func TestNormal1(t *testing.T) {
+func TestLogPdfTransform1(t *testing.T) {
 
-  mu     := NewReal(3.0)
-  sigma  := NewReal(math.Sqrt(2.0))
+  var d ScalarPdf
 
-  normal, _ := NewNormalDistribution(mu, sigma)
+  mu    := NewReal(2.0)
+  sigma := NewReal(3.0)
 
-  x := NewReal(2.2)
-  y := NewReal(0.0)
+  d, _ = NewNormalDistribution(mu, sigma)
+  d, _ = NewLogPdfTransform(d)
 
-  normal.LogCdf(y, x)
+  x := NewReal(4.0)
+  r := NewReal(0.0)
 
-  if math.Abs(y.GetValue() - -1.2524496) > 1e-4 {
-    t.Error("Normal LogCdf failed!")
+  d.LogPdf(r, x)
+
+  if math.Abs(r.GetValue() - -3.424769) > 1e-4 {
+    t.Error("test failed")
   }
 }

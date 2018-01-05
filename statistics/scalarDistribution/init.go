@@ -28,7 +28,7 @@ func init() {
   ScalarPdfRegistry["scalar:beta distribution"]               = new(BetaDistribution)
   ScalarPdfRegistry["scalar:binomial distribution"]           = new(BinomialDistribution)
   ScalarPdfRegistry["scalar:categorical distribution"]        = new(CategoricalDistribution)
-  ScalarPdfRegistry["scalar:cauchy distribution"]             = new(LogCauchyDistribution)
+  ScalarPdfRegistry["scalar:cauchy distribution"]             = new(CauchyDistribution)
   ScalarPdfRegistry["scalar:exponential distribution"]        = new(ExponentialDistribution)
   ScalarPdfRegistry["scalar:gamma distribution"]              = new(GammaDistribution)
   ScalarPdfRegistry["scalar:generalized gamma distribution"]  = new(GeneralizedGammaDistribution)

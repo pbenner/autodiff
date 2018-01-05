@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2018 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,19 +26,19 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func TestNormal1(t *testing.T) {
+func TestCauchy1(t *testing.T) {
 
-  mu     := NewReal(3.0)
-  sigma  := NewReal(math.Sqrt(2.0))
+  mu    := NewReal(2.0)
+  sigma := NewReal(3.0)
 
-  normal, _ := NewNormalDistribution(mu, sigma)
+  d, _ := NewCauchyDistribution(mu, sigma)
 
-  x := NewReal(2.2)
-  y := NewReal(0.0)
+  x := NewReal(2.3)
+  r := NewReal(0.0)
 
-  normal.LogCdf(y, x)
+  d.LogPdf(r, x)
 
-  if math.Abs(y.GetValue() - -1.2524496) > 1e-4 {
-    t.Error("Normal LogCdf failed!")
+  if math.Abs(r.GetValue() - -2.253293) > 1e-4 {
+    t.Error("test failed")
   }
 }
