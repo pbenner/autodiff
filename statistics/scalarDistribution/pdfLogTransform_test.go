@@ -27,7 +27,7 @@ import . "github.com/pbenner/autodiff/statistics"
 
 /* -------------------------------------------------------------------------- */
 
-func TestLogPdfTransform1(t *testing.T) {
+func TestPdfLogTransform1(t *testing.T) {
 
   var d ScalarPdf
 
@@ -35,7 +35,7 @@ func TestLogPdfTransform1(t *testing.T) {
   sigma := NewReal(3.0)
 
   d, _ = NewNormalDistribution(mu, sigma)
-  d, _ = NewLogPdfTransform(d)
+  d, _ = NewPdfLogTransform(d)
 
   x := NewReal(4.0)
   r := NewReal(0.0)

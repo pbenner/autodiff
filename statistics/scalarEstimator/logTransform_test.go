@@ -24,6 +24,7 @@ import   "testing"
 
 import . "github.com/pbenner/autodiff/statistics"
 import   "github.com/pbenner/autodiff/statistics/vectorEstimator"
+//import   "github.com/pbenner/autodiff/statistics/generic"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/threadpool"
@@ -38,8 +39,10 @@ func Test2(t *testing.T) {
   tr := NewMatrix(RealType, 2, 2,
     []float64{0.7, 0.3, 0.4, 0.6})
 
-  e1, _ := NewLogNormalEstimator(1.0, 2.0, 0.0, 1e-6)
-  e2, _ := NewLogNormalEstimator(1.0, 3.0, 0.0, 1e-6)
+  d1, _ := NewNormalEstimator(1.0, 2.0, 1e-6)
+  d2, _ := NewNormalEstimator(1.0, 3.0, 1e-6)
+  e1, _ := NewLogTransformEstimator(d1)
+  e2, _ := NewLogTransformEstimator(d2)
 
   // observations
   //////////////////////////////////////////////////////////////////////////////
@@ -57,8 +60,8 @@ func Test2(t *testing.T) {
     07.086723, 12.181270,  7.472553, 10.356920 })
 
   r := NewVector(RealType, []float64{
-    -1.655838e+02, -1.224244e-72, -1.196199e-11, -2.514928e+01, -3.236638e+00, -4.008872e-02,
-     2.086974e+00,  7.035202e-01,  0.000000e+00,  1.891452e+00,  1.992563e+00,  0.000000e+00 })
+    -1.655838e+02, -1.224244e-72, -1.196199e-11, -2.514928e+01, -3.236638e+00,
+    -4.008872e-02,  2.086974e+00,  7.035202e-01,  1.891452e+00,  1.992563e+00 })
 
   // Baum-Welch
   //////////////////////////////////////////////////////////////////////////////

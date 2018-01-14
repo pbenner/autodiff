@@ -39,5 +39,5 @@ func init() {
   ScalarPdfRegistry["scalar:pareto distribution"]             = new(ParetoDistribution)
   ScalarPdfRegistry["scalar:generalized pareto distribution"] = new(GParetoDistribution)
   ScalarPdfRegistry["scalar:power law distribution"]          = new(PowerLawDistribution)
-  ScalarPdfRegistry["scalar:log pdf transform"]               = new(LogPdfTransform)
+  ScalarPdfRegistry["scalar:pdf log transform"]               = new(PdfLogTransform)
 }
