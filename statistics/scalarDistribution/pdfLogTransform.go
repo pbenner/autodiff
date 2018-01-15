@@ -84,7 +84,10 @@ func (obj *PdfLogTransform) Pdf(r Scalar, x Scalar) error {
 
 func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
-  pseudocount, ok := config.GetNamedParameterAsFloat("Pseudocount"); if !ok {
+  parameters, ok := config.GetParametersAsFloats(); if !ok {
+    return fmt.Errorf("invalid config file")
+  }
+  if len(parameters) != 1 {
     return fmt.Errorf("invalid config file")
   }
 
@@ -94,7 +97,7 @@ func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType
   if tmp, err := ImportScalarPdfConfig(config.Distributions[0], t); err != nil {
     return err
   } else {
-    if tmp, err := NewPdfLogTransform(tmp, pseudocount); err != nil {
+    if tmp, err := NewPdfLogTransform(tmp, parameters[0]); err != nil {
       return err
     } else {
       *obj = *tmp
@@ -105,5 +108,5 @@ func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType
 
 func (obj *PdfLogTransform) ExportConfig() ConfigDistribution {
 
-  return NewConfigDistribution("scalar:pdf log transform", nil, obj.ScalarPdf.ExportConfig())
+  return NewConfigDistribution("scalar:pdf log transform", []float64{obj.c}, obj.ScalarPdf.ExportConfig())
 }
