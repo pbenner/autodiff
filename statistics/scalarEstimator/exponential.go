@@ -33,6 +33,7 @@ import . "github.com/pbenner/threadpool"
 type ExponentialEstimator struct {
   *scalarDistribution.ExponentialDistribution
   StdEstimator
+  LambdaMax float64
   // state
   sum_m []float64
   sum_g []float64
@@ -41,12 +42,13 @@ type ExponentialEstimator struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewExponentialEstimator(lambda float64) (*ExponentialEstimator, error) {
+func NewExponentialEstimator(lambda, lambdaMax float64) (*ExponentialEstimator, error) {
   if dist, err := scalarDistribution.NewExponentialDistribution(NewBareReal(lambda)); err != nil {
     return nil, err
   } else {
     r := ExponentialEstimator{}
     r.ExponentialDistribution = dist
+    r.LambdaMax = lambdaMax
     return &r, nil
   }
 }
@@ -56,7 +58,7 @@ func NewExponentialEstimator(lambda float64) (*ExponentialEstimator, error) {
 func (obj *ExponentialEstimator) Clone() *ExponentialEstimator {
   r := ExponentialEstimator{}
   r.ExponentialDistribution = obj.ExponentialDistribution.Clone()
-  r.x = obj.x
+  r.LambdaMax = obj.LambdaMax
   return &r
 }
 
@@ -114,6 +116,9 @@ func (obj *ExponentialEstimator) updateEstimate() error {
   //////////////////////////////////////////////////////////////////////////////
   lambda := NewScalar(obj.ScalarType(), math.Exp(sum_g - sum_m))
 
+  if lambda.GetValue() > obj.LambdaMax {
+    lambda.SetValue(obj.LambdaMax)
+  }
   //////////////////////////////////////////////////////////////////////////////
   if t, err := scalarDistribution.NewExponentialDistribution(lambda); err != nil {
     return err
