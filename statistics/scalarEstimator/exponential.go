@@ -41,8 +41,8 @@ type ExponentialEstimator struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewExponentialEstimator(lambda Scalar) (*ExponentialEstimator, error) {
-  if dist, err := scalarDistribution.NewExponentialDistribution(lambda); err != nil {
+func NewExponentialEstimator(lambda float64) (*ExponentialEstimator, error) {
+  if dist, err := scalarDistribution.NewExponentialDistribution(NewBareReal(lambda)); err != nil {
     return nil, err
   } else {
     r := ExponentialEstimator{}
