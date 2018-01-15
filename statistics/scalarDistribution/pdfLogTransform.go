@@ -105,5 +105,5 @@ func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType
 
 func (obj *PdfLogTransform) ExportConfig() ConfigDistribution {
 
-  return NewConfigDistribution("scalar:log pdf transform", obj.GetParameters())
+  return NewConfigDistribution("scalar:pdf log transform", obj.GetParameters())
 }
