@@ -28,14 +28,16 @@ import . "github.com/pbenner/autodiff/statistics"
 
 type PdfLogTransform struct {
   ScalarPdf
+  c float64
   x Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
-func NewPdfLogTransform(scalarPdf ScalarPdf) (*PdfLogTransform, error) {
+func NewPdfLogTransform(scalarPdf ScalarPdf, pseudocount float64) (*PdfLogTransform, error) {
   r := PdfLogTransform{}
   r.ScalarPdf = scalarPdf
+  r.c         = pseudocount
   r.x         = NewScalar(scalarPdf.ScalarType(), 0.0)
   return &r, nil
 }
@@ -43,7 +45,7 @@ func NewPdfLogTransform(scalarPdf ScalarPdf) (*PdfLogTransform, error) {
 /* -------------------------------------------------------------------------- */
 
 func (obj *PdfLogTransform) Clone() *PdfLogTransform {
-  r, _ := NewPdfLogTransform(obj.ScalarPdf)
+  r, _ := NewPdfLogTransform(obj.ScalarPdf, obj.c)
   return r
 }
 
@@ -59,7 +61,8 @@ func (obj *PdfLogTransform) LogPdf(r Scalar, x Scalar) error {
     return nil
   }
   y := obj.x
-  y.Log(x)
+  y.Add(x, ConstReal(obj.c))
+  y.Log(y)
 
   if err := obj.ScalarPdf.LogPdf(r, y); err != nil {
     return err
@@ -81,13 +84,17 @@ func (obj *PdfLogTransform) Pdf(r Scalar, x Scalar) error {
 
 func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
+  pseudocount, ok := config.GetNamedParameterAsFloat("Pseudocount"); if !ok {
+    return fmt.Errorf("invalid config file")
+  }
+
   if len(config.Distributions) != 1 {
     return fmt.Errorf("invalid config file")
   }
   if tmp, err := ImportScalarPdfConfig(config.Distributions[0], t); err != nil {
     return err
   } else {
-    if tmp, err := NewPdfLogTransform(tmp); err != nil {
+    if tmp, err := NewPdfLogTransform(tmp, pseudocount); err != nil {
       return err
     } else {
       *obj = *tmp

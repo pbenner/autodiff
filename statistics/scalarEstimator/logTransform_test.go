@@ -41,8 +41,8 @@ func Test2(t *testing.T) {
 
   d1, _ := NewNormalEstimator(1.0, 2.0, 1e-6)
   d2, _ := NewNormalEstimator(1.0, 3.0, 1e-6)
-  e1, _ := NewLogTransformEstimator(d1)
-  e2, _ := NewLogTransformEstimator(d2)
+  e1, _ := NewLogTransformEstimator(d1, 0.0)
+  e2, _ := NewLogTransformEstimator(d2, 0.0)
 
   // observations
   //////////////////////////////////////////////////////////////////////////////

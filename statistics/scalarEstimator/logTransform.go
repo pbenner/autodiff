@@ -31,14 +31,16 @@ import . "github.com/pbenner/threadpool"
 type LogTransformEstimator struct {
   ScalarBatchEstimator
   StdEstimator
+  c float64
   y Vector
 }
 
 /* -------------------------------------------------------------------------- */
 
-func NewLogTransformEstimator(estimator ScalarBatchEstimator) (*LogTransformEstimator, error) {
+func NewLogTransformEstimator(estimator ScalarBatchEstimator, pseudocount float64) (*LogTransformEstimator, error) {
   r := LogTransformEstimator{}
   r.ScalarBatchEstimator = estimator
+  r.c = pseudocount
   return &r, nil
 }
 
@@ -47,6 +49,7 @@ func NewLogTransformEstimator(estimator ScalarBatchEstimator) (*LogTransformEsti
 func (obj *LogTransformEstimator) Clone() *LogTransformEstimator {
   r := LogTransformEstimator{}
   r.ScalarBatchEstimator = obj.ScalarBatchEstimator.CloneScalarBatchEstimator()
+  r.c = obj.c
   return &r
 }
 
@@ -67,8 +70,10 @@ func (obj *LogTransformEstimator) Initialize(p ThreadPool) error {
 }
 
 func (obj *LogTransformEstimator) NewObservation(x, gamma Scalar, p ThreadPool) error {
-  i := p.GetThreadId()
-  return obj.ScalarBatchEstimator.NewObservation(obj.y.At(i).Log(x), gamma, p)
+  y := obj.y.At(p.GetThreadId())
+  y.Add(x, ConstReal(obj.c))
+  y.Log(y)
+  return obj.ScalarBatchEstimator.NewObservation(y, gamma, p)
 }
 
 /* estimator interface
@@ -115,6 +120,6 @@ func (obj *LogTransformEstimator) EstimateOnData(x Vector, gamma DenseBareRealVe
 
 func (obj *LogTransformEstimator) GetEstimate() ScalarPdf {
   estimate := obj.ScalarBatchEstimator.GetEstimate()
-  r, _ := scalarDistribution.NewPdfLogTransform(estimate)
+  r, _ := scalarDistribution.NewPdfLogTransform(estimate, obj.c)
   return r
 }
