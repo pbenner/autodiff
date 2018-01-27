@@ -57,9 +57,7 @@ func NewMixtureEstimator(weights []float64, estimators []VectorEstimator, epsilo
   }
   for i, estimator := range estimators {
     // initialize distribution
-    if m.Edist[i] == nil {
-      m.Edist[i] = estimator.GetEstimate()
-    }
+    m.Edist[i] = estimator.GetEstimate()
   }
   // initialize estimators with data
   r := MixtureEstimator{}
@@ -162,11 +160,15 @@ func (obj *MixtureEstimator) SetData(x []Vector, n int) error {
   if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
     return err
   } else {
-    for _, estimator := range obj.estimators {
+    for i, estimator := range obj.estimators {
       // set data
       if err := estimator.SetData(data.GetMappedData(), n); err != nil {
         return err
       }
+      // initialize distribution
+      obj.mixture1.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
+      obj.mixture2.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
+      obj.mixture3.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
     }
     obj.data = data
   }

@@ -55,7 +55,9 @@ func NewMixture(weights Vector, edist []ScalarPdf) (*Mixture, error) {
 func (obj *Mixture) Clone() *Mixture {
   edist := make([]ScalarPdf, len(obj.Edist))
   for i := 0; i < len(obj.Edist); i++ {
-    edist[i] = obj.Edist[i].CloneScalarPdf()
+    if obj.Edist[i] != nil {
+      edist[i] = obj.Edist[i].CloneScalarPdf()
+    }
   }
   return &Mixture{*obj.Mixture.Clone(), edist}
 }

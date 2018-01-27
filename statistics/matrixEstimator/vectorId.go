@@ -142,6 +142,9 @@ func (obj *VectorId) SetData(x []Matrix, n int) error {
       }
     }
   }
+  if err := obj.updateEstimate(); err != nil {
+    return err
+  }
   return nil
 }
 

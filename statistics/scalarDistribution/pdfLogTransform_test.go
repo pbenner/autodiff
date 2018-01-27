@@ -35,7 +35,7 @@ func TestPdfLogTransform1(t *testing.T) {
   sigma := NewReal(3.0)
 
   d, _ = NewNormalDistribution(mu, sigma)
-  d, _ = NewPdfLogTransform(d)
+  d, _ = NewPdfLogTransform(d, 0.0)
 
   x := NewReal(4.0)
   r := NewReal(0.0)

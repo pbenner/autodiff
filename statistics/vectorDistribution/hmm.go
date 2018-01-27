@@ -61,7 +61,9 @@ func NewHmm(pi Vector, tr Matrix, stateMap []int, edist []ScalarPdf) (*Hmm, erro
 func (obj *Hmm) Clone() *Hmm {
   edist := make([]ScalarPdf, len(obj.Edist))
   for i := 0; i < len(obj.Edist); i++ {
-    edist[i] = obj.Edist[i].CloneScalarPdf()
+    if obj.Edist[i] != nil {
+      edist[i] = obj.Edist[i].CloneScalarPdf()
+    }
   }
   return &Hmm{*obj.Hmm.Clone(), edist}
 }

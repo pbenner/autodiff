@@ -70,9 +70,7 @@ func NewHmmEstimator(pi Vector, tr Matrix, stateMap, startStates, finalStates []
     }
     for i, estimator := range estimators {
       // initialize distribution
-      if hmm.Edist[i] == nil {
-        hmm.Edist[i] = estimator.GetEstimate()
-      }
+      hmm.Edist[i] = estimator.GetEstimate()
     }
     // initialize estimators with data
     r := HmmEstimator{}
@@ -197,11 +195,15 @@ func (obj *HmmEstimator) SetData(x []Matrix, n int) error {
   if data, err := NewHmmStdDataSet(obj.ScalarType(), x, obj.hmm1.NEDists()); err != nil {
     return err
   } else {
-    for _, estimator := range obj.estimators {
+    for i, estimator := range obj.estimators {
       // set data
       if err := estimator.SetData(data.GetMappedData(), n); err != nil {
         return err
       }
+      // initialize distribution
+      obj.hmm1.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
+      obj.hmm2.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
+      obj.hmm3.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
     }
     obj.data = data
   }

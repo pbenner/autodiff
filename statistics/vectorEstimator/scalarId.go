@@ -136,6 +136,9 @@ func (obj *ScalarId) SetData(x []Vector, n int) error {
       }
     }
   }
+  if err := obj.updateEstimate(); err != nil {
+    return err
+  }
   return nil
 }
 

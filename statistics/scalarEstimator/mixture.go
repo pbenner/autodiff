@@ -156,11 +156,15 @@ func (obj *MixtureEstimator) SetData(x Vector, n int) error {
   if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
     return err
   } else {
-    for _, estimator := range obj.estimators {
+    for i, estimator := range obj.estimators {
       // set data
       if err := estimator.SetData(data.GetMappedData(), n); err != nil {
         return err
       }
+      // initialize distribution
+      obj.mixture1.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
+      obj.mixture2.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
+      obj.mixture3.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
     }
     obj.data = data
   }
