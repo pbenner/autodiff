@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package vectorClassifier
+package matrixClassifier
 
 /* -------------------------------------------------------------------------- */
 
@@ -33,7 +33,7 @@ type PosteriorClassifier struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewPosteriorClassifier(fgDist VectorPdf, bgDist VectorPdf, weights [2]float64) (*PosteriorClassifier, error) {
+func NewPosteriorClassifier(fgDist MatrixPdf, bgDist MatrixPdf, weights [2]float64) (*PosteriorClassifier, error) {
   if classifier, err := NewLikelihoodClassifier(fgDist, bgDist); err != nil {
     return nil, err
   } else {
@@ -54,13 +54,13 @@ func (c *PosteriorClassifier) Clone() *PosteriorClassifier {
   return &PosteriorClassifier{*c.LikelihoodClassifier.Clone(), logWeights}
 }
 
-func (c *PosteriorClassifier) CloneVectorBatchClassifier() VectorBatchClassifier {
+func (c *PosteriorClassifier) CloneVectorBatchClassifier() MatrixBatchClassifier {
   return c.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c PosteriorClassifier) Eval(r Scalar, x Vector) error {
+func (c PosteriorClassifier) Eval(r Scalar, x Matrix) error {
   r1 := c.r1
   r2 := c.r2
   if err := c.FgDist.LogPdf(r1, x); err != nil {
@@ -85,7 +85,7 @@ type PosteriorOddsClassifier struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewPosteriorOddsClassifier(fgDist VectorPdf, bgDist VectorPdf, weights [2]float64) (*PosteriorOddsClassifier, error) {
+func NewPosteriorOddsClassifier(fgDist MatrixPdf, bgDist MatrixPdf, weights [2]float64) (*PosteriorOddsClassifier, error) {
   if classifier, err := NewLikelihoodClassifier(fgDist, bgDist); err != nil {
     return nil, err
   } else {
@@ -106,13 +106,13 @@ func (c *PosteriorOddsClassifier) Clone() *PosteriorOddsClassifier {
   return &PosteriorOddsClassifier{*c.LikelihoodClassifier.Clone(), logWeights}
 }
 
-func (c *PosteriorOddsClassifier) CloneVectorBatchClassifier() VectorBatchClassifier {
+func (c *PosteriorOddsClassifier) CloneMatrixBatchClassifier() MatrixBatchClassifier {
   return c.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c PosteriorOddsClassifier) Eval(r Scalar, x Vector) error {
+func (c PosteriorOddsClassifier) Eval(r Scalar, x Matrix) error {
   r1 := c.r1
   r2 := c.r2
   if err := c.FgDist.LogPdf(r1, x); err != nil {
