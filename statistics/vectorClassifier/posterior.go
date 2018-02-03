@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package scalarClassifier
+package vectorClassifier
 
 /* -------------------------------------------------------------------------- */
 
@@ -26,6 +26,7 @@ import . "github.com/pbenner/autodiff/statistics"
 
 /* -------------------------------------------------------------------------- */
 
+
 type PosteriorClassifier struct {
   LikelihoodClassifier
   LogWeights [2]ConstScalar
@@ -33,7 +34,7 @@ type PosteriorClassifier struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewPosteriorClassifier(fgDist ScalarPdf, bgDist ScalarPdf, weights [2]float64) (*PosteriorClassifier, error) {
+func NewPosteriorClassifier(fgDist VectorPdf, bgDist VectorPdf, weights [2]float64) (*PosteriorClassifier, error) {
   if classifier, err := NewLikelihoodClassifier(fgDist, bgDist); err != nil {
     return nil, err
   } else {
@@ -54,13 +55,13 @@ func (c *PosteriorClassifier) Clone() *PosteriorClassifier {
   return &PosteriorClassifier{*c.LikelihoodClassifier.Clone(), logWeights}
 }
 
-func (c *PosteriorClassifier) CloneScalarBatchClassifier() ScalarBatchClassifier {
+func (c *PosteriorClassifier) CloneVectorBatchClassifier() VectorBatchClassifier {
   return c.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c PosteriorClassifier) Eval(r Scalar, x Scalar) error {
+func (c PosteriorClassifier) Eval(r Scalar, x Vector) error {
   r1 := c.r1
   r2 := c.r2
   if err := c.FgDist.LogPdf(r1, x); err != nil {
@@ -80,19 +81,19 @@ func (c PosteriorClassifier) Eval(r Scalar, x Scalar) error {
 
 type PosteriorOddsClassifier struct {
   LikelihoodClassifier
-  LogWeights [2]ConstScalar
+  LogWeights [2]Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
-func NewPosteriorOddsClassifier(fgDist ScalarPdf, bgDist ScalarPdf, weights [2]float64, args... interface{}) (*PosteriorOddsClassifier, error) {
+func NewPosteriorOddsClassifier(fgDist VectorPdf, bgDist VectorPdf, weights [2]float64) (*PosteriorOddsClassifier, error) {
   if classifier, err := NewLikelihoodClassifier(fgDist, bgDist); err != nil {
     return nil, err
   } else {
     r := PosteriorOddsClassifier{}
     r.LikelihoodClassifier = *classifier
-    r.LogWeights[0] = ConstReal(math.Log(weights[0]/(weights[0] + weights[1])))
-    r.LogWeights[1] = ConstReal(math.Log(weights[1]/(weights[0] + weights[1])))
+    r.LogWeights[0] = NewBareReal(math.Log(weights[0]/(weights[0] + weights[1])))
+    r.LogWeights[1] = NewBareReal(math.Log(weights[1]/(weights[0] + weights[1])))
     return &r, nil
   }
 }
@@ -100,19 +101,19 @@ func NewPosteriorOddsClassifier(fgDist ScalarPdf, bgDist ScalarPdf, weights [2]f
 /* -------------------------------------------------------------------------- */
 
 func (c *PosteriorOddsClassifier) Clone() *PosteriorOddsClassifier {
-  logWeights   := [2]ConstScalar{}
-  logWeights[0] = c.LogWeights[0]
-  logWeights[1] = c.LogWeights[1]
+  logWeights   := [2]Scalar{}
+  logWeights[0] = c.LogWeights[0].CloneScalar()
+  logWeights[1] = c.LogWeights[1].CloneScalar()
   return &PosteriorOddsClassifier{*c.LikelihoodClassifier.Clone(), logWeights}
 }
 
-func (c *PosteriorOddsClassifier) CloneScalarBatchClassifier() ScalarBatchClassifier {
+func (c *PosteriorOddsClassifier) CloneVectorBatchClassifier() VectorBatchClassifier {
   return c.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (c PosteriorOddsClassifier) Eval(r Scalar, x Scalar) error {
+func (c PosteriorOddsClassifier) Eval(r Scalar, x Vector) error {
   r1 := c.r1
   r2 := c.r2
   if err := c.FgDist.LogPdf(r1, x); err != nil {
