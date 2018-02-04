@@ -33,15 +33,9 @@ type LikelihoodClassifier struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewLikelihoodClassifier(fgDist MatrixPdf, bgDist MatrixPdf, args... interface{}) (*LikelihoodClassifier, error) {
+func NewLikelihoodClassifier(fgDist MatrixPdf, bgDist MatrixPdf) (*LikelihoodClassifier, error) {
   // determine scalar type
-  t := BareRealType
-  for _, arg := range args {
-    switch v := arg.(type) {
-    case ScalarType:
-      t = v
-    }
-  }
+  t := fgDist.ScalarType()
   if bgDist != nil {
     n1, n2 := fgDist.Dims()
     m1, m2 := bgDist.Dims()
@@ -57,7 +51,7 @@ func NewLikelihoodClassifier(fgDist MatrixPdf, bgDist MatrixPdf, args... interfa
 /* -------------------------------------------------------------------------- */
 
 func (c *LikelihoodClassifier) Clone() *LikelihoodClassifier {
-  r, err := NewLikelihoodClassifier(c.FgDist, c.BgDist, c.r1.Type()); if err != nil {
+  r, err := NewLikelihoodClassifier(c.FgDist, c.BgDist); if err != nil {
     panic(err)
   }
   return r

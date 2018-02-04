@@ -35,15 +35,9 @@ type LikelihoodClassifier struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewLikelihoodClassifier(fgDist VectorPdf, bgDist VectorPdf, args... interface{}) (*LikelihoodClassifier, error) {
+func NewLikelihoodClassifier(fgDist VectorPdf, bgDist VectorPdf) (*LikelihoodClassifier, error) {
   // determine scalar type
-  t := BareRealType
-  for _, arg := range args {
-    switch v := arg.(type) {
-    case ScalarType:
-      t = v
-    }
-  }
+  t := fgDist.ScalarType()
   if bgDist != nil {
     n := fgDist.Dim()
     m := bgDist.Dim()
@@ -57,7 +51,7 @@ func NewLikelihoodClassifier(fgDist VectorPdf, bgDist VectorPdf, args... interfa
 /* -------------------------------------------------------------------------- */
 
 func (c *LikelihoodClassifier) Clone() *LikelihoodClassifier {
-  r, _ := NewLikelihoodClassifier(c.FgDist, c.BgDist, c.r1.Type())
+  r, _ := NewLikelihoodClassifier(c.FgDist, c.BgDist)
   return r
 }
 
@@ -144,8 +138,8 @@ type SymmetricClassifier struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewSymmetricClassifier(fgDist VectorPdf, bgDist VectorPdf, args... interface{}) (*SymmetricClassifier, error) {
-  if classifier, err := NewLikelihoodClassifier(fgDist, bgDist, args...); err != nil {
+func NewSymmetricClassifier(fgDist VectorPdf, bgDist VectorPdf) (*SymmetricClassifier, error) {
+  if classifier, err := NewLikelihoodClassifier(fgDist, bgDist); err != nil {
     return nil, err
   } else {
     v := NullVector(classifier.r1.Type(), classifier.Dim())
@@ -158,7 +152,7 @@ func NewSymmetricClassifier(fgDist VectorPdf, bgDist VectorPdf, args... interfac
 /* -------------------------------------------------------------------------- */
 
 func (c *SymmetricClassifier) Clone() *SymmetricClassifier {
-  r, _ := NewSymmetricClassifier(c.FgDist, c.BgDist, c.r1.Type())
+  r, _ := NewSymmetricClassifier(c.FgDist, c.BgDist)
   return r
 }
 
@@ -168,7 +162,7 @@ func (c *SymmetricClassifier) CloneVectorBatchClassifier() VectorBatchClassifier
 
 /* -------------------------------------------------------------------------- */
 
-func (c SymmetricClassifier) Eval(r Scalar, x1 Vector) error {
+func (c *SymmetricClassifier) Eval(r Scalar, x1 Vector) error {
   if x1.Dim() != c.Dim() {
     return fmt.Errorf("evaluating classifier failed: input vector has invalid dimension")
   }
