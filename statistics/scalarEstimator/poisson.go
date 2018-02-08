@@ -41,8 +41,8 @@ type PoissonEstimator struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewPoissonEstimator(lambda Scalar) (*PoissonEstimator, error) {
-  if dist, err := scalarDistribution.NewPoissonDistribution(lambda); err != nil {
+func NewPoissonEstimator(lambda float64) (*PoissonEstimator, error) {
+  if dist, err := scalarDistribution.NewPoissonDistribution(NewBareReal(lambda)); err != nil {
     return nil, err
   } else {
     r := PoissonEstimator{}
