@@ -429,6 +429,20 @@ func (c *Real) LogBesselI(v float64, b ConstScalar) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
+func (r *Real) SmoothMax(x Vector, alpha ConstReal, t1, t2 Scalar) Scalar {
+  r .Reset()
+  t2.Reset()
+  for i := 0; i < x.Dim(); i++ {
+    t1.Mul(alpha, x.At(i))
+    t1.Exp(t1)
+    t2.Add(t2, t1)
+    t1.Mul(t1, x.At(i))
+    r .Add(r , t1)
+  }
+  r.Div(r, t2)
+  return r
+}
+
 func (r *Real) Vmean(a Vector) Scalar {
   r.Reset()
   for i := 0; i < a.Dim(); i++ {

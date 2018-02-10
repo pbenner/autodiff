@@ -112,6 +112,7 @@ type Scalar interface {
   GammaP     (float64, ConstScalar) Scalar // regularized lower incomplete gamma
   BesselI    (float64, ConstScalar) Scalar // modified bessel function of the first kind
   // vector operations
+  SmoothMax  (x Vector, alpha ConstReal, t1, t2 Scalar) Scalar
   Vmean      (a    Vector)     Scalar
   VdotV      (a, b Vector)     Scalar
   Vnorm      (a    Vector)     Scalar
