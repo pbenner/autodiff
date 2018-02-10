@@ -61,63 +61,64 @@ type ScalarState interface {
 
 type ConstScalar interface {
   ConstScalarState
-  Equals     (ConstScalar, float64) bool
-  Greater    (ConstScalar)          bool
-  Smaller    (ConstScalar)          bool
-  Sign       ()                     int
+  Equals      (ConstScalar, float64) bool
+  Greater     (ConstScalar)          bool
+  Smaller     (ConstScalar)          bool
+  Sign        ()                     int
   // nice printing
   fmt.Stringer
 }
 
 type Scalar interface {
   ScalarState
-  CloneScalar()                Scalar
+  CloneScalar ()                Scalar
   // type reflections
-  Type       ()                ScalarType
-  ConvertType(ScalarType)      Scalar
+  Type        ()                ScalarType
+  ConvertType (ScalarType)      Scalar
   // some basic operations on scalars
-  Equals     (ConstScalar, float64) bool
-  Greater    (ConstScalar)          bool
-  Smaller    (ConstScalar)          bool
-  Sign       ()                int
-  Min        (ConstScalar, ConstScalar)  Scalar
-  Max        (ConstScalar, ConstScalar)  Scalar
-  Abs        (ConstScalar)               Scalar
-  Neg        (ConstScalar)               Scalar
-  Add        (ConstScalar, ConstScalar)  Scalar
-  Sub        (ConstScalar, ConstScalar)  Scalar
-  Mul        (ConstScalar, ConstScalar)  Scalar
-  Div        (ConstScalar, ConstScalar)  Scalar
+  Equals      (ConstScalar, float64) bool
+  Greater     (ConstScalar)          bool
+  Smaller     (ConstScalar)          bool
+  Sign        ()                int
+  Min         (ConstScalar, ConstScalar)  Scalar
+  Max         (ConstScalar, ConstScalar)  Scalar
+  Abs         (ConstScalar)               Scalar
+  Neg         (ConstScalar)               Scalar
+  Add         (ConstScalar, ConstScalar)  Scalar
+  Sub         (ConstScalar, ConstScalar)  Scalar
+  Mul         (ConstScalar, ConstScalar)  Scalar
+  Div         (ConstScalar, ConstScalar)  Scalar
   // add/substract the first two variables on log-scale,
   // take the third argument as a temporary variable
-  LogAdd     (ConstScalar, ConstScalar, Scalar)  Scalar
-  LogSub     (ConstScalar, ConstScalar, Scalar)  Scalar
-  Pow        (ConstScalar, ConstScalar)          Scalar
-  Sqrt       (ConstScalar)          Scalar
-  Sin        (ConstScalar)          Scalar
-  Sinh       (ConstScalar)          Scalar
-  Cos        (ConstScalar)          Scalar
-  Cosh       (ConstScalar)          Scalar
-  Tan        (ConstScalar)          Scalar
-  Tanh       (ConstScalar)          Scalar
-  Exp        (ConstScalar)          Scalar
-  Log        (ConstScalar)          Scalar
-  Log1p      (ConstScalar)          Scalar
-  Erf        (ConstScalar)          Scalar
-  Erfc       (ConstScalar)          Scalar
-  LogErfc    (ConstScalar)          Scalar
-  Gamma      (ConstScalar)          Scalar
-  Lgamma     (ConstScalar)          Scalar
-  Mlgamma    (ConstScalar, int)     Scalar // multivariate log gamma
-  GammaP     (float64, ConstScalar) Scalar // regularized lower incomplete gamma
-  BesselI    (float64, ConstScalar) Scalar // modified bessel function of the first kind
+  LogAdd      (ConstScalar, ConstScalar, Scalar)  Scalar
+  LogSub      (ConstScalar, ConstScalar, Scalar)  Scalar
+  Pow         (ConstScalar, ConstScalar)          Scalar
+  Sqrt        (ConstScalar)          Scalar
+  Sin         (ConstScalar)          Scalar
+  Sinh        (ConstScalar)          Scalar
+  Cos         (ConstScalar)          Scalar
+  Cosh        (ConstScalar)          Scalar
+  Tan         (ConstScalar)          Scalar
+  Tanh        (ConstScalar)          Scalar
+  Exp         (ConstScalar)          Scalar
+  Log         (ConstScalar)          Scalar
+  Log1p       (ConstScalar)          Scalar
+  Erf         (ConstScalar)          Scalar
+  Erfc        (ConstScalar)          Scalar
+  LogErfc     (ConstScalar)          Scalar
+  Gamma       (ConstScalar)          Scalar
+  Lgamma      (ConstScalar)          Scalar
+  Mlgamma     (ConstScalar, int)     Scalar // multivariate log gamma
+  GammaP      (float64, ConstScalar) Scalar // regularized lower incomplete gamma
+  BesselI     (float64, ConstScalar) Scalar // modified bessel function of the first kind
   // vector operations
-  SmoothMax  (x Vector, alpha ConstReal, t1, t2 Scalar) Scalar
-  Vmean      (a    Vector)     Scalar
-  VdotV      (a, b Vector)     Scalar
-  Vnorm      (a    Vector)     Scalar
-  Mnorm      (a    Matrix)     Scalar
-  Mtrace     (a    Matrix)     Scalar
+  SmoothMax   (x Vector, alpha ConstReal, t [2]Scalar) Scalar
+  LogSmoothMax(x Vector, alpha ConstReal, t [3]Scalar) Scalar
+  Vmean       (a    Vector)     Scalar
+  VdotV       (a, b Vector)     Scalar
+  Vnorm       (a    Vector)     Scalar
+  Mnorm       (a    Matrix)     Scalar
+  Mtrace      (a    Matrix)     Scalar
   // nice printing
   fmt.Stringer
 }

@@ -309,17 +309,32 @@ func (c *BareReal) LogBesselI(v float64, x ConstScalar) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
-func (r *BareReal) SmoothMax(x Vector, alpha ConstReal, t1, t2 Scalar) Scalar {
-  r .Reset()
-  t2.Reset()
+func (r *BareReal) SmoothMax(x Vector, alpha ConstReal, t [2]Scalar) Scalar {
+  r   .Reset()
+  t[1].Reset()
   for i := 0; i < x.Dim(); i++ {
-    t1.Mul(alpha, x.At(i))
-    t1.Exp(t1)
-    t2.Add(t2, t1)
-    t1.Mul(t1, x.At(i))
-    r .Add(r , t1)
+    t[0].Mul(alpha, x.At(i))
+    t[0].Exp(t[0])
+    t[1].Add(t[1], t[0])
+    t[0].Mul(t[0], x.At(i))
+    r .Add(r , t[0])
   }
-  r.Div(r, t2)
+  r.Div(r, t[1])
+  return r
+}
+
+func (r *BareReal) LogSmoothMax(x Vector, alpha ConstReal, t [3]Scalar) Scalar {
+  r   .Reset()
+  t[2].SetValue(math.Inf(-1))
+  for i := 0; i < x.Dim(); i++ {
+    t[0].Mul(x.At(i), alpha)
+    t[2].LogAdd(t[2], t[0], t[1])
+    t[1].Log(x.At(i))
+    t[0].Add(t[0], t[1])
+    r.LogAdd(r, t[0], t[1])
+  }
+  r.Sub(r, t[2])
+  r.Exp(r)
   return r
 }
 

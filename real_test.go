@@ -418,3 +418,30 @@ func TestRealJson(t *testing.T) {
     os.Remove(filename)
   }
 }
+
+func TestSmoothMax(t *testing.T) {
+  x  := NewVector(RealType, []float64{-1,0,2,3,4,5})
+  r  := NewReal(0.0)
+  t1 := NewReal(0.0)
+  t2 := NewReal(0.0)
+
+  r.SmoothMax(x, ConstReal(10), [2]Scalar{t1, t2})
+
+  if math.Abs(r.GetValue() - 5) > 1e-4 {
+    t.Error("test failed")
+  }
+}
+
+func TestLogSmoothMax(t *testing.T) {
+  x  := NewVector(RealType, []float64{0,1,10203,3,4,30,6,7,1000,8,9,10})
+  r  := NewReal(0.0)
+  t1 := NewReal(0.0)
+  t2 := NewReal(0.0)
+  t3 := NewReal(0.0)
+
+  r.LogSmoothMax(x, ConstReal(10), [3]Scalar{t1, t2, t3})
+
+  if math.Abs(r.GetValue() - 10203) > 1e-4 {
+    t.Error("test failed")
+  }
+}
