@@ -6,40 +6,42 @@ Autodiff is a numerical optimization and linear algebra library for the Go / Gol
 
 Autodiff has two different scalar types. The *Real* type allows to store first and second derivatives for the current value, whereas the *BareReal* type is a simple *float64* which cannot store any information other than its value. Every scalar supports the following set of functions:
 
-| Function   | Description                                           |
-| ---------- | ----------------------------------------------------- |
-| Min        | Minimum                                               |
-| Max        | Maximum                                               |
-| Abs        | Absolute value                                        |
-| Sign       | Sign                                                  |
-| Neg        | Negation                                              |
-| Add        | Addition                                              |
-| Sub        | Substraction                                          |
-| Mul        | Multiplication                                        |
-| Div        | Division                                              |
-| Pow        | Power                                                 |
-| Sqrt       | Square root                                           |
-| Exp        | Exponential function                                  |
-| Log        | Logarithm                                             |
-| Log1p      | Logarithm of 1+x                                      |
-| Logistic   | Standard logistic function                            |
-| Erf        | Error function                                        |
-| Erfc       | Complementary error function                          |
-| LogErfc    | Log complementary error function                      |
-| Sin        | Sine                                                  |
-| Sinh       | Hyperbolic sine                                       |
-| Cos        | Cosine                                                |
-| Cosh       | Hyperbolic cosine                                     |
-| Tan        | Tangent                                               |
-| Tanh       | Hyperbolic tangent                                    |
-| LogAdd     | Addition on log scale                                 |
-| LogSub     | Substraction on log scale                             |
-| Gamma      | Gamma function                                        |
-| Lgamma     | Log gamma function                                    |
-| Mlgamma    | Multivariate log gamma function                       |
-| GammaP     | Lower incomplete gamma function                       |
-| BesselI    | Modified Bessel function of the first kind            |
-| LogBesselI | Log of the Modified Bessel function of the first kind |
+| Function     | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| Min          | Minimum                                               |
+| Max          | Maximum                                               |
+| Abs          | Absolute value                                        |
+| Sign         | Sign                                                  |
+| Neg          | Negation                                              |
+| Add          | Addition                                              |
+| Sub          | Substraction                                          |
+| Mul          | Multiplication                                        |
+| Div          | Division                                              |
+| Pow          | Power                                                 |
+| Sqrt         | Square root                                           |
+| Exp          | Exponential function                                  |
+| Log          | Logarithm                                             |
+| Log1p        | Logarithm of 1+x                                      |
+| Logistic     | Standard logistic function                            |
+| Erf          | Error function                                        |
+| Erfc         | Complementary error function                          |
+| LogErfc      | Log complementary error function                      |
+| Sin          | Sine                                                  |
+| Sinh         | Hyperbolic sine                                       |
+| Cos          | Cosine                                                |
+| Cosh         | Hyperbolic cosine                                     |
+| Tan          | Tangent                                               |
+| Tanh         | Hyperbolic tangent                                    |
+| LogAdd       | Addition on log scale                                 |
+| LogSub       | Substraction on log scale                             |
+| SmoothMax    | Differentiable maximum                                |
+| LogSmoothMax | Differentiable maximum on log scale                   |
+| Gamma        | Gamma function                                        |
+| Lgamma       | Log gamma function                                    |
+| Mlgamma      | Multivariate log gamma function                       |
+| GammaP       | Lower incomplete gamma function                       |
+| BesselI      | Modified Bessel function of the first kind            |
+| LogBesselI   | Log of the Modified Bessel function of the first kind |
 
 ## Vectors and Matrices
 

@@ -318,40 +318,69 @@ func (c *BareReal) LogBesselI(v float64, x ConstScalar) Scalar {
 
 /* -------------------------------------------------------------------------- */
 
-func (r *BareReal) Vmean(a Vector) Scalar {
+func (r *BareReal) SmoothMax(x ConstVector, alpha ConstReal, t [2]Scalar) Scalar {
+  r   .Reset()
+  t[1].Reset()
+  for i := 0; i < x.Dim(); i++ {
+    t[0].Mul(alpha, x.ConstAt(i))
+    t[0].Exp(t[0])
+    t[1].Add(t[1], t[0])
+    t[0].Mul(t[0], x.ConstAt(i))
+    r .Add(r , t[0])
+  }
+  r.Div(r, t[1])
+  return r
+}
+
+func (r *BareReal) LogSmoothMax(x ConstVector, alpha ConstReal, t [3]Scalar) Scalar {
+  r   .Reset()
+  t[2].SetValue(math.Inf(-1))
+  for i := 0; i < x.Dim(); i++ {
+    t[0].Mul(x.ConstAt(i), alpha)
+    t[2].LogAdd(t[2], t[0], t[1])
+    t[1].Log(x.ConstAt(i))
+    t[0].Add(t[0], t[1])
+    r.LogAdd(r, t[0], t[1])
+  }
+  r.Sub(r, t[2])
+  r.Exp(r)
+  return r
+}
+
+func (r *BareReal) Vmean(a ConstVector) Scalar {
   r.Reset()
   for i := 0; i < a.Dim(); i++ {
-    r.Add(r, a.At(i))
+    r.Add(r, a.ConstAt(i))
   }
   return r.Div(r, NewBareReal(float64(a.Dim())))
 }
 
-func (r *BareReal) VdotV(a, b Vector) Scalar {
+func (r *BareReal) VdotV(a, b ConstVector) Scalar {
   if a.Dim() != b.Dim() {
     panic("vector dimensions do not match")
   }
   r.Reset()
   t := NullBareReal()
   for i := 0; i < a.Dim(); i++ {
-    t.Mul(a.At(i), b.At(i))
+    t.Mul(a.ConstAt(i), b.ConstAt(i))
     r.Add(r, t)
   }
   return r
 }
 
-func (r *BareReal) Vnorm(a Vector) Scalar {
+func (r *BareReal) Vnorm(a ConstVector) Scalar {
   r.Reset()
   c := NewBareReal(2.0)
   t := NullScalar(a.ElementType())
   for i := 0; i < a.Dim(); i++ {
-    t.Pow(a.At(i), c)
+    t.Pow(a.ConstAt(i), c)
     r.Add(r, t)
   }
   r.Sqrt(r)
   return r
 }
 
-func (r *BareReal) Mtrace(a Matrix) Scalar {
+func (r *BareReal) Mtrace(a ConstMatrix) Scalar {
   n, m := a.Dims()
   if n != m {
     panic("not a square matrix")
@@ -361,23 +390,23 @@ func (r *BareReal) Mtrace(a Matrix) Scalar {
   }
   r.Reset()
   for i := 0; i < n; i++ {
-    r.Add(r, a.At(i,i))
+    r.Add(r, a.ConstAt(i,i))
   }
   return r
 }
 
 // Frobenius norm.
-func (r *BareReal) Mnorm(a Matrix) Scalar {
+func (r *BareReal) Mnorm(a ConstMatrix) Scalar {
   n, m := a.Dims()
   if n == 0 || m == 0 {
     return nil
   }
   c := NewBareReal(2.0)
   t := NewScalar(r.Type(), 0.0)
-  v := a.AsVector()
-  r.Pow(v.At(0), NewBareReal(2.0))
+  v := a.AsConstVector()
+  r.Pow(v.ConstAt(0), NewBareReal(2.0))
   for i := 1; i < v.Dim(); i++ {
-    t.Pow(v.At(i), c)
+    t.Pow(v.ConstAt(i), c)
     r.Add(r, t)
   }
   return r

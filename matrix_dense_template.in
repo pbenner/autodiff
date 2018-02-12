@@ -234,6 +234,10 @@ func (matrix *MATRIX_TYPE) AsVector() Vector {
   return matrix.STR_CONCAT(As, VECTOR_TYPE)()
 }
 
+func (matrix *MATRIX_TYPE) AsConstVector() ConstVector {
+  return matrix.AsVector()
+}
+
 func (matrix *MATRIX_TYPE) STR_CONCAT(As, VECTOR_TYPE)() VECTOR_TYPE {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {

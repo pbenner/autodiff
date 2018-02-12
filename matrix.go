@@ -25,15 +25,16 @@ import "encoding/json"
 
 type ConstMatrix interface {
   ConstScalarContainer
-  Dims        ()                           (int, int)
-  Equals      (ConstMatrix, float64)       bool
-  Table       ()                           string
-  ConstAt     (i, j int)                   ConstScalar
-  ConstSlice  (rfrom, rto, cfrom, cto int) ConstMatrix
-  ConstRow    (i int)                      ConstVector
-  ConstCol    (j int)                      ConstVector
-  ConstDiag   ()                           ConstVector
-  GetValues   ()                           []float64
+  Dims         ()                           (int, int)
+  Equals       (ConstMatrix, float64)       bool
+  Table        ()                           string
+  ConstAt      (i, j int)                   ConstScalar
+  ConstSlice   (rfrom, rto, cfrom, cto int) ConstMatrix
+  ConstRow     (i int)                      ConstVector
+  ConstCol     (j int)                      ConstVector
+  ConstDiag    ()                           ConstVector
+  GetValues    ()                           []float64
+  AsConstVector()                           ConstVector
   // private methods
   storageLocation() uintptr
 }
@@ -41,15 +42,15 @@ type ConstMatrix interface {
 type Matrix interface {
   ScalarContainer
   // const methods
-  Dims        ()                           (int, int)
-  Equals      (ConstMatrix, float64)       bool
-  Table       ()                           string
-  ConstAt     (i, j int)                   ConstScalar
-  ConstSlice  (rfrom, rto, cfrom, cto int) ConstMatrix
-  ConstRow    (i int)                      ConstVector
-  ConstCol    (j int)                      ConstVector
-  ConstDiag   ()                           ConstVector
-  GetValues   ()                           []float64
+  Dims         ()                           (int, int)
+  Equals       (ConstMatrix, float64)       bool
+  Table        ()                           string
+  ConstAt      (i, j int)                   ConstScalar
+  ConstSlice   (rfrom, rto, cfrom, cto int) ConstMatrix
+  ConstRow     (i int)                      ConstVector
+  ConstCol     (j int)                      ConstVector
+  ConstDiag    ()                           ConstVector
+  GetValues    ()                           []float64
   // other methods
   At                  (i, j int)           Scalar
   Reset               ()
@@ -75,6 +76,7 @@ type Matrix interface {
   // returns all elements of the matrix as
   // a vector, the order is unspecified
   AsVector            ()                   Vector
+  AsConstVector       ()                   ConstVector
   // math operations
   MaddM(a,             b ConstMatrix)      Matrix
   MaddS(a ConstMatrix, b ConstScalar)      Matrix

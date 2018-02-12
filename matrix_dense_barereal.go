@@ -206,6 +206,9 @@ func (matrix *DenseBareRealMatrix) Swap(i1, j1, i2, j2 int) {
 func (matrix *DenseBareRealMatrix) AsVector() Vector {
   return matrix.AsDenseBareRealVector()
 }
+func (matrix *DenseBareRealMatrix) AsConstVector() ConstVector {
+  return matrix.AsVector()
+}
 func (matrix *DenseBareRealMatrix) AsDenseBareRealVector() DenseBareRealVector {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
