@@ -80,7 +80,7 @@ func (dist *PowerLawDistribution) ScalarType() ScalarType {
   return dist.Alpha.Type()
 }
 
-func (dist *PowerLawDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *PowerLawDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if x.GetValue() < dist.Xmin.GetValue() {
     r.SetValue(math.Inf(-1))
     return nil
@@ -94,7 +94,7 @@ func (dist *PowerLawDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *PowerLawDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *PowerLawDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -102,7 +102,7 @@ func (dist *PowerLawDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *PowerLawDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *PowerLawDistribution) LogCdf(r Scalar, x ConstScalar) error {
   if x.GetValue() <= 0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -114,7 +114,7 @@ func (dist *PowerLawDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *PowerLawDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *PowerLawDistribution) Cdf(r Scalar, x ConstScalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

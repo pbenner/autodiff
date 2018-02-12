@@ -60,7 +60,7 @@ func (c *PosteriorClassifier) CloneScalarBatchClassifier() ScalarBatchClassifier
 
 /* -------------------------------------------------------------------------- */
 
-func (c *PosteriorClassifier) Eval(r Scalar, x Scalar) error {
+func (c *PosteriorClassifier) Eval(r Scalar, x ConstScalar) error {
   r1 := c.r1
   r2 := c.r2
   if err := c.FgDist.LogPdf(r1, x); err != nil {
@@ -112,7 +112,7 @@ func (c *PosteriorOddsClassifier) CloneScalarBatchClassifier() ScalarBatchClassi
 
 /* -------------------------------------------------------------------------- */
 
-func (c *PosteriorOddsClassifier) Eval(r Scalar, x Scalar) error {
+func (c *PosteriorOddsClassifier) Eval(r Scalar, x ConstScalar) error {
   r1 := c.r1
   r2 := c.r2
   if err := c.FgDist.LogPdf(r1, x); err != nil {

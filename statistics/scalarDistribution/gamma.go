@@ -76,7 +76,7 @@ func (dist *GammaDistribution) Mean() Scalar {
   return r.Div(dist.Alpha, dist.Beta)
 }
 
-func (dist *GammaDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *GammaDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if v := x.GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
@@ -91,7 +91,7 @@ func (dist *GammaDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GammaDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *GammaDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -99,7 +99,7 @@ func (dist *GammaDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GammaDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *GammaDistribution) LogCdf(r Scalar, x ConstScalar) error {
   if err := dist.Cdf(r, x); err != nil {
     return err
   }
@@ -107,7 +107,7 @@ func (dist *GammaDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GammaDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *GammaDistribution) Cdf(r Scalar, x ConstScalar) error {
   r.Mul(x, dist.Beta)
   r.GammaP(dist.Alpha.GetValue(), r)
   return nil

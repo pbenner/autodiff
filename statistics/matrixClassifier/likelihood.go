@@ -67,7 +67,7 @@ func (c *LikelihoodClassifier) Dims() (int, int) {
   return c.FgDist.Dims()
 }
 
-func (c *LikelihoodClassifier) Eval(r Scalar, x Matrix) error {
+func (c *LikelihoodClassifier) Eval(r Scalar, x ConstMatrix) error {
   if c.BgDist == nil {
     return c.FgDist.LogPdf(r, x)
   }

@@ -32,7 +32,7 @@ import . "github.com/pbenner/threadpool"
 
 type ShapeHmmDataSet struct {
   // vector of unique observations
-  x       []Matrix
+  x       []ConstMatrix
   offsets []int
   // matrix with emission probabilities, each row corresponds
   // to an emission distribution and each column to a unique
@@ -42,7 +42,7 @@ type ShapeHmmDataSet struct {
   n int
 }
 
-func NewShapeHmmDataSet(t ScalarType, x []Matrix, k int) (*ShapeHmmDataSet, error) {
+func NewShapeHmmDataSet(t ScalarType, x []ConstMatrix, k int) (*ShapeHmmDataSet, error) {
   offsets := make([]int, len(x))
   if len(x) == 0 {
     return &ShapeHmmDataSet{}, nil
@@ -120,7 +120,7 @@ func (obj *ShapeHmmDataSet) EvaluateLogPdf(edist []MatrixPdf, pool ThreadPool) e
       d := d[pool.GetThreadId()]
       s := s[pool.GetThreadId()]
       s  = math.Inf(-1)
-      x := x.Slice(i, i+r, 0, c)
+      x := x.ConstSlice(i, i+r, 0, c)
       // loop over distributions
       for j := 0; j < m; j++ {
         if err := d[j].LogPdf(p.At(j, k), x); err != nil {

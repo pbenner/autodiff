@@ -32,19 +32,19 @@ import . "github.com/pbenner/threadpool"
 
 type MixtureDataSet interface {
   generic.MixtureDataSet
-  GetMappedData () []Vector
+  GetMappedData () []ConstVector
   EvaluateLogPdf(edist []VectorPdf, pool ThreadPool) error
 }
 
 /* -------------------------------------------------------------------------- */
 
 type MixtureStdDataSet struct {
-  values []Vector
+  values []ConstVector
   n        int
   p        Matrix
 }
 
-func NewMixtureStdDataSet(t ScalarType, x []Vector, k int) (*MixtureStdDataSet, error) {
+func NewMixtureStdDataSet(t ScalarType, x []ConstVector, k int) (*MixtureStdDataSet, error) {
   r := MixtureStdDataSet{}
   r.values = x
   r.p      = NullMatrix(t, k, len(x))
@@ -56,7 +56,7 @@ func (obj *MixtureStdDataSet) MapIndex(k int) int {
   return k
 }
 
-func (obj *MixtureStdDataSet) GetMappedData() []Vector {
+func (obj *MixtureStdDataSet) GetMappedData() []ConstVector {
   return obj.values
 }
 

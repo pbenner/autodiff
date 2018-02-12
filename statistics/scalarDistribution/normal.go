@@ -61,7 +61,7 @@ func (obj *NormalDistribution) ScalarType() ScalarType {
   return obj.Mu.Type()
 }
 
-func (obj *NormalDistribution) LogPdf(r Scalar, x Scalar) error {
+func (obj *NormalDistribution) LogPdf(r Scalar, x ConstScalar) error {
   t := obj.ScalarType()
 
   // z = -1/2 log(2 pi)
@@ -87,7 +87,7 @@ func (obj *NormalDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *NormalDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *NormalDistribution) LogCdf(r Scalar, x ConstScalar) error {
   t := dist.Sigma.CloneScalar()
   t.Mul(t, ConstReal(math.Sqrt(2.0)))
 
@@ -108,7 +108,7 @@ func (dist *NormalDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *NormalDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *NormalDistribution) Cdf(r Scalar, x ConstScalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

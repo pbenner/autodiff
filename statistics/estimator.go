@@ -26,7 +26,7 @@ import . "github.com/pbenner/threadpool"
 /* -------------------------------------------------------------------------- */
 
 type BasicEstimator interface {
-  Estimate            (gamma DenseBareRealVector, p ThreadPool) error
+  Estimate            (gamma ConstVector, p ThreadPool) error
   GetParameters       ()                  Vector
   SetParameters       (x Vector)          error
   ScalarType          ()                  ScalarType
@@ -36,28 +36,28 @@ type BasicEstimator interface {
 
 type ScalarEstimator interface {
   BasicEstimator
-  CloneScalarEstimator()                  ScalarEstimator
-  SetData             (x Vector, n int)   error
-  GetEstimate         ()                  ScalarPdf
-  EstimateOnData      (x Vector, gamma DenseBareRealVector, p ThreadPool) error
+  CloneScalarEstimator()                       ScalarEstimator
+  SetData             (x ConstVector, n int)   error
+  GetEstimate         ()                       ScalarPdf
+  EstimateOnData      (x, gamma ConstVector, p ThreadPool) error
 }
 
 type VectorEstimator interface {
   BasicEstimator
-  CloneVectorEstimator()                  VectorEstimator
-  SetData             (x []Vector, n int) error
-  GetEstimate         ()                  VectorPdf
-  Dim                 ()                  int
-  EstimateOnData      (x []Vector, gamma DenseBareRealVector, p ThreadPool) error
+  CloneVectorEstimator()                       VectorEstimator
+  SetData             (x []ConstVector, n int) error
+  GetEstimate         ()                       VectorPdf
+  Dim                 ()                       int
+  EstimateOnData      (x []ConstVector, gamma ConstVector, p ThreadPool) error
 }
 
 type MatrixEstimator interface {
   BasicEstimator
-  CloneMatrixEstimator()                  MatrixEstimator
-  SetData             (x []Matrix, n int) error
-  GetEstimate         ()                  MatrixPdf
-  Dims                ()                  (int, int)
-  EstimateOnData      (x []Matrix, gamma DenseBareRealVector, p ThreadPool) error
+  CloneMatrixEstimator()                       MatrixEstimator
+  SetData             (x []ConstMatrix, n int) error
+  GetEstimate         ()                       MatrixPdf
+  Dims                ()                       (int, int)
+  EstimateOnData      (x []ConstMatrix, gamma ConstVector, p ThreadPool) error
 }
 
 /* -------------------------------------------------------------------------- */
@@ -73,7 +73,7 @@ type ScalarBatchEstimator interface {
   BasicBatchEstimator
   CloneScalarBatchEstimator() ScalarBatchEstimator
   GetEstimate() ScalarPdf
-  NewObservation(x, gamma Scalar, p ThreadPool) error
+  NewObservation(x ConstScalar, gamma ConstScalar, p ThreadPool) error
 }
 
 type VectorBatchEstimator interface {
@@ -81,7 +81,7 @@ type VectorBatchEstimator interface {
   CloneVectorBatchEstimator() VectorBatchEstimator
   GetEstimate() VectorPdf
   Dim() int
-  NewObservation(x Vector, gamma Scalar, p ThreadPool) error
+  NewObservation(x ConstVector, gamma ConstScalar, p ThreadPool) error
 }
 
 type MatrixBatchEstimator interface {
@@ -89,5 +89,5 @@ type MatrixBatchEstimator interface {
   CloneMatrixBatchEstimator() MatrixBatchEstimator
   GetEstimate() MatrixPdf
   Dims() (int, int)
-  NewObservation(x Matrix, gamma Scalar, p ThreadPool) error
+  NewObservation(x ConstMatrix, gamma ConstScalar, p ThreadPool) error
 }

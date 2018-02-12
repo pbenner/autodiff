@@ -32,7 +32,7 @@ import . "github.com/pbenner/threadpool"
 
 type HmmDataSet interface {
   generic.HmmDataSet
-  GetMappedData () Vector
+  GetMappedData () ConstVector
   EvaluateLogPdf(edist []ScalarPdf, pool ThreadPool) error
 }
 
@@ -71,14 +71,16 @@ type HmmStdDataSet struct {
   n int
 }
 
-func NewHmmStdDataSet(t ScalarType, x []Vector, k int) (*HmmStdDataSet, error) {
+func NewHmmStdDataSet(t ScalarType, x []ConstVector, k int) (*HmmStdDataSet, error) {
   offsets := make([]int, len(x))
-  values  := NullVector(x[0].ElementType(), 0)
   n       := 0
   for d := 0; d < len(x); d++ {
     offsets[d] = n
-    values     = values.AppendVector(x[d])
     n         += x[d].Dim()
+  }
+  values := NullVector(x[0].ElementType(), n)
+  for d := 0; d < len(x); d++ {
+    values.Slice(offsets[d], offsets[d]+x[d].Dim()).Set(x[d])
   }
   r := HmmStdDataSet{}
   r.values  = values
@@ -88,7 +90,7 @@ func NewHmmStdDataSet(t ScalarType, x []Vector, k int) (*HmmStdDataSet, error) {
   return &r, nil
 }
 
-func (obj *HmmStdDataSet) GetMappedData() Vector {
+func (obj *HmmStdDataSet) GetMappedData() ConstVector {
   return obj.values
 }
 
@@ -221,7 +223,7 @@ func NewHmmSummarizedDataSet(t ScalarType, x []Vector, k int) (*HmmSummarizedDat
   return &r, nil
 }
 
-func (obj *HmmSummarizedDataSet) GetMappedData() Vector {
+func (obj *HmmSummarizedDataSet) GetMappedData() ConstVector {
   return obj.values
 }
 

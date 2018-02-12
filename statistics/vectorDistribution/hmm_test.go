@@ -31,7 +31,7 @@ import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *Hmm) forwardLogPdf(r Scalar, x Vector) error {
+func (obj *Hmm) forwardLogPdf(r Scalar, x ConstVector) error {
   alpha, _, err := obj.ForwardBackward(HmmDataRecord{obj.Edist, x}); if err != nil {
     return err
   }
@@ -45,7 +45,7 @@ func (obj *Hmm) forwardLogPdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (obj *Hmm) backwardLogPdf(r Scalar, x Vector) error {
+func (obj *Hmm) backwardLogPdf(r Scalar, x ConstVector) error {
   _, beta, err := obj.ForwardBackward(HmmDataRecord{obj.Edist, x}); if err != nil {
     return err
   }
@@ -53,7 +53,7 @@ func (obj *Hmm) backwardLogPdf(r Scalar, x Vector) error {
   t2 := NewScalar(x.ElementType(), 0.0)
   r.SetValue(math.Inf(-1))
   for i := 0; i < obj.M; i++ {
-    obj.Edist[obj.StateMap[i]].LogPdf(t2, x.At(0))
+    obj.Edist[obj.StateMap[i]].LogPdf(t2, x.ConstAt(0))
     t1.Add(beta.At(i, 0), obj.Pi.At(i))
     t1.Add(t1, t2)
     r .LogAdd(r, t1, t2)

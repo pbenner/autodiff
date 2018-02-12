@@ -30,7 +30,7 @@ import . "github.com/pbenner/threadpool"
 type ShapeHmmAdapter struct {
   Estimator  MatrixBatchEstimator
   estimate   MatrixPdf
-  x        []Matrix
+  x        []ConstMatrix
   n          int
 }
 
@@ -74,12 +74,12 @@ func (obj *ShapeHmmAdapter) SetParameters(parameters Vector) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *ShapeHmmAdapter) newObservation(x Matrix, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *ShapeHmmAdapter) newObservation(x ConstMatrix, gamma ConstVector, p ThreadPool) error {
   n, m := x.Dims()
   for k := n/2; k < n - n/2; k++ {
     i := k - n/2
     j := k - n/2 + n
-    if err := obj.Estimator.NewObservation(x.Slice(i, j, 0, m), gamma[k], p); err != nil {
+    if err := obj.Estimator.NewObservation(x.ConstSlice(i, j, 0, m), gamma.ConstAt(k), p); err != nil {
       return err
     }
   }
@@ -88,7 +88,7 @@ func (obj *ShapeHmmAdapter) newObservation(x Matrix, gamma DenseBareRealVector, 
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *ShapeHmmAdapter) SetData(x []Matrix, n int) error {
+func (obj *ShapeHmmAdapter) SetData(x []ConstMatrix, n int) error {
   for d := 0; d < len(x); d++ {
     _, m1 := x[d].Dims()
     _, m2 :=  obj.Dims()
@@ -109,15 +109,15 @@ func (obj *ShapeHmmAdapter) updateEstimate() error {
   return nil
 }
 
-func (obj *ShapeHmmAdapter) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *ShapeHmmAdapter) Estimate(gamma ConstVector, p ThreadPool) error {
   x := obj.x
   for d := 0; d < len(x); d++ {
     // number of observations
     n, _ := x[d].Dims()
-    if err := obj.newObservation(x[d], gamma[0:n], p); err != nil {
+    if err := obj.newObservation(x[d], gamma.ConstSlice(0,n), p); err != nil {
       return err
     }
-    gamma = gamma[n:gamma.Dim()]
+    gamma = gamma.ConstSlice(n,gamma.Dim())
   }
   if err := obj.updateEstimate(); err != nil {
     return err
@@ -125,7 +125,7 @@ func (obj *ShapeHmmAdapter) Estimate(gamma DenseBareRealVector, p ThreadPool) er
   return nil
 }
 
-func (obj *ShapeHmmAdapter) EstimateOnData(x []Matrix, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *ShapeHmmAdapter) EstimateOnData(x []ConstMatrix, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, len(x)); err != nil {
     return err
   }

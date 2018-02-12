@@ -26,7 +26,7 @@ import . "github.com/pbenner/threadpool"
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, meta DenseBareRealVector, tmp []EmTmp, p ThreadPool) (float64, error) {
+func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, meta ConstVector, tmp []EmTmp, p ThreadPool) (float64, error) {
   m  := obj.NComponents()
   g  := p.NewJobGroup()
   // tell every thread that it needs to reset all variables
@@ -65,7 +65,7 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
     for i := 0; i < m; i++ {
       gammaTmp.AT(i).Sub(gammaTmp.AT(i), t1)
       if meta != nil {
-        gammaTmp.AT(i).ADD(gammaTmp.AT(i), meta.AT(k))
+        gammaTmp.AT(i).Add(gammaTmp.AT(i), meta.ConstAt(k))
       }
     }
     if gamma != nil {

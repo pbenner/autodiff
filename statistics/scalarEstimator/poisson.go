@@ -83,7 +83,7 @@ func (obj *PoissonEstimator) Initialize(p ThreadPool) error {
   return nil
 }
 
-func (obj *PoissonEstimator) NewObservation(x, gamma Scalar, p ThreadPool) error {
+func (obj *PoissonEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
   if gamma == nil {
     x := math.Log(x.GetValue())
@@ -126,7 +126,7 @@ func (obj *PoissonEstimator) updateEstimate() error {
   return nil
 }
 
-func (obj *PoissonEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *PoissonEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   g := p.NewJobGroup()
   x := obj.x
 
@@ -137,14 +137,14 @@ func (obj *PoissonEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) e
   //////////////////////////////////////////////////////////////////////////////
   if gamma == nil {
     if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.At(i), nil, p)
+      obj.NewObservation(x.ConstAt(i), nil, p)
       return nil
     }); err != nil {
       return err
     }
   } else {
     if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.At(i), gamma.At(i), p)
+      obj.NewObservation(x.ConstAt(i), gamma.ConstAt(i), p)
       return nil
     }); err != nil {
       return err
@@ -160,7 +160,7 @@ func (obj *PoissonEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) e
   return nil
 }
 
-func (obj *PoissonEstimator) EstimateOnData(x Vector, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *PoissonEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, x.Dim()); err != nil {
     return err
   }

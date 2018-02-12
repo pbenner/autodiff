@@ -95,13 +95,13 @@ type baumWelchCore interface {
   EvaluateLogPdf(pool ThreadPool) error
   GetBasicHmm   () BasicHmm
   Swap          ()
-  Step          (meta    DenseBareRealVector, tmp []BaumWelchTmp, p ThreadPool) (float64, error)
-  Emissions     (gamma []DenseBareRealVector,                     p ThreadPool) error
+  Step          (meta    ConstVector, tmp []BaumWelchTmp, p ThreadPool) (float64, error)
+  Emissions     (gamma []DenseBareRealVector,             p ThreadPool) error
 }
 
 /* -------------------------------------------------------------------------- */
 
-func baumWelchAlgorithm(obj baumWelchCore, meta DenseBareRealVector, tmp []BaumWelchTmp, epsilon float64, maxSteps int, hooks []BaumWelchHook, p ThreadPool) error {
+func baumWelchAlgorithm(obj baumWelchCore, meta ConstVector, tmp []BaumWelchTmp, epsilon float64, maxSteps int, hooks []BaumWelchHook, p ThreadPool) error {
   for _, hook := range hooks {
     if hook.Value != nil {
       hook.Value(obj.GetBasicHmm(), 0, math.NaN(), math.NaN())
@@ -144,7 +144,7 @@ func baumWelchAlgorithm(obj baumWelchCore, meta DenseBareRealVector, tmp []BaumW
   return nil
 }
 
-func BaumWelchAlgorithm(obj baumWelchCore, meta DenseBareRealVector, nRecords, nData, nMapped, nStates, nEdists int, epsilon float64, maxSteps int, p ThreadPool, args... interface{}) error {
+func BaumWelchAlgorithm(obj baumWelchCore, meta ConstVector, nRecords, nData, nMapped, nStates, nEdists int, epsilon float64, maxSteps int, p ThreadPool, args... interface{}) error {
   if nRecords == 0 {
     return nil
   }

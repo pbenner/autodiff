@@ -40,7 +40,7 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-func determinantNaive(a Matrix) Scalar {
+func determinantNaive(a ConstMatrix) Scalar {
   n, _ := a.Dims()
   t1   := NullScalar(a.ElementType())
   t2   := NullScalar(a.ElementType())
@@ -49,10 +49,10 @@ func determinantNaive(a Matrix) Scalar {
   if (n < 1) {
     /* nothing to do */
   } else if n == 1 {
-    det.Set(a.At(0, 0))
+    det.Set(a.ConstAt(0, 0))
   } else if n == 2 {
-    t1.Mul(a.At(0, 0), a.At(1, 1))
-    t2.Mul(a.At(1, 0), a.At(0, 1))
+    t1.Mul(a.ConstAt(0, 0), a.ConstAt(1, 1))
+    t2.Mul(a.ConstAt(1, 0), a.ConstAt(0, 1))
     det.Sub(t1, t2)
   } else {
     m := NullMatrix(a.ElementType(), n-1, n-1)
@@ -63,15 +63,15 @@ func determinantNaive(a Matrix) Scalar {
           if j == j1 {
             continue
           }
-          m.At(i-1, j2).Set(a.At(i, j))
+          m.At(i-1, j2).Set(a.ConstAt(i, j))
           j2++;
         }
       }
       if j1 % 2 == 0 {
-        t1.Mul(a.At(0, j1), determinantNaive(m))
+        t1.Mul(a.ConstAt(0, j1), determinantNaive(m))
         det.Add(det, t1)
       } else {
-        t1.Mul(a.At(0, j1), determinantNaive(m))
+        t1.Mul(a.ConstAt(0, j1), determinantNaive(m))
         det.Sub(det, t1)
       }
     }
@@ -79,10 +79,8 @@ func determinantNaive(a Matrix) Scalar {
   return det
 }
 
-func determinantPD(a Matrix, logScale bool, inSitu *InSitu) (Scalar, error) {
+func determinantPD(a ConstMatrix, logScale bool, inSitu *InSitu) (Scalar, error) {
   n, m := a.Dims()
-  r := NullScalar(a.ElementType())
-  t := NullScalar(a.ElementType())
   if n != m {
     panic("Matrix is not a square matrix!")
   }
@@ -90,6 +88,8 @@ func determinantPD(a Matrix, logScale bool, inSitu *InSitu) (Scalar, error) {
   if err != nil {
     return nil, err
   }
+  r := NullScalar(L.ElementType())
+  t := NullScalar(L.ElementType())
   if logScale {
     r.SetValue(0.0)
     for i := 0; i < n; i++ {
@@ -107,7 +107,7 @@ func determinantPD(a Matrix, logScale bool, inSitu *InSitu) (Scalar, error) {
   return r, nil
 }
 
-func determinant(a Matrix, positiveDefinite, logScale bool, inSitu *InSitu) (Scalar, error) {
+func determinant(a ConstMatrix, positiveDefinite, logScale bool, inSitu *InSitu) (Scalar, error) {
   if positiveDefinite {
     return determinantPD(a, logScale, inSitu)
   } else {
@@ -117,7 +117,7 @@ func determinant(a Matrix, positiveDefinite, logScale bool, inSitu *InSitu) (Sca
 
 /* -------------------------------------------------------------------------- */
 
-func Run(a Matrix, args ...interface{}) (Scalar, error) {
+func Run(a ConstMatrix, args ...interface{}) (Scalar, error) {
   positiveDefinite := false
   logScale         := false
   inSitu           := &InSitu{}

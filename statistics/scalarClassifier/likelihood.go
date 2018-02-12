@@ -53,7 +53,7 @@ func (c *LikelihoodClassifier) CloneScalarBatchClassifier() ScalarBatchClassifie
 
 /* -------------------------------------------------------------------------- */
 
-func (c *LikelihoodClassifier) Eval(r Scalar, x Scalar) error {
+func (c *LikelihoodClassifier) Eval(r Scalar, x ConstScalar) error {
   if c.BgDist == nil {
     return c.FgDist.LogPdf(r, x)
   }

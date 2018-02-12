@@ -125,7 +125,7 @@ func (obj *ShapeHmmEstimator) Emissions(gamma []DenseBareRealVector, p ThreadPoo
   return nil
 }
 
-func (obj *ShapeHmmEstimator) Step(meta DenseBareRealVector, tmp []generic.BaumWelchTmp, p ThreadPool) (float64, error) {
+func (obj *ShapeHmmEstimator) Step(meta ConstVector, tmp []generic.BaumWelchTmp, p ThreadPool) (float64, error) {
   hmm1 := obj.hmm1
   hmm2 := obj.hmm2
   return hmm1.Hmm.BaumWelchStep(&hmm1.Hmm, &hmm2.Hmm, obj.data, meta, tmp, p)
@@ -164,7 +164,7 @@ func (obj *ShapeHmmEstimator) SetParameters(parameters Vector) error {
   return obj.hmm1.SetParameters(parameters)
 }
 
-func (obj *ShapeHmmEstimator) SetData(x []Matrix, n int) error {
+func (obj *ShapeHmmEstimator) SetData(x []ConstMatrix, n int) error {
   if data, err := NewShapeHmmDataSet(obj.ScalarType(), x, obj.hmm1.NEDists()); err != nil {
     return err
   } else {
@@ -179,7 +179,7 @@ func (obj *ShapeHmmEstimator) SetData(x []Matrix, n int) error {
   return nil
 }
 
-func (obj *ShapeHmmEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *ShapeHmmEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   data     := obj.data
   nRecords := data.GetNRecords()
   nMapped  := data.GetNMapped()
@@ -194,7 +194,7 @@ func (obj *ShapeHmmEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) 
   return generic.BaumWelchAlgorithm(obj, gamma, nRecords, nData, nMapped, obj.hmm1.NStates(), obj.hmm1.NEDists(), obj.epsilon, obj.maxSteps, p, obj.args...)
 }
 
-func (obj *ShapeHmmEstimator) EstimateOnData(x []Matrix, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *ShapeHmmEstimator) EstimateOnData(x []ConstMatrix, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, len(x)); err != nil {
     return err
   }

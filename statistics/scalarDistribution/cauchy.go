@@ -67,7 +67,7 @@ func (obj *CauchyDistribution) ScalarType() ScalarType {
   return obj.Mu.Type()
 }
 
-func (obj *CauchyDistribution) LogPdf(r Scalar, x Scalar) error {
+func (obj *CauchyDistribution) LogPdf(r Scalar, x ConstScalar) error {
   r.Sub(x, obj.Mu)
   r.Mul(r, r)
   r.Add(r, obj.s2)
@@ -77,7 +77,7 @@ func (obj *CauchyDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (obj *CauchyDistribution) Pdf(r Scalar, x Scalar) error {
+func (obj *CauchyDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := obj.LogPdf(r, x); err != nil {
     return err
   }

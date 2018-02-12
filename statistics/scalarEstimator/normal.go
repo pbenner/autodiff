@@ -88,7 +88,7 @@ func (obj *NormalEstimator) Initialize(p ThreadPool) error {
   return nil
 }
 
-func (obj *NormalEstimator) NewObservation(x, gamma Scalar, p ThreadPool) error {
+func (obj *NormalEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
   if gamma == nil {
     x := x.GetValue()
@@ -138,7 +138,7 @@ func (obj *NormalEstimator) updateEstimate() error {
   return nil
 }
 
-func (obj *NormalEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *NormalEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   g := p.NewJobGroup()
   x := obj.x
 
@@ -150,7 +150,7 @@ func (obj *NormalEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) er
   if gamma != nil {
     obj.gamma_max = math.Inf(-1)
     for i := 0; i < gamma.Dim(); i++ {
-      if g := gamma.At(i).GetValue(); obj.gamma_max < g {
+      if g := gamma.ConstAt(i).GetValue(); obj.gamma_max < g {
         obj.gamma_max = g
       }
     }
@@ -159,14 +159,14 @@ func (obj *NormalEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) er
   //////////////////////////////////////////////////////////////////////////////
   if gamma == nil {
     if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.At(i), nil, p)
+      obj.NewObservation(x.ConstAt(i), nil, p)
       return nil
     }); err != nil {
       return err
     }
   } else {
     if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.At(i), gamma.At(i), p)
+      obj.NewObservation(x.ConstAt(i), gamma.ConstAt(i), p)
       return nil
     }); err != nil {
       return err
@@ -182,7 +182,7 @@ func (obj *NormalEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) er
   return nil
 }
 
-func (obj *NormalEstimator) EstimateOnData(x Vector, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *NormalEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, x.Dim()); err != nil {
     return err
   }

@@ -91,7 +91,7 @@ func (dist *BetaDistribution) ScalarType() ScalarType {
   return dist.Alpha.Type()
 }
 
-func (dist *BetaDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *BetaDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if dist.LogScale {
     if v := x.GetValue(); v > 0.0 {
       r.SetValue(math.Inf(-1))
@@ -151,7 +151,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *BetaDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *BetaDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

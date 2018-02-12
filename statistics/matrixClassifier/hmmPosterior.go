@@ -45,7 +45,7 @@ func (obj HmmPosterior) Dims() (int, int) {
   return obj.Hmm.Dims()
 }
 
-func (obj HmmPosterior) Eval(r Vector, x Matrix) error {
+func (obj HmmPosterior) Eval(r Vector, x ConstMatrix) error {
   m, _ := x.Dims()
   if r.Dim() != m {
     return fmt.Errorf("r has invalid length")

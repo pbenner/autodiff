@@ -74,7 +74,7 @@ func (dist *GeneralizedGammaDistribution) ScalarType() ScalarType {
   return dist.A.Type()
 }
 
-func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if v := x.GetValue(); v <= 0.0 || math.IsInf(v, 1) {
     r.SetValue(math.Inf(-1))
     return nil
@@ -90,7 +90,7 @@ func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

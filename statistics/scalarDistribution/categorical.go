@@ -71,12 +71,12 @@ func (dist *CategoricalDistribution) ScalarType() ScalarType {
   return dist.Theta.ElementType()
 }
 
-func (dist *CategoricalDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *CategoricalDistribution) LogPdf(r Scalar, x ConstScalar) error {
   r.Set(dist.Theta.At(int(x.GetValue())))
   return nil
 }
 
-func (dist *CategoricalDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *CategoricalDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -84,7 +84,7 @@ func (dist *CategoricalDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *CategoricalDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *CategoricalDistribution) LogCdf(r Scalar, x ConstScalar) error {
   r.Reset()
   for i := 0; i <= int(x.GetValue()); i++ {
     r.LogAdd(r, dist.Theta.At(i), dist.t)
@@ -92,7 +92,7 @@ func (dist *CategoricalDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *CategoricalDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *CategoricalDistribution) Cdf(r Scalar, x ConstScalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

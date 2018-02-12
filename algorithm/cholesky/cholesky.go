@@ -41,7 +41,7 @@ type ForcePD struct {
 
 /* -------------------------------------------------------------------------- */
 
-func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
+func Run(a ConstMatrix, args ...interface{}) (Matrix, Matrix, error) {
   n, m := a.Dims()
   if n != m {
     panic("Cholesky(): Not a square matrix!")

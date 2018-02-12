@@ -25,7 +25,8 @@ import "encoding/json"
 /* -------------------------------------------------------------------------- */
 
 // this allows to idenfity the type of a scalar
-type ScalarType reflect.Type
+type      ScalarType reflect.Type
+type ConstScalarType reflect.Type
 
 type ConstScalarState interface {
   // read access
@@ -131,19 +132,19 @@ type Scalar interface {
 type rtype map[ScalarType]func(float64) Scalar
 
 // initialize empty registry
-var registry rtype = make(rtype)
+var scalarRegistry rtype = make(rtype)
 
 // scalar types can be registered so that the constructors below can be used for
 // all types
 func RegisterScalar(t ScalarType, constructor func(float64) Scalar) {
-  registry[t] = constructor
+  scalarRegistry[t] = constructor
 }
 
 /* constructors
  * -------------------------------------------------------------------------- */
 
 func ScalarConstructor(t ScalarType) func(float64) Scalar {
-  f, ok := registry[t]
+  f, ok := scalarRegistry[t]
   if !ok {
     panic(fmt.Sprintf("invalid scalar type `%v'", t))
   }
@@ -151,7 +152,7 @@ func ScalarConstructor(t ScalarType) func(float64) Scalar {
 }
 
 func NewScalar(t ScalarType, value float64) Scalar {
-  f, ok := registry[t]
+  f, ok := scalarRegistry[t]
   if !ok {
     panic(fmt.Sprintf("invalid scalar type `%v'", t))
   }
@@ -159,7 +160,7 @@ func NewScalar(t ScalarType, value float64) Scalar {
 }
 
 func NullScalar(t ScalarType) Scalar {
-  f, ok := registry[t]
+  f, ok := scalarRegistry[t]
   if !ok {
     panic(fmt.Sprintf("invalid scalar type `%v'", t))
   }

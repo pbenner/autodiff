@@ -28,7 +28,7 @@ import . "github.com/pbenner/autodiff"
 
 type ShapeHmmDataRecord struct {
   Edist []MatrixPdf
-  X       Matrix
+  X       ConstMatrix
 }
 
 func (obj ShapeHmmDataRecord) MapIndex(k int) int {
@@ -47,7 +47,7 @@ func (obj ShapeHmmDataRecord) LogPdf(r Scalar, c, k int) error {
   j := k - n/2 + n
 
   if l, _ := obj.X.Dims(); i >= 0 && j < l {
-    return obj.Edist[c].LogPdf(r, obj.X.Slice(i, j, 0, m))
+    return obj.Edist[c].LogPdf(r, obj.X.ConstSlice(i, j, 0, m))
   } else {
     r.SetValue(0.0)
     return nil

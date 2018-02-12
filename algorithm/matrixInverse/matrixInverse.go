@@ -46,13 +46,14 @@ type InSitu struct {
 
 // compute the inverse of a matrix with a
 // gradient descent method
-func mInverseGradient(matrix Matrix) (Matrix, error) {
+func mInverseGradient(matrix ConstMatrix) (Matrix, error) {
   rows, cols := matrix.Dims()
   if rows != cols {
     panic("MInverse(): Not a square matrix!")
   }
   I := IdentityMatrix(matrix.ElementType(), rows)
-  r := matrix.CloneMatrix()
+  r := NullMatrix(BareRealType, rows, cols)
+  r.Set(matrix)
   s := NewScalar(matrix.ElementType(), 0.0)
   // objective function
   f := func(x Vector) (Scalar, error) {
@@ -65,7 +66,7 @@ func mInverseGradient(matrix Matrix) (Matrix, error) {
   return r, nil
 }
 
-func mInverse(matrix Matrix, inSitu *InSitu, args ...interface{}) (Matrix, error) {
+func mInverse(matrix ConstMatrix, inSitu *InSitu, args ...interface{}) (Matrix, error) {
   a := inSitu.A
   x := inSitu.Id
   b := inSitu.B
@@ -83,7 +84,7 @@ func mInverse(matrix Matrix, inSitu *InSitu, args ...interface{}) (Matrix, error
   }
 }
 
-func mInversePositiveDefinite(matrix Matrix, inSitu *InSitu, args ...interface{}) (Matrix, error) {
+func mInversePositiveDefinite(matrix ConstMatrix, inSitu *InSitu, args ...interface{}) (Matrix, error) {
   a, _, err := cholesky.Run(matrix, &inSitu.Cholesky)
   if err != nil {
     return nil, err
@@ -105,7 +106,7 @@ func mInversePositiveDefinite(matrix Matrix, inSitu *InSitu, args ...interface{}
   }
 }
 
-func mInverseUpperTriangular(matrix Matrix, inSitu *InSitu, args ...interface{}) (Matrix, error) {
+func mInverseUpperTriangular(matrix ConstMatrix, inSitu *InSitu, args ...interface{}) (Matrix, error) {
   a := inSitu.A
   x := inSitu.Id
   b := inSitu.B
@@ -126,7 +127,7 @@ func mInverseUpperTriangular(matrix Matrix, inSitu *InSitu, args ...interface{})
 
 /* -------------------------------------------------------------------------- */
 
-func Run(matrix Matrix, args ...interface{}) (Matrix, error) {
+func Run(matrix ConstMatrix, args ...interface{}) (Matrix, error) {
   rows, cols := matrix.Dims()
   if rows != cols {
     panic("not a square matrix")

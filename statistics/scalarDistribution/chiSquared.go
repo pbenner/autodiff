@@ -35,9 +35,8 @@ type ChiSquaredDistribution struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewChiSquaredDistribution(k_ float64) (*ChiSquaredDistribution, error) {
+func NewChiSquaredDistribution(t ScalarType, k_ float64) (*ChiSquaredDistribution, error) {
   // we cannot differentiate with respect to k, so use bare reals
-  t  := BareRealType
   k  := NewScalar(t, k_)
   c1 := NewScalar(t, 1.0)
   c2 := NewScalar(t, 2.0)
@@ -54,7 +53,7 @@ func NewChiSquaredDistribution(k_ float64) (*ChiSquaredDistribution, error) {
 /* -------------------------------------------------------------------------- */
 
 func (dist *ChiSquaredDistribution) Clone() *ChiSquaredDistribution {
-  r, _ := NewChiSquaredDistribution(dist.K.GetValue())
+  r, _ := NewChiSquaredDistribution(dist.ScalarType(), dist.K.GetValue())
   return r
 }
 
@@ -68,8 +67,8 @@ func (dist *ChiSquaredDistribution) ScalarType() ScalarType {
   return dist.K.Type()
 }
 
-func (dist *ChiSquaredDistribution) LogPdf(r Scalar, x Scalar) error {
-  t := NewScalar(x.Type(), 0.0)
+func (dist *ChiSquaredDistribution) LogPdf(r Scalar, x ConstScalar) error {
+  t := NewScalar(dist.ScalarType(), 0.0)
   r.Log(x)
   r.Mul(r, dist.E)
   t.Div(x, dist.C)
@@ -78,7 +77,7 @@ func (dist *ChiSquaredDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ChiSquaredDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *ChiSquaredDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -86,7 +85,7 @@ func (dist *ChiSquaredDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ChiSquaredDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *ChiSquaredDistribution) LogCdf(r Scalar, x ConstScalar) error {
   if err := dist.Cdf(r, x); err != nil {
     return err
   }
@@ -94,7 +93,7 @@ func (dist *ChiSquaredDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ChiSquaredDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *ChiSquaredDistribution) Cdf(r Scalar, x ConstScalar) error {
   r.Div(x, dist.C)
   r.GammaP(dist.L.GetValue(), r)
   return nil
@@ -110,7 +109,7 @@ func (dist *ChiSquaredDistribution) GetParameters() Vector {
 
 func (dist *ChiSquaredDistribution) SetParameters(parameters Vector) error {
   k := parameters.At(0)
-  if tmp, err := NewChiSquaredDistribution(k.GetValue()); err != nil {
+  if tmp, err := NewChiSquaredDistribution(dist.ScalarType(), k.GetValue()); err != nil {
     return err
   } else {
     *dist = *tmp
@@ -125,7 +124,7 @@ func (dist *ChiSquaredDistribution) ImportConfig(config ConfigDistribution, t Sc
   if parameters, ok := config.GetParametersAsFloats(); !ok {
     return fmt.Errorf("invalid config file")
   } else {
-    if tmp, err := NewChiSquaredDistribution(parameters[0]); err != nil {
+    if tmp, err := NewChiSquaredDistribution(t, parameters[0]); err != nil {
       return err
     } else {
       *dist = *tmp

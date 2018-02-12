@@ -67,14 +67,14 @@ func NIL_VECTOR(length int) VECTOR_TYPE {
 }
 
 // Convert vector type.
-func AS_VECTOR(v Vector) VECTOR_TYPE {
+func AS_VECTOR(v ConstVector) VECTOR_TYPE {
   switch v_ := v.(type) {
   case VECTOR_TYPE:
     return v_
   }
   r := NULL_VECTOR(v.Dim())
   for i := 0; i < v.Dim(); i++ {
-    r.AT(i).Set(v.At(i))
+    r.AT(i).Set(v.ConstAt(i))
   }
   return r
 }

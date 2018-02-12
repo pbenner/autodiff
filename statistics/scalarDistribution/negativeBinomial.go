@@ -88,7 +88,7 @@ func (dist *NegativeBinomialDistribution) ScalarType() ScalarType {
   return dist.R.Type()
 }
 
-func (dist *NegativeBinomialDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *NegativeBinomialDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if v := x.GetValue(); v < 0.0 || math.Floor(v) != v {
     r.SetValue(math.Inf(-1))
     return nil
@@ -112,7 +112,7 @@ func (dist *NegativeBinomialDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *NegativeBinomialDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *NegativeBinomialDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

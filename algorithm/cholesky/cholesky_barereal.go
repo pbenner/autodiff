@@ -21,7 +21,7 @@ import "fmt"
 import "math"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
-func cholesky_barereal(A, L *DenseBareRealMatrix, s, t *BareReal) (*DenseBareRealMatrix, *DenseBareRealMatrix, error) {
+func cholesky_barereal(A *DenseBareRealMatrix, L *DenseBareRealMatrix, s, t *BareReal) (*DenseBareRealMatrix, *DenseBareRealMatrix, error) {
   n, _ := A.Dims()
   for i := 0; i < n; i++ {
     for j := 0; j < (i+1); j++ {
@@ -43,7 +43,7 @@ func cholesky_barereal(A, L *DenseBareRealMatrix, s, t *BareReal) (*DenseBareRea
   }
   return L, nil, nil
 }
-func cholesky_ldl_barereal(A, L, D *DenseBareRealMatrix, s, t *BareReal) (*DenseBareRealMatrix, *DenseBareRealMatrix, error) {
+func cholesky_ldl_barereal(A *DenseBareRealMatrix, L, D *DenseBareRealMatrix, s, t *BareReal) (*DenseBareRealMatrix, *DenseBareRealMatrix, error) {
   n, _ := A.Dims()
   c := t
   for j := 0; j < n; j++ {
@@ -74,7 +74,7 @@ func cholesky_ldl_barereal(A, L, D *DenseBareRealMatrix, s, t *BareReal) (*Dense
   }
   return L, D, nil
 }
-func cholesky_ldl_forcepd_barereal(A, L, D *DenseBareRealMatrix, s, t *BareReal) (*DenseBareRealMatrix, *DenseBareRealMatrix, error) {
+func cholesky_ldl_forcepd_barereal(A *DenseBareRealMatrix, L, D *DenseBareRealMatrix, s, t *BareReal) (*DenseBareRealMatrix, *DenseBareRealMatrix, error) {
   n, _ := A.Dims()
   // compute beta and gamma
   beta := 0.0

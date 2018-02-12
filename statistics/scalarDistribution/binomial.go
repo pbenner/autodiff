@@ -100,7 +100,7 @@ func (dist *BinomialDistribution) SetN(n int) error {
   return nil
 }
 
-func (dist *BinomialDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *BinomialDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if v := x.GetValue(); v < 0.0 || math.Floor(v) != v {
     r.SetValue(math.Inf(-1))
     return nil
@@ -134,7 +134,7 @@ func (dist *BinomialDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *BinomialDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *BinomialDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

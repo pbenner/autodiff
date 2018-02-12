@@ -26,7 +26,7 @@ import . "github.com/pbenner/threadpool"
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta DenseBareRealVector, tmp *BaumWelchTmp, p ThreadPool) error {
+func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta ConstVector, tmp *BaumWelchTmp, p ThreadPool) error {
   n := data.GetN()
   m := obj.M
   // get temporary memory
@@ -93,7 +93,7 @@ func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta DenseB
         // normalize gamma
         gammaTmp.AT(i).Sub(gammaTmp.AT(i), t1)
         if meta != nil {
-          gammaTmp.AT(i).ADD(gammaTmp.AT(i), meta.AT(l))
+          gammaTmp.AT(i).Add(gammaTmp.AT(i), meta.ConstAt(l))
         }
         // sum up gamma
         gamma[c].AT(l).LOGADD(gamma[c].AT(l), gammaTmp.AT(i), t3)
@@ -147,7 +147,7 @@ func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta DenseB
   return nil
 }
 
-func (obj *Hmm) BaumWelchStep(hmm1, hmm2 *Hmm, data HmmDataSet, meta DenseBareRealVector, tmp []BaumWelchTmp, p ThreadPool) (float64, error) {
+func (obj *Hmm) BaumWelchStep(hmm1, hmm2 *Hmm, data HmmDataSet, meta ConstVector, tmp []BaumWelchTmp, p ThreadPool) (float64, error) {
   if obj.finalStates != nil && len(obj.finalStates) > 1 {
     return math.Inf(-1), fmt.Errorf("cannot optimize models with more than one final state")
   }

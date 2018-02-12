@@ -57,7 +57,7 @@ type Matrix interface {
   ResetDerivatives    ()
   // basic methods
   CloneMatrix         ()                   Matrix
-  Set                 (Matrix)
+  Set                 (ConstMatrix)
   Row                 (i int)              Vector
   Col                 (j int)              Vector
   Diag                ()                   Vector

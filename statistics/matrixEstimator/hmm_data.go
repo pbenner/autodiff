@@ -32,7 +32,7 @@ import . "github.com/pbenner/threadpool"
 
 type HmmDataSet interface {
   generic.HmmDataSet
-  GetMappedData () []Vector
+  GetMappedData () []ConstVector
   EvaluateLogPdf(edist []VectorPdf, pool ThreadPool) error
 }
 
@@ -61,7 +61,7 @@ func (obj HmmStdDataRecord) LogPdf(r Scalar, c, k int) error {
 
 type HmmStdDataSet struct {
   // matrix of observations
-  values   []Vector
+  values   []ConstVector
   offsets  []int
   // matrix with emission probabilities, each row corresponds
   // to an emission distribution and each column to a unique
@@ -71,17 +71,17 @@ type HmmStdDataSet struct {
   n int
 }
 
-func NewHmmStdDataSet(t ScalarType, x []Matrix, k int) (*HmmStdDataSet, error) {
+func NewHmmStdDataSet(t ScalarType, x []ConstMatrix, k int) (*HmmStdDataSet, error) {
   offsets := make([]int, len(x))
-  values  := []Vector{}
-  n       := 0          // number of data points
+  values  := []ConstVector{}
+  n       := 0           // number of data points
   _, m    := x[0].Dims() // dimension of data points
   for d := 0; d < len(x); d++ {
     if xn, xm := x[d].Dims(); xm != m {
       return nil, fmt.Errorf("data has inconsistent dimensions")
     } else {
       for i := 0; i < xn; i++ {
-        values = append(values, x[d].Row(i))
+        values = append(values, x[d].ConstRow(i))
       }
       offsets[d] = n
       n         += xn
@@ -95,7 +95,7 @@ func NewHmmStdDataSet(t ScalarType, x []Matrix, k int) (*HmmStdDataSet, error) {
   return &r, nil
 }
 
-func (obj *HmmStdDataSet) GetMappedData() []Vector {
+func (obj *HmmStdDataSet) GetMappedData() []ConstVector {
   return obj.values
 }
 

@@ -169,8 +169,8 @@ func (r *DenseBareRealMatrix) MdotM(a, b ConstMatrix) Matrix {
   if n1 != n || m2 != m || m1 != n2 {
     panic("matrix dimensions do not match!")
   }
-  t1 := NullScalar(a.ElementType())
-  t2 := NullScalar(a.ElementType())
+  t1 := NullScalar(r.ElementType())
+  t2 := NullScalar(r.ElementType())
   if r.storageLocation() == b.storageLocation() {
     t3 := r.tmp1[0:n]
     for j := 0; j < m; j++ {

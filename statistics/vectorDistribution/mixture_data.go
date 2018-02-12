@@ -28,7 +28,7 @@ import . "github.com/pbenner/autodiff"
 
 type MixtureDataRecord struct {
   Edist []VectorPdf
-  X       Vector
+  X       ConstVector
 }
 
 func (obj MixtureDataRecord) LogPdf(r Scalar, c int) error {

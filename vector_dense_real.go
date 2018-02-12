@@ -56,14 +56,14 @@ func nilDenseRealVector(length int) DenseRealVector {
   return make(DenseRealVector, length)
 }
 // Convert vector type.
-func AsDenseRealVector(v Vector) DenseRealVector {
+func AsDenseRealVector(v ConstVector) DenseRealVector {
   switch v_ := v.(type) {
   case DenseRealVector:
     return v_
   }
   r := NullDenseRealVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {
-    r.AT(i).Set(v.At(i))
+    r.AT(i).Set(v.ConstAt(i))
   }
   return r
 }

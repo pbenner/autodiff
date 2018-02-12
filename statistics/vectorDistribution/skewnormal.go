@@ -124,12 +124,12 @@ func (dist *SkewNormalDistribution) ScalarType() ScalarType {
   return dist.Xi.ElementType()
 }
 
-func (dist *SkewNormalDistribution) LogPdf(r0 Scalar, x Vector) error {
+func (dist *SkewNormalDistribution) LogPdf(r0 Scalar, x ConstVector) error {
   n := dist.Normal1.Dim()
   z := dist.z
   t := dist.t
   for i := 0; i < n; i++ {
-    t.Sub(x.At(i), dist.Normal1.Mu.At(i))
+    t.Sub(x.ConstAt(i), dist.Normal1.Mu.At(i))
     z.At(i).Div(t, dist.Scale.At(i))
   }
   t.VdotV(dist.Alpha, z)
@@ -150,7 +150,7 @@ func (dist *SkewNormalDistribution) LogPdf(r0 Scalar, x Vector) error {
   return nil
 }
 
-func (dist *SkewNormalDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *SkewNormalDistribution) Pdf(r Scalar, x ConstVector) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

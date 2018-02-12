@@ -96,7 +96,7 @@ func NIL_MATRIX(rows, cols int) *MATRIX_TYPE {
   return &m
 }
 
-func AS_MATRIX(matrix Matrix) *MATRIX_TYPE {
+func AS_MATRIX(matrix ConstMatrix) *MATRIX_TYPE {
   switch matrix_ := matrix.(type) {
   case *MATRIX_TYPE:
     return matrix_
@@ -105,7 +105,7 @@ func AS_MATRIX(matrix Matrix) *MATRIX_TYPE {
   r := NULL_MATRIX(n, m)
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.AT(i,j).Set(matrix.At(i,j))
+      r.AT(i,j).Set(matrix.ConstAt(i,j))
     }
   }
   return r
@@ -354,7 +354,7 @@ func (matrix *MATRIX_TYPE) ResetDerivatives() {
   }
 }
 
-func (a *MATRIX_TYPE) Set(b Matrix) {
+func (a *MATRIX_TYPE) Set(b ConstMatrix) {
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n2 || m1 != m2 {
@@ -362,7 +362,7 @@ func (a *MATRIX_TYPE) Set(b Matrix) {
   }
   for i := 0; i < n1; i++ {
     for j := 0; j < m1; j++ {
-      a.At(i, j).Set(b.At(i, j).CloneScalar())
+      a.At(i, j).Set(b.ConstAt(i, j))
     }
   }
 }

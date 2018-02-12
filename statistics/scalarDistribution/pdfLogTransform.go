@@ -55,7 +55,7 @@ func (obj *PdfLogTransform) CloneScalarPdf() ScalarPdf {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *PdfLogTransform) LogPdf(r Scalar, x Scalar) error {
+func (obj *PdfLogTransform) LogPdf(r Scalar, x ConstScalar) error {
   if v := x.GetValue(); v < 0.0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -72,7 +72,7 @@ func (obj *PdfLogTransform) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (obj *PdfLogTransform) Pdf(r Scalar, x Scalar) error {
+func (obj *PdfLogTransform) Pdf(r Scalar, x ConstScalar) error {
   if err := obj.LogPdf(r, x); err != nil {
     return err
   }

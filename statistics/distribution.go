@@ -37,20 +37,20 @@ type BasicDistribution interface {
 
 type ScalarPdf interface {
   BasicDistribution
-  LogPdf(r Scalar, x Scalar) error
+  LogPdf(r Scalar, x ConstScalar) error
   CloneScalarPdf() ScalarPdf
 }
 
 type VectorPdf interface {
   BasicDistribution
-  LogPdf(r Scalar, x Vector) error
+  LogPdf(r Scalar, x ConstVector) error
   Dim() int
   CloneVectorPdf() VectorPdf
 }
 
 type MatrixPdf interface {
   BasicDistribution
-  LogPdf(r Scalar, x Matrix) error
+  LogPdf(r Scalar, x ConstMatrix) error
   Dims() (int, int)
   CloneMatrixPdf() MatrixPdf
 }

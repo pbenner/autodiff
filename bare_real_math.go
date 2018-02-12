@@ -370,10 +370,9 @@ func (r *BareReal) VdotV(a, b ConstVector) Scalar {
 
 func (r *BareReal) Vnorm(a ConstVector) Scalar {
   r.Reset()
-  c := NewBareReal(2.0)
-  t := NullScalar(a.ElementType())
+  t := NewBareReal(0.0)
   for i := 0; i < a.Dim(); i++ {
-    t.Pow(a.ConstAt(i), c)
+    t.Pow(a.ConstAt(i), ConstReal(2.0))
     r.Add(r, t)
   }
   r.Sqrt(r)

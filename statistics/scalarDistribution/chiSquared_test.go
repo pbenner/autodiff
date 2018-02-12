@@ -28,7 +28,7 @@ import . "github.com/pbenner/autodiff"
 
 func TestChiSquaredDistribution1(t *testing.T) {
 
-  d, _ := NewChiSquaredDistribution(2.0)
+  d, _ := NewChiSquaredDistribution(RealType, 2.0)
 
   x := NewReal(10.214); Variables(2,x)
   y := NewReal(0.0)
@@ -47,7 +47,7 @@ func TestChiSquaredDistribution1(t *testing.T) {
 
 func TestChiSquaredDistribution2(t *testing.T) {
 
-  d, _ := NewChiSquaredDistribution(2.0)
+  d, _ := NewChiSquaredDistribution(RealType, 2.0)
 
   x := NewReal(4.817); Variables(2,x)
   y := NewReal(0.0)

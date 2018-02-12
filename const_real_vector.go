@@ -55,7 +55,7 @@ func (v ConstRealVector) GetValues() []float64 {
 }
 
 func (v ConstRealVector) ElementType() ScalarType {
-  return RealType
+  return BareRealType
 }
 
 /* -------------------------------------------------------------------------- */

@@ -25,18 +25,18 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type ScalarClassifier interface {
-  Eval(r Vector, x Scalar) error
+  Eval(r Vector, x ConstScalar) error
   CloneScalarClassifier() ScalarClassifier
 }
 
 type VectorClassifier interface {
-  Eval(r Vector, x Vector) error
+  Eval(r Vector, x ConstVector) error
   Dim() int
   CloneVectorClassifier() VectorClassifier
 }
 
 type MatrixClassifier interface {
-  Eval(r Vector, x Matrix) error
+  Eval(r Vector, x ConstMatrix) error
   Dims() (int, int)
   CloneMatrixClassifier() MatrixClassifier
 }
@@ -44,18 +44,18 @@ type MatrixClassifier interface {
 /* -------------------------------------------------------------------------- */
 
 type ScalarBatchClassifier interface {
-  Eval(r Scalar, x Scalar) error
+  Eval(r Scalar, x ConstScalar) error
   CloneScalarBatchClassifier() ScalarBatchClassifier
 }
 
 type VectorBatchClassifier interface {
-  Eval(r Scalar, x Vector) error
+  Eval(r Scalar, x ConstVector) error
   Dim() int
   CloneVectorBatchClassifier() VectorBatchClassifier
 }
 
 type MatrixBatchClassifier interface {
-  Eval(r Scalar, x Matrix) error
+  Eval(r Scalar, x ConstMatrix) error
   Dims() (int, int)
   CloneMatrixBatchClassifier() MatrixBatchClassifier
 }

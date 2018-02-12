@@ -89,7 +89,7 @@ func (dist *GParetoDistribution) ScalarType() ScalarType {
   return dist.Mu.Type()
 }
 
-func (dist *GParetoDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *GParetoDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
     if x.GetValue() < dist.Mu.GetValue() {
@@ -119,7 +119,7 @@ func (dist *GParetoDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GParetoDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *GParetoDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -127,7 +127,7 @@ func (dist *GParetoDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GParetoDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *GParetoDistribution) LogCdf(r Scalar, x ConstScalar) error {
   if dist.Xi.GetValue() >= 0 {
     // xi >= 0
     if x.GetValue() < dist.Mu.GetValue() {
@@ -158,7 +158,7 @@ func (dist *GParetoDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GParetoDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *GParetoDistribution) Cdf(r Scalar, x ConstScalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

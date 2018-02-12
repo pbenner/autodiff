@@ -69,14 +69,14 @@ func (obj *VectorId) ScalarType() ScalarType {
   return obj.Distributions[0].ScalarType()
 }
 
-func (obj *VectorId) LogPdf(r Scalar, x Vector) error {
+func (obj *VectorId) LogPdf(r Scalar, x ConstVector) error {
   if x.Dim() != obj.Dim() {
     return fmt.Errorf("LogPdf(): dimensions do not match (input has dimension `%d' whereas this distribution is of dimension `%d'", x.Dim(), obj.Dim())
   }
   r.Reset()
   for i, j := 0, 0; i < len(obj.Distributions); i++ {
     m := obj.Distributions[i].Dim()
-    if err := obj.Distributions[i].LogPdf(obj.t, x.Slice(j,j+m)); err != nil {
+    if err := obj.Distributions[i].LogPdf(obj.t, x.ConstSlice(j,j+m)); err != nil {
       return err
     }
     r.Add(r, obj.t)

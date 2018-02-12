@@ -82,7 +82,7 @@ func (dist *ParetoDistribution) ScalarType() ScalarType {
   return dist.Lambda.Type()
 }
 
-func (dist *ParetoDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *ParetoDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -96,7 +96,7 @@ func (dist *ParetoDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ParetoDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *ParetoDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -104,7 +104,7 @@ func (dist *ParetoDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ParetoDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *ParetoDistribution) LogCdf(r Scalar, x ConstScalar) error {
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -118,7 +118,7 @@ func (dist *ParetoDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ParetoDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *ParetoDistribution) Cdf(r Scalar, x ConstScalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

@@ -21,7 +21,7 @@ import "fmt"
 import "math"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
-func cholesky_real(A, L *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, *DenseRealMatrix, error) {
+func cholesky_real(A *DenseRealMatrix, L *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, *DenseRealMatrix, error) {
   n, _ := A.Dims()
   for i := 0; i < n; i++ {
     for j := 0; j < (i+1); j++ {
@@ -43,7 +43,7 @@ func cholesky_real(A, L *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, *DenseR
   }
   return L, nil, nil
 }
-func cholesky_ldl_real(A, L, D *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, *DenseRealMatrix, error) {
+func cholesky_ldl_real(A *DenseRealMatrix, L, D *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, *DenseRealMatrix, error) {
   n, _ := A.Dims()
   c := t
   for j := 0; j < n; j++ {
@@ -74,7 +74,7 @@ func cholesky_ldl_real(A, L, D *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, 
   }
   return L, D, nil
 }
-func cholesky_ldl_forcepd_real(A, L, D *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, *DenseRealMatrix, error) {
+func cholesky_ldl_forcepd_real(A *DenseRealMatrix, L, D *DenseRealMatrix, s, t *Real) (*DenseRealMatrix, *DenseRealMatrix, error) {
   n, _ := A.Dims()
   // compute beta and gamma
   beta := 0.0

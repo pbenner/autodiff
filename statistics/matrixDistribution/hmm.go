@@ -87,19 +87,19 @@ func (obj *Hmm) Dims() (int, int) {
   }
 }
 
-func (obj *Hmm) LogPdf(r Scalar, x Matrix) error {
+func (obj *Hmm) LogPdf(r Scalar, x ConstMatrix) error {
   return obj.Hmm.LogPdf(r, HmmDataRecord{obj.Edist, x})
 }
 
-func (obj *Hmm) Posterior(r Scalar, x Matrix, states [][]int) error {
+func (obj *Hmm) Posterior(r Scalar, x ConstMatrix, states [][]int) error {
   return obj.Hmm.Posterior(r, HmmDataRecord{obj.Edist, x}, states)
 }
 
-func (obj *Hmm) PosteriorMarginals(x Matrix) ([]Vector, error) {
+func (obj *Hmm) PosteriorMarginals(x ConstMatrix) ([]Vector, error) {
   return obj.Hmm.PosteriorMarginals(HmmDataRecord{obj.Edist, x})
 }
 
-func (obj *Hmm) Viterbi(x Matrix) ([]int, error) {
+func (obj *Hmm) Viterbi(x ConstMatrix) ([]int, error) {
   return obj.Hmm.Viterbi(HmmDataRecord{obj.Edist, x})
 }
 

@@ -139,7 +139,7 @@ func (dist *TDistribution) Variance() (Vector, error) {
   return m.Diag(), nil
 }
 
-func (dist *TDistribution) LogPdf(r Scalar, x Vector) error {
+func (dist *TDistribution) LogPdf(r Scalar, x ConstVector) error {
   y := dist.t1
   s := dist.t2
   // 1 + 1/nu (x-mu)^T Sigma^-1 (x-mu)
@@ -156,7 +156,7 @@ func (dist *TDistribution) LogPdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *TDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *TDistribution) Pdf(r Scalar, x ConstVector) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

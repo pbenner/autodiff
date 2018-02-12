@@ -120,11 +120,11 @@ func (dist *NormalDistribution) Variance() Vector {
   return dist.Sigma.Diag()
 }
 
-func (dist *NormalDistribution) LogH(x Vector) Scalar {
+func (dist *NormalDistribution) LogH(x ConstVector) Scalar {
   return dist.logH
 }
 
-func (dist *NormalDistribution) LogPdf(r Scalar, x Vector) error {
+func (dist *NormalDistribution) LogPdf(r Scalar, x ConstVector) error {
   if x.Dim() != dist.Dim() {
     return fmt.Errorf("input vector has invalid dimension")
   }
@@ -142,7 +142,7 @@ func (dist *NormalDistribution) LogPdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *NormalDistribution) Pdf(r Scalar, x Vector) error {
+func (dist *NormalDistribution) Pdf(r Scalar, x ConstVector) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -150,8 +150,8 @@ func (dist *NormalDistribution) Pdf(r Scalar, x Vector) error {
   return nil
 }
 
-func (dist *NormalDistribution) EllipticCdf(r Scalar, x Vector) error {
-  d, _ := scalarDistribution.NewChiSquaredDistribution(2)
+func (dist *NormalDistribution) EllipticCdf(r Scalar, x ConstVector) error {
+  d, _ := scalarDistribution.NewChiSquaredDistribution(dist.ScalarType(), 2)
   y := dist.t1
   s := dist.t2
   t := dist.t3.At(0)

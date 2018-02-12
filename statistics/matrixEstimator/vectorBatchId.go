@@ -125,14 +125,14 @@ func (obj *VectorBatchId) Initialize(p ThreadPool) error {
   return nil
 }
 
-func (obj *VectorBatchId) NewObservation(x Matrix, gamma Scalar, p ThreadPool) error {
+func (obj *VectorBatchId) NewObservation(x ConstMatrix, gamma ConstScalar, p ThreadPool) error {
   n1, m1 :=   x.Dims()
   n2, m2 := obj.Dims()
   if n1 != n2 || m1 != m2 {
     return fmt.Errorf("data has invalid dimension")
   }
   for i, estimator := range obj.Estimators {
-    if err := estimator.NewObservation(x.Row(i), gamma, p); err != nil {
+    if err := estimator.NewObservation(x.ConstRow(i), gamma, p); err != nil {
       return err
     }
   }

@@ -135,7 +135,7 @@ func (obj *HmmEstimator) Emissions(gamma []DenseBareRealVector, p ThreadPool) er
   return nil
 }
 
-func (obj *HmmEstimator) Step(meta DenseBareRealVector, tmp []generic.BaumWelchTmp, p ThreadPool) (float64, error) {
+func (obj *HmmEstimator) Step(meta ConstVector, tmp []generic.BaumWelchTmp, p ThreadPool) (float64, error) {
   hmm1 := obj.hmm1
   hmm2 := obj.hmm2
   return hmm1.Hmm.BaumWelchStep(&hmm1.Hmm, &hmm2.Hmm, obj.data, meta, tmp, p)
@@ -174,11 +174,11 @@ func (obj *HmmEstimator) SetParameters(parameters Vector) error {
   return obj.hmm1.SetParameters(parameters)
 }
 
-func (obj *HmmEstimator) SetData(x []Vector, n int) error {
+func (obj *HmmEstimator) SetData(x []ConstVector, n int) error {
   // split data into chunks
   //////////////////////////////////////////////////////////////////////////////
   if obj.ChunkSize > 0 {
-    var x_ []Vector
+    var x_ []ConstVector
     for i := 0; i < len(x); i++ {
       m := x[i].Dim()
       for j := 0; j < m; j += obj.ChunkSize {
@@ -187,7 +187,7 @@ func (obj *HmmEstimator) SetData(x []Vector, n int) error {
         if jTo > m {
           jTo = m
         }
-        x_ = append(x_, x[i].Slice(jFrom, jTo))
+        x_ = append(x_, x[i].ConstSlice(jFrom, jTo))
       }
     }
     x = x_
@@ -210,7 +210,7 @@ func (obj *HmmEstimator) SetData(x []Vector, n int) error {
   return nil
 }
 
-func (obj *HmmEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *HmmEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   hook_save    := generic.BaumWelchHook{}
   hook_trace   := generic.BaumWelchHook{}
   hook_verbose := generic.BaumWelchHook{}
@@ -255,7 +255,7 @@ func (obj *HmmEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error
   return generic.BaumWelchAlgorithm(obj, gamma, nRecords, nData, nMapped, obj.hmm1.NStates(), obj.hmm1.NEDists(), obj.epsilon, obj.maxSteps, p, args...)
 }
 
-func (obj *HmmEstimator) EstimateOnData(x []Vector, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *HmmEstimator) EstimateOnData(x []ConstVector, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, len(x)); err != nil {
     return err
   }

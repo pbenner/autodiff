@@ -87,7 +87,7 @@ func (dist *GevDistribution) ScalarType() ScalarType {
   return dist.Mu.Type()
 }
 
-func (dist *GevDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *GevDistribution) LogPdf(r Scalar, x ConstScalar) error {
 
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
@@ -123,7 +123,7 @@ func (dist *GevDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GevDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *GevDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -131,7 +131,7 @@ func (dist *GevDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GevDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *GevDistribution) LogCdf(r Scalar, x ConstScalar) error {
   if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -154,7 +154,7 @@ func (dist *GevDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *GevDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *GevDistribution) Cdf(r Scalar, x ConstScalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

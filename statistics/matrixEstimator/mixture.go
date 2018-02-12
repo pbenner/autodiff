@@ -118,7 +118,7 @@ func (obj *MixtureEstimator) Emissions(gamma []DenseBareRealVector, p ThreadPool
   return nil
 }
 
-func (obj *MixtureEstimator) Step(gamma DenseBareRealVector, tmp []generic.EmTmp, p ThreadPool) (float64, error) {
+func (obj *MixtureEstimator) Step(gamma ConstVector, tmp []generic.EmTmp, p ThreadPool) (float64, error) {
   mixture1 := obj.mixture1
   mixture2 := obj.mixture2
   return mixture1.Mixture.EmStep(&mixture1.Mixture, &mixture2.Mixture, obj.data, gamma, tmp, p)
@@ -156,7 +156,7 @@ func (obj *MixtureEstimator) SetParameters(parameters Vector) error {
   return obj.mixture1.SetParameters(parameters)
 }
 
-func (obj *MixtureEstimator) SetData(x []Matrix, n int) error {
+func (obj *MixtureEstimator) SetData(x []ConstMatrix, n int) error {
   if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
     return err
   } else {
@@ -175,14 +175,14 @@ func (obj *MixtureEstimator) SetData(x []Matrix, n int) error {
   return nil
 }
 
-func (obj *MixtureEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   data     := obj.data
   nMapped  := data.GetNMapped()
   nData    := data.GetN()
   return generic.EmAlgorithm(obj, gamma, nData, nMapped, obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, obj.args...)
 }
 
-func (obj *MixtureEstimator) EstimateOnData(x []Matrix, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *MixtureEstimator) EstimateOnData(x []ConstMatrix, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, len(x)); err != nil {
     return err
   }

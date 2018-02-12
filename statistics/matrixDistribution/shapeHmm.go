@@ -88,7 +88,7 @@ func (obj *ShapeHmm) Dims() (int, int) {
   }
 }
 
-func (obj *ShapeHmm) LogPdf(r Scalar, x Matrix) error {
+func (obj *ShapeHmm) LogPdf(r Scalar, x ConstMatrix) error {
   return obj.Hmm.LogPdf(r, ShapeHmmDataRecord{obj.Edist, x})
 }
 

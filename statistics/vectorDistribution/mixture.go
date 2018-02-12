@@ -81,7 +81,7 @@ func (obj *Mixture) Dim() int {
   }
 }
 
-func (obj *Mixture) LogPdf(r Scalar, x Vector) error {
+func (obj *Mixture) LogPdf(r Scalar, x ConstVector) error {
   return obj.Mixture.LogPdf(r, MixtureDataRecord{obj.Edist, x})
 }
 

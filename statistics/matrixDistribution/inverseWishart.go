@@ -158,7 +158,7 @@ func (obj *InverseWishartDistribution) Variance() (Matrix, error) {
   return m, nil
 }
 
-func (obj *InverseWishartDistribution) LogPdf(r Scalar, x Matrix) error {
+func (obj *InverseWishartDistribution) LogPdf(r Scalar, x ConstMatrix) error {
   xInv, err1 := matrixInverse.Run(x, matrixInverse.PositiveDefinite{true}, &obj.inSituInv)
   xDet, err2 := determinant  .Run(x, determinant  .PositiveDefinite{true}, &obj.inSituDet)
   if err1 != nil { return err1 }
@@ -179,7 +179,7 @@ func (obj *InverseWishartDistribution) LogPdf(r Scalar, x Matrix) error {
   return nil
 }
 
-func (obj *InverseWishartDistribution) Pdf(r Scalar, x Matrix) error {
+func (obj *InverseWishartDistribution) Pdf(r Scalar, x ConstMatrix) error {
   if err := obj.LogPdf(r, x); err != nil {
     return err
   }

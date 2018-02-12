@@ -66,7 +66,7 @@ func (dist *LaplaceDistribution) ScalarType() ScalarType {
   return dist.Mu.Type()
 }
 
-func (dist *LaplaceDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *LaplaceDistribution) LogPdf(r Scalar, x ConstScalar) error {
 
   r.Sub(x, dist.Mu)
   r.Abs(r)
@@ -79,7 +79,7 @@ func (dist *LaplaceDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *LaplaceDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *LaplaceDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

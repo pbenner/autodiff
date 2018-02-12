@@ -57,7 +57,7 @@ func TestHmm1(t *testing.T) {
     hmm1 := estimator.GetEstimate()
     x    := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
 
-    if err := estimator.EstimateOnData([]Vector{x}, nil, ThreadPool{}); err != nil {
+    if err := estimator.EstimateOnData([]ConstVector{x}, nil, ThreadPool{}); err != nil {
       t.Error(err)
     } else {
       hmm2 := estimator.GetEstimate()
@@ -81,7 +81,7 @@ func TestHmm1(t *testing.T) {
     hmm1 := estimator.GetEstimate()
     x    := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
 
-    if err := estimator.EstimateOnData([]Vector{x}, nil, ThreadPool{}); err != nil {
+    if err := estimator.EstimateOnData([]ConstVector{x}, nil, ThreadPool{}); err != nil {
       t.Error(err)
     } else {
       hmm2 := estimator.GetEstimate()
@@ -373,7 +373,7 @@ func TestHmm5(t *testing.T) {
   e1.Epsilon = 1e-7
   e2.Epsilon = 1e-7
 
-  x  := []Vector{
+  x  := []ConstVector{
     NewVector(RealType, []float64{0.23092451, 0.23092451, 0.23092451, 5.975650, 5.975650, 5.975650}),
     NewVector(RealType, []float64{1.15626248, 1.15626248, 1.15626248, 3.074001, 3.074001, 3.074001}),
     NewVector(RealType, []float64{0.39937995, 0.39937995, 0.39937995, 3.806467, 3.806467, 3.806467}),
@@ -448,7 +448,7 @@ func TestHmm6(t *testing.T) {
   f1, _ := scalarEstimator.NewMixtureEstimator([]float64{0.5, 0.5}, []ScalarEstimator{e1, e2}, 0, 0)
   f2, _ := scalarEstimator.NewMixtureEstimator([]float64{0.3, 0.7}, []ScalarEstimator{e3, e4}, 0, 0)
 
-  x  := []Vector{
+  x  := []ConstVector{
     NewVector(RealType, []float64{
       // r1 <- rgamma(100,  1,  2)
       // r2 <- rgamma(100, 10, 10)

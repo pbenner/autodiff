@@ -84,7 +84,7 @@ func nilDenseBareRealMatrix(rows, cols int) *DenseBareRealMatrix {
   m.colMax = cols
   return &m
 }
-func AsDenseBareRealMatrix(matrix Matrix) *DenseBareRealMatrix {
+func AsDenseBareRealMatrix(matrix ConstMatrix) *DenseBareRealMatrix {
   switch matrix_ := matrix.(type) {
   case *DenseBareRealMatrix:
     return matrix_
@@ -93,7 +93,7 @@ func AsDenseBareRealMatrix(matrix Matrix) *DenseBareRealMatrix {
   r := NullDenseBareRealMatrix(n, m)
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.AT(i,j).Set(matrix.At(i,j))
+      r.AT(i,j).Set(matrix.ConstAt(i,j))
     }
   }
   return r
@@ -307,7 +307,7 @@ func (matrix *DenseBareRealMatrix) ResetDerivatives() {
     matrix.values[i].ResetDerivatives()
   }
 }
-func (a *DenseBareRealMatrix) Set(b Matrix) {
+func (a *DenseBareRealMatrix) Set(b ConstMatrix) {
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n2 || m1 != m2 {
@@ -315,7 +315,7 @@ func (a *DenseBareRealMatrix) Set(b Matrix) {
   }
   for i := 0; i < n1; i++ {
     for j := 0; j < m1; j++ {
-      a.At(i, j).Set(b.At(i, j).CloneScalar())
+      a.At(i, j).Set(b.ConstAt(i, j))
     }
   }
 }

@@ -84,7 +84,7 @@ func nilDenseRealMatrix(rows, cols int) *DenseRealMatrix {
   m.colMax = cols
   return &m
 }
-func AsDenseRealMatrix(matrix Matrix) *DenseRealMatrix {
+func AsDenseRealMatrix(matrix ConstMatrix) *DenseRealMatrix {
   switch matrix_ := matrix.(type) {
   case *DenseRealMatrix:
     return matrix_
@@ -93,7 +93,7 @@ func AsDenseRealMatrix(matrix Matrix) *DenseRealMatrix {
   r := NullDenseRealMatrix(n, m)
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.AT(i,j).Set(matrix.At(i,j))
+      r.AT(i,j).Set(matrix.ConstAt(i,j))
     }
   }
   return r
@@ -307,7 +307,7 @@ func (matrix *DenseRealMatrix) ResetDerivatives() {
     matrix.values[i].ResetDerivatives()
   }
 }
-func (a *DenseRealMatrix) Set(b Matrix) {
+func (a *DenseRealMatrix) Set(b ConstMatrix) {
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n2 || m1 != m2 {
@@ -315,7 +315,7 @@ func (a *DenseRealMatrix) Set(b Matrix) {
   }
   for i := 0; i < n1; i++ {
     for j := 0; j < m1; j++ {
-      a.At(i, j).Set(b.At(i, j).CloneScalar())
+      a.At(i, j).Set(b.ConstAt(i, j))
     }
   }
 }

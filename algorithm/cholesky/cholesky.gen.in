@@ -27,7 +27,7 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func CHOLESKY(A, L MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, error) {
+func CHOLESKY(A CONST_MATRIX_TYPE, L MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, error) {
   n, _  := A.Dims()
 
   for i := 0; i < n; i++ {
@@ -37,7 +37,7 @@ func CHOLESKY(A, L MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, err
         t.MUL(L.AT(i,k), L.AT(j,k))
         s.ADD(s, t)
       }
-      t.SUB(A.AT(i, j), s)
+      t.SUB(A.CONSTAT(i, j), s)
       if i == j {
         if t.GetValue() < 0.0 {
           return nil, nil, fmt.Errorf("matrix is not positive definite")
@@ -51,7 +51,7 @@ func CHOLESKY(A, L MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, err
   return L, nil, nil
 }
 
-func CHOLESKY_LDL(A, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, error) {
+func CHOLESKY_LDL(A CONST_MATRIX_TYPE, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, error) {
   n, _  := A.Dims()
 
   c := t
@@ -64,7 +64,7 @@ func CHOLESKY_LDL(A, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TY
       t.MUL(D.AT(k,k), t)
       s.ADD(s, t)
     }
-    c.SUB(A.AT(j, j), s)
+    c.SUB(A.CONSTAT(j, j), s)
     D.AT(j,j).Set(c)
     if D.AT(j,j).GetValue() <= 0.0 {
       return nil, nil, fmt.Errorf("matrix is not positive definite")
@@ -78,14 +78,14 @@ func CHOLESKY_LDL(A, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TY
         t.MUL(D.AT(k,k), t)
         s.ADD(s, t)
       }
-      c.SUB(A.AT(i, j), s)
+      c.SUB(A.CONSTAT(i, j), s)
       L.AT(i,j).DIV(c, D.AT(j,j))
     }
   }
   return L, D, nil
 }
 
-func CHOLESKY_LDL_FORCEPD(A, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, error) {
+func CHOLESKY_LDL_FORCEPD(A CONST_MATRIX_TYPE, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, MATRIX_TYPE, error) {
   n, _  := A.Dims()
 
   // compute beta and gamma
@@ -99,11 +99,11 @@ func CHOLESKY_LDL_FORCEPD(A, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, M
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
       if i == j {
-        if r := math.Abs(A.AT(i, i).GetValue()); r > gamma {
+        if r := math.Abs(A.CONSTAT(i, i).GetValue()); r > gamma {
           gamma = r
         }
       } else {
-        if r := math.Abs(A.AT(i, j).GetValue()); r > xi {
+        if r := math.Abs(A.CONSTAT(i, j).GetValue()); r > xi {
           xi = r
         }
       }
@@ -124,7 +124,7 @@ func CHOLESKY_LDL_FORCEPD(A, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, M
       s.ADD(s, t)
     }
     c_jj := D.AT(j,j)
-    c_jj.SUB(A.AT(j,j), s)
+    c_jj.SUB(A.CONSTAT(j,j), s)
     // reset theta_j
     theta = math.Inf(-1)
     // compute c_ij and theta_j
@@ -136,7 +136,7 @@ func CHOLESKY_LDL_FORCEPD(A, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE, M
         s.ADD(s, t)
       }
       // result: L(i,j) <- c_ij
-      L.AT(i,j).SUB(A.AT(i,j), s)
+      L.AT(i,j).SUB(A.CONSTAT(i,j), s)
       // update theta_j
       if r := math.Abs(L.AT(i,j).GetValue()); r > theta {
         theta = r

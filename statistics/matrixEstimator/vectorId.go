@@ -115,7 +115,7 @@ func (obj *VectorId) SetParameters(parameters Vector) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *VectorId) SetData(x []Matrix, n int) error {
+func (obj *VectorId) SetData(x []ConstMatrix, n int) error {
   if x == nil {
     for _, estimator := range obj.Estimators {
       if err := estimator.SetData(nil, n); err != nil {
@@ -133,9 +133,9 @@ func (obj *VectorId) SetData(x []Matrix, n int) error {
     }
     for i, estimator := range obj.Estimators {
       // get column i
-      y := []Vector{}
+      y := []ConstVector{}
       for j := 0; j < len(x); j++ {
-        y = append(y, x[j].Row(i))
+        y = append(y, x[j].ConstRow(i))
       }
       if err := estimator.SetData(y, n); err != nil {
         return err
@@ -164,7 +164,7 @@ func (obj *VectorId) updateEstimate() error {
   return nil
 }
 
-func (obj *VectorId) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *VectorId) Estimate(gamma ConstVector, p ThreadPool) error {
   for _, estimator := range obj.Estimators {
     if err := estimator.Estimate(gamma, p); err != nil {
       return err
@@ -176,7 +176,7 @@ func (obj *VectorId) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
   return nil
 }
 
-func (obj *VectorId) EstimateOnData(x []Matrix, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *VectorId) EstimateOnData(x []ConstMatrix, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, len(x)); err != nil {
     return err
   }

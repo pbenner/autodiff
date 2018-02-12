@@ -111,7 +111,7 @@ func (obj *ScalarId) SetParameters(parameters Vector) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *ScalarId) SetData(x []Vector, n int) error {
+func (obj *ScalarId) SetData(x []ConstVector, n int) error {
   if x == nil {
     for _, estimator := range obj.Estimators {
       if err := estimator.SetData(nil, n); err != nil {
@@ -127,9 +127,9 @@ func (obj *ScalarId) SetData(x []Vector, n int) error {
     }
     for i, estimator := range obj.Estimators {
       // get column i
-      y := NullVector(x[0].ElementType(), 0)
+      y := NullVector(x[0].ElementType(), len(x))
       for j := 0; j < len(x); j++ {
-        y = y.AppendScalar(x[j].At(i))
+        y.At(i).Set(x[j].ConstAt(i))
       }
       if err := estimator.SetData(y, n); err != nil {
         return err
@@ -158,7 +158,7 @@ func (obj *ScalarId) updateEstimate() error {
   return nil
 }
 
-func (obj *ScalarId) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *ScalarId) Estimate(gamma ConstVector, p ThreadPool) error {
   for _, estimator := range obj.Estimators {
     if err := estimator.Estimate(gamma, p); err != nil {
       return err
@@ -170,7 +170,7 @@ func (obj *ScalarId) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
   return nil
 }
 
-func (obj *ScalarId) EstimateOnData(x []Vector, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *ScalarId) EstimateOnData(x []ConstVector, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, len(x)); err != nil {
     return err
   }

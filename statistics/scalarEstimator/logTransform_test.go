@@ -68,7 +68,7 @@ func Test2(t *testing.T) {
   if estimator, err := vectorEstimator.NewHmmEstimator(pi, tr, nil, nil, nil, []ScalarEstimator{e1, e2}, 1e-8, -1); err != nil {
     t.Error(err)
   } else {
-    if err = estimator.EstimateOnData([]Vector{x}, nil, NewThreadPool(2, 100)); err != nil {
+    if err = estimator.EstimateOnData([]ConstVector{x}, nil, NewThreadPool(2, 100)); err != nil {
       t.Error(err); return
     }
     hmm := estimator.GetEstimate()

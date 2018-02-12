@@ -65,7 +65,7 @@ func (dist *PoissonDistribution) ScalarType() ScalarType {
   return dist.Lambda.Type()
 }
 
-func (dist *PoissonDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *PoissonDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if v := x.GetValue(); math.Floor(v) != v {
     return fmt.Errorf("value `%f' is not an integer", v)
   }
@@ -87,7 +87,7 @@ func (dist *PoissonDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *PoissonDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *PoissonDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }

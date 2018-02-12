@@ -65,7 +65,7 @@ func (c *LikelihoodClassifier) Dim() int {
   return c.FgDist.Dim()
 }
 
-func (c *LikelihoodClassifier) Eval(r Scalar, x Vector) error {
+func (c *LikelihoodClassifier) Eval(r Scalar, x ConstVector) error {
   if c.BgDist == nil {
     return c.FgDist.LogPdf(r, x)
   }
@@ -162,7 +162,7 @@ func (c *SymmetricClassifier) CloneVectorBatchClassifier() VectorBatchClassifier
 
 /* -------------------------------------------------------------------------- */
 
-func (c *SymmetricClassifier) Eval(r Scalar, x1 Vector) error {
+func (c *SymmetricClassifier) Eval(r Scalar, x1 ConstVector) error {
   if x1.Dim() != c.Dim() {
     return fmt.Errorf("evaluating classifier failed: input vector has invalid dimension")
   }
@@ -171,7 +171,7 @@ func (c *SymmetricClassifier) Eval(r Scalar, x1 Vector) error {
   r2 := c.r2
   // copy data to x2 in reverse order
   for i := 0; i < x1.Dim(); i++ {
-    x2.At(i).Set(x1.At(x1.Dim()-i-1))
+    x2.At(i).Set(x1.ConstAt(x1.Dim()-i-1))
   }
   if c.BgDist == nil {
     if err := c.FgDist.LogPdf(r1, x1); err != nil {

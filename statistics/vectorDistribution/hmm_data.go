@@ -28,7 +28,7 @@ import . "github.com/pbenner/autodiff"
 
 type HmmDataRecord struct {
   Edist []ScalarPdf
-  X       Vector
+  X       ConstVector
 }
 
 func (obj HmmDataRecord) MapIndex(k int) int {
@@ -40,5 +40,5 @@ func (obj HmmDataRecord) GetN() int {
 }
 
 func (obj HmmDataRecord) LogPdf(r Scalar, c, k int) error {
-  return obj.Edist[c].LogPdf(r, obj.X.At(k))
+  return obj.Edist[c].LogPdf(r, obj.X.ConstAt(k))
 }

@@ -90,13 +90,13 @@ type emCore interface {
   EvaluateLogPdf (p ThreadPool) error
   GetBasicMixture() BasicMixture
   Swap           ()
-  Step           (meta    DenseBareRealVector, tmp []EmTmp, p ThreadPool) (float64, error)
-  Emissions      (gamma []DenseBareRealVector,              p ThreadPool) error
+  Step           (meta    ConstVector, tmp []EmTmp, p ThreadPool) (float64, error)
+  Emissions      (gamma []DenseBareRealVector,      p ThreadPool) error
 }
 
 /* -------------------------------------------------------------------------- */
 
-func emAlgorithm(obj emCore, meta DenseBareRealVector, tmp []EmTmp, epsilon float64, maxSteps int, hooks []EmHook, p ThreadPool) error {
+func emAlgorithm(obj emCore, meta ConstVector, tmp []EmTmp, epsilon float64, maxSteps int, hooks []EmHook, p ThreadPool) error {
   for _, hook := range hooks {
     if hook.Value != nil {
       hook.Value(obj.GetBasicMixture(), 0, math.NaN(), math.NaN())
@@ -139,7 +139,7 @@ func emAlgorithm(obj emCore, meta DenseBareRealVector, tmp []EmTmp, epsilon floa
   return nil
 }
 
-func EmAlgorithm(obj emCore, meta DenseBareRealVector, nData, nMapped, nComponents int, epsilon float64, maxSteps int, p ThreadPool, args... interface{}) error {
+func EmAlgorithm(obj emCore, meta ConstVector, nData, nMapped, nComponents int, epsilon float64, maxSteps int, p ThreadPool, args... interface{}) error {
   // gamma values used for hierarchical EM algorithms
   hooks             := []EmHook{}
   optimizeEmissions := true

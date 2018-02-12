@@ -56,14 +56,14 @@ func nilDenseBareRealVector(length int) DenseBareRealVector {
   return make(DenseBareRealVector, length)
 }
 // Convert vector type.
-func AsDenseBareRealVector(v Vector) DenseBareRealVector {
+func AsDenseBareRealVector(v ConstVector) DenseBareRealVector {
   switch v_ := v.(type) {
   case DenseBareRealVector:
     return v_
   }
   r := NullDenseBareRealVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {
-    r.AT(i).Set(v.At(i))
+    r.AT(i).Set(v.ConstAt(i))
   }
   return r
 }

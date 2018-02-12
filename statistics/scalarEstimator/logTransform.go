@@ -69,7 +69,7 @@ func (obj *LogTransformEstimator) Initialize(p ThreadPool) error {
   return obj.ScalarBatchEstimator.Initialize(p)
 }
 
-func (obj *LogTransformEstimator) NewObservation(x, gamma Scalar, p ThreadPool) error {
+func (obj *LogTransformEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   y := obj.y.At(p.GetThreadId())
   y.Add(x, ConstReal(obj.c))
   y.Log(y)
@@ -79,7 +79,7 @@ func (obj *LogTransformEstimator) NewObservation(x, gamma Scalar, p ThreadPool) 
 /* estimator interface
  * -------------------------------------------------------------------------- */
 
-func (obj *LogTransformEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *LogTransformEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   g := p.NewJobGroup()
   x := obj.x
 
@@ -90,14 +90,14 @@ func (obj *LogTransformEstimator) Estimate(gamma DenseBareRealVector, p ThreadPo
   //////////////////////////////////////////////////////////////////////////////
   if gamma == nil {
     if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.At(i), nil, p)
+      obj.NewObservation(x.ConstAt(i), nil, p)
       return nil
     }); err != nil {
       return err
     }
   } else {
     if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.At(i), gamma.At(i), p)
+      obj.NewObservation(x.ConstAt(i), gamma.ConstAt(i), p)
       return nil
     }); err != nil {
       return err
@@ -111,7 +111,7 @@ func (obj *LogTransformEstimator) Estimate(gamma DenseBareRealVector, p ThreadPo
   return nil
 }
 
-func (obj *LogTransformEstimator) EstimateOnData(x Vector, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *LogTransformEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, x.Dim()); err != nil {
     return err
   }

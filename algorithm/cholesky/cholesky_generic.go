@@ -21,7 +21,7 @@ import "fmt"
 import "math"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
-func cholesky(A, L Matrix, s, t Scalar) (Matrix, Matrix, error) {
+func cholesky(A ConstMatrix, L Matrix, s, t Scalar) (Matrix, Matrix, error) {
   n, _ := A.Dims()
   for i := 0; i < n; i++ {
     for j := 0; j < (i+1); j++ {
@@ -30,7 +30,7 @@ func cholesky(A, L Matrix, s, t Scalar) (Matrix, Matrix, error) {
         t.Mul(L.At(i,k), L.At(j,k))
         s.Add(s, t)
       }
-      t.Sub(A.At(i, j), s)
+      t.Sub(A.ConstAt(i, j), s)
       if i == j {
         if t.GetValue() < 0.0 {
           return nil, nil, fmt.Errorf("matrix is not positive definite")
@@ -43,7 +43,7 @@ func cholesky(A, L Matrix, s, t Scalar) (Matrix, Matrix, error) {
   }
   return L, nil, nil
 }
-func cholesky_ldl(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
+func cholesky_ldl(A ConstMatrix, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
   n, _ := A.Dims()
   c := t
   for j := 0; j < n; j++ {
@@ -54,7 +54,7 @@ func cholesky_ldl(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
       t.Mul(D.At(k,k), t)
       s.Add(s, t)
     }
-    c.Sub(A.At(j, j), s)
+    c.Sub(A.ConstAt(j, j), s)
     D.At(j,j).Set(c)
     if D.At(j,j).GetValue() <= 0.0 {
       return nil, nil, fmt.Errorf("matrix is not positive definite")
@@ -68,13 +68,13 @@ func cholesky_ldl(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
         t.Mul(D.At(k,k), t)
         s.Add(s, t)
       }
-      c.Sub(A.At(i, j), s)
+      c.Sub(A.ConstAt(i, j), s)
       L.At(i,j).Div(c, D.At(j,j))
     }
   }
   return L, D, nil
 }
-func cholesky_ldl_forcepd(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
+func cholesky_ldl_forcepd(A ConstMatrix, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
   n, _ := A.Dims()
   // compute beta and gamma
   beta := 0.0
@@ -86,11 +86,11 @@ func cholesky_ldl_forcepd(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
       if i == j {
-        if r := math.Abs(A.At(i, i).GetValue()); r > gamma {
+        if r := math.Abs(A.ConstAt(i, i).GetValue()); r > gamma {
           gamma = r
         }
       } else {
-        if r := math.Abs(A.At(i, j).GetValue()); r > xi {
+        if r := math.Abs(A.ConstAt(i, j).GetValue()); r > xi {
           xi = r
         }
       }
@@ -110,7 +110,7 @@ func cholesky_ldl_forcepd(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
       s.Add(s, t)
     }
     c_jj := D.At(j,j)
-    c_jj.Sub(A.At(j,j), s)
+    c_jj.Sub(A.ConstAt(j,j), s)
     // reset theta_j
     theta = math.Inf(-1)
     // compute c_ij and theta_j
@@ -122,7 +122,7 @@ func cholesky_ldl_forcepd(A, L, D Matrix, s, t Scalar) (Matrix, Matrix, error) {
         s.Add(s, t)
       }
       // result: L(i,j) <- c_ij
-      L.At(i,j).Sub(A.At(i,j), s)
+      L.At(i,j).Sub(A.ConstAt(i,j), s)
       // update theta_j
       if r := math.Abs(L.At(i,j).GetValue()); r > theta {
         theta = r

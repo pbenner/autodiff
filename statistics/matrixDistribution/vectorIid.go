@@ -63,7 +63,7 @@ func (obj *VectorIid) ScalarType() ScalarType {
   return obj.Distribution.ScalarType()
 }
 
-func (obj *VectorIid) LogPdf(r Scalar, x Matrix) error {
+func (obj *VectorIid) LogPdf(r Scalar, x ConstMatrix) error {
   n1, m1 := obj.Dims()
   n2, m2 :=   x.Dims()
   t := obj.t
@@ -72,7 +72,7 @@ func (obj *VectorIid) LogPdf(r Scalar, x Matrix) error {
   }
   r.Reset()
   for i := 0; i < n1; i++ {
-    if err := obj.Distribution.LogPdf(t, x.Row(i)); err != nil {
+    if err := obj.Distribution.LogPdf(t, x.ConstRow(i)); err != nil {
       return err
     }
     r.Add(r, t)

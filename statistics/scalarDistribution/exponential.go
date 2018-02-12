@@ -68,7 +68,7 @@ func (dist *ExponentialDistribution) ScalarType() ScalarType {
   return dist.Lambda.Type()
 }
 
-func (dist *ExponentialDistribution) LogPdf(r Scalar, x Scalar) error {
+func (dist *ExponentialDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -81,7 +81,7 @@ func (dist *ExponentialDistribution) LogPdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ExponentialDistribution) Pdf(r Scalar, x Scalar) error {
+func (dist *ExponentialDistribution) Pdf(r Scalar, x ConstScalar) error {
   if err := dist.LogPdf(r, x); err != nil {
     return err
   }
@@ -89,7 +89,7 @@ func (dist *ExponentialDistribution) Pdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ExponentialDistribution) LogCdf(r Scalar, x Scalar) error {
+func (dist *ExponentialDistribution) LogCdf(r Scalar, x ConstScalar) error {
   if x.GetValue() < 0 {
     r.SetValue(math.Inf(-1))
     return nil
@@ -104,7 +104,7 @@ func (dist *ExponentialDistribution) LogCdf(r Scalar, x Scalar) error {
   return nil
 }
 
-func (dist *ExponentialDistribution) Cdf(r Scalar, x Scalar) error {
+func (dist *ExponentialDistribution) Cdf(r Scalar, x ConstScalar) error {
   if err := dist.LogCdf(r, x); err != nil {
     return err
   }

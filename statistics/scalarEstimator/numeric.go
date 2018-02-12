@@ -75,7 +75,7 @@ func (obj *NumericEstimator) SetParameters(parameters Vector) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *NumericEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   nt := p.NumberOfThreads()
   x  := obj.x
   n  := obj.n
@@ -112,11 +112,11 @@ func (obj *NumericEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) e
       if erf() != nil {
         return nil
       }
-      if !math.IsInf(gamma.At(k).GetValue(), -1) {
-        if err := f.LogPdf(t, x.At(k)); err != nil {
+      if !math.IsInf(gamma.ConstAt(k).GetValue(), -1) {
+        if err := f.LogPdf(t, x.ConstAt(k)); err != nil {
           return err
         }
-        s.Exp(gamma.At(k))
+        s.Exp(gamma.ConstAt(k))
         t.Mul(t, s)
         r.Add(r, t)
       }
@@ -165,7 +165,7 @@ func (obj *NumericEstimator) Estimate(gamma DenseBareRealVector, p ThreadPool) e
   return nil
 }
 
-func (obj *NumericEstimator) EstimateOnData(x Vector, gamma DenseBareRealVector, p ThreadPool) error {
+func (obj *NumericEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {
   if err := obj.SetData(x, x.Dim()); err != nil {
     return err
   }
