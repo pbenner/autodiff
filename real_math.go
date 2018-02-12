@@ -299,6 +299,14 @@ func (c *Real) Log1p(a ConstScalar) Scalar {
   return c.monadicLazy(a, v0, f1, f2)
 }
 
+func (c *Real) Logistic(a ConstScalar) Scalar {
+  c.Neg(a)
+  c.Exp(c)
+  c.Add(ConstReal(1.0), c)
+  c.Div(ConstReal(1.0), c)
+  return c
+}
+
 func (c *Real) Erf(a ConstScalar) Scalar {
   x := a.GetValue()
   v0 :=  math.Erf(x)

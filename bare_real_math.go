@@ -249,6 +249,15 @@ func (c *BareReal) Log1p(a ConstScalar) Scalar {
   return c
 }
 
+func (c *BareReal) Logistic(a ConstScalar) Scalar {
+  checkBare(a)
+  c.Neg(a)
+  c.Exp(c)
+  c.Add(ConstReal(1.0), c)
+  c.Div(ConstReal(1.0), c)
+  return c
+}
+
 func (c *BareReal) Erf(a ConstScalar) Scalar {
   checkBare(a)
   *c = BareReal(math.Erf(a.GetValue()))

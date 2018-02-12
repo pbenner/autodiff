@@ -22,6 +22,7 @@ Autodiff has two different scalar types. The *Real* type allows to store first a
 | Exp        | Exponential function                                  |
 | Log        | Logarithm                                             |
 | Log1p      | Logarithm of 1+x                                      |
+| Logistic   | Standard logistic function                            |
 | Erf        | Error function                                        |
 | Erfc       | Complementary error function                          |
 | LogErfc    | Log complementary error function                      |

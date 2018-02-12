@@ -103,6 +103,7 @@ type Scalar interface {
   Exp        (ConstScalar)          Scalar
   Log        (ConstScalar)          Scalar
   Log1p      (ConstScalar)          Scalar
+  Logistic   (ConstScalar)          Scalar
   Erf        (ConstScalar)          Scalar
   Erfc       (ConstScalar)          Scalar
   LogErfc    (ConstScalar)          Scalar
