@@ -150,6 +150,9 @@ func (matrix *MATRIX_TYPE) CloneMatrix() Matrix {
  * -------------------------------------------------------------------------- */
 
 func (matrix *MATRIX_TYPE) index(i, j int) int {
+  if i < 0 || j < 0 || i >= matrix.rows || j >= matrix.cols {
+    panic(fmt.Errorf("index (%d,%d) out of bounds for matrix of dimension %dx%d", i, j, matrix.rows, matrix.cols))
+  }
   if matrix.transposed {
     return (matrix.colOffset + j)*matrix.rowMax + (matrix.rowOffset + i)
   } else {
