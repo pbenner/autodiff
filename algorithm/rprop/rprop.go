@@ -20,7 +20,6 @@ package rprop
 
 import   "fmt"
 import   "math"
-import   "errors"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/algorithm"
@@ -84,8 +83,11 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
   }
   // evaluate objective function
   s, err := f(x1)
-  if err != nil || gradient_is_nan(s) {
+  if err != nil {
     return x1, fmt.Errorf("invalid initial value: %v", x1)
+  }
+  if gradient_is_nan(s) {
+    return x1, fmt.Errorf("gradient is NaN for initial value: %v", x1)
   }
   for {
     for i := 0; i < x1.Dim(); i++ {
@@ -126,7 +128,7 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
           }
         }
         if math.IsNaN(x2.At(i).GetValue()) {
-          return x2, errors.New("Gradient descent diverged!")
+          return x2, fmt.Errorf("NaN value detected")
         }
       }
       // evaluate objective function
