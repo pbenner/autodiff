@@ -129,7 +129,7 @@ func (obj *ScalarId) SetData(x []ConstVector, n int) error {
       // get column i
       y := NullVector(x[0].ElementType(), len(x))
       for j := 0; j < len(x); j++ {
-        y.At(i).Set(x[j].ConstAt(i))
+        y.At(j).Set(x[j].ConstAt(i))
       }
       if err := estimator.SetData(y, n); err != nil {
         return err
