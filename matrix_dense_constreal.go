@@ -24,7 +24,7 @@ import "unsafe"
 
 /* -------------------------------------------------------------------------- */
 
-type ConstRealMatrix struct {
+type DenseConstRealMatrix struct {
   values   []float64
   rows       int
   cols       int
@@ -38,8 +38,8 @@ type ConstRealMatrix struct {
 /* constructors
  * -------------------------------------------------------------------------- */
 
-func NewConstRealMatrix(rows, cols int, values []float64) ConstRealMatrix {
-  m := ConstRealMatrix{}
+func NewDenseConstRealMatrix(rows, cols int, values []float64) DenseConstRealMatrix {
+  m := DenseConstRealMatrix{}
   m.values    = values
   m.rows      = rows
   m.cols      = cols
@@ -50,8 +50,8 @@ func NewConstRealMatrix(rows, cols int, values []float64) ConstRealMatrix {
   return m
 }
 
-func NullConstRealMatrix(rows, cols int) ConstRealMatrix {
-  m := ConstRealMatrix{}
+func NullDenseConstRealMatrix(rows, cols int) DenseConstRealMatrix {
+  m := DenseConstRealMatrix{}
   m.values    = make([]float64, rows*cols)
   m.rows      = rows
   m.cols      = cols
@@ -64,7 +64,7 @@ func NullConstRealMatrix(rows, cols int) ConstRealMatrix {
 
 /* -------------------------------------------------------------------------- */
 
-func (matrix ConstRealMatrix) index(i, j int) int {
+func (matrix DenseConstRealMatrix) index(i, j int) int {
   if i < 0 || j < 0 || i >= matrix.rows || j >= matrix.cols {
     panic(fmt.Errorf("index (%d,%d) out of bounds for matrix of dimension %dx%d", i, j, matrix.rows, matrix.cols))
   }
@@ -75,23 +75,23 @@ func (matrix ConstRealMatrix) index(i, j int) int {
   }
 }
 
-func (matrix ConstRealMatrix) storageLocation() uintptr {
+func (matrix DenseConstRealMatrix) storageLocation() uintptr {
   return uintptr(unsafe.Pointer(&matrix.values[0]))
 }
 
-func (matrix ConstRealMatrix) ElementType() ScalarType {
+func (matrix DenseConstRealMatrix) ElementType() ScalarType {
   return BareRealType
 }
 
-func (matrix ConstRealMatrix) Dims() (int, int) {
+func (matrix DenseConstRealMatrix) Dims() (int, int) {
   return matrix.rows, matrix.cols
 }
 
-func (matrix ConstRealMatrix) ConstAt(i, j int) ConstScalar {
+func (matrix DenseConstRealMatrix) ConstAt(i, j int) ConstScalar {
   return ConstReal(matrix.values[matrix.index(i, j)])
 }
 
-func (matrix ConstRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
+func (matrix DenseConstRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
   m := matrix
   m.rowOffset += rfrom
   m.rows       = rto - rfrom
@@ -100,11 +100,11 @@ func (matrix ConstRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix
   return m
 }
 
-func (matrix ConstRealMatrix) ConstRow(i int) ConstVector {
+func (matrix DenseConstRealMatrix) ConstRow(i int) ConstVector {
   return matrix.ROW(i)
 }
 
-func (matrix ConstRealMatrix) ROW(i int) ConstRealVector {
+func (matrix DenseConstRealMatrix) ROW(i int) DenseConstRealVector {
   var v []float64
   if matrix.transposed {
     v = make([]float64, matrix.cols)
@@ -115,14 +115,14 @@ func (matrix ConstRealMatrix) ROW(i int) ConstRealVector {
     i = matrix.index(i, 0)
     v = matrix.values[i:i + matrix.cols]
   }
-  return ConstRealVector(v)
+  return DenseConstRealVector(v)
 }
 
-func (matrix ConstRealMatrix) ConstCol(i int) ConstVector {
+func (matrix DenseConstRealMatrix) ConstCol(i int) ConstVector {
   return matrix.COL(i)
 }
 
-func (matrix ConstRealMatrix) COL(j int) ConstRealVector {
+func (matrix DenseConstRealMatrix) COL(j int) DenseConstRealVector {
   var v []float64
   if matrix.transposed {
     j = matrix.index(0, j)
@@ -136,11 +136,11 @@ func (matrix ConstRealMatrix) COL(j int) ConstRealVector {
   return v
 }
 
-func (matrix ConstRealMatrix) ConstDiag() ConstVector {
+func (matrix DenseConstRealMatrix) ConstDiag() ConstVector {
   return matrix.DIAG()
 }
 
-func (matrix ConstRealMatrix) DIAG() ConstRealVector {
+func (matrix DenseConstRealMatrix) DIAG() DenseConstRealVector {
   n, m := matrix.Dims()
   if n != m {
     panic("Diag(): not a square matrix!")
@@ -149,20 +149,20 @@ func (matrix ConstRealMatrix) DIAG() ConstRealVector {
   for i := 0; i < n; i++ {
     v[i] = matrix.values[matrix.index(i, i)]
   }
-  return ConstRealVector(v)
+  return DenseConstRealVector(v)
 }
 
-func (matrix ConstRealMatrix) GetValues() []float64 {
+func (matrix DenseConstRealMatrix) GetValues() []float64 {
   return matrix.values
 }
 
-func (matrix ConstRealMatrix) AsConstVector() ConstVector {
-  return ConstRealVector(matrix.values)
+func (matrix DenseConstRealMatrix) AsConstVector() ConstVector {
+  return DenseConstRealVector(matrix.values)
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (m ConstRealMatrix) String() string {
+func (m DenseConstRealMatrix) String() string {
   var buffer bytes.Buffer
   buffer.WriteString("[")
   for i := 0; i < m.rows; i++ {
@@ -182,7 +182,7 @@ func (m ConstRealMatrix) String() string {
   return buffer.String()
 }
 
-func (a ConstRealMatrix) Table() string {
+func (a DenseConstRealMatrix) Table() string {
   var buffer bytes.Buffer
   n, m := a.Dims()
   for i := 0; i < n; i++ {
@@ -202,7 +202,7 @@ func (a ConstRealMatrix) Table() string {
 /* math
  * -------------------------------------------------------------------------- */
 
-func (a ConstRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
+func (a DenseConstRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n2 || m1 != m2 {

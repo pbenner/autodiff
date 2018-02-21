@@ -23,44 +23,44 @@ import "bytes"
 
 /* -------------------------------------------------------------------------- */
 
-type ConstRealVector []float64
+type DenseConstRealVector []float64
 
 /* constructors
  * -------------------------------------------------------------------------- */
 
-func NewConstRealVector(v []float64) ConstRealVector {
-  return ConstRealVector(v)
+func NewDenseConstRealVector(v []float64) DenseConstRealVector {
+  return DenseConstRealVector(v)
 }
 
-func NullConstRealVector(n int) ConstRealVector {
-  return ConstRealVector(make([]float64, n))
+func NullDenseConstRealVector(n int) DenseConstRealVector {
+  return DenseConstRealVector(make([]float64, n))
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (v ConstRealVector) Dim() int {
+func (v DenseConstRealVector) Dim() int {
   return len(v)
 }
 
-func (v ConstRealVector) ConstAt(i int) ConstScalar {
+func (v DenseConstRealVector) ConstAt(i int) ConstScalar {
   return ConstReal(v[i])
 }
 
-func (v ConstRealVector) ConstSlice(i, j int) ConstVector {
+func (v DenseConstRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 
-func (v ConstRealVector) GetValues() []float64 {
+func (v DenseConstRealVector) GetValues() []float64 {
   return v
 }
 
-func (v ConstRealVector) ElementType() ScalarType {
+func (v DenseConstRealVector) ElementType() ScalarType {
   return BareRealType
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (v ConstRealVector) String() string {
+func (v DenseConstRealVector) String() string {
   var buffer bytes.Buffer
   buffer.WriteString("[")
   for i, _ := range v {
@@ -73,7 +73,7 @@ func (v ConstRealVector) String() string {
   return buffer.String()
 }
 
-func (v ConstRealVector) Table() string {
+func (v DenseConstRealVector) Table() string {
   var buffer bytes.Buffer
   for i, _ := range v {
     if i != 0 {
@@ -87,7 +87,7 @@ func (v ConstRealVector) Table() string {
 /* math
  * -------------------------------------------------------------------------- */
 
-func (a ConstRealVector) Equals(b ConstVector, epsilon float64) bool {
+func (a DenseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
   if a.Dim() != b.Dim() {
     panic("VEqual(): Vector dimensions do not match!")
   }
