@@ -205,6 +205,10 @@ func (matrix *MATRIX_TYPE) COL(j int) VECTOR_TYPE {
 }
 
 func (matrix *MATRIX_TYPE) Diag() Vector {
+  return matrix.DIAG()
+}
+
+func (matrix *MATRIX_TYPE) DIAG() VECTOR_TYPE {
   n, m := matrix.Dims()
   if n != m {
     panic("Diag(): not a square matrix!")
@@ -544,7 +548,7 @@ func (m *MATRIX_TYPE) String() string {
       if j != 0 {
         buffer.WriteString(", ")
       }
-      buffer.WriteString(m.At(i,j).String())
+      buffer.WriteString(m.ConstAt(i,j).String())
     }
     buffer.WriteString("]")
   }
@@ -566,7 +570,7 @@ func (a *MATRIX_TYPE) Table() string {
       if j != 0 {
         buffer.WriteString(" ")
       }
-      buffer.WriteString(a.At(i,j).String())
+      buffer.WriteString(a.ConstAt(i,j).String())
     }
   }
 

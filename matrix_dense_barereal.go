@@ -181,6 +181,9 @@ func (matrix *DenseBareRealMatrix) COL(j int) DenseBareRealVector {
   return v
 }
 func (matrix *DenseBareRealMatrix) Diag() Vector {
+  return matrix.DIAG()
+}
+func (matrix *DenseBareRealMatrix) DIAG() DenseBareRealVector {
   n, m := matrix.Dims()
   if n != m {
     panic("Diag(): not a square matrix!")
@@ -479,7 +482,7 @@ func (m *DenseBareRealMatrix) String() string {
       if j != 0 {
         buffer.WriteString(", ")
       }
-      buffer.WriteString(m.At(i,j).String())
+      buffer.WriteString(m.ConstAt(i,j).String())
     }
     buffer.WriteString("]")
   }
@@ -497,7 +500,7 @@ func (a *DenseBareRealMatrix) Table() string {
       if j != 0 {
         buffer.WriteString(" ")
       }
-      buffer.WriteString(a.At(i,j).String())
+      buffer.WriteString(a.ConstAt(i,j).String())
     }
   }
   return buffer.String()
