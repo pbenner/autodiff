@@ -278,13 +278,13 @@ func (matrix *DenseBareRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstM
   return matrix.Slice(rfrom, rto, cfrom, cto)
 }
 func (matrix *DenseBareRealMatrix) ConstRow(i int) ConstVector {
-  return matrix.Row(i)
+  return matrix.ROW(i)
 }
 func (matrix *DenseBareRealMatrix) ConstCol(i int) ConstVector {
-  return matrix.Col(i)
+  return matrix.COL(i)
 }
 func (matrix *DenseBareRealMatrix) ConstDiag() ConstVector {
-  return matrix.Diag()
+  return matrix.DIAG()
 }
 func (matrix *DenseBareRealMatrix) GetValues() []float64 {
   n, m := matrix.Dims()

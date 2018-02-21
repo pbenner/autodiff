@@ -278,13 +278,13 @@ func (matrix *DenseRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatri
   return matrix.Slice(rfrom, rto, cfrom, cto)
 }
 func (matrix *DenseRealMatrix) ConstRow(i int) ConstVector {
-  return matrix.Row(i)
+  return matrix.ROW(i)
 }
 func (matrix *DenseRealMatrix) ConstCol(i int) ConstVector {
-  return matrix.Col(i)
+  return matrix.COL(i)
 }
 func (matrix *DenseRealMatrix) ConstDiag() ConstVector {
-  return matrix.Diag()
+  return matrix.DIAG()
 }
 func (matrix *DenseRealMatrix) GetValues() []float64 {
   n, m := matrix.Dims()

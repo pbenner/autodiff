@@ -317,15 +317,15 @@ func (matrix *MATRIX_TYPE) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
 }
 
 func (matrix *MATRIX_TYPE) ConstRow(i int) ConstVector {
-  return matrix.Row(i)
+  return matrix.ROW(i)
 }
 
 func (matrix *MATRIX_TYPE) ConstCol(i int) ConstVector {
-  return matrix.Col(i)
+  return matrix.COL(i)
 }
 
 func (matrix *MATRIX_TYPE) ConstDiag() ConstVector {
-  return matrix.Diag()
+  return matrix.DIAG()
 }
 
 func (matrix *MATRIX_TYPE) GetValues() []float64 {
