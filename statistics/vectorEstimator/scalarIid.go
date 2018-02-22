@@ -100,7 +100,7 @@ func (obj *ScalarIid) SetData(x []ConstVector, n int) error {
  * -------------------------------------------------------------------------- */
 
 func (obj *ScalarIid) Estimate(gamma ConstVector, p ThreadPool) error {
-  return obj.Estimate(gamma, p)
+  return obj.Estimator.Estimate(gamma, p)
 }
 
 func (obj *ScalarIid) EstimateOnData(x []ConstVector, gamma ConstVector, p ThreadPool) error {
