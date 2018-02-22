@@ -36,9 +36,6 @@ type ScalarIid struct {
 
 func NewScalarIid(distribution ScalarPdf, n int) (*ScalarIid, error) {
   t := NewScalar(distribution.ScalarType(), 0.0)
-  if n < 0 {
-    return nil, fmt.Errorf("error while creating a scalar iid distribution: dimension `%d' is negative", n)
-  }
   return &ScalarIid{distribution, n, t}, nil
 }
 
