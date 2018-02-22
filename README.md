@@ -110,21 +110,27 @@ A scalar holding the value *1.0* can be defined in several ways, i.e.
   b := NewReal(1.0)
   c := NewBareReal(1.0)
 ```
-*a* and *b* are both *Real*s, however *a* has type *Scalar* whereas *b* has type **Real* which implements a *Scalar*. Variable *c* is of type **BareReal* which cannot carry any derivatives. We may add two variables with
-```go
-  d := Add(a, b)
-```
-where the result is stored in a new variable called *d*. In general, it is more efficient to use
+*a* and *b* are both *Real*s, however *a* has type *Scalar* whereas *b* has type **Real* which implements a *Scalar*. Variable *c* is of type **BareReal* which cannot carry any derivatives. Basic operations such as additions are defined on all Scalars, i.e.
 ```go
   a.Add(a, b)
 ```
-which stores the result in *a* instead of allocating a new variable. To differentiate a function
+which stores the result of adding *a* and *b* in *a*. If *autodiff/simple* is imported, one may also use
+```go
+  d := Add(a, b)
+```
+where the result is stored in a new variable *d*. The *ConstReal* type allows to define real constants without allocation of additional memory. For instance
+```go
+  a.Add(a, ConstReal(1.0))
+```
+adds a constant value to *a* where a type cast is used to define the constant *1.0*.
+
+To differentiate a function
 ```go
   f := func(x, y Scalar) Scalar {
     return Add(Mul(x, Pow(y, NewReal(3))), NewReal(4))
   }
 ```
-we first define two reals
+first two reals are defined
 ```go
   x := NewReal(2)
   y := NewReal(4)
@@ -133,7 +139,7 @@ that store the value at which the derivative of *f* should be evaluated. Afterwa
 ```go
   Variables(2, x, y)
 ```
-where the first argument means that derivatives up to second order should be computed. After evaluating *f*, i.e.
+where the first argument says that derivatives up to second order should be computed. After evaluating *f*, i.e.
 ```go
   z := f(x, y)
 ```
