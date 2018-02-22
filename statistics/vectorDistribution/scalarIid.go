@@ -65,7 +65,7 @@ func (obj *ScalarIid) ScalarType() ScalarType {
 func (obj *ScalarIid) LogPdf(r Scalar, x ConstVector) error {
   n := obj.Dim()
   t := obj.t
-  if x.Dim() != n {
+  if n != -1 && x.Dim() != n {
     return fmt.Errorf("LogPdf(): dimensions do not match (input has dimension `%d' whereas this distribution is of dimension `%d'", x.Dim(), obj.Dim())
   }
   r.Reset()

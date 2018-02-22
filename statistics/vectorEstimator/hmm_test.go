@@ -44,10 +44,8 @@ func TestHmm1(t *testing.T) {
   tr := NewMatrix(RealType, 2, 2,
     []float64{0.7, 0.3, 0.4, 0.6})
 
-  e1, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.1, 0.9}))
-  e2, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.7, 0.3}))
+  e1, _ := scalarEstimator.NewCategoricalEstimator([]float64{0.1, 0.9})
+  e2, _ := scalarEstimator.NewCategoricalEstimator([]float64{0.7, 0.3})
 
   // test Baum-Welch algorithm
   //////////////////////////////////////////////////////////////////////////////
