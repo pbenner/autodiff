@@ -40,8 +40,9 @@ type CategoricalEstimator struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewCategoricalEstimator(theta Vector) (*CategoricalEstimator, error) {
-  if dist, err := scalarDistribution.NewCategoricalDistribution(theta); err != nil {
+func NewCategoricalEstimator(theta []float64) (*CategoricalEstimator, error) {
+  t := NewVector(BareRealType, theta)
+  if dist, err := scalarDistribution.NewCategoricalDistribution(t); err != nil {
     return nil, err
   } else {
     r := CategoricalEstimator{}
