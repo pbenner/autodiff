@@ -85,6 +85,10 @@ func (obj *Mixture) LogPdf(r Scalar, x ConstVector) error {
   return obj.Mixture.LogPdf(r, MixtureDataRecord{obj.Edist, x})
 }
 
+func (obj *Mixture) Posterior(r Scalar, x ConstVector, states []int) error {
+  return obj.Mixture.Posterior(r, MixtureDataRecord{obj.Edist, x}, states)
+}
+
 /* -------------------------------------------------------------------------- */
 
 func (obj *Mixture) GetParameters() Vector {

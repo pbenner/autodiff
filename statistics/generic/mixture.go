@@ -33,6 +33,7 @@ type Mixture struct {
   // state
   t1 Scalar
   t2 Scalar
+  t3 Scalar
 }
 
 /* -------------------------------------------------------------------------- */
@@ -48,6 +49,7 @@ func NewMixture(weights Vector) (*Mixture, error) {
   r.LogWeights.Map(func(x Scalar) { x.Log(x) })
   r.t1 = NullScalar(weights.ElementType())
   r.t2 = NullScalar(weights.ElementType())
+  r.t3 = NullScalar(weights.ElementType())
   r.normalize()
   return &r, nil
 }
@@ -59,6 +61,7 @@ func (obj *Mixture) Clone() *Mixture {
   r.LogWeights = obj.LogWeights.CloneVector()
   r.t1         = obj.t1.CloneScalar()
   r.t2         = obj.t2.CloneScalar()
+  r.t3         = obj.t3.CloneScalar()
   return &r
 }
 
@@ -100,6 +103,34 @@ func (obj *Mixture) LogPdf(r Scalar, data MixtureDataRecord) error {
     t1.Add(t1, obj.LogWeights.At(j))
     r.LogAdd(r, t1, t2)
   }
+  return nil
+}
+
+func (obj *Mixture) Posterior(r Scalar, data MixtureDataRecord, states []int) error {
+  r.SetValue(0.0)
+  t1 := obj.t1
+  t2 := obj.t2
+  z  := obj.t2
+  // likelihood at position i
+  r.SetValue(math.Inf(-1))
+  z.SetValue(math.Inf(-1))
+  // loop over posterior components
+  for j := range states {
+    if err := data.LogPdf(t1, j); err != nil {
+      return err
+    }
+    t1.Add(t1, obj.LogWeights.At(j))
+    r.LogAdd(r, t1, t2)
+  }
+  // loop over all components
+  for j := 0; j < obj.NComponents(); j++ {
+    if err := data.LogPdf(t1, j); err != nil {
+      return err
+    }
+    t1.Add(t1, obj.LogWeights.At(j))
+    z.LogAdd(z, t1, t2)
+  }
+  r.Sub(r, z)
   return nil
 }
 

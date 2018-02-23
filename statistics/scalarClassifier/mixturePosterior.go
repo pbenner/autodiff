@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-2017 Philipp Benner
+/* Copyright (C) 2017 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,43 +14,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package statistics
+package scalarClassifier
 
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
 
 import . "github.com/pbenner/autodiff"
+import . "github.com/pbenner/autodiff/statistics"
+import . "github.com/pbenner/autodiff/statistics/scalarDistribution"
 
 /* -------------------------------------------------------------------------- */
 
-type VectorClassifier interface {
-  Eval(r Vector, x ConstVector) error
-  Dim() int
-  CloneVectorClassifier() VectorClassifier
-}
-
-type MatrixClassifier interface {
-  Eval(r Vector, x ConstMatrix) error
-  Dims() (int, int)
-  CloneMatrixClassifier() MatrixClassifier
+type MixturePosterior struct {
+  *Mixture
+  States []int
 }
 
 /* -------------------------------------------------------------------------- */
 
-type ScalarBatchClassifier interface {
-  Eval(r Scalar, x ConstScalar) error
-  CloneScalarBatchClassifier() ScalarBatchClassifier
+func (obj MixturePosterior) CloneScalarBatchClassifier() ScalarBatchClassifier {
+  return MixturePosterior{obj.Clone(), obj.States}
 }
 
-type VectorBatchClassifier interface {
-  Eval(r Scalar, x ConstVector) error
-  Dim() int
-  CloneVectorBatchClassifier() VectorBatchClassifier
-}
+/* -------------------------------------------------------------------------- */
 
-type MatrixBatchClassifier interface {
-  Eval(r Scalar, x ConstMatrix) error
-  Dims() (int, int)
-  CloneMatrixBatchClassifier() MatrixBatchClassifier
+func (obj MixturePosterior) Eval(r Scalar, x ConstScalar) error {
+  return obj.Mixture.Posterior(r, x, obj.States)
 }
