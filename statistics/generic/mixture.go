@@ -110,7 +110,10 @@ func (obj *Mixture) Posterior(r Scalar, data MixtureDataRecord, states []int) er
   r.SetValue(math.Inf(-1))
   z.SetValue(math.Inf(-1))
   // loop over posterior components
-  for j := range states {
+  for _, j := range states {
+    if j < 0 || j >= obj.NComponents() {
+      return fmt.Errorf("state `%d' out of bounds", j)
+    }
     if err := data.LogPdf(t1, j); err != nil {
       return err
     }
