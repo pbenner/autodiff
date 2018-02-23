@@ -90,28 +90,23 @@ func (obj *Mixture) ScalarType() ScalarType {
 }
 
 func (obj *Mixture) LogPdf(r Scalar, data MixtureDataRecord) error {
-  r.SetValue(0.0)
   t1 := obj.t1
   t2 := obj.t2
-  // likelihood at position i
   r.SetValue(math.Inf(-1))
-  // loop over components
   for j := 0; j < obj.NComponents(); j++ {
     if err := data.LogPdf(t1, j); err != nil {
       return err
     }
-    t1.Add(t1, obj.LogWeights.At(j))
-    r.LogAdd(r, t1, t2)
+    t1.Add   (t1, obj.LogWeights.At(j))
+    r .LogAdd(r, t1, t2)
   }
   return nil
 }
 
 func (obj *Mixture) Posterior(r Scalar, data MixtureDataRecord, states []int) error {
-  r.SetValue(0.0)
   t1 := obj.t1
   t2 := obj.t2
   z  := obj.t2
-  // likelihood at position i
   r.SetValue(math.Inf(-1))
   z.SetValue(math.Inf(-1))
   // loop over posterior components
@@ -119,16 +114,16 @@ func (obj *Mixture) Posterior(r Scalar, data MixtureDataRecord, states []int) er
     if err := data.LogPdf(t1, j); err != nil {
       return err
     }
-    t1.Add(t1, obj.LogWeights.At(j))
-    r.LogAdd(r, t1, t2)
+    t1.Add   (t1, obj.LogWeights.At(j))
+    r .LogAdd(r, t1, t2)
   }
   // loop over all components
   for j := 0; j < obj.NComponents(); j++ {
     if err := data.LogPdf(t1, j); err != nil {
       return err
     }
-    t1.Add(t1, obj.LogWeights.At(j))
-    z.LogAdd(z, t1, t2)
+    t1.Add   (t1, obj.LogWeights.At(j))
+    z .LogAdd(z, t1, t2)
   }
   r.Sub(r, z)
   return nil
