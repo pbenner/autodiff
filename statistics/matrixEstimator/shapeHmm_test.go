@@ -40,9 +40,9 @@ func TestShapeHmm1(t *testing.T) {
     []float64{0.7, 0.3, 0.4, 0.6})
 
   c1, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.1, 0.9}))
+    []float64{0.1, 0.9})
   c2, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.7, 0.3}))
+    []float64{0.7, 0.3})
 
   d1, _ := vectorEstimator.NewScalarBatchId(c1)
   d2, _ := vectorEstimator.NewScalarBatchId(c2)
@@ -81,15 +81,15 @@ func TestShapeHmm2(t *testing.T) {
     []float64{0.7, 0.3, 0.4, 0.6})
 
   c11, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.1, 0.9}))
+    []float64{0.1, 0.9})
   c12, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.9, 0.1}))
+    []float64{0.9, 0.1})
   c1,  _ := vectorEstimator.NewScalarBatchId(c11, c12)
 
   c21, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.7, 0.3}))
+    []float64{0.7, 0.3})
   c22, _ := scalarEstimator.NewCategoricalEstimator(
-    NewVector(RealType, []float64{0.3, 0.7}))
+    []float64{0.3, 0.7})
   c2,  _ := vectorEstimator.NewScalarBatchId(c21, c22)
 
   d1, _ := NewVectorBatchId(c1, c1, c1, c1, c1)
