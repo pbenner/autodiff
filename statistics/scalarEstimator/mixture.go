@@ -216,7 +216,7 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   data     := obj.data
   nMapped  := data.GetNMapped()
   nData    := data.GetN()
-  return generic.EmAlgorithm(obj, gamma, nData, nMapped, obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, obj.args...)
+  return generic.EmAlgorithm(obj, gamma, nData, nMapped, obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, args...)
 }
 
 func (obj *MixtureEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {

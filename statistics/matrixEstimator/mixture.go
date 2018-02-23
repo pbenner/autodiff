@@ -19,6 +19,7 @@ package matrixEstimator
 /* -------------------------------------------------------------------------- */
 
 import   "fmt"
+import   "os"
 
 import . "github.com/pbenner/autodiff/statistics"
 import   "github.com/pbenner/autodiff/statistics/generic"
@@ -39,6 +40,14 @@ type MixtureEstimator struct {
   epsilon      float64
   maxSteps     int
   args       []interface{}
+  // hook options
+  SaveFile     string
+  SaveInterval int
+  Trace        string
+  Verbose      int
+  // estimator options
+  OptimizeEmissions bool
+  OptimizeWeights   bool
 }
 
 func NewMixtureEstimator(weights []float64, estimators []MatrixEstimator, epsilon float64, maxSteps int, args... interface{}) (*MixtureEstimator, error) {
@@ -176,10 +185,42 @@ func (obj *MixtureEstimator) SetData(x []ConstMatrix, n int) error {
 }
 
 func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
+  hook_save    := generic.EmHook{}
+  hook_trace   := generic.EmHook{}
+  hook_verbose := generic.EmHook{}
+  trace := NullVector(obj.ScalarType(), 0)
+  if obj.SaveFile != "" && obj.SaveInterval > 0 {
+    hook_save.Value = func(hmm generic.BasicMixture, i int, likelihood, epsilon float64) {
+      if i % obj.SaveInterval == 0 {
+        ExportDistribution(obj.SaveFile, obj.GetEstimate())
+      }
+    }
+  }
+  // add hooks
+  //////////////////////////////////////////////////////////////////////////////
+  if obj.Trace != "" {
+    hook_trace.Value = func(hmm generic.BasicMixture, i int, likelihood, epsilon float64) {
+      trace = trace.AppendVector(hmm.GetParameters())
+    }
+  }
+  if obj.Verbose > 1 {
+    hook_verbose = generic.DefaultEmHook(os.Stderr)
+  } else
+  if obj.Verbose > 0 {
+    hook_verbose = generic.PlainEmHook(os.Stderr)
+  }
+  //////////////////////////////////////////////////////////////////////////////
+  args := obj.args
+  args  = append(args, hook_save)
+  args  = append(args, hook_trace)
+  args  = append(args, hook_verbose)
+  args  = append(args, generic.EmOptimizeEmissions{obj.OptimizeEmissions})
+  args  = append(args, generic.EmOptimizeWeights  {obj.OptimizeWeights})
+  //////////////////////////////////////////////////////////////////////////////
   data     := obj.data
   nMapped  := data.GetNMapped()
   nData    := data.GetN()
-  return generic.EmAlgorithm(obj, gamma, nData, nMapped, obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, obj.args...)
+  return generic.EmAlgorithm(obj, gamma, nData, nMapped, obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, args...)
 }
 
 func (obj *MixtureEstimator) EstimateOnData(x []ConstMatrix, gamma ConstVector, p ThreadPool) error {
