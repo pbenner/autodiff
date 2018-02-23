@@ -26,8 +26,8 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 type ScalarBatchIid struct {
-  classifier ScalarBatchClassifier
-  n          int
+  Classifier ScalarBatchClassifier
+  N          int
 }
 
 /* -------------------------------------------------------------------------- */
@@ -42,22 +42,22 @@ func NewScalarBatchIid(classifier ScalarBatchClassifier, n int) (ScalarBatchIid,
 /* -------------------------------------------------------------------------- */
 
 func (obj ScalarBatchIid) CloneVectorBatchClassifier() VectorBatchClassifier {
-  return ScalarBatchIid{obj.classifier.CloneScalarBatchClassifier(), obj.n}
+  return ScalarBatchIid{obj.Classifier.CloneScalarBatchClassifier(), obj.N}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj ScalarBatchIid) Dim() int {
-  return obj.n
+  return obj.N
 }
 
 func (obj ScalarBatchIid) Eval(r Scalar, x ConstVector) error {
-  if obj.n != -1 && obj.n != x.Dim() {
-    return fmt.Errorf("data has invalid dimension (expected dimension `%d' but data has dimension `%d')", obj.n, x.Dim())
+  if obj.N != -1 && obj.N != x.Dim() {
+    return fmt.Errorf("data has invalid dimension (expected dimension `%d' but data has dimension `%d')", obj.N, x.Dim())
   }
   t := r.CloneScalar()
   for i := 0; i < x.Dim(); i++ {
-    if err := obj.classifier.Eval(t, x.ConstAt(i)); err != nil {
+    if err := obj.Classifier.Eval(t, x.ConstAt(i)); err != nil {
       return err
     }
     r.Add(r, t)
