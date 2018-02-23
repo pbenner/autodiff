@@ -19,6 +19,7 @@ package vectorClassifier
 /* -------------------------------------------------------------------------- */
 
 import   "fmt"
+import   "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -55,12 +56,17 @@ func (obj ScalarBatchIid) Eval(r Scalar, x ConstVector) error {
   if obj.N != -1 && obj.N != x.Dim() {
     return fmt.Errorf("data has invalid dimension (expected dimension `%d' but data has dimension `%d')", obj.N, x.Dim())
   }
-  t := r.CloneScalar()
-  for i := 0; i < x.Dim(); i++ {
-    if err := obj.Classifier.Eval(t, x.ConstAt(i)); err != nil {
-      return err
+  if x.Dim() == 1 {
+    return obj.Classifier.Eval(r, x.ConstAt(0))
+  } else {
+    t := r.CloneScalar()
+    r.SetValue(math.Inf(-1))
+    for i := 0; i < x.Dim(); i++ {
+      if err := obj.Classifier.Eval(t, x.ConstAt(i)); err != nil {
+        return err
+      }
+      r.Add(r, t)
     }
-    r.Add(r, t)
   }
   return nil
 }
