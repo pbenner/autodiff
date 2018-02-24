@@ -70,13 +70,15 @@ func NewMixtureEstimator(weights []float64, estimators []ScalarEstimator, epsilo
   }
   // initialize estimators with data
   r := MixtureEstimator{}
-  r.mixture1   = m.Clone()
-  r.mixture2   = m.Clone()
-  r.mixture3   = m.Clone()
-  r.estimators = estimators
-  r.epsilon    = epsilon
-  r.maxSteps   = maxSteps
-  r.args       = args
+  r.mixture1          = m.Clone()
+  r.mixture2          = m.Clone()
+  r.mixture3          = m.Clone()
+  r.estimators        = estimators
+  r.epsilon           = epsilon
+  r.maxSteps          = maxSteps
+  r.OptimizeEmissions = true
+  r.OptimizeWeights   = true
+  r.args              = args
   return &r, nil
 }
 
