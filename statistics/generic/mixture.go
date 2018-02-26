@@ -106,7 +106,7 @@ func (obj *Mixture) LogPdf(r Scalar, data MixtureDataRecord) error {
 func (obj *Mixture) Posterior(r Scalar, data MixtureDataRecord, states []int) error {
   t1 := obj.t1
   t2 := obj.t2
-  z  := obj.t2
+  z  := obj.t3
   r.SetValue(math.Inf(-1))
   z.SetValue(math.Inf(-1))
   // loop over posterior components
