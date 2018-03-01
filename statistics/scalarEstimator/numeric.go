@@ -36,6 +36,7 @@ type NumericEstimator struct {
   Method          string
   Epsilon         float64
   MaxIterations   int
+  Hook            func(variables ConstVector, r ConstScalar) error
 }
 
 /* -------------------------------------------------------------------------- */
@@ -52,10 +53,12 @@ func NewNumericEstimator(f ScalarPdf) (*NumericEstimator, error) {
 /* -------------------------------------------------------------------------- */
 
 func (obj *NumericEstimator) Clone() *NumericEstimator {
-  r, _ := NewNumericEstimator(obj.ScalarPdf)
-  r.Method  = obj.Method
-  r.Epsilon = obj.Epsilon
-  r.x       = obj.x
+  r, _ := NewNumericEstimator(obj.ScalarPdf.CloneScalarPdf())
+  r.Method        = obj.Method
+  r.Epsilon       = obj.Epsilon
+  r.MaxIterations = obj.MaxIterations
+  r.Hook          = obj.Hook
+  r.x             = obj.x
   return r
 }
 
@@ -126,6 +129,11 @@ func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
     // sum up results from all threads
     for i := 1; i < r.Dim(); i++ {
       r.At(0).Add(r.At(0), r.At(i))
+    }
+    if obj.Hook != nil {
+      if err := obj.Hook(variables, r.At(0)); err != nil {
+        return nil, err
+      }
     }
     r.At(0).Neg(r.At(0))
     r.At(0).Div(r.At(0), NewReal(float64(n)))
