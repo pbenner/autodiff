@@ -104,6 +104,9 @@ func (obj *NormalEstimator) Initialize(p ThreadPool) error {
 }
 
 func (obj *NormalEstimator) NewObservation(x ConstVector, gamma ConstScalar, p ThreadPool) error {
+  if x.Dim() != obj.n {
+    return fmt.Errorf("x has invalid dimension (expected dimension `%d' but data has dimension `%d')", obj.n, x.Dim())
+  }
   id := p.GetThreadId()
   if gamma == nil {
     obj.sum_g[id] += 1.0
@@ -134,7 +137,7 @@ func (obj *NormalEstimator) NewObservation(x ConstVector, gamma ConstScalar, p T
  * -------------------------------------------------------------------------- */
 
 func (obj *NormalEstimator) updateEstimate() error {
-  sum_g := 0.0
+  sum_g := obj.sum_g[0]
   sum_m := obj.sum_m[0]
   sum_s := obj.sum_s[0]
   for k := 1; k < len(obj.sum_m); k++ {
@@ -158,7 +161,6 @@ func (obj *NormalEstimator) updateEstimate() error {
       }
     }
   }
-
   if t, err := vectorDistribution.NewNormalDistribution(mu, si); err != nil {
     return err
   } else {
