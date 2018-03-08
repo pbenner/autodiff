@@ -154,11 +154,10 @@ func (obj *NormalEstimator) updateEstimate() error {
   for i := 0; i < obj.n; i++ {
     mu.At(i).SetValue(sum_m[i]/sum_g)
     for j := 0; j < obj.n; j++ {
-      if s := sum_s[i][j]/sum_g - sum_m[i]/sum_g*sum_m[j]/sum_g; math.IsNaN(s) || s < obj.SigmaMin {
-        si.At(i,j).SetValue(obj.SigmaMin)
-      } else {
-        si.At(i,j).SetValue(s)
-      }
+      si.At(i,j).SetValue(sum_s[i][j]/sum_g - sum_m[i]/sum_g*sum_m[j]/sum_g)
+    }
+    if s := si.At(i,i).GetValue(); math.IsNaN(s) || s < obj.SigmaMin {
+      si.At(i,i).SetValue(obj.SigmaMin)
     }
   }
   if t, err := vectorDistribution.NewNormalDistribution(mu, si); err != nil {
