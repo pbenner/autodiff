@@ -31,20 +31,22 @@ import . "github.com/pbenner/threadpool"
 /* -------------------------------------------------------------------------- */
 
 type MixtureEstimator struct {
-  mixture1    *scalarDistribution.Mixture
-  mixture2    *scalarDistribution.Mixture
-  mixture3    *scalarDistribution.Mixture
-  data         MixtureDataSet
-  estimators []ScalarEstimator
+  mixture1     *scalarDistribution.Mixture
+  mixture2     *scalarDistribution.Mixture
+  mixture3     *scalarDistribution.Mixture
+  data          MixtureDataSet
+  estimators  []ScalarEstimator
   // EM arguments
-  epsilon      float64
-  maxSteps     int
-  args       []interface{}
+  epsilon       float64
+  maxSteps      int
+  args        []interface{}
+  // data options
+  SummarizeData bool
   // hook options
-  SaveFile     string
-  SaveInterval int
-  Trace        string
-  Verbose      int
+  SaveFile      string
+  SaveInterval  int
+  Trace         string
+  Verbose       int
   // estimator options
   OptimizeEmissions bool
   OptimizeWeights   bool
@@ -76,6 +78,7 @@ func NewMixtureEstimator(weights []float64, estimators []ScalarEstimator, epsilo
   r.estimators        = estimators
   r.epsilon           = epsilon
   r.maxSteps          = maxSteps
+  r.SummarizeData     = false
   r.OptimizeEmissions = true
   r.OptimizeWeights   = true
   r.args              = args
@@ -164,20 +167,28 @@ func (obj *MixtureEstimator) SetParameters(parameters Vector) error {
 }
 
 func (obj *MixtureEstimator) SetData(x ConstVector, n int) error {
-  if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
-    return err
-  } else {
-    for i, estimator := range obj.estimators {
-      // set data
-      if err := estimator.SetData(data.GetMappedData(), n); err != nil {
-        return err
-      }
-      // initialize distribution
-      obj.mixture1.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
-      obj.mixture2.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
-      obj.mixture3.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
+  if obj.SummarizeData {
+    if data, err := NewMixtureSummarizedDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
+      return err
+    } else {
+      obj.data = data
     }
-    obj.data = data
+  } else {
+    if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
+      return err
+    } else {
+      obj.data = data
+    }
+  }
+  for i, estimator := range obj.estimators {
+    // set data
+    if err := estimator.SetData(obj.data.GetMappedData(), n); err != nil {
+      return err
+    }
+    // initialize distribution
+    obj.mixture1.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
+    obj.mixture2.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
+    obj.mixture3.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
   }
   return nil
 }

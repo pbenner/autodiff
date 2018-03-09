@@ -118,3 +118,102 @@ func (obj *MixtureStdDataSet) EvaluateLogPdf(edist []ScalarPdf, pool ThreadPool)
   }
   return nil
 }
+
+/* -------------------------------------------------------------------------- */
+
+type MixtureSummarizedDataSet struct {
+  values []float64
+  index  []int
+  n        int
+  p        Matrix
+}
+
+func NewMixtureSummarizedDataSet(t ScalarType, x ConstVector, k int) (*MixtureSummarizedDataSet, error) {
+  xMap   := make(map[float64]int)
+  index  := make([]int, x.Dim())
+  values := []float64{}
+  for i := 0; i < x.Dim(); i++ {
+    v := x.ConstAt(i).GetValue()
+    if idx, ok := xMap[v]; ok {
+      index[i] = idx
+    } else {
+      idx     := len(values)
+      values   = append(values, v)
+      xMap [v] = idx
+      index[i] = idx
+    }
+  }
+  r := MixtureSummarizedDataSet{}
+  r.values = values
+  r.index  = index
+  r.p      = NullMatrix(t, k, x.Dim())
+  r.n      = x.Dim()
+  return &r, nil
+}
+
+func (obj *MixtureSummarizedDataSet) MapIndex(k int) int {
+  return obj.index[k]
+}
+
+func (obj *MixtureSummarizedDataSet) GetMappedData() ConstVector {
+  return DenseConstRealVector(obj.values)
+}
+
+func (obj *MixtureSummarizedDataSet) GetN() int {
+  return obj.n
+}
+
+func (obj *MixtureSummarizedDataSet) GetNMapped() int {
+  return obj.n
+}
+
+func (obj *MixtureSummarizedDataSet) LogPdf(r Scalar, c, i int) error {
+  r.Set(obj.p.At(c, obj.MapIndex(i)))
+  return nil
+}
+
+func (obj *MixtureSummarizedDataSet) EvaluateLogPdf(edist []ScalarPdf, pool ThreadPool) error {
+  x    := obj.values
+  p    := obj.p
+  m, n := obj.p.Dims()
+  if len(edist) != m {
+    return fmt.Errorf("data has invalid dimension")
+  }
+  // distributions may have state and must be cloned
+  // for each thread
+  d := make([][]ScalarPdf, pool.NumberOfThreads())
+  s := make([]float64, pool.NumberOfThreads())
+  for threadIdx := 0; threadIdx < pool.NumberOfThreads(); threadIdx++ {
+    d[threadIdx] = make([]ScalarPdf, m)
+    for j := 0; j < m; j++ {
+      d[threadIdx][j] = edist[j].CloneScalarPdf()
+    }
+  }
+  g := pool.NewJobGroup()
+  // evaluate emission distributions
+  if err := pool.AddRangeJob(0, n, g, func(i int, pool ThreadPool, erf func() error) error {
+    if erf() != nil {
+      return nil
+    }
+    s := s[pool.GetThreadId()]
+    d := d[pool.GetThreadId()]
+    s = math.Inf(-1)
+    // loop over emission distributions
+    for j := 0; j < m; j++ {
+      if err := d[j].LogPdf(p.At(j, i), ConstReal(x[i])); err != nil {
+        return err
+      }
+      s = LogAdd(s, p.At(j, i).GetValue())
+    }
+    if math.IsInf(s, -1) {
+      return fmt.Errorf("probability is zero for all models on observation `%v'", x[i])
+    }
+    return nil
+  }); err != nil {
+    return fmt.Errorf("evaluating emission probabilities failed: %v", err)
+  }
+  if err := pool.Wait(g); err != nil {
+    return fmt.Errorf("evaluating emission probabilities failed: %v", err)
+  }
+  return nil
+}
