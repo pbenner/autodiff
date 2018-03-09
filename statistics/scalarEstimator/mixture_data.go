@@ -164,7 +164,7 @@ func (obj *MixtureSummarizedDataSet) GetN() int {
 }
 
 func (obj *MixtureSummarizedDataSet) GetNMapped() int {
-  return obj.n
+  return len(obj.values)
 }
 
 func (obj *MixtureSummarizedDataSet) LogPdf(r Scalar, c, i int) error {
