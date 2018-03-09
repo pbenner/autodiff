@@ -146,7 +146,7 @@ func NewMixtureSummarizedDataSet(t ScalarType, x ConstVector, k int) (*MixtureSu
   r := MixtureSummarizedDataSet{}
   r.values = values
   r.index  = index
-  r.p      = NullMatrix(t, k, x.Dim())
+  r.p      = NullMatrix(t, k, len(values))
   r.n      = x.Dim()
   return &r, nil
 }
