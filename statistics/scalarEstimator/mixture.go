@@ -171,7 +171,7 @@ func (obj *MixtureEstimator) SetData(x ConstVector, n int) error {
     if data, err := NewMixtureSummarizedDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
       return err
     } else {
-      obj.data = data
+      obj.data  = data
     }
   } else {
     if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
@@ -182,7 +182,7 @@ func (obj *MixtureEstimator) SetData(x ConstVector, n int) error {
   }
   for i, estimator := range obj.estimators {
     // set data
-    if err := estimator.SetData(obj.data.GetMappedData(), n); err != nil {
+    if err := estimator.SetData(obj.data.GetData(), n); err != nil {
       return err
     }
     // initialize distribution
@@ -205,6 +205,9 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
       }
     }
   }
+  if obj.data.GetCounts() != nil && gamma != nil {
+    return fmt.Errorf("cannot nest mixture estimator if data is summarized")
+  }
   // add hooks
   //////////////////////////////////////////////////////////////////////////////
   if obj.Trace != "" {
@@ -226,10 +229,7 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   args  = append(args, generic.EmOptimizeEmissions{obj.OptimizeEmissions})
   args  = append(args, generic.EmOptimizeWeights  {obj.OptimizeWeights})
   //////////////////////////////////////////////////////////////////////////////
-  data     := obj.data
-  nMapped  := data.GetNMapped()
-  nData    := data.GetN()
-  return generic.EmAlgorithm(obj, gamma, nData, nMapped, obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, args...)
+  return generic.EmAlgorithm(obj, gamma, obj.data.GetN(), obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, args...)
 }
 
 func (obj *MixtureEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {

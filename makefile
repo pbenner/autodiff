@@ -29,15 +29,15 @@ SUBDIRS = \
 	special \
 	statistics \
 	statistics/generic \
+	statistics/matrixClassifier \
 	statistics/matrixDistribution \
 	statistics/matrixEstimator \
+	statistics/scalarClassifier \
 	statistics/scalarDistribution \
 	statistics/scalarEstimator \
-	statistics/vectorDistribution \
-	statistics/vectorEstimator \
-	statistics/matrixClassifier \
 	statistics/vectorClassifier \
-	statistics/scalarClassifier \
+	statistics/vectorDistribution \
+	statistics/vectorEstimator
 
 all:
 

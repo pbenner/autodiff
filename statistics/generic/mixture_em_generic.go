@@ -139,7 +139,7 @@ func emAlgorithm(obj emCore, meta ConstVector, tmp []EmTmp, epsilon float64, max
   return nil
 }
 
-func EmAlgorithm(obj emCore, meta ConstVector, nData, nMapped, nComponents int, epsilon float64, maxSteps int, p ThreadPool, args... interface{}) error {
+func EmAlgorithm(obj emCore, meta ConstVector, nData, nComponents int, epsilon float64, maxSteps int, p ThreadPool, args... interface{}) error {
   // gamma values used for hierarchical EM algorithms
   hooks             := []EmHook{}
   optimizeEmissions := true

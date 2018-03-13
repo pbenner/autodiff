@@ -33,6 +33,7 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
   for threadIdx := 0; threadIdx < len(tmp); threadIdx++ {
     tmp[threadIdx].init = false
   }
+  counts := data.GetCounts()
   // compute gamma temporaries
   if err := p.AddRangeJob(0, data.GetN(), g, func(l int, p ThreadPool, erf func() error) error {
     gammaTmp   := tmp[p.GetThreadId()].gammaTmp
@@ -58,24 +59,29 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
       gammaTmp.AT(i).Add(t2, mixture2.LogWeights.At(i))
       t1.LOGADD(t1, gammaTmp.AT(i), t2)
     }
-    k := data.MapIndex(l)
-    // update log-likelihood
-    tmp[p.GetThreadId()].likelihood += t1.GetValue()
     // normalize gammaTmp
     for i := 0; i < m; i++ {
       gammaTmp.AT(i).Sub(gammaTmp.AT(i), t1)
       if meta != nil {
-        gammaTmp.AT(i).Add(gammaTmp.AT(i), meta.ConstAt(k))
+        gammaTmp.AT(i).Add(gammaTmp.AT(i), meta.ConstAt(l))
+      }
+      if counts != nil {
+        gammaTmp.AT(i).Add(gammaTmp.AT(i), ConstReal(math.Log(float64(counts[l]))))
       }
     }
+    // update log-likelihood
+    if counts != nil {
+      t1.Mul(t1, ConstReal(float64(counts[l])))
+    }
+    tmp[p.GetThreadId()].likelihood += t1.GetValue()
+    // save gamma
     if gamma != nil {
-      // add result to gamma
       for i := 0; i < m; i++ {
-        gamma[i].AT(k).LOGADD(gamma[i].AT(k), gammaTmp.AT(i), t2)
+        gamma[i].AT(l).Set(gammaTmp.AT(i))
       }
     }
+    // add result to weights
     if logWeights != nil {
-      // add result to weights
       for i := 0; i < m; i++ {
         logWeights.AT(i).LOGADD(logWeights.AT(i), gammaTmp.AT(i), t2)
       }

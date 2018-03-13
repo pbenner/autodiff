@@ -32,7 +32,7 @@ import . "github.com/pbenner/threadpool"
 
 type MixtureDataSet interface {
   generic.MixtureDataSet
-  GetMappedData () ConstVector
+  GetData () ConstVector
   EvaluateLogPdf(edist []ScalarPdf, pool ThreadPool) error
 }
 
@@ -52,19 +52,15 @@ func NewMixtureStdDataSet(t ScalarType, x ConstVector, k int) (*MixtureStdDataSe
   return &r, nil
 }
 
-func (obj *MixtureStdDataSet) MapIndex(k int) int {
-  return k
-}
-
-func (obj *MixtureStdDataSet) GetMappedData() ConstVector {
+func (obj *MixtureStdDataSet) GetData() ConstVector {
   return obj.values
 }
 
-func (obj *MixtureStdDataSet) GetN() int {
-  return obj.n
+func (obj *MixtureStdDataSet) GetCounts() []int {
+  return nil
 }
 
-func (obj *MixtureStdDataSet) GetNMapped() int {
+func (obj *MixtureStdDataSet) GetN() int {
   return obj.n
 }
 
@@ -123,52 +119,46 @@ func (obj *MixtureStdDataSet) EvaluateLogPdf(edist []ScalarPdf, pool ThreadPool)
 
 type MixtureSummarizedDataSet struct {
   values []float64
-  index  []int
-  n        int
+  counts []int
   p        Matrix
 }
 
 func NewMixtureSummarizedDataSet(t ScalarType, x ConstVector, k int) (*MixtureSummarizedDataSet, error) {
   xMap   := make(map[float64]int)
-  index  := make([]int, x.Dim())
   values := []float64{}
+  counts := []int{}
   for i := 0; i < x.Dim(); i++ {
     v := x.ConstAt(i).GetValue()
     if idx, ok := xMap[v]; ok {
-      index[i] = idx
+      counts[idx] += 1
     } else {
       idx     := len(values)
       values   = append(values, v)
+      counts   = append(counts, 1)
       xMap [v] = idx
-      index[i] = idx
     }
   }
   r := MixtureSummarizedDataSet{}
   r.values = values
-  r.index  = index
+  r.counts = counts
   r.p      = NullMatrix(t, k, len(values))
-  r.n      = x.Dim()
   return &r, nil
 }
 
-func (obj *MixtureSummarizedDataSet) MapIndex(k int) int {
-  return obj.index[k]
-}
-
-func (obj *MixtureSummarizedDataSet) GetMappedData() ConstVector {
+func (obj *MixtureSummarizedDataSet) GetData() ConstVector {
   return DenseConstRealVector(obj.values)
 }
 
-func (obj *MixtureSummarizedDataSet) GetN() int {
-  return obj.n
+func (obj *MixtureSummarizedDataSet) GetCounts() []int {
+  return obj.counts
 }
 
-func (obj *MixtureSummarizedDataSet) GetNMapped() int {
+func (obj *MixtureSummarizedDataSet) GetN() int {
   return len(obj.values)
 }
 
 func (obj *MixtureSummarizedDataSet) LogPdf(r Scalar, c, i int) error {
-  r.Set(obj.p.At(c, obj.MapIndex(i)))
+  r.Set(obj.p.At(c, i))
   return nil
 }
 

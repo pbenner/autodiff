@@ -32,12 +32,10 @@ type MixtureDataRecord interface {
 /* -------------------------------------------------------------------------- */
 
 type MixtureDataSet interface {
-  // map index of the kth observation
-  MapIndex(k int) int
   // evaluate component c on observation i
   LogPdf(r Scalar, c, i int) error
-  // number of mapped observations
-  GetNMapped()     int
+  // total number of observations
+  GetCounts()    []int
   // total number of observations
   GetN()           int
 }

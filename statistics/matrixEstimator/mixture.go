@@ -173,7 +173,7 @@ func (obj *MixtureEstimator) SetData(x []ConstMatrix, n int) error {
   } else {
     for i, estimator := range obj.estimators {
       // set data
-      if err := estimator.SetData(data.GetMappedData(), n); err != nil {
+      if err := estimator.SetData(data.GetData(), n); err != nil {
         return err
       }
       // initialize distribution
@@ -219,10 +219,7 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   args  = append(args, generic.EmOptimizeEmissions{obj.OptimizeEmissions})
   args  = append(args, generic.EmOptimizeWeights  {obj.OptimizeWeights})
   //////////////////////////////////////////////////////////////////////////////
-  data     := obj.data
-  nMapped  := data.GetNMapped()
-  nData    := data.GetN()
-  return generic.EmAlgorithm(obj, gamma, nData, nMapped, obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, args...)
+  return generic.EmAlgorithm(obj, gamma, obj.data.GetN(), obj.mixture1.NComponents(), obj.epsilon, obj.maxSteps, p, args...)
 }
 
 func (obj *MixtureEstimator) EstimateOnData(x []ConstMatrix, gamma ConstVector, p ThreadPool) error {
