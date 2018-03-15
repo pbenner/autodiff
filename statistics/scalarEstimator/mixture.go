@@ -40,8 +40,6 @@ type MixtureEstimator struct {
   epsilon       float64
   maxSteps      int
   args        []interface{}
-  // data options
-  SummarizeData bool
   // hook options
   SaveFile      string
   SaveInterval  int
@@ -78,7 +76,6 @@ func NewMixtureEstimator(weights []float64, estimators []ScalarEstimator, epsilo
   r.estimators        = estimators
   r.epsilon           = epsilon
   r.maxSteps          = maxSteps
-  r.SummarizeData     = false
   r.OptimizeEmissions = true
   r.OptimizeWeights   = true
   r.args              = args
@@ -167,18 +164,10 @@ func (obj *MixtureEstimator) SetParameters(parameters Vector) error {
 }
 
 func (obj *MixtureEstimator) SetData(x ConstVector, n int) error {
-  if obj.SummarizeData {
-    if data, err := NewMixtureSummarizedDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
-      return err
-    } else {
-      obj.data  = data
-    }
+  if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
+    return err
   } else {
-    if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
-      return err
-    } else {
-      obj.data = data
-    }
+    obj.data = data
   }
   for i, estimator := range obj.estimators {
     // set data
