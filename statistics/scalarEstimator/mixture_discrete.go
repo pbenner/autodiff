@@ -42,6 +42,12 @@ func NewDiscreteMixtureEstimator(weights []float64, estimators []ScalarEstimator
 
 /* -------------------------------------------------------------------------- */
 
+func (obj *DiscreteMixtureEstimator) CloneScalarEstimator() ScalarEstimator {
+  return &DiscreteMixtureEstimator{*obj.MixtureEstimator.Clone()}
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (obj *DiscreteMixtureEstimator) SetData(x ConstVector, n int) error {
   if data, err := NewMixtureSummarizedDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
     return err

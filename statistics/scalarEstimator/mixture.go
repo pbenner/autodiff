@@ -137,7 +137,7 @@ func (obj *MixtureEstimator) Step(gamma ConstVector, tmp []generic.EmTmp, p Thre
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *MixtureEstimator) CloneScalarEstimator() ScalarEstimator {
+func (obj *MixtureEstimator) Clone() *MixtureEstimator {
   estimators := make([]ScalarEstimator, len(obj.estimators))
   for i := 0; i < len(obj.estimators); i++ {
     estimators[i] = obj.estimators[i].CloneScalarEstimator()
@@ -150,6 +150,12 @@ func (obj *MixtureEstimator) CloneScalarEstimator() ScalarEstimator {
   r.estimators = estimators
   return &r
 }
+
+func (obj *MixtureEstimator) CloneScalarEstimator() ScalarEstimator {
+  return obj.Clone()
+}
+
+/* -------------------------------------------------------------------------- */
 
 func (obj *MixtureEstimator) ScalarType() ScalarType {
   return obj.mixture1.ScalarType()
