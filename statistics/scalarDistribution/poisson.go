@@ -69,6 +69,10 @@ func (dist *PoissonDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if v := x.GetValue(); math.Floor(v) != v {
     return fmt.Errorf("value `%f' is not an integer", v)
   }
+  if v := x.GetValue(); v < 0.0 {
+    r.SetValue(math.Inf(-1))
+    return nil
+  }
 
   t := dist.t
   // k! = Gamma(k+1)

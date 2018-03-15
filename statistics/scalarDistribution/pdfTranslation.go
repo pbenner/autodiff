@@ -19,14 +19,13 @@ package scalarDistribution
 /* -------------------------------------------------------------------------- */
 
 import   "fmt"
-import   "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
 
 /* -------------------------------------------------------------------------- */
 
-type PdfLogTransform struct {
+type PdfTranslation struct {
   ScalarPdf
   c float64
   x Scalar
@@ -34,8 +33,8 @@ type PdfLogTransform struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewPdfLogTransform(scalarPdf ScalarPdf, pseudocount float64) (*PdfLogTransform, error) {
-  r := PdfLogTransform{}
+func NewPdfTranslation(scalarPdf ScalarPdf, pseudocount float64) (*PdfTranslation, error) {
+  r := PdfTranslation{}
   r.ScalarPdf = scalarPdf
   r.c         = pseudocount
   r.x         = NewScalar(scalarPdf.ScalarType(), 0.0)
@@ -44,35 +43,29 @@ func NewPdfLogTransform(scalarPdf ScalarPdf, pseudocount float64) (*PdfLogTransf
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *PdfLogTransform) Clone() *PdfLogTransform {
-  r, _ := NewPdfLogTransform(obj.ScalarPdf.CloneScalarPdf(), obj.c)
+func (obj *PdfTranslation) Clone() *PdfTranslation {
+  r, _ := NewPdfTranslation(obj.ScalarPdf.CloneScalarPdf(), obj.c)
   return r
 }
 
-func (obj *PdfLogTransform) CloneScalarPdf() ScalarPdf {
+func (obj *PdfTranslation) CloneScalarPdf() ScalarPdf {
   return obj.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *PdfLogTransform) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); v < 0.0 {
-    r.SetValue(math.Inf(-1))
-    return nil
-  }
+func (obj *PdfTranslation) LogPdf(r Scalar, x ConstScalar) error {
   y := obj.x
   y.Add(x, ConstReal(obj.c))
-  y.Log(y)
 
   if err := obj.ScalarPdf.LogPdf(r, y); err != nil {
     return err
   }
-  r.Sub(r, y)
 
   return nil
 }
 
-func (obj *PdfLogTransform) Pdf(r Scalar, x ConstScalar) error {
+func (obj *PdfTranslation) Pdf(r Scalar, x ConstScalar) error {
   if err := obj.LogPdf(r, x); err != nil {
     return err
   }
@@ -82,7 +75,7 @@ func (obj *PdfLogTransform) Pdf(r Scalar, x ConstScalar) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType) error {
+func (obj *PdfTranslation) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
   parameters, ok := config.GetParametersAsFloats(); if !ok {
     return fmt.Errorf("invalid config file")
@@ -97,7 +90,7 @@ func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType
   if tmp, err := ImportScalarPdfConfig(config.Distributions[0], t); err != nil {
     return err
   } else {
-    if tmp, err := NewPdfLogTransform(tmp, parameters[0]); err != nil {
+    if tmp, err := NewPdfTranslation(tmp, parameters[0]); err != nil {
       return err
     } else {
       *obj = *tmp
@@ -106,7 +99,7 @@ func (obj *PdfLogTransform) ImportConfig(config ConfigDistribution, t ScalarType
   return nil
 }
 
-func (obj *PdfLogTransform) ExportConfig() ConfigDistribution {
+func (obj *PdfTranslation) ExportConfig() ConfigDistribution {
 
-  return NewConfigDistribution("scalar:pdf log transform", []float64{obj.c}, obj.ScalarPdf.ExportConfig())
+  return NewConfigDistribution("scalar:pdf translation", []float64{obj.c}, obj.ScalarPdf.ExportConfig())
 }

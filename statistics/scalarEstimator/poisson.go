@@ -85,6 +85,9 @@ func (obj *PoissonEstimator) Initialize(p ThreadPool) error {
 
 func (obj *PoissonEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
+  if x.GetValue() < 0.0 {
+    return nil
+  }
   if gamma == nil {
     x := math.Log(x.GetValue())
     obj.sum_m[id] = LogAdd(obj.sum_m[id], x)

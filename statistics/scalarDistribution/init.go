@@ -44,4 +44,5 @@ func init() {
   ScalarPdfRegistry["scalar:poisson distribution"]            = new(PoissonDistribution)
   ScalarPdfRegistry["scalar:power law distribution"]          = new(PowerLawDistribution)
   ScalarPdfRegistry["scalar:pdf log transform"]               = new(PdfLogTransform)
+  ScalarPdfRegistry["scalar:pdf translation"]                 = new(PdfTranslation)
 }

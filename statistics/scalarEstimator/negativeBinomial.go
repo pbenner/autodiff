@@ -40,8 +40,8 @@ type NegativeBinomialEstimator struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewNegativeBinomialEstimator(mu, sigma Scalar, sigmaMin float64) (*NegativeBinomialEstimator, error) {
-  if dist, err := scalarDistribution.NewNegativeBinomialDistribution(mu, sigma); err != nil {
+func NewNegativeBinomialEstimator(r, p float64) (*NegativeBinomialEstimator, error) {
+  if dist, err := scalarDistribution.NewNegativeBinomialDistribution(NewBareReal(r), NewBareReal(p)); err != nil {
     return nil, err
   } else {
     r := NegativeBinomialEstimator{}
