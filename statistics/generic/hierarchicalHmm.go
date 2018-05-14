@@ -110,7 +110,7 @@ func (node HmmNode) normalizeInt(tr Matrix, rfrom, rto, cfrom, cto int, lambda S
   r.Sub(t1, r)
   // divide by the number of columns
   // t1 = (sum xi)/(n sum lambda)
-  t1.Sub(r, NewBareReal(math.Log(float64(cto-cfrom))))
+  t1.Sub(r, ConstReal(math.Log(float64(cto-cfrom))))
   for i := rfrom; i < rto; i++ {
     for j := cfrom; j < cto; j++ {
       tr.At(i, j).Set(t1)
