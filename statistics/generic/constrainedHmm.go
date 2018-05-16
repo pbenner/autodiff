@@ -85,19 +85,19 @@ func (obj ChmmTransitionMatrix) computeLambda() (Vector, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj ChmmTransitionMatrix) normalizeLeaf(node HmmNode, lambda Vector) {
+func (obj ChmmTransitionMatrix) normalizeLeaf(node HmmNode, lambda ConstVector) {
   tr := obj.Matrix
   // row/column ranges
   from := node.States[0]
   to   := node.States[1]
   for i := from; i < to; i++ {
     for j := from; j < to; j++ {
-      tr.At(i,j).Sub(tr.At(i,j), lambda.At(i))
+      tr.At(i,j).Sub(tr.At(i,j), lambda.ConstAt(i))
     }
   }
 }
 
-func (obj ChmmTransitionMatrix) normalizeInt(rfrom, rto, cfrom, cto int, lambda Vector) {
+func (obj ChmmTransitionMatrix) normalizeInt(rfrom, rto, cfrom, cto int, lambda ConstVector) {
   tr := obj.Matrix
   t  := tr.ElementType()
   // n = (n_i) the number of non-zero entries in row i
@@ -124,7 +124,7 @@ func (obj ChmmTransitionMatrix) normalizeInt(rfrom, rto, cfrom, cto int, lambda 
   // compute z'
   for i := rfrom; i < rto; i++ {
     if n[i-rfrom] != 0 {
-      t1.Add(ConstReal(math.Log(float64(n[i-rfrom]))), lambda.At(i))
+      t1.Add(ConstReal(math.Log(float64(n[i-rfrom]))), lambda.ConstAt(i))
       zp.LogAdd(zp, t1, t2)
     }
   }
@@ -140,7 +140,7 @@ func (obj ChmmTransitionMatrix) normalizeInt(rfrom, rto, cfrom, cto int, lambda 
   }
 }
 
-func (obj ChmmTransitionMatrix) normalize(node HmmNode, lambda Vector) {
+func (obj ChmmTransitionMatrix) normalize(node HmmNode, lambda ConstVector) {
   if n := len(node.Children); n == 0 {
     // this is a leaf node
     obj.normalizeLeaf(node, lambda)
