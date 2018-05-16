@@ -47,7 +47,7 @@ func TestChmm1(t *testing.T) {
   l.At(3).SetValue(math.Log(28.664))
 
   tree := generic.NewHmmNode(generic.NewHmmLeaf(0,2), generic.NewHmmLeaf(2,4))
-  tree.EvalConstraints(tr, l, x)
+  (generic.ChmmTransitionMatrix{tr, tree}).EvalConstraints(l, x)
 
   if Vnorm(x).GetValue() > 1e-4 {
     t.Error("test failed")
