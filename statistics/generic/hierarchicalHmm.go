@@ -86,108 +86,6 @@ func (node HmmNode) Check(n int) bool {
 
 /* -------------------------------------------------------------------------- */
 
-func (node HmmNode) renormalizeSubmatrix(tr Matrix, rfrom, rto, cfrom, cto int, c Scalar) {
-  for i := rfrom; i < rto; i++ {
-    for j := cfrom; j < cto; j++ {
-      tr.At(i, j).Sub(tr.At(i, j), c)
-    }
-  }
-}
-
-func (node HmmNode) normalizeInt(tr Matrix, rfrom, rto, cfrom, cto int, lambda Scalar) Scalar {
-  t  := tr.ElementType()
-  // r = sum lambda
-  r  := lambda.CloneScalar()
-  t1 := NewScalar(t, math.Inf(-1))
-  t2 := NewScalar(t, math.Inf(-1))
-  // sum over all values in the given submatrix (sum xi)
-  for i := rfrom; i < rto; i++ {
-    for j := cfrom; j < cto; j++ {
-      t1.LogAdd(t1, tr.At(i, j), t2)
-    }
-  }
-  // r = (sum xi)/(sum lambda)
-  r.Sub(t1, r)
-  // divide by the number of columns
-  // t1 = (sum xi)/(n sum lambda)
-  t1.Sub(r, ConstReal(math.Log(float64(cto-cfrom))))
-  for i := rfrom; i < rto; i++ {
-    for j := cfrom; j < cto; j++ {
-      tr.At(i, j).Set(t1)
-    }
-  }
-  return r
-}
-
-func (node HmmNode) normalizeLeaf(tr Matrix) Scalar {
-  t  := tr.ElementType()
-  r  := NewScalar(t, math.Inf(-1))
-  t1 := NewScalar(t, math.Inf(-1))
-  t2 := NewScalar(t, math.Inf(-1))
-  // row/column ranges
-  from := node.States[0]
-  to   := node.States[1]
-  // loop over rows
-  for i := from; i < to; i++ {
-    t1.SetValue(math.Inf(-1))
-    // sum over values in row i
-    for j := from; j < to; j++ {
-      t1.LogAdd(t1, tr.At(i, j), t2)
-    }
-    // normalize values in row i
-    for j := from; j < to; j++ {
-      tr.At(i, j).Sub(tr.At(i, j), t1)
-    }
-    // sum up normalization constant
-    r.LogAdd(r, t1, t2)
-  }
-  return r
-}
-
-func (node HmmNode) normalize(tr Matrix) Scalar {
-  t  := tr.ElementType()
-  c  := NewScalar(t, 0.0)
-  r  := NewScalar(t, math.Inf(-1))
-  t2 := NewScalar(t, math.Inf(-1))
-  // if this is a leaf, we're done
-  if n := len(node.Children); n == 0 {
-    return node.normalizeLeaf(tr)
-  } else {
-    from := node.Children[0  ].States[0]
-    to   := node.Children[n-1].States[1]
-    // this is an internal node
-    for i := 0; i < n; i++ {
-      c.SetValue(0.0)
-      // normalize children first
-      // t1 = sum lambda
-      t1 := node.Children[i].normalize(tr)
-      // normalize transitions between child i and all other
-      // children
-      rfrom := node.Children[i].States[0]
-      rto   := node.Children[i].States[1]
-      for j := 0; j < n; j++ {
-        if i == j {
-          continue
-        }
-        cfrom := node.Children[j].States[0]
-        cto   := node.Children[j].States[1]
-        c.LogAdd(c,
-          node.normalizeInt(tr, rfrom, rto, cfrom, cto, t1),
-          t2)
-      }
-      // renormalize submatrix
-      node.renormalizeSubmatrix(tr, rfrom, rto, from, to, c)
-      // sum lambda = c sum lambda'
-      t1.Add(t1, c)
-      // sum up normalization constants
-      r.LogAdd(r, t1, t2)
-    }
-    return r
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-
 func (node HmmNode) ExportConfig() interface{} {
   r := []interface{}{}
   for i := 0; i < len(node.Children); i++ {
@@ -268,7 +166,7 @@ func (obj HhmmTransitionMatrix) GetMatrix() Matrix {
 }
 
 func (obj HhmmTransitionMatrix) Normalize() error {
-  obj.Tree.normalize(obj.Matrix)
+  obj.normalize(obj.Tree)
   return nil
 }
 
@@ -276,4 +174,110 @@ func (obj HhmmTransitionMatrix) CloneTransitionMatrix() TransitionMatrix {
   return HhmmTransitionMatrix{
     obj.Matrix.CloneMatrix(),
     obj.Tree }
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (obj HhmmTransitionMatrix) renormalizeSubmatrix(rfrom, rto, cfrom, cto int, c Scalar) {
+  tr := obj.Matrix
+  for i := rfrom; i < rto; i++ {
+    for j := cfrom; j < cto; j++ {
+      tr.At(i, j).Sub(tr.At(i, j), c)
+    }
+  }
+}
+
+func (obj HhmmTransitionMatrix) normalizeInt(rfrom, rto, cfrom, cto int, lambda Scalar) Scalar {
+  tr := obj.Matrix
+  t  := tr.ElementType()
+  // r = sum lambda
+  r  := lambda.CloneScalar()
+  t1 := NewScalar(t, math.Inf(-1))
+  t2 := NewScalar(t, math.Inf(-1))
+  // sum over all values in the given submatrix (sum xi)
+  for i := rfrom; i < rto; i++ {
+    for j := cfrom; j < cto; j++ {
+      t1.LogAdd(t1, tr.At(i, j), t2)
+    }
+  }
+  // r = (sum xi)/(sum lambda)
+  r.Sub(t1, r)
+  // divide by the number of columns
+  // t1 = (sum xi)/(n sum lambda)
+  t1.Sub(r, ConstReal(math.Log(float64(cto-cfrom))))
+  for i := rfrom; i < rto; i++ {
+    for j := cfrom; j < cto; j++ {
+      tr.At(i, j).Set(t1)
+    }
+  }
+  return r
+}
+
+func (obj HhmmTransitionMatrix) normalizeLeaf(node HmmNode) Scalar {
+  tr := obj.Matrix
+  t  := tr.ElementType()
+  r  := NewScalar(t, math.Inf(-1))
+  t1 := NewScalar(t, math.Inf(-1))
+  t2 := NewScalar(t, math.Inf(-1))
+  // row/column ranges
+  from := node.States[0]
+  to   := node.States[1]
+  // loop over rows
+  for i := from; i < to; i++ {
+    t1.SetValue(math.Inf(-1))
+    // sum over values in row i
+    for j := from; j < to; j++ {
+      t1.LogAdd(t1, tr.At(i, j), t2)
+    }
+    // normalize values in row i
+    for j := from; j < to; j++ {
+      tr.At(i, j).Sub(tr.At(i, j), t1)
+    }
+    // sum up normalization constant
+    r.LogAdd(r, t1, t2)
+  }
+  return r
+}
+
+func (obj HhmmTransitionMatrix) normalize(node HmmNode) Scalar {
+  tr := obj.Matrix
+  t  := tr.ElementType()
+  c  := NewScalar(t, 0.0)
+  r  := NewScalar(t, math.Inf(-1))
+  t2 := NewScalar(t, math.Inf(-1))
+  // if this is a leaf, we're done
+  if n := len(node.Children); n == 0 {
+    return obj.normalizeLeaf(node)
+  } else {
+    from := node.Children[0  ].States[0]
+    to   := node.Children[n-1].States[1]
+    // this is an internal node
+    for i := 0; i < n; i++ {
+      c.SetValue(0.0)
+      // normalize children first
+      // t1 = sum lambda
+      t1 := obj.normalize(node.Children[i])
+      // normalize transitions between child i and all other
+      // children
+      rfrom := node.Children[i].States[0]
+      rto   := node.Children[i].States[1]
+      for j := 0; j < n; j++ {
+        if i == j {
+          continue
+        }
+        cfrom := node.Children[j].States[0]
+        cto   := node.Children[j].States[1]
+        c.LogAdd(c,
+          obj.normalizeInt(rfrom, rto, cfrom, cto, t1),
+          t2)
+      }
+      // renormalize submatrix
+      obj.renormalizeSubmatrix(rfrom, rto, from, to, c)
+      // sum lambda = c sum lambda'
+      t1.Add(t1, c)
+      // sum up normalization constants
+      r.LogAdd(r, t1, t2)
+    }
+    return r
+  }
 }
