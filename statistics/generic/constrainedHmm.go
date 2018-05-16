@@ -39,7 +39,7 @@ func NewChmmTransitionMatrix(tr Matrix, tree HmmNode, isLog bool) (ChmmTransitio
   }
   r := ChmmTransitionMatrix{tr, tree}
   if err := r.Normalize(); err != nil {
-    return ChmmTransitionMatrix{}, nil
+    return ChmmTransitionMatrix{}, err
   }
   return r, nil
 }
@@ -101,7 +101,7 @@ func (obj ChmmTransitionMatrix) normalizeInt(rfrom, rto, cfrom, cto int, lambda 
   tr := obj.Matrix
   t  := tr.ElementType()
   // n = (n_i) the number of non-zero entries in row i
-  n  := make([]int, cto-cfrom)
+  n  := make([]int, rto-rfrom)
   // a' = sum xi_i
   ap := NewScalar(t, math.Inf(-1))
   // z' = sum n_i lambda_i
@@ -187,7 +187,7 @@ func (obj ChmmTransitionMatrix) evalConstraintsInt(rfrom, rto, cfrom, cto int, l
   tr := obj.Matrix
   t  := tr.ElementType()
   // n = (n_i) the number of non-zero entries in row i
-  n  := make([]int, cto-cfrom)
+  n  := make([]int, rto-rfrom)
   // a' = sum xi_i
   ap := NewScalar(t, math.Inf(-1))
   // z' = sum n_i lambda_i

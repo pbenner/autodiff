@@ -156,7 +156,7 @@ func NewHhmmTransitionMatrix(tr Matrix, tree HmmNode, isLog bool) (HhmmTransitio
   }
   r := HhmmTransitionMatrix{tr, tree}
   if err := r.Normalize(); err != nil {
-    return HhmmTransitionMatrix{}, nil
+    return HhmmTransitionMatrix{}, err
   }
   return r, nil
 }
