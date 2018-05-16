@@ -32,7 +32,7 @@ import . "github.com/pbenner/autodiff/simple"
 /* -------------------------------------------------------------------------- */
 
 func TestChmm1(t *testing.T) {
-  tr := NewMatrix(RealType, 4, 4, []float64{
+  tr := NewMatrix(BareRealType, 4, 4, []float64{
     1,  2,  0,  4,
     5,  6,  7,  8,
     0,  4,  1,  2,
@@ -55,7 +55,7 @@ func TestChmm1(t *testing.T) {
 }
 
 func TestChmm2(t *testing.T) {
-  tr := NewMatrix(RealType, 4, 4, []float64{
+  tr := NewMatrix(BareRealType, 4, 4, []float64{
     1,  2,  0,  4,
     5,  6,  7,  8,
     0,  4,  1,  2,

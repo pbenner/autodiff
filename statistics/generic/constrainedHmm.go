@@ -167,9 +167,9 @@ func (obj ChmmTransitionMatrix) normalize(node HmmNode, lambda Vector) {
 /* evaluate transition matrix constraints given lagrangian multipliers
  * -------------------------------------------------------------------------- */
 
-func (obj ChmmTransitionMatrix) evalConstraintsLeaf(node HmmNode, lambda, x Vector) {
+func (obj ChmmTransitionMatrix) evalConstraintsLeaf(node HmmNode, lambda ConstVector, x Vector) {
   tr := obj.Matrix
-  t  := tr.ElementType()
+  t  := x.ElementType()
   t1 := NewScalar(t, math.Inf(-1))
   t2 := NewScalar(t, math.Inf(-1))
   // row/column ranges
@@ -177,15 +177,15 @@ func (obj ChmmTransitionMatrix) evalConstraintsLeaf(node HmmNode, lambda, x Vect
   to   := node.States[1]
   for i := from; i < to; i++ {
     for j := from; j < to; j++ {
-      t1.Sub(tr.At(i,j), lambda.At(i))
+      t1.Sub(tr.At(i,j), lambda.ConstAt(i))
       x.At(i).LogAdd(x.At(i), t1, t2)
     }
   }
 }
 
-func (obj ChmmTransitionMatrix) evalConstraintsInt(rfrom, rto, cfrom, cto int, lambda, x Vector) {
+func (obj ChmmTransitionMatrix) evalConstraintsInt(rfrom, rto, cfrom, cto int, lambda ConstVector, x Vector) {
   tr := obj.Matrix
-  t  := tr.ElementType()
+  t  := x.ElementType()
   // n = (n_i) the number of non-zero entries in row i
   n  := make([]int, rto-rfrom)
   // a' = sum xi_i
@@ -210,7 +210,7 @@ func (obj ChmmTransitionMatrix) evalConstraintsInt(rfrom, rto, cfrom, cto int, l
   // compute z'
   for i := rfrom; i < rto; i++ {
     if n[i-rfrom] != 0 {
-      t1.Add(ConstReal(math.Log(float64(n[i-rfrom]))), lambda.At(i))
+      t1.Add(ConstReal(math.Log(float64(n[i-rfrom]))), lambda.ConstAt(i))
       zp.LogAdd(zp, t1, t2)
     }
   }
@@ -224,7 +224,7 @@ func (obj ChmmTransitionMatrix) evalConstraintsInt(rfrom, rto, cfrom, cto int, l
   }
 }
 
-func (obj ChmmTransitionMatrix) evalConstraints(node HmmNode, lambda, x Vector) {
+func (obj ChmmTransitionMatrix) evalConstraints(node HmmNode, lambda ConstVector, x Vector) {
   if n := len(node.Children); n == 0 {
     // this is a leaf node
     obj.evalConstraintsLeaf(node, lambda, x)
@@ -248,7 +248,7 @@ func (obj ChmmTransitionMatrix) evalConstraints(node HmmNode, lambda, x Vector) 
   }
 }
 
-func (obj ChmmTransitionMatrix) EvalConstraints(lambda, x Vector) error {
+func (obj ChmmTransitionMatrix) EvalConstraints(lambda ConstVector, x Vector) error {
   tr   := obj.Matrix
   n, m := tr.Dims()
   if n != m {
