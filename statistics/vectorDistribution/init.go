@@ -25,6 +25,7 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 func init() {
+  VectorPdfRegistry["vector:constrained hmm distribution"]  = new(Chmm)
   VectorPdfRegistry["vector:hierarchical hmm distribution"] = new(Hhmm)
   VectorPdfRegistry["vector:hmm distribution"]              = new(Hmm)
   VectorPdfRegistry["vector:mixture distribution"]          = new(Mixture)
