@@ -56,6 +56,8 @@ func NewHierarchicalHmmEstimator(pi Vector, tr Matrix, stateMap, startStates, fi
     r.epsilon    = epsilon
     r.maxSteps   = maxSteps
     r.args       = args
+    r.OptimizeEmissions   = true
+    r.OptimizeTransitions = true
     return &r, nil
   }
 }
