@@ -28,8 +28,8 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func NewConstrainedHmmEstimator(pi Vector, tr Matrix, stateMap, startStates, finalStates []int, tree generic.HmmNode, estimators []VectorEstimator, epsilon float64, maxSteps int, args... interface{}) (*HmmEstimator, error) {
-  if hmm, err := matrixDistribution.NewConstrainedHmm(pi, tr, stateMap, nil, tree); err != nil {
+func NewConstrainedHmmEstimator(pi Vector, tr Matrix, stateMap, startStates, finalStates []int, constraints []generic.EqualityConstraint, estimators []VectorEstimator, epsilon float64, maxSteps int, args... interface{}) (*HmmEstimator, error) {
+  if hmm, err := matrixDistribution.NewConstrainedHmm(pi, tr, stateMap, nil, constraints); err != nil {
     return nil, err
   } else {
     if err := hmm.SetStartStates(startStates); err != nil {
