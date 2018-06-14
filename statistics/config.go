@@ -229,6 +229,37 @@ func (config ConfigDistribution) GetNamedParametersAsMatrix(name string, t Scala
   }
 }
 
+func (config ConfigDistribution) getNestedInts(a interface{}) (interface{}, bool) {
+  if a == nil {
+    return nil, true
+  }
+  switch reflect.TypeOf(a).Kind() {
+  case reflect.Slice:
+    s := reflect.ValueOf(a)
+    p := make([]interface{}, s.Len())
+    for i := 0; i < s.Len(); i++ {
+      if v, ok := config.getInt(s.Index(i).Elem().Interface()); !ok {
+        if v, ok := config.getNestedInts(s.Index(i).Elem().Interface()); !ok {
+          return nil, false
+        } else {
+          p[i] = v
+        }
+      } else {
+        p[i] = v
+      }
+    }
+    return p, true
+  }
+  return nil, false
+}
+
+func (config ConfigDistribution) GetNamedParametersAsNestedInts(name string) (interface{}, bool) {
+  if p, ok := config.GetNamedParameter(name); ok {
+    return config.getNestedInts(p)
+  }
+  return 0, false
+}
+
 /* -------------------------------------------------------------------------- */
 
 func ExportDistribution(filename string, distribution BasicDistribution) error {
