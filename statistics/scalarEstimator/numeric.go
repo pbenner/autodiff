@@ -26,6 +26,7 @@ import . "github.com/pbenner/autodiff/statistics"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/bfgs"
 import   "github.com/pbenner/autodiff/algorithm/newton"
+import   "github.com/pbenner/autodiff/algorithm/rprop"
 import . "github.com/pbenner/threadpool"
 
 /* -------------------------------------------------------------------------- */
@@ -36,6 +37,8 @@ type NumericEstimator struct {
   Method          string
   Epsilon         float64
   MaxIterations   int
+  StepInit        float64
+  Eta           []float64
   Hook            func(variables ConstVector, r ConstScalar) error
 }
 
@@ -47,6 +50,8 @@ func NewNumericEstimator(f ScalarPdf) (*NumericEstimator, error) {
   r.Method             = "newton"
   r.Epsilon            = 1e-8
   r.MaxIterations      = 20
+  r.StepInit           = 1e-2
+  r.Eta                = []float64{0.9,1.1}
   return &r, nil
 }
 
@@ -58,6 +63,8 @@ func (obj *NumericEstimator) Clone() *NumericEstimator {
   r.Epsilon       = obj.Epsilon
   r.MaxIterations = obj.MaxIterations
   r.Hook          = obj.Hook
+  r.StepInit      = obj.StepInit
+  r.Eta           = []float64{obj.Eta[0], obj.Eta[1]}
   r.x             = obj.x
   return r
 }
@@ -167,6 +174,10 @@ func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
       bfgs.Epsilon      {obj.Epsilon},
       bfgs.MaxIterations{obj.MaxIterations},
       bfgs.Constraints  {constraints_f})
+  case "rprop":
+    theta_n, err = rprop.Run(objective_f, theta_0, obj.StepInit, obj.Eta,
+      rprop.Epsilon      {obj.Epsilon},
+      rprop.Constraints  {constraints_f})
   }
   if err != nil && err.Error() != "line search failed" {
     return err
