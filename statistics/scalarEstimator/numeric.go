@@ -115,12 +115,19 @@ func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
       if erf() != nil {
         return nil
       }
-      if !math.IsInf(gamma.ConstAt(k).GetValue(), -1) {
+      if gamma != nil {
+        if !math.IsInf(gamma.ConstAt(k).GetValue(), -1) {
+          if err := f.LogPdf(t, x.ConstAt(k)); err != nil {
+            return err
+          }
+          s.Exp(gamma.ConstAt(k))
+          t.Mul(t, s)
+          r.Add(r, t)
+        }
+      } else {
         if err := f.LogPdf(t, x.ConstAt(k)); err != nil {
           return err
         }
-        s.Exp(gamma.ConstAt(k))
-        t.Mul(t, s)
         r.Add(r, t)
       }
       return nil
