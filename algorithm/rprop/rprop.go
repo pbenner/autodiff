@@ -30,6 +30,10 @@ type Epsilon struct {
   Value float64
 }
 
+type MaxIterations struct {
+  Value int
+}
+
 type Hook struct {
   Value func([]float64, []float64, Vector, Scalar) bool
 }
@@ -47,6 +51,7 @@ type Constraints struct {
 
 func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []float64,
   epsilon Epsilon,
+  maxIterations MaxIterations,
   hook Hook,
   constraints Constraints) (Vector, error) {
 
@@ -89,7 +94,7 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
   if gradient_is_nan(s) {
     return x1, fmt.Errorf("gradient is NaN for initial value: %v", x1)
   }
-  for {
+  for i := 0; i < maxIterations.Value; i++ {
     for i := 0; i < x1.Dim(); i++ {
       gradient_old[i] = gradient_new[i]
     }
@@ -155,9 +160,10 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
 
 func Run(f func(Vector) (Scalar, error), x0 Vector, step_init float64, eta []float64, args ...interface{}) (Vector, error) {
 
-  hook        := Hook       { nil}
-  epsilon     := Epsilon    {1e-8}
-  constraints := Constraints{ nil}
+  hook          := Hook       { nil}
+  epsilon       := Epsilon    {1e-8}
+  constraints   := Constraints{ nil}
+  maxIterations := MaxIterations      {int(^uint(0) >> 1)}
 
   if len(eta) != 2 {
     panic("Rprop(): Argument eta must have length two!")
@@ -175,5 +181,5 @@ func Run(f func(Vector) (Scalar, error), x0 Vector, step_init float64, eta []flo
       panic("Rprop(): Invalid optional argument!")
     }
   }
-  return rprop(f, x0, step_init, eta, epsilon, hook, constraints)
+  return rprop(f, x0, step_init, eta, epsilon, maxIterations, hook, constraints)
 }
