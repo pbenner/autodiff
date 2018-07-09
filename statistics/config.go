@@ -105,6 +105,14 @@ func (config ConfigDistribution) getInt(a interface{}) (int, bool) {
   return 0, false
 }
 
+func (config ConfigDistribution) getString(a interface{}) (string, bool) {
+  switch reflect.TypeOf(a).Kind() {
+  case reflect.String:
+    return reflect.ValueOf(a).String(), true
+  }
+  return "", false
+}
+
 func (config ConfigDistribution) getFloats(a interface{}) ([]float64, bool) {
   if a == nil {
     return nil, true
@@ -135,6 +143,26 @@ func (config ConfigDistribution) getInts(a interface{}) ([]int, bool) {
     p := make([]int, s.Len())
     for i := 0; i < s.Len(); i++ {
       if v, ok := config.getInt(s.Index(i).Elem().Interface()); !ok {
+        return nil, false
+      } else {
+        p[i] = v
+      }
+    }
+    return p, true
+  }
+  return nil, false
+}
+
+func (config ConfigDistribution) getStrings(a interface{}) ([]string, bool) {
+  if a == nil {
+    return nil, true
+  }
+  switch reflect.TypeOf(a).Kind() {
+  case reflect.Slice:
+    s := reflect.ValueOf(a)
+    p := make([]string, s.Len())
+    for i := 0; i < s.Len(); i++ {
+      if v, ok := config.getString(s.Index(i).Elem().Interface()); !ok {
         return nil, false
       } else {
         p[i] = v
@@ -187,6 +215,13 @@ func (config ConfigDistribution) GetNamedParametersAsFloats(name string) ([]floa
 func (config ConfigDistribution) GetNamedParametersAsInts(name string) ([]int, bool) {
   if p, ok := config.GetNamedParameter(name); ok {
     return config.getInts(p)
+  }
+  return nil, false
+}
+
+func (config ConfigDistribution) GetNamedParametersAsStrings(name string) ([]string, bool) {
+  if p, ok := config.GetNamedParameter(name); ok {
+    return config.getStrings(p)
   }
   return nil, false
 }

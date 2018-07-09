@@ -177,6 +177,8 @@ func Run(f func(Vector) (Scalar, error), x0 Vector, step_init float64, eta []flo
       epsilon = a
     case Constraints:
       constraints = a
+    case MaxIterations:
+      maxIterations = a
     default:
       panic("Rprop(): Invalid optional argument!")
     }
