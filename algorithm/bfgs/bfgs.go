@@ -335,7 +335,7 @@ func Run(f Objective, x0 Vector, args ...interface{}) (Vector, error) {
   } else {
     r, c := hessian.Value.Dims()
     if n != r || n != c {
-      return nil, fmt.Errorf("argument dimensions do not match, i.e. x0 has length %s and B0 has dimension %dx%d\n", n, r, c)
+      return nil, fmt.Errorf("argument dimensions do not match, i.e. x0 has length %d and B0 has dimension %dx%d\n", n, r, c)
     }
   }
   H, err := matrixInverse.Run(hessian.Value)

@@ -19,15 +19,13 @@ package scalarEstimator
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-//import   "os"
 import   "testing"
 
 import . "github.com/pbenner/autodiff/statistics"
 import   "github.com/pbenner/autodiff/statistics/vectorEstimator"
-//import   "github.com/pbenner/autodiff/statistics/generic"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/threadpool"
+import   "github.com/pbenner/threadpool"
 import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
@@ -68,7 +66,7 @@ func Test2(t *testing.T) {
   if estimator, err := vectorEstimator.NewHmmEstimator(pi, tr, nil, nil, nil, []ScalarEstimator{e1, e2}, 1e-8, -1); err != nil {
     t.Error(err)
   } else {
-    if err = estimator.EstimateOnData([]ConstVector{x}, nil, NewThreadPool(2, 100)); err != nil {
+    if err = estimator.EstimateOnData([]ConstVector{x}, nil, threadpool.New(2, 100)); err != nil {
       t.Error(err); return
     }
     hmm := estimator.GetEstimate()
