@@ -308,6 +308,10 @@ func (matrix *MATRIX_TYPE) Tip() {
 
 /* -------------------------------------------------------------------------- */
 
+func (matrix *MATRIX_TYPE) ValueAt(i, j int) float64 {
+  return matrix.values[matrix.index(i, j)].GetValue()
+}
+
 func (matrix *MATRIX_TYPE) ConstAt(i, j int) ConstScalar {
   return matrix.values[matrix.index(i, j)]
 }

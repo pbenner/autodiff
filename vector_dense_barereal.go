@@ -90,6 +90,9 @@ func (v DenseBareRealVector) Set(w ConstVector) {
   }
 }
 /* -------------------------------------------------------------------------- */
+func (v DenseBareRealVector) ValueAt(i int) float64 {
+  return v[i].GetValue()
+}
 func (v DenseBareRealVector) ConstAt(i int) ConstScalar {
   return v[i]
 }

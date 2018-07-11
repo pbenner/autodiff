@@ -87,6 +87,10 @@ func (matrix DenseConstRealMatrix) Dims() (int, int) {
   return matrix.rows, matrix.cols
 }
 
+func (matrix DenseConstRealMatrix) ValueAt(i, j int) float64 {
+  return matrix.values[matrix.index(i, j)]
+}
+
 func (matrix DenseConstRealMatrix) ConstAt(i, j int) ConstScalar {
   return ConstReal(matrix.values[matrix.index(i, j)])
 }

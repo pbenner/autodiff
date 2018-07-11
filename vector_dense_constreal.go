@@ -42,6 +42,10 @@ func (v DenseConstRealVector) Dim() int {
   return len(v)
 }
 
+func (v DenseConstRealVector) ValueAt(i int) float64 {
+  return v[i]
+}
+
 func (v DenseConstRealVector) ConstAt(i int) ConstScalar {
   return ConstReal(v[i])
 }

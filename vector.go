@@ -28,6 +28,7 @@ type ConstVector interface {
   Dim             ()                     int
   Equals          (ConstVector, float64) bool
   Table           ()                     string
+  ValueAt         (int)                  float64
   ConstAt         (int)                  ConstScalar
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64
@@ -39,6 +40,7 @@ type Vector interface {
   Dim             ()                     int
   Equals          (ConstVector, float64) bool
   Table           ()                     string
+  ValueAt         (int)                  float64
   ConstAt         (int)                  ConstScalar
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64

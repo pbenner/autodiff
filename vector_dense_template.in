@@ -108,6 +108,10 @@ func (v VECTOR_TYPE) Set(w ConstVector) {
 
 /* -------------------------------------------------------------------------- */
 
+func (v VECTOR_TYPE) ValueAt(i int) float64 {
+  return v[i].GetValue()
+}
+
 func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
   return v[i]
 }

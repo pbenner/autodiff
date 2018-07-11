@@ -271,6 +271,9 @@ func (matrix *DenseBareRealMatrix) Tip() {
   matrix.tmp1, matrix.tmp2 = matrix.tmp2, matrix.tmp1
 }
 /* -------------------------------------------------------------------------- */
+func (matrix *DenseBareRealMatrix) ValueAt(i, j int) float64 {
+  return matrix.values[matrix.index(i, j)].GetValue()
+}
 func (matrix *DenseBareRealMatrix) ConstAt(i, j int) ConstScalar {
   return matrix.values[matrix.index(i, j)]
 }

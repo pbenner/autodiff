@@ -28,6 +28,7 @@ type ConstMatrix interface {
   Dims         ()                           (int, int)
   Equals       (ConstMatrix, float64)       bool
   Table        ()                           string
+  ValueAt      (i, j int)                   float64
   ConstAt      (i, j int)                   ConstScalar
   ConstSlice   (rfrom, rto, cfrom, cto int) ConstMatrix
   ConstRow     (i int)                      ConstVector
@@ -45,6 +46,7 @@ type Matrix interface {
   Dims         ()                           (int, int)
   Equals       (ConstMatrix, float64)       bool
   Table        ()                           string
+  ValueAt      (i, j int)                   float64
   ConstAt      (i, j int)                   ConstScalar
   ConstSlice   (rfrom, rto, cfrom, cto int) ConstMatrix
   ConstRow     (i int)                      ConstVector
