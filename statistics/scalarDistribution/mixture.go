@@ -76,6 +76,10 @@ func (obj *Mixture) LogPdf(r Scalar, x ConstScalar) error {
   return obj.Mixture.LogPdf(r, MixtureDataRecord{obj.Edist, x})
 }
 
+func (obj *Mixture) Likelihood(r Scalar, x ConstScalar, states []int) error {
+  return obj.Mixture.Likelihood(r, MixtureDataRecord{obj.Edist, x}, states)
+}
+
 func (obj *Mixture) Posterior(r Scalar, x ConstScalar, states []int) error {
   return obj.Mixture.Posterior(r, MixtureDataRecord{obj.Edist, x}, states)
 }

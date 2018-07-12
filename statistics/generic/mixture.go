@@ -103,6 +103,27 @@ func (obj *Mixture) LogPdf(r Scalar, data MixtureDataRecord) error {
   return nil
 }
 
+func (obj *Mixture) Likelihood(r Scalar, data MixtureDataRecord, states []int) error {
+  t1 := obj.t1
+  t2 := obj.t2
+  z  := obj.t3
+  r.SetValue(math.Inf(-1))
+  z.SetValue(math.Inf(-1))
+  for _, j := range states {
+    if j < 0 || j >= obj.NComponents() {
+      return fmt.Errorf("state `%d' out of bounds", j)
+    }
+    if err := data.LogPdf(t1, j); err != nil {
+      return err
+    }
+    t1.Add   (t1, obj.LogWeights.At(j))
+    r .LogAdd(r, t1, t2)
+    z .LogAdd(z, obj.LogWeights.At(j), t2)
+  }
+  r.Sub(r, z)
+  return nil
+}
+
 func (obj *Mixture) Posterior(r Scalar, data MixtureDataRecord, states []int) error {
   t1 := obj.t1
   t2 := obj.t2
