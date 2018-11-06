@@ -61,6 +61,10 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
   sigmaDet, err := determinant  .Run(sigma, determinant  .PositiveDefinite{true})
   if err != nil { return nil, err }
 
+  if sigmaDet.GetValue() == 0.0 {
+    return nil, fmt.Errorf("NewNormalDistribution(): covariance matrix is singular")
+  }
+
   t1 := NewScalar(t, 0.0)
 
   // -1/2 [ p log(2pi) + log|Sigma| ]

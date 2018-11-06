@@ -74,11 +74,11 @@ func PlainEmHook(writer io.Writer) EmHook {
   hook.Value = func(mixture BasicMixture, i int, likelihood, epsilon float64) {
     switch i {
     case 0:
-      fmt.Fprintf(writer, "%10s %20s %15s\n", "Iteration", "Log Likelihood", "Change")
+      fmt.Fprintf(writer, "%10s %20s %18s\n", "Iteration", "Log Likelihood", "Change")
     case 1:
-      fmt.Fprintf(writer, "%10d %20f %15s\n", i, likelihood, "-")
+      fmt.Fprintf(writer, "%10d %20f %18s\n", i, likelihood, "-")
     default:
-      fmt.Fprintf(writer, "%10d %20f %15f\n", i, likelihood, epsilon)
+      fmt.Fprintf(writer, "%10d %20f %18f\n", i, likelihood, epsilon)
     }
   }
   return hook
