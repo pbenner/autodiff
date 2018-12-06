@@ -60,8 +60,8 @@ func TestShapeHmm1(t *testing.T) {
     if err := estimator.EstimateOnData([]ConstMatrix{x}, nil, ThreadPool{}); err != nil {
       t.Error(err); return
     }
-    d := estimator.GetEstimate()
-    r := NewReal(0.0)
+    d, _ := estimator.GetEstimate()
+    r    := NewReal(0.0)
 
     if err := d.LogPdf(r, x); err != nil {
       t.Error(err); return
@@ -107,8 +107,8 @@ func TestShapeHmm2(t *testing.T) {
     if err := estimator.EstimateOnData([]ConstMatrix{x}, nil, ThreadPool{}); err != nil {
       t.Error(err); return
     }
-    d := estimator.GetEstimate()
-    r := NewReal(0.0)
+    d, _ := estimator.GetEstimate()
+    r    := NewReal(0.0)
 
     if err := d.LogPdf(r, x); err != nil {
       t.Error(err); return

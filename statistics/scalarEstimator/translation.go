@@ -117,8 +117,10 @@ func (obj *TranslationEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPo
   return obj.Estimate(gamma, p)
 }
 
-func (obj *TranslationEstimator) GetEstimate() ScalarPdf {
-  estimate := obj.ScalarBatchEstimator.GetEstimate()
-  r, _ := scalarDistribution.NewPdfTranslation(estimate, obj.c)
-  return r
+func (obj *TranslationEstimator) GetEstimate() (ScalarPdf, error) {
+  if estimate, err := obj.ScalarBatchEstimator.GetEstimate(); err != nil {
+    return nil, err
+  } else {
+    return  scalarDistribution.NewPdfTranslation(estimate, obj.c)
+  }
 }

@@ -52,13 +52,13 @@ func TestHmm1(t *testing.T) {
   if estimator, err := NewHmmEstimator(pi, tr, nil, nil, nil, []ScalarEstimator{e1, e2}, 1e-8, -1); err != nil {
     t.Error(err)
   } else {
-    hmm1 := estimator.GetEstimate()
-    x    := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
+    hmm1, _ := estimator.GetEstimate()
+    x       := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
 
     if err := estimator.EstimateOnData([]ConstVector{x}, nil, ThreadPool{}); err != nil {
       t.Error(err)
     } else {
-      hmm2 := estimator.GetEstimate()
+      hmm2, _ := estimator.GetEstimate()
 
       p1 := NullReal(); hmm1.LogPdf(p1, x)
       p2 := NullReal(); hmm2.LogPdf(p2, x)
@@ -76,13 +76,13 @@ func TestHmm1(t *testing.T) {
   if estimator, err := NewHmmEstimator(pi, tr, nil, []int{0}, []int{0}, []ScalarEstimator{e1, e2}, 1e-8, -1); err != nil {
     t.Error(err)
   } else {
-    hmm1 := estimator.GetEstimate()
-    x    := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
+    hmm1, _ := estimator.GetEstimate()
+    x       := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
 
     if err := estimator.EstimateOnData([]ConstVector{x}, nil, ThreadPool{}); err != nil {
       t.Error(err)
     } else {
-      hmm2 := estimator.GetEstimate()
+      hmm2, _ := estimator.GetEstimate()
 
       p1 := NullReal(); hmm1.LogPdf(p1, x)
       p2 := NullReal(); hmm2.LogPdf(p2, x)
@@ -390,7 +390,8 @@ func TestHmm5(t *testing.T) {
   if err := estimator.EstimateOnData(x, nil, ThreadPool{}); err != nil {
     t.Error(err); return
   }
-  hmm := estimator.GetEstimate().(*vectorDistribution.Hmm)
+  hmt, _ := estimator.GetEstimate()
+  hmm    := hmt.(*vectorDistribution.Hmm)
 
   // correct values
   qi := NewVector(RealType, []float64{7.249908e-01, 2.750092e-01})
@@ -526,7 +527,8 @@ func TestHmm6(t *testing.T) {
   if err := estimator.EstimateOnData(x, nil, ThreadPool{}); err != nil {
     t.Error(err); return
   }
-  p := estimator.GetEstimate().GetParameters()
+  pt, _ := estimator.GetEstimate()
+  p     := pt.GetParameters()
   p.Slice( 0, 6).Map(func(x Scalar) { x.Exp(x) })
   p.Slice(12,14).Map(func(x Scalar) { x.Exp(x) })
 

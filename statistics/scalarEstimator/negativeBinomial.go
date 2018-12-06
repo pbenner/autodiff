@@ -165,9 +165,11 @@ func (obj *NegativeBinomialEstimator) EstimateOnData(x, gamma ConstVector, p Thr
   return obj.Estimate(gamma, p)
 }
 
-func (obj *NegativeBinomialEstimator) GetEstimate() ScalarPdf {
+func (obj *NegativeBinomialEstimator) GetEstimate() (ScalarPdf, error) {
   if obj.sum_k != nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.NegativeBinomialDistribution
+  return obj.NegativeBinomialDistribution, nil
 }

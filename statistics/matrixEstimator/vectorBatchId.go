@@ -145,7 +145,11 @@ func (obj *VectorBatchId) NewObservation(x ConstMatrix, gamma ConstScalar, p Thr
 func (obj *VectorBatchId) updateEstimate() error {
   r := make([]VectorPdf, len(obj.Estimators))
   for i, estimator := range obj.Estimators {
-    r[i] = estimator.GetEstimate()
+    if d, err := estimator.GetEstimate(); err != nil {
+      return err
+    } else {
+      r[i] = d
+    }
   }
   if s, err := matrixDistribution.NewVectorId(r...); err != nil {
     return err
@@ -155,9 +159,9 @@ func (obj *VectorBatchId) updateEstimate() error {
   return nil
 }
 
-func (obj *VectorBatchId) GetEstimate() MatrixPdf {
+func (obj *VectorBatchId) GetEstimate() (MatrixPdf, error) {
   if err := obj.updateEstimate(); err != nil {
-    panic(err)
+    return nil, err
   }
-  return obj.estimate
+  return obj.estimate, nil
 }

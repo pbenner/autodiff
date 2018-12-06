@@ -105,7 +105,11 @@ func (obj *ShapeHmmAdapter) SetData(x []ConstMatrix, n int) error {
  * -------------------------------------------------------------------------- */
 
 func (obj *ShapeHmmAdapter) updateEstimate() error {
-  obj.estimate = obj.Estimator.GetEstimate()
+  if d, err := obj.Estimator.GetEstimate(); err != nil {
+    return err
+  } else {
+    obj.estimate = d
+  }
   return nil
 }
 
@@ -132,9 +136,11 @@ func (obj *ShapeHmmAdapter) EstimateOnData(x []ConstMatrix, gamma ConstVector, p
   return obj.Estimate(gamma, p)
 }
 
-func (obj *ShapeHmmAdapter) GetEstimate() MatrixPdf {
+func (obj *ShapeHmmAdapter) GetEstimate() (MatrixPdf, error) {
   if obj.estimate == nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.estimate
+  return obj.estimate, nil
 }

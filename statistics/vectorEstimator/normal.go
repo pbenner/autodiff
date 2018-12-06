@@ -222,9 +222,11 @@ func (obj *NormalEstimator) EstimateOnData(x []ConstVector, gamma ConstVector, p
   return obj.Estimate(gamma, p)
 }
 
-func (obj *NormalEstimator) GetEstimate() VectorPdf {
+func (obj *NormalEstimator) GetEstimate() (VectorPdf, error) {
   if obj.sum_m != nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.NormalDistribution
+  return obj.NormalDistribution, nil
 }

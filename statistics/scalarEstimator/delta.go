@@ -83,6 +83,6 @@ func (obj *DeltaEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) er
   return nil
 }
 
-func (obj *DeltaEstimator) GetEstimate() ScalarPdf {
-  return obj.DeltaDistribution
+func (obj *DeltaEstimator) GetEstimate() (ScalarPdf, error) {
+  return obj.DeltaDistribution, nil
 }

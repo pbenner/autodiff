@@ -69,7 +69,7 @@ func Test2(t *testing.T) {
     if err = estimator.EstimateOnData([]ConstVector{x}, nil, threadpool.New(2, 100)); err != nil {
       t.Error(err); return
     }
-    hmm := estimator.GetEstimate()
+    hmm, _ := estimator.GetEstimate()
 
     if Vnorm(VsubV(r, hmm.GetParameters())).GetValue() > 1e-2 {
       t.Error("test failed")

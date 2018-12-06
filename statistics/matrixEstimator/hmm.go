@@ -70,7 +70,13 @@ func NewHmmEstimator(pi Vector, tr Matrix, stateMap, startStates, finalStates []
     }
     for i, estimator := range estimators {
       // initialize distribution
-      hmm.Edist[i] = estimator.GetEstimate()
+      if hmm.Edist[i] == nil {
+        if d, err := estimator.GetEstimate(); err != nil {
+          return nil, err
+        } else {
+          hmm.Edist[i] = d
+        }
+      }
     }
     // initialize estimators with data
     r := HmmEstimator{}
@@ -201,9 +207,13 @@ func (obj *HmmEstimator) SetData(x []ConstMatrix, n int) error {
         return err
       }
       // initialize distribution
-      obj.hmm1.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
-      obj.hmm2.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
-      obj.hmm3.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
+      if d, err := estimator.GetEstimate(); err != nil {
+        return err
+      } else {
+        obj.hmm1.Edist[i] = d.CloneVectorPdf()
+        obj.hmm2.Edist[i] = d.CloneVectorPdf()
+        obj.hmm3.Edist[i] = d.CloneVectorPdf()
+      }
     }
     obj.data = data
   }
@@ -218,7 +228,9 @@ func (obj *HmmEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   if obj.SaveFile != "" && obj.SaveInterval > 0 {
     hook_save.Value = func(hmm generic.BasicHmm, i int, likelihood, epsilon float64) {
       if i % obj.SaveInterval == 0 {
-        ExportDistribution(obj.SaveFile, obj.GetEstimate())
+        if d, err := obj.GetEstimate(); err == nil {
+          ExportDistribution(obj.SaveFile, d)
+        }
       }
     }
   }
@@ -262,6 +274,6 @@ func (obj *HmmEstimator) EstimateOnData(x []ConstMatrix, gamma ConstVector, p Th
   return obj.Estimate(gamma, p)
 }
 
-func (obj *HmmEstimator) GetEstimate() MatrixPdf {
-  return obj.hmm1
+func (obj *HmmEstimator) GetEstimate() (MatrixPdf, error) {
+  return obj.hmm1, nil
 }

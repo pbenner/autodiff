@@ -198,6 +198,6 @@ func (obj *NumericEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) 
   return obj.Estimate(gamma, p)
 }
 
-func (obj *NumericEstimator) GetEstimate() ScalarPdf {
-  return obj.ScalarPdf
+func (obj *NumericEstimator) GetEstimate() (ScalarPdf, error) {
+  return obj.ScalarPdf, nil
 }

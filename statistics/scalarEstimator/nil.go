@@ -51,6 +51,6 @@ func (NilEstimator) SetData(x ConstVector, n int) error {
   return nil
 }
 
-func (obj NilEstimator) GetEstimate() ScalarPdf {
-  return obj.ScalarPdf
+func (obj NilEstimator) GetEstimate() (ScalarPdf, error) {
+  return obj.ScalarPdf, nil
 }

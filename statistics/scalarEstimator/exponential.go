@@ -172,9 +172,11 @@ func (obj *ExponentialEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPo
   return obj.Estimate(gamma, p)
 }
 
-func (obj *ExponentialEstimator) GetEstimate() ScalarPdf {
+func (obj *ExponentialEstimator) GetEstimate() (ScalarPdf, error) {
   if obj.sum_m != nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.ExponentialDistribution
+  return obj.ExponentialDistribution, nil
 }

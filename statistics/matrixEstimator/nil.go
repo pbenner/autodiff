@@ -51,6 +51,6 @@ func (NilEstimator) SetData(x []ConstMatrix, n int) error {
   return nil
 }
 
-func (obj NilEstimator) GetEstimate() MatrixPdf {
-  return obj.MatrixPdf
+func (obj NilEstimator) GetEstimate() (MatrixPdf, error) {
+  return obj.MatrixPdf, nil
 }

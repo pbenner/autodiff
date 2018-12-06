@@ -50,7 +50,8 @@ func TestNormal1(t *testing.T) {
     estimator.NewObservation(DenseConstRealVector([]float64{ 2, 4, 1}), nil, p)
     estimator.NewObservation(DenseConstRealVector([]float64{10, 5, 8}), nil, p)
 
-    normal := estimator.GetEstimate().(*vectorDistribution.NormalDistribution)
+    normalt, _ := estimator.GetEstimate()
+    normal     := normalt.(*vectorDistribution.NormalDistribution)
 
     if Vnorm(VsubV(normal.Mu, mu)).GetValue() > 1e-4 {
       t.Error("test failed")

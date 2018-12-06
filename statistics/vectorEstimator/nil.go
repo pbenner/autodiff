@@ -51,6 +51,6 @@ func (NilEstimator) SetData(x []ConstVector, n int) error {
   return nil
 }
 
-func (obj NilEstimator) GetEstimate() VectorPdf {
-  return obj.VectorPdf
+func (obj NilEstimator) GetEstimate() (VectorPdf, error) {
+  return obj.VectorPdf, nil
 }

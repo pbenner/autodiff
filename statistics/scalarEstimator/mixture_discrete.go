@@ -60,9 +60,13 @@ func (obj *DiscreteMixtureEstimator) SetData(x ConstVector, n int) error {
       return err
     }
     // initialize distribution
-    obj.mixture1.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
-    obj.mixture2.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
-    obj.mixture3.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
+    if d, err := estimator.GetEstimate(); err != nil {
+      return err
+    } else {
+      obj.mixture1.Edist[i] = d.CloneScalarPdf()
+      obj.mixture2.Edist[i] = d.CloneScalarPdf()
+      obj.mixture3.Edist[i] = d.CloneScalarPdf()
+    }
   }
   return nil
 }

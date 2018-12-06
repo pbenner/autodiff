@@ -44,7 +44,11 @@ func NewConstrainedHmmEstimator(pi Vector, tr Matrix, stateMap, startStates, fin
     for i, estimator := range estimators {
       // initialize distribution
       if hmm.Edist[i] == nil {
-        hmm.Edist[i] = estimator.GetEstimate()
+        if d, err := estimator.GetEstimate(); err != nil {
+          return nil, err
+        } else {
+          hmm.Edist[i] = d
+        }
       }
     }
     // initialize estimators with data

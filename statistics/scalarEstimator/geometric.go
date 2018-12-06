@@ -167,9 +167,11 @@ func (obj *GeometricEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool
   return obj.Estimate(gamma, p)
 }
 
-func (obj *GeometricEstimator) GetEstimate() ScalarPdf {
+func (obj *GeometricEstimator) GetEstimate() (ScalarPdf, error) {
   if obj.sum_m != nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.GeometricDistribution
+  return obj.GeometricDistribution, nil
 }

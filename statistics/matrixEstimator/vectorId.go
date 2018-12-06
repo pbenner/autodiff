@@ -154,7 +154,11 @@ func (obj *VectorId) SetData(x []ConstMatrix, n int) error {
 func (obj *VectorId) updateEstimate() error {
   r := make([]VectorPdf, len(obj.Estimators))
   for i, estimator := range obj.Estimators {
-    r[i] = estimator.GetEstimate()
+    if d, err := estimator.GetEstimate(); err != nil {
+      return err
+    } else {
+      r[i] = d
+    }
   }
   if s, err := matrixDistribution.NewVectorId(r...); err != nil {
     return err
@@ -183,6 +187,6 @@ func (obj *VectorId) EstimateOnData(x []ConstMatrix, gamma ConstVector, p Thread
   return obj.Estimate(gamma, p)
 }
 
-func (obj *VectorId) GetEstimate() MatrixPdf {
-  return obj.estimate
+func (obj *VectorId) GetEstimate() (MatrixPdf, error) {
+  return obj.estimate, nil
 }

@@ -38,7 +38,7 @@ type ScalarEstimator interface {
   BasicEstimator
   CloneScalarEstimator()                       ScalarEstimator
   SetData             (x ConstVector, n int)   error
-  GetEstimate         ()                       ScalarPdf
+  GetEstimate         ()                       (ScalarPdf, error)
   EstimateOnData      (x, gamma ConstVector, p ThreadPool) error
 }
 
@@ -46,7 +46,7 @@ type VectorEstimator interface {
   BasicEstimator
   CloneVectorEstimator()                       VectorEstimator
   SetData             (x []ConstVector, n int) error
-  GetEstimate         ()                       VectorPdf
+  GetEstimate         ()                       (VectorPdf, error)
   Dim                 ()                       int
   EstimateOnData      (x []ConstVector, gamma ConstVector, p ThreadPool) error
 }
@@ -55,7 +55,7 @@ type MatrixEstimator interface {
   BasicEstimator
   CloneMatrixEstimator()                       MatrixEstimator
   SetData             (x []ConstMatrix, n int) error
-  GetEstimate         ()                       MatrixPdf
+  GetEstimate         ()                       (MatrixPdf, error)
   Dims                ()                       (int, int)
   EstimateOnData      (x []ConstMatrix, gamma ConstVector, p ThreadPool) error
 }
@@ -72,14 +72,14 @@ type BasicBatchEstimator interface {
 type ScalarBatchEstimator interface {
   BasicBatchEstimator
   CloneScalarBatchEstimator() ScalarBatchEstimator
-  GetEstimate() ScalarPdf
+  GetEstimate() (ScalarPdf, error)
   NewObservation(x ConstScalar, gamma ConstScalar, p ThreadPool) error
 }
 
 type VectorBatchEstimator interface {
   BasicBatchEstimator
   CloneVectorBatchEstimator() VectorBatchEstimator
-  GetEstimate() VectorPdf
+  GetEstimate() (VectorPdf, error)
   Dim() int
   NewObservation(x ConstVector, gamma ConstScalar, p ThreadPool) error
 }
@@ -87,7 +87,7 @@ type VectorBatchEstimator interface {
 type MatrixBatchEstimator interface {
   BasicBatchEstimator
   CloneMatrixBatchEstimator() MatrixBatchEstimator
-  GetEstimate() MatrixPdf
+  GetEstimate() (MatrixPdf, error)
   Dims() (int, int)
   NewObservation(x ConstMatrix, gamma ConstScalar, p ThreadPool) error
 }

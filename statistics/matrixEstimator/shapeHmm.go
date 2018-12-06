@@ -61,7 +61,11 @@ func NewShapeHmmEstimator(pi Vector, tr Matrix, stateMap []int, batchEstimators 
     for i, estimator := range estimators {
       // initialize distribution
       if hmm.Edist[i] == nil {
-        hmm.Edist[i] = estimator.GetEstimate()
+        if d, err := estimator.GetEstimate(); err != nil {
+          return nil, err
+        } else {
+          hmm.Edist[i] = d
+        }
       }
     }
     // initialize estimators with data
@@ -201,6 +205,6 @@ func (obj *ShapeHmmEstimator) EstimateOnData(x []ConstMatrix, gamma ConstVector,
   return obj.Estimate(gamma, p)
 }
 
-func (obj *ShapeHmmEstimator) GetEstimate() MatrixPdf {
-  return obj.hmm1
+func (obj *ShapeHmmEstimator) GetEstimate() (MatrixPdf, error) {
+  return obj.hmm1, nil
 }

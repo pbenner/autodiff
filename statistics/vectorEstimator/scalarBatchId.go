@@ -139,7 +139,11 @@ func (obj *ScalarBatchId) NewObservation(x ConstVector, gamma ConstScalar, p Thr
 func (obj *ScalarBatchId) updateEstimate() error {
   r := make([]ScalarPdf, len(obj.Estimators))
   for i, estimator := range obj.Estimators {
-    r[i] = estimator.GetEstimate()
+    if d, err := estimator.GetEstimate(); err != nil {
+      return err
+    } else {
+      r[i] = d
+    }
   }
   if s, err := vectorDistribution.NewScalarId(r...); err != nil {
     return err
@@ -149,9 +153,9 @@ func (obj *ScalarBatchId) updateEstimate() error {
   return nil
 }
 
-func (obj *ScalarBatchId) GetEstimate() VectorPdf {
+func (obj *ScalarBatchId) GetEstimate() (VectorPdf, error) {
   if err := obj.updateEstimate(); err != nil {
-    panic(err)
+    return nil, err
   }
-  return obj.estimate
+  return obj.estimate, nil
 }

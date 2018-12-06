@@ -66,7 +66,13 @@ func NewMixtureEstimator(weights []float64, estimators []ScalarEstimator, epsilo
   }
   for i, estimator := range estimators {
     // initialize distribution
-    m.Edist[i] = estimator.GetEstimate()
+    if m.Edist[i] == nil {
+      if d, err := estimator.GetEstimate(); err != nil {
+        return nil, err
+      } else {
+        m.Edist[i] = d
+      }
+    }
   }
   // initialize estimators with data
   r := MixtureEstimator{}
@@ -181,9 +187,13 @@ func (obj *MixtureEstimator) SetData(x ConstVector, n int) error {
       return err
     }
     // initialize distribution
-    obj.mixture1.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
-    obj.mixture2.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
-    obj.mixture3.Edist[i] = estimator.GetEstimate().CloneScalarPdf()
+    if d, err := estimator.GetEstimate(); err != nil {
+      return err
+    } else {
+      obj.mixture1.Edist[i] = d.CloneScalarPdf()
+      obj.mixture2.Edist[i] = d.CloneScalarPdf()
+      obj.mixture3.Edist[i] = d.CloneScalarPdf()
+    }
   }
   return nil
 }
@@ -194,9 +204,11 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   hook_verbose := generic.EmHook{}
   trace := NullVector(obj.ScalarType(), 0)
   if obj.SaveFile != "" && obj.SaveInterval > 0 {
-    hook_save.Value = func(hmm generic.BasicMixture, i int, likelihood, epsilon float64) {
+    hook_save.Value = func(mixture generic.BasicMixture, i int, likelihood, epsilon float64) {
       if i % obj.SaveInterval == 0 {
-        ExportDistribution(obj.SaveFile, obj.GetEstimate())
+        if d, err := obj.GetEstimate(); err == nil {
+          ExportDistribution(obj.SaveFile, d)
+        }
       }
     }
   }
@@ -206,8 +218,8 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   // add hooks
   //////////////////////////////////////////////////////////////////////////////
   if obj.Trace != "" {
-    hook_trace.Value = func(hmm generic.BasicMixture, i int, likelihood, epsilon float64) {
-      trace = trace.AppendVector(hmm.GetParameters())
+    hook_trace.Value = func(mixture generic.BasicMixture, i int, likelihood, epsilon float64) {
+      trace = trace.AppendVector(mixture.GetParameters())
     }
   }
   if obj.Verbose > 1 {
@@ -234,6 +246,6 @@ func (obj *MixtureEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) 
   return obj.Estimate(gamma, p)
 }
 
-func (obj *MixtureEstimator) GetEstimate() ScalarPdf {
-  return obj.mixture1
+func (obj *MixtureEstimator) GetEstimate() (ScalarPdf, error) {
+  return obj.mixture1, nil
 }

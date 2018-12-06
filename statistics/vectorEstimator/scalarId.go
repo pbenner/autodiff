@@ -148,7 +148,11 @@ func (obj *ScalarId) SetData(x []ConstVector, n int) error {
 func (obj *ScalarId) updateEstimate() error {
   r := make([]ScalarPdf, len(obj.Estimators))
   for i, estimator := range obj.Estimators {
-    r[i] = estimator.GetEstimate()
+    if d, err := estimator.GetEstimate(); err != nil {
+      return err
+    } else {
+      r[i] = d
+    }
   }
   if s, err := vectorDistribution.NewScalarId(r...); err != nil {
     return err
@@ -177,6 +181,6 @@ func (obj *ScalarId) EstimateOnData(x []ConstVector, gamma ConstVector, p Thread
   return obj.Estimate(gamma, p)
 }
 
-func (obj *ScalarId) GetEstimate() VectorPdf {
-  return obj.estimate
+func (obj *ScalarId) GetEstimate() (VectorPdf, error) {
+  return obj.estimate, nil
 }

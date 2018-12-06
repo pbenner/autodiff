@@ -66,7 +66,13 @@ func NewMixtureEstimator(weights []float64, estimators []VectorEstimator, epsilo
   }
   for i, estimator := range estimators {
     // initialize distribution
-    m.Edist[i] = estimator.GetEstimate()
+    if m.Edist[i] == nil {
+      if d, err := estimator.GetEstimate(); err != nil {
+        return nil, err
+      } else {
+        m.Edist[i] = d
+      }
+    }
   }
   // initialize estimators with data
   r := MixtureEstimator{}
@@ -171,17 +177,21 @@ func (obj *MixtureEstimator) SetData(x []ConstVector, n int) error {
   if data, err := NewMixtureStdDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
     return err
   } else {
-    for i, estimator := range obj.estimators {
-      // set data
-      if err := estimator.SetData(data.GetData(), n); err != nil {
-        return err
-      }
-      // initialize distribution
-      obj.mixture1.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
-      obj.mixture2.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
-      obj.mixture3.Edist[i] = estimator.GetEstimate().CloneVectorPdf()
-    }
     obj.data = data
+  }
+  for i, estimator := range obj.estimators {
+    // set data
+    if err := estimator.SetData(obj.data.GetData(), n); err != nil {
+      return err
+    }
+    // initialize distribution
+    if d, err := estimator.GetEstimate(); err != nil {
+      return err
+    } else {
+      obj.mixture1.Edist[i] = d.CloneVectorPdf()
+      obj.mixture2.Edist[i] = d.CloneVectorPdf()
+      obj.mixture3.Edist[i] = d.CloneVectorPdf()
+    }
   }
   return nil
 }
@@ -194,7 +204,9 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   if obj.SaveFile != "" && obj.SaveInterval > 0 {
     hook_save.Value = func(hmm generic.BasicMixture, i int, likelihood, epsilon float64) {
       if i % obj.SaveInterval == 0 {
-        ExportDistribution(obj.SaveFile, obj.GetEstimate())
+        if d, err := obj.GetEstimate(); err == nil {
+          ExportDistribution(obj.SaveFile, d)
+        }
       }
     }
   }
@@ -229,6 +241,6 @@ func (obj *MixtureEstimator) EstimateOnData(x []ConstVector, gamma ConstVector, 
   return obj.Estimate(gamma, p)
 }
 
-func (obj *MixtureEstimator) GetEstimate() VectorPdf {
-  return obj.mixture1
+func (obj *MixtureEstimator) GetEstimate() (VectorPdf, error) {
+  return obj.mixture1, nil
 }

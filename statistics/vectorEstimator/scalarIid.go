@@ -110,7 +110,10 @@ func (obj *ScalarIid) EstimateOnData(x []ConstVector, gamma ConstVector, p Threa
   return obj.Estimate(gamma, p)
 }
 
-func (obj *ScalarIid) GetEstimate() VectorPdf {
-  r, _ := vectorDistribution.NewScalarIid(obj.Estimator.GetEstimate(), obj.n)
-  return r
+func (obj *ScalarIid) GetEstimate() (VectorPdf, error) {
+  if d, err := obj.Estimator.GetEstimate(); err != nil {
+    return nil, err
+  } else {
+    return vectorDistribution.NewScalarIid(d, obj.n)
+  }
 }

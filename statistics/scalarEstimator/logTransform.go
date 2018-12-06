@@ -118,8 +118,10 @@ func (obj *LogTransformEstimator) EstimateOnData(x, gamma ConstVector, p ThreadP
   return obj.Estimate(gamma, p)
 }
 
-func (obj *LogTransformEstimator) GetEstimate() ScalarPdf {
-  estimate := obj.ScalarBatchEstimator.GetEstimate()
-  r, _ := scalarDistribution.NewPdfLogTransform(estimate, obj.c)
-  return r
+func (obj *LogTransformEstimator) GetEstimate() (ScalarPdf, error) {
+  if estimate, err := obj.ScalarBatchEstimator.GetEstimate(); err != nil {
+    return nil, err
+  } else {
+    return scalarDistribution.NewPdfLogTransform(estimate, obj.c)
+  }
 }

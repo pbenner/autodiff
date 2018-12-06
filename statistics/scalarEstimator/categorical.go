@@ -175,9 +175,11 @@ func (obj *CategoricalEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPo
   return obj.Estimate(gamma, p)
 }
 
-func (obj *CategoricalEstimator) GetEstimate() ScalarPdf {
+func (obj *CategoricalEstimator) GetEstimate() (ScalarPdf, error) {
   if obj.sum_t != nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.CategoricalDistribution
+  return obj.CategoricalDistribution, nil
 }

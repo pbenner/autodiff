@@ -189,9 +189,11 @@ func (obj *NormalEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) e
   return obj.Estimate(gamma, p)
 }
 
-func (obj *NormalEstimator) GetEstimate() ScalarPdf {
+func (obj *NormalEstimator) GetEstimate() (ScalarPdf, error) {
   if obj.sum_m != nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.NormalDistribution
+  return obj.NormalDistribution, nil
 }

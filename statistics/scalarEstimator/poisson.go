@@ -170,9 +170,11 @@ func (obj *PoissonEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) 
   return obj.Estimate(gamma, p)
 }
 
-func (obj *PoissonEstimator) GetEstimate() ScalarPdf {
+func (obj *PoissonEstimator) GetEstimate() (ScalarPdf, error) {
   if obj.sum_m != nil {
-    obj.updateEstimate()
+    if err := obj.updateEstimate(); err != nil {
+      return nil, err
+    }
   }
-  return obj.PoissonDistribution
+  return obj.PoissonDistribution, nil
 }
