@@ -136,7 +136,7 @@ func (obj *NormalEstimator) NewObservation(x ConstVector, gamma ConstScalar, p T
 /* estimator interface
  * -------------------------------------------------------------------------- */
 
-func (obj *NormalEstimator) updateEstimate() error {
+func (obj *NormalEstimator) estimateParameters() (Vector, Matrix, int) {
   sum_g := obj.sum_g[0]
   sum_m := obj.sum_m[0]
   sum_s := obj.sum_s[0]
@@ -160,14 +160,19 @@ func (obj *NormalEstimator) updateEstimate() error {
       si.At(i,i).SetValue(obj.SigmaMin)
     }
   }
+  obj.sum_g = nil
+  obj.sum_m = nil
+  obj.sum_s = nil
+  return mu, si, int(math.Round(sum_g))
+}
+
+func (obj *NormalEstimator) updateEstimate() error {
+  mu, si, _ := obj.estimateParameters()
   if t, err := vectorDistribution.NewNormalDistribution(mu, si); err != nil {
     return err
   } else {
     *obj.NormalDistribution = *t
   }
-  obj.sum_g = nil
-  obj.sum_m = nil
-  obj.sum_s = nil
   return nil
 }
 
