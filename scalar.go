@@ -180,7 +180,7 @@ func Variables(order int, reals ...Scalar) error {
 
 /* -------------------------------------------------------------------------- */
 
-func CopyGradien(g Vector, x ConstScalar) error {
+func CopyGradient(g Vector, x ConstScalar) error {
   n := x.GetN()
   if g.Dim() != n {
     return fmt.Errorf("vector has invalid length")
