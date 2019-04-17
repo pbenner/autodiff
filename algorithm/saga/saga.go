@@ -146,6 +146,10 @@ func saga(
     t1.VdivS(t1, ConstReal(gamma.Value))
     x1.VsubV(x1, t1)
 
+    // update table
+    s.VsubV(s, g1)
+    s.VaddV(s, g2)
+
     x1, x2 = x2, x1
     y1, y2 = y2, y1
   }
