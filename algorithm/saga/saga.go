@@ -107,6 +107,11 @@ func saga(
       s.VaddV(s, g1)
     }
   }
+  // compute first step without s using the last data point
+  {
+    t1.VdivS(g1, ConstReal(gamma.Value))
+    x2.VsubV(x1, t1)
+  }
 
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
     // execute hook if available
@@ -139,7 +144,10 @@ func saga(
     t1.VaddV(t1, g2)
     t1.VsubV(t1, g1)
     t1.VdivS(t1, ConstReal(gamma.Value))
-    x2.VsubV(x1, t1)
+    x1.VsubV(x1, t1)
+
+    x1, x2 = x2, x1
+    y1, y2 = y2, y1
   }
   return x1, nil
 }
