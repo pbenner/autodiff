@@ -44,17 +44,13 @@ type MaxIterations struct {
   Value int
 }
 
+type MaxEpochs struct {
+  Value int
+}
+
 type InSitu struct {
   T1 Vector
   T2 Scalar
-}
-
-/* -------------------------------------------------------------------------- */
-
-func add_gradient(s []float64, x Scalar) {
-  for i := 0; i < x.GetN(); i++ {
-    s[i] += x.GetDerivative(i)
-  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -69,6 +65,7 @@ func saga(
   x Vector,
   gamma Gamma,
   epsilon Epsilon,
+  maxEpochs MaxEpochs,
   maxIterations MaxIterations,
   hook Hook,
   inSitu *InSitu,
@@ -111,40 +108,38 @@ func saga(
     }
   }
 
-  for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 0; i_ < n; i_++ {
-      // execute hook if available
-      if hook.Value != nil && hook.Value(x1, g1, y1) {
-        break
-      }
-      // evaluate stop criterion
-      t2.Vnorm(g1)
-      if t2.GetValue() < epsilon.Value {
-        break
-      }
-      if math.IsNaN(t2.GetValue()) {
-        return x1, fmt.Errorf("NaN value detected")
-      }
-      j := rand.Intn(n)
-
-      y1, err = f(j, x1); if err != nil {
-        return x1, err
-      }
-      y2, err = f(j, x2); if err != nil {
-        return x1, err
-      }
-      if err = CopyGradient(g1, y1); err != nil {
-        panic(err)
-      }
-      if err = CopyGradient(g2, y2); err != nil {
-        panic(err)
-      }
-      t1.VdivS(s, ConstReal(float64(n)))
-      t1.VaddV(t1, g2)
-      t1.VsubV(t1, g1)
-      t1.VdivS(t1, ConstReal(gamma.Value))
-      x2.VsubV(x1, t1)
+  for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
+    // execute hook if available
+    if hook.Value != nil && hook.Value(x1, g1, y1) {
+      break
     }
+    // evaluate stop criterion
+    t2.Vnorm(g1)
+    if t2.GetValue() < epsilon.Value {
+      break
+    }
+    if math.IsNaN(t2.GetValue()) {
+      return x1, fmt.Errorf("NaN value detected")
+    }
+    j := rand.Intn(n)
+
+    y1, err = f(j, x1); if err != nil {
+      return x1, err
+    }
+    y2, err = f(j, x2); if err != nil {
+      return x1, err
+    }
+    if err = CopyGradient(g1, y1); err != nil {
+      panic(err)
+    }
+    if err = CopyGradient(g2, y2); err != nil {
+      panic(err)
+    }
+    t1.VdivS(s, ConstReal(float64(n)))
+    t1.VaddV(t1, g2)
+    t1.VsubV(t1, g1)
+    t1.VdivS(t1, ConstReal(gamma.Value))
+    x2.VsubV(x1, t1)
   }
   return x1, nil
 }
@@ -156,6 +151,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
   hook                := Hook               {   nil}
   epsilon             := Epsilon            {  1e-8}
   gamma               := Gamma              {1.0/2.0}
+  maxEpochs           := MaxEpochs          {int(^uint(0) >> 1)}
   maxIterations       := MaxIterations      {int(^uint(0) >> 1)}
   inSitu              := &InSitu            {}
   options             := make([]interface{}, 0)
@@ -168,6 +164,8 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
       epsilon = a
     case Gamma:
       gamma = a
+    case MaxEpochs:
+      maxEpochs = a
     case MaxIterations:
       maxIterations = a
     case *InSitu:
@@ -179,7 +177,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
     }
   }
 
-  return saga(f, n, x, gamma, epsilon, maxIterations, hook, inSitu, options)
+  return saga(f, n, x, gamma, epsilon, maxEpochs, maxIterations, hook, inSitu, options)
 }
 
 /* -------------------------------------------------------------------------- */
