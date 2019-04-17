@@ -73,6 +73,8 @@ func saga(
 
   x1 := x.CloneVector()
   x2 := x.CloneVector()
+  x1.Variables(1)
+  x2.Variables(1)
   var y1 Scalar
   var y2 Scalar
   var err error
