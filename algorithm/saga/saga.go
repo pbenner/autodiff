@@ -150,6 +150,7 @@ func saga(
     s.VsubV(s, g1)
     s.VaddV(s, g2)
 
+    g1, g2 = g2, g1
     x1, x2 = x2, x1
     y1, y2 = y2, y1
   }
