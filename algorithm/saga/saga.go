@@ -131,7 +131,7 @@ func saga(
     if err = CopyGradient(g2, y); err != nil {
       panic(err)
     }
-    t1.VdivS(s, ConstReal(float64(n)))
+    t1.VdivS(s , ConstReal(float64(n)))
     t1.VaddV(t1, g2)
     t1.VsubV(t1, g1)
     t1.VmulS(t1, ConstReal(gamma.Value))
