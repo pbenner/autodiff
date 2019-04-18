@@ -79,7 +79,7 @@ func saga(
   // length of gradient
   d := x.Dim()
   // gradient
-  g1 := NullDenseBareRealVector(d)
+  g1 := DenseBareRealVector{}
   g2 := NullDenseBareRealVector(d)
 
   // allocate temporary memory
@@ -101,11 +101,11 @@ func saga(
     if y, err = f(i, x); err != nil {
       return nil, err
     } else {
-      if err := CopyGradient(g1, y); err != nil {
+      if err := CopyGradient(g2, y); err != nil {
         panic(err)
       }
-      dict[i] = g1.Clone()
-      s.VaddV(s, g1)
+      dict[i] = g2.Clone()
+      s.VaddV(s, g2)
     }
   }
 
@@ -124,7 +124,7 @@ func saga(
     }
     j := rand.Intn(n)
 
-    g1.Set(dict[j])
+    g1 = dict[j]
     y, err = f(j, x); if err != nil {
       return x, err
     }
@@ -142,7 +142,7 @@ func saga(
     s.VaddV(s, g2)
 
     // update dictionary
-    dict[j].Set(g2)
+    g2, dict[j] = dict[j], g2
   }
   return x, nil
 }
@@ -153,7 +153,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
   hook                := Hook               {   nil}
   epsilon             := Epsilon            {  1e-8}
-  gamma               := Gamma              {1.0/100.0}
+  gamma               := Gamma              {1.0/20.0}
   maxEpochs           := MaxEpochs          {int(^uint(0) >> 1)}
   maxIterations       := MaxIterations      {int(^uint(0) >> 1)}
   inSitu              := &InSitu            {}
