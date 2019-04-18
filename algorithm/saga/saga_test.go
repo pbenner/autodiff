@@ -45,9 +45,9 @@ func Test1(test *testing.T) {
   class := NewVector(RealType, []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0})
 
-  t := NullReal()
-  r := NullReal()
   f := func(i int, theta Vector) (Scalar, error) {
+    t := NullReal()
+    r := NullReal()
     if i >= cellSize.Dim() {
       return nil, fmt.Errorf("index out of bounds")
     }
@@ -69,12 +69,14 @@ func Test1(test *testing.T) {
     } else {
       r.Log(r)
     }
+    // minimize negative log likelihood
+    r.Neg(r)
     if math.IsNaN(r.GetValue()) {
       panic("nan")
     }
     return r, nil
   }
-  theta_0 := NewVector(RealType, []float64{0.01, 0.02, 0.03})
+  theta_0 := NewVector(RealType, []float64{-3.549, 0.1841, 0.5067})
 
   Run(f, cellSize.Dim(), theta_0, Hook{hook})
 }

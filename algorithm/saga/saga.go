@@ -71,12 +71,9 @@ func saga(
   inSitu *InSitu,
   options []interface{}) (Vector, error) {
 
-  x1 := x.CloneVector()
-  x2 := x.CloneVector()
-  x1.Variables(1)
-  x2.Variables(1)
-  var y1 Scalar
-  var y2 Scalar
+  x = x.CloneVector()
+  x.Variables(1)
+  var y   Scalar
   var err error
 
   // length of gradient
@@ -84,8 +81,6 @@ func saga(
   // gradient
   g1 := NullDenseBareRealVector(d)
   g2 := NullDenseBareRealVector(d)
-  // sum of gradients
-  s := NullDenseBareRealVector(d)
 
   // allocate temporary memory
   if inSitu.T1 == nil {
@@ -98,65 +93,58 @@ func saga(
   t1 := inSitu.T1
   t2 := inSitu.T2
 
-  // initialize s
+  // sum of gradients
+  s    := NullDenseBareRealVector(d)
+  dict := make([]DenseBareRealVector, n)
+  // initialize s and d
   for i := 0; i < n; i++ {
-    if y1, err = f(i, x1); err != nil {
+    if y, err = f(i, x); err != nil {
       return nil, err
     } else {
-      if err := CopyGradient(g1, y1); err != nil {
+      if err := CopyGradient(g1, y); err != nil {
         panic(err)
       }
+      dict[i] = g1.Clone()
       s.VaddV(s, g1)
     }
-  }
-  // compute first step without s using the last data point
-  {
-    t1.VdivS(g1, ConstReal(gamma.Value))
-    x2.VsubV(x1, t1)
   }
 
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
     // execute hook if available
-    if hook.Value != nil && hook.Value(x1, g1, y1) {
+    if hook.Value != nil && hook.Value(x, s, y) {
       break
     }
     // evaluate stop criterion
-    t2.Vnorm(g1)
+    t2.Vnorm(s)
     if t2.GetValue() < epsilon.Value {
       break
     }
     if math.IsNaN(t2.GetValue()) {
-      return x1, fmt.Errorf("NaN value detected")
+      return x, fmt.Errorf("NaN value detected")
     }
     j := rand.Intn(n)
 
-    y1, err = f(j, x1); if err != nil {
-      return x1, err
+    g1.Set(dict[j])
+    y, err = f(j, x); if err != nil {
+      return x, err
     }
-    y2, err = f(j, x2); if err != nil {
-      return x1, err
-    }
-    if err = CopyGradient(g1, y1); err != nil {
-      panic(err)
-    }
-    if err = CopyGradient(g2, y2); err != nil {
+    if err = CopyGradient(g2, y); err != nil {
       panic(err)
     }
     t1.VdivS(s, ConstReal(float64(n)))
     t1.VaddV(t1, g2)
     t1.VsubV(t1, g1)
-    t1.VdivS(t1, ConstReal(gamma.Value))
-    x1.VsubV(x1, t1)
+    t1.VmulS(t1, ConstReal(gamma.Value))
+    x .VsubV(x , t1)
 
     // update table
     s.VsubV(s, g1)
     s.VaddV(s, g2)
 
-    g1, g2 = g2, g1
-    x1, x2 = x2, x1
-    y1, y2 = y2, y1
+    // update dictionary
+    dict[j].Set(g2)
   }
-  return x1, nil
+  return x, nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -165,7 +153,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
   hook                := Hook               {   nil}
   epsilon             := Epsilon            {  1e-8}
-  gamma               := Gamma              {1.0/2.0}
+  gamma               := Gamma              {1.0/100.0}
   maxEpochs           := MaxEpochs          {int(^uint(0) >> 1)}
   maxIterations       := MaxIterations      {int(^uint(0) >> 1)}
   inSitu              := &InSitu            {}
