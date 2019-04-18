@@ -26,7 +26,7 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type objective func(int, Vector) (Scalar, error)
+type objective func(int, ConstVector, Scalar) error
 
 type Epsilon struct {
   Value float64
@@ -73,14 +73,13 @@ func saga(
 
   x = x.CloneVector()
   x.Variables(1)
-  var y   Scalar
-  var err error
+  y := NullReal()
 
   // length of gradient
   d := x.Dim()
   // gradient
-  g1 := DenseBareRealVector{}
-  g2 := NullDenseBareRealVector(d)
+  var g1 DenseGradient
+  var g2 DenseGradient
 
   // allocate temporary memory
   if inSitu.T1 == nil {
@@ -95,17 +94,14 @@ func saga(
 
   // sum of gradients
   s    := NullDenseBareRealVector(d)
-  dict := make([]DenseBareRealVector, n)
+  dict := make([]*Real, n)
   // initialize s and d
   for i := 0; i < n; i++ {
-    if y, err = f(i, x); err != nil {
+    if err := f(i, x, y); err != nil {
       return nil, err
     } else {
-      if err := CopyGradient(g2, y); err != nil {
-        panic(err)
-      }
-      dict[i] = g2.Clone()
-      s.VaddV(s, g2)
+      dict[i] = y.Clone()
+      s.VaddV(s, DenseGradient{y})
     }
   }
 
@@ -115,8 +111,7 @@ func saga(
       break
     }
     // evaluate stop criterion
-    t2.Vnorm(s)
-    if t2.GetValue() < epsilon.Value {
+    if t2.Vnorm(s).GetValue() < epsilon.Value {
       break
     }
     if math.IsNaN(t2.GetValue()) {
@@ -124,13 +119,12 @@ func saga(
     }
     j := rand.Intn(n)
 
-    g1 = dict[j]
-    y, err = f(j, x); if err != nil {
+    if err := f(j, x, y); err != nil {
       return x, err
     }
-    if err = CopyGradient(g2, y); err != nil {
-      panic(err)
-    }
+    g1 = DenseGradient{dict[j]}
+    g2 = DenseGradient{y}
+
     t1.VdivS(s , ConstReal(float64(n)))
     t1.VaddV(t1, g2)
     t1.VsubV(t1, g1)
@@ -142,7 +136,7 @@ func saga(
     s.VaddV(s, g2)
 
     // update dictionary
-    g2, dict[j] = dict[j], g2
+    y, dict[j] = dict[j], y
   }
   return x, nil
 }
@@ -185,7 +179,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f func(int, Vector) (Scalar, error), n int, x Vector, args ...interface{}) (Vector, error) {
+func Run(f func(int, ConstVector, Scalar) error, n int, x Vector, args ...interface{}) (Vector, error) {
 
   return run(f, n, x, args...)
 }

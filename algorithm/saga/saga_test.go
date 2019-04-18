@@ -45,17 +45,16 @@ func Test1(test *testing.T) {
   class := NewVector(RealType, []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0})
 
-  f := func(i int, theta Vector) (Scalar, error) {
+  f := func(i int, theta ConstVector, r Scalar) error {
     t := NullReal()
-    r := NullReal()
     if i >= cellSize.Dim() {
-      return nil, fmt.Errorf("index out of bounds")
+      return fmt.Errorf("index out of bounds")
     }
     // eval linear regression
-    r.Set(theta.At(0))
-    t.Mul(theta.At(1), cellSize.At(i))
+    r.Set(theta.ConstAt(0))
+    t.Mul(theta.ConstAt(1), cellSize.At(i))
     r.Add(r, t)
-    t.Mul(theta.At(2), cellShape.At(i))
+    t.Mul(theta.ConstAt(2), cellShape.At(i))
     r.Add(r, t)
     // eval logistic model
     r.Neg(r)
@@ -74,7 +73,7 @@ func Test1(test *testing.T) {
     if math.IsNaN(r.GetValue()) {
       panic("nan")
     }
-    return r, nil
+    return nil
   }
   theta_0 := NewVector(RealType, []float64{-3.549, 0.1841, 0.5067})
 
