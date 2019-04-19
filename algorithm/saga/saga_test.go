@@ -49,11 +49,11 @@ func Test1(test *testing.T) {
   theta_0 := NewVector(RealType, []float64{-3.549, 0.1841, 0.5067})
   lr, _   := NewLogisticRegression(theta_0)
 
-  f := func(i int, theta ConstVector, r Scalar) error {
+  f := func(i int, theta Vector, r Scalar) error {
     if i >= cellSize.Dim() {
       return fmt.Errorf("index out of bounds")
     }
-    lr.GetParameters().Set(theta)
+    lr.SetParameters(theta)
     x := DenseConstRealVector([]float64{cellSize.ValueAt(i), cellShape.ValueAt(i)})
     y := class.At(i).GetValue() == 0
     if err := lr.ClassLogPdf(r, x, y); err != nil {

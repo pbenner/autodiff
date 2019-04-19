@@ -26,7 +26,7 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type objective func(int, ConstVector, Scalar) error
+type objective func(int, Vector, Scalar) error
 
 type Epsilon struct {
   Value float64
@@ -179,7 +179,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f func(int, ConstVector, Scalar) error, n int, x Vector, args ...interface{}) (Vector, error) {
+func Run(f func(int, Vector, Scalar) error, n int, x Vector, args ...interface{}) (Vector, error) {
 
   return run(f, n, x, args...)
 }
