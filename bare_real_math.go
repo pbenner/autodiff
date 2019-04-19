@@ -177,6 +177,21 @@ func (c *BareReal) LogSub(a, b ConstScalar, t Scalar) Scalar {
   return c
 }
 
+func (c *BareReal) Sigmoid(a ConstScalar, t Scalar) Scalar {
+  if a.GetValue() >= 0 {
+    c.Neg(a)
+    c.Exp(c)
+    c.Add(c, ConstReal(1.0))
+    c.Div(ConstReal(1.0), c)
+  } else {
+    t.Exp(a)
+    c.Set(t)
+    t.Add(t, ConstReal(1.0))
+    c.Div(c, t)
+  }
+  return c
+}
+
 /* -------------------------------------------------------------------------- */
 
 func (c *BareReal) Pow(a, k ConstScalar) Scalar {
@@ -190,7 +205,7 @@ func (c *BareReal) Pow(a, k ConstScalar) Scalar {
 
 func (c *BareReal) Sqrt(a ConstScalar) Scalar {
   checkBare(a)
-  return c.Pow(a, NewBareReal(1.0/2.0))
+  return c.Pow(a, ConstReal(1.0/2.0))
 }
 
 /* -------------------------------------------------------------------------- */

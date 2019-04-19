@@ -26,6 +26,7 @@ Autodiff has two different scalar types. The *Real* type allows to store first a
 | Erf          | Error function                                        |
 | Erfc         | Complementary error function                          |
 | LogErfc      | Log complementary error function                      |
+| Sigmoid      | Numerically stable sigmoid function                   |
 | Sin          | Sine                                                  |
 | Sinh         | Hyperbolic sine                                       |
 | Cos          | Cosine                                                |
