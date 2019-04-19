@@ -91,9 +91,10 @@ type Scalar interface {
   Div         (ConstScalar, ConstScalar)  Scalar
   // add/substract the first two variables on log-scale,
   // take the third argument as a temporary variable
-  Sigmoid     (ConstScalar,              Scalar)  Scalar
   LogAdd      (ConstScalar, ConstScalar, Scalar)  Scalar
   LogSub      (ConstScalar, ConstScalar, Scalar)  Scalar
+  Log1pExp    (ConstScalar)                       Scalar
+  Sigmoid     (ConstScalar,              Scalar)  Scalar
   Pow         (ConstScalar, ConstScalar)          Scalar
   Sqrt        (ConstScalar)          Scalar
   Sin         (ConstScalar)          Scalar

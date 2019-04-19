@@ -177,6 +177,25 @@ func (c *BareReal) LogSub(a, b ConstScalar, t Scalar) Scalar {
   return c
 }
 
+func (c *BareReal) Log1pExp(a ConstScalar) Scalar {
+  v := a.GetValue()
+  if v <= -37.0 {
+    c.Exp(a)
+  } else
+  if v <=  18.0 {
+    c.Exp(a)
+    c.Log1p(c)
+  } else
+  if v <=  33.3 {
+    c.Neg(a)
+    c.Exp(a)
+    c.Add(c, a)
+  } else {
+    c.Set(a)
+  }
+  return c
+}
+
 func (c *BareReal) Sigmoid(a ConstScalar, t Scalar) Scalar {
   if a.GetValue() >= 0 {
     c.Neg(a)
