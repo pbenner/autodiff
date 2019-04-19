@@ -70,10 +70,14 @@ func Test1(test *testing.T) {
     r.Neg(r)
     return nil
   }
+  z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
+  t := NullReal()
 
-  if r, err := Run(f, len(cellSize), theta_0, Hook{hook}); err != nil {
+  if r, err := Run(f, len(cellSize), theta_0, Hook{hook}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
-    fmt.Println(r)
+    if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+      test.Error("test failed")
+    }
   }
 }

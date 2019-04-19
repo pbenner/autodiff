@@ -74,7 +74,7 @@ func l1regularization(x Vector, w ConstVector, t Scalar, l1reg L1Regularization)
 }
 
 func l2regularization(x Vector, w ConstVector, t Scalar, l2reg L2Regularization) {
-  t.Vnorm(x)
+  t.Vnorm(w)
   t.Div(ConstReal(l2reg.Value), t)
   t.Sub(ConstReal(1.0), t)
   t.Max(ConstReal(0.0), t)
@@ -96,9 +96,9 @@ func saga(
   hook Hook,
   inSitu *InSitu) (Vector, error) {
 
-  x = x.CloneVector()
-  x.Variables(1)
-  y := NullReal()
+  x1 := x.CloneVector()
+  x2 := x.CloneVector()
+  y  := NullReal()
 
   // length of gradient
   d := x.Dim()
@@ -121,8 +121,9 @@ func saga(
   s    := NullDenseBareRealVector(d)
   dict := make([]*Real, n)
   // initialize s and d
+  x1.Variables(1)
   for i := 0; i < n; i++ {
-    if err := f(i, x, y); err != nil {
+    if err := f(i, x1, y); err != nil {
       return nil, err
     } else {
       dict[i] = y.Clone()
@@ -131,21 +132,15 @@ func saga(
   }
 
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
+    x1.Variables(1)
     // execute hook if available
-    if hook.Value != nil && hook.Value(x, s, y) {
+    if hook.Value != nil && hook.Value(x1, s, y) {
       break
-    }
-    // evaluate stop criterion
-    if t2.Vnorm(s).GetValue() < epsilon.Value {
-      break
-    }
-    if math.IsNaN(t2.GetValue()) {
-      return x, fmt.Errorf("NaN value detected")
     }
     j := rand.Intn(n)
 
-    if err := f(j, x, y); err != nil {
-      return x, err
+    if err := f(j, x1, y); err != nil {
+      return x1, err
     }
     g1 = DenseGradient{dict[j]}
     g2 = DenseGradient{y}
@@ -156,13 +151,29 @@ func saga(
     t1.VmulS(t1, ConstReal(gamma.Value))
 
     if l1reg.Value != 0.0 {
-      l1regularization(x, t1, t2, l1reg)
+      t1.VsubV(x1, t1)
+      l1regularization(x2, t1, t2, l1reg)
     } else
     if l2reg.Value != 0.0 {
-      l2regularization(x, t1, t2, l2reg)
+      t1.VsubV(x1, t1)
+      l2regularization(x2, t1, t2, l2reg)
     } else {
-      x.VsubV(x, t1)
+      x2.VsubV(x1, t1)
     }
+    // evaluate stopping criterion
+    max_x     := 0.0
+    max_delta := 0.0
+    for i := 0; i < d; i ++ {
+      if math.IsNaN(x2.ValueAt(i)) {
+        return x1, fmt.Errorf("NaN value detected")
+      }
+      max_x     = math.Max(max_x    , math.Abs(x2.ValueAt(i)))
+      max_delta = math.Max(max_delta, math.Abs(x2.ValueAt(i) - x1.ValueAt(i)))
+    }
+    if max_delta/max_x <= epsilon.Value {
+      return x2, nil
+    }
+    x1, x2 = x2, x1
     // update table
     s.VsubV(s, g1)
     s.VaddV(s, g2)
@@ -170,7 +181,7 @@ func saga(
     // update dictionary
     y, dict[j] = dict[j], y
   }
-  return x, nil
+  return x1, nil
 }
 
 /* -------------------------------------------------------------------------- */
