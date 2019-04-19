@@ -23,6 +23,7 @@ import   "math"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
+import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 
 /* -------------------------------------------------------------------------- */
 
@@ -45,28 +46,18 @@ func Test1(test *testing.T) {
   class := NewVector(RealType, []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0})
 
+  theta_0 := NewVector(RealType, []float64{-3.549, 0.1841, 0.5067})
+  lr, _   := NewLogisticRegression(theta_0)
+
   f := func(i int, theta ConstVector, r Scalar) error {
-    t := NullReal()
     if i >= cellSize.Dim() {
       return fmt.Errorf("index out of bounds")
     }
-    // eval linear regression
-    r.Set(theta.ConstAt(0))
-    t.Mul(theta.ConstAt(1), cellSize.At(i))
-    r.Add(r, t)
-    t.Mul(theta.ConstAt(2), cellShape.At(i))
-    r.Add(r, t)
-    // eval logistic model
-    r.Neg(r)
-    r.Exp(r)
-    r.Add(r, ConstReal(1.0))
-    r.Div(ConstReal(1.0), r)
-    // eval log
-    if class.At(i).GetValue() == 0 {
-      r.Neg(r)
-      r.Log1p(r)
-    } else {
-      r.Log(r)
+    lr.GetParameters().Set(theta)
+    x := DenseConstRealVector([]float64{cellSize.ValueAt(i), cellShape.ValueAt(i)})
+    y := class.At(i).GetValue() == 0
+    if err := lr.ClassLogPdf(r, x, y); err != nil {
+      panic(err)
     }
     // minimize negative log likelihood
     r.Neg(r)
@@ -75,7 +66,6 @@ func Test1(test *testing.T) {
     }
     return nil
   }
-  theta_0 := NewVector(RealType, []float64{-3.549, 0.1841, 0.5067})
 
   Run(f, cellSize.Dim(), theta_0, Hook{hook})
 }

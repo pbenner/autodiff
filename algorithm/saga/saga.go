@@ -147,7 +147,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
   hook                := Hook               {   nil}
   epsilon             := Epsilon            {  1e-8}
-  gamma               := Gamma              {1.0/20.0}
+  gamma               := Gamma              {1.0/30.0}
   maxEpochs           := MaxEpochs          {int(^uint(0) >> 1)}
   maxIterations       := MaxIterations      {int(^uint(0) >> 1)}
   inSitu              := &InSitu            {}
