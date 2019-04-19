@@ -73,10 +73,10 @@ func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) err
     r.Add(r, t)
   }
   if y {
+    r.Neg(r)
     r.LogAdd(ConstReal(0.0), r, t)
     r.Neg(r)
   } else {
-    r.Neg(r)
     r.LogAdd(ConstReal(0.0), r, t)
     r.Neg(r)
   }
@@ -93,6 +93,7 @@ func (dist *LogisticRegression) LogPdf(r Scalar, x ConstVector) error {
     t.Mul(dist.Theta.ConstAt(i+1), x.ConstAt(i))
     r.Add(r, t)
   }
+  r.Neg(r)
   r.LogAdd(ConstReal(0.0), r, t)
   r.Neg(r)
   return nil

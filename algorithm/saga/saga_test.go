@@ -38,34 +38,42 @@ func hook(x, g Vector, y Scalar) bool {
 
 func Test1(test *testing.T) {
 
-  cellSize  := NewVector(RealType, []float64{
-    1, 4, 1, 8, 1, 10, 1, 1, 1, 2, 1, 1, 3, 1, 7, 4, 1, 1, 7, 1})
-  cellShape := NewVector(RealType, []float64{
-    1, 4, 1, 8, 1, 10, 1, 2, 1, 1, 1, 1, 3, 1, 5, 6, 1, 1, 7, 1})
-
-  class := NewVector(RealType, []float64{
-    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0})
+  // x
+  x := make([]float64, 2)
+  cellSize  := []float64{
+    1, 4, 1, 8, 1, 10, 1, 1, 1, 2, 1, 1, 3, 1, 7, 4, 1, 1, 7, 1}
+  cellShape := []float64{
+    1, 4, 1, 8, 1, 10, 1, 2, 1, 1, 1, 1, 3, 1, 5, 6, 1, 1, 7, 1}
+  // y
+  class := []float64{
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
 
   theta_0 := NewVector(RealType, []float64{-3.549, 0.1841, 0.5067})
   lr, _   := NewLogisticRegression(theta_0)
 
   f := func(i int, theta Vector, r Scalar) error {
-    if i >= cellSize.Dim() {
+    if i >= len(cellSize) {
       return fmt.Errorf("index out of bounds")
     }
-    lr.SetParameters(theta)
-    x := DenseConstRealVector([]float64{cellSize.ValueAt(i), cellShape.ValueAt(i)})
-    y := class.At(i).GetValue() == 0
-    if err := lr.ClassLogPdf(r, x, y); err != nil {
-      panic(err)
+    if err := lr.SetParameters(theta); err != nil {
+      return err
+    }
+    x[0] = cellSize [i]
+    x[1] = cellShape[i]
+    if err := lr.ClassLogPdf(r, DenseConstRealVector(x), class[i] == 1); err != nil {
+      return err
+    }
+    if math.IsNaN(r.GetValue()) {
+      return fmt.Errorf("NaN value detected")
     }
     // minimize negative log likelihood
     r.Neg(r)
-    if math.IsNaN(r.GetValue()) {
-      panic("nan")
-    }
     return nil
   }
 
-  Run(f, cellSize.Dim(), theta_0, Hook{hook})
+  if r, err := Run(f, len(cellSize), theta_0, Hook{hook}); err != nil {
+    test.Error(err)
+  } else {
+    fmt.Println(r)
+  }
 }
