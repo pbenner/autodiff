@@ -37,11 +37,11 @@ type Gamma struct {
 }
 
 type L1Regularization struct {
-  Value int
+  Value float64
 }
 
 type L2Regularization struct {
-  Value int
+  Value float64
 }
 
 type Hook struct {
@@ -59,6 +59,26 @@ type MaxEpochs struct {
 type InSitu struct {
   T1 Vector
   T2 Scalar
+}
+
+/* -------------------------------------------------------------------------- */
+
+func l1regularization(x Vector, w ConstVector, t Scalar, l1reg L1Regularization) {
+  for i := 0; i < x.Dim(); i++ {
+    if yi := w.ValueAt(i); yi < 0.0 {
+      x.At(i).SetValue(-1.0*math.Max(math.Abs(yi) - l1reg.Value, 0.0))
+    } else {
+      x.At(i).SetValue( 1.0*math.Max(math.Abs(yi) - l1reg.Value, 0.0))
+    }
+  }
+}
+
+func l2regularization(x Vector, w ConstVector, t Scalar, l2reg L2Regularization) {
+  t.Vnorm(x)
+  t.Div(ConstReal(l2reg.Value), t)
+  t.Sub(ConstReal(1.0), t)
+  t.Max(ConstReal(0.0), t)
+  x.VmulS(w, t)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,8 +154,15 @@ func saga(
     t1.VaddV(t1, g2)
     t1.VsubV(t1, g1)
     t1.VmulS(t1, ConstReal(gamma.Value))
-    x .VsubV(x , t1)
 
+    if l1reg.Value != 0.0 {
+      l1regularization(x, t1, t2, l1reg)
+    } else
+    if l2reg.Value != 0.0 {
+      l2regularization(x, t1, t2, l2reg)
+    } else {
+      x.VsubV(x, t1)
+    }
     // update table
     s.VsubV(s, g1)
     s.VaddV(s, g2)
@@ -185,6 +212,12 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
   }
   if l1reg.Value != 0.0 && l2reg.Value != 0.0 {
     return x, fmt.Errorf("using l1- and l2-regularizations is not supported")
+  }
+  if l1reg.Value < 0.0 {
+    return x, fmt.Errorf("invalid l1-regularization constant")
+  }
+  if l2reg.Value < 0.0 {
+    return x, fmt.Errorf("invalid l2-regularization constant")
   }
 
   return saga(f, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSitu)
