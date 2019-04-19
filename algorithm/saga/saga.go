@@ -36,6 +36,14 @@ type Gamma struct {
   Value float64
 }
 
+type L1Regularization struct {
+  Value int
+}
+
+type L2Regularization struct {
+  Value int
+}
+
 type Hook struct {
   Value func(Vector, Vector, Scalar) bool
 }
@@ -67,9 +75,10 @@ func saga(
   epsilon Epsilon,
   maxEpochs MaxEpochs,
   maxIterations MaxIterations,
+  l1reg L1Regularization,
+  l2reg L2Regularization,
   hook Hook,
-  inSitu *InSitu,
-  options []interface{}) (Vector, error) {
+  inSitu *InSitu) (Vector, error) {
 
   x = x.CloneVector()
   x.Variables(1)
@@ -145,13 +154,14 @@ func saga(
 
 func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
-  hook                := Hook               {   nil}
-  epsilon             := Epsilon            {  1e-8}
-  gamma               := Gamma              {1.0/30.0}
-  maxEpochs           := MaxEpochs          {int(^uint(0) >> 1)}
-  maxIterations       := MaxIterations      {int(^uint(0) >> 1)}
-  inSitu              := &InSitu            {}
-  options             := make([]interface{}, 0)
+  hook          := Hook               {   nil}
+  epsilon       := Epsilon            {  1e-8}
+  gamma         := Gamma              {1.0/30.0}
+  maxEpochs     := MaxEpochs          {int(^uint(0) >> 1)}
+  maxIterations := MaxIterations      {int(^uint(0) >> 1)}
+  l1reg         := L1Regularization   { 0.0}
+  l2reg         := L2Regularization   { 0.0}
+  inSitu        := &InSitu            {}
 
   for _, arg := range args {
     switch a := arg.(type) {
@@ -165,16 +175,23 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
       maxEpochs = a
     case MaxIterations:
       maxIterations = a
+    case L1Regularization:
+      l1reg = a
+    case L2Regularization:
+      l2reg = a
     case *InSitu:
       inSitu = a
     case InSitu:
       panic("InSitu must be passed by reference")
     default:
-      options = append(options, a)
+      panic("invalid optional argument")
     }
   }
+  if l1reg.Value != 0.0 && l2reg.Value != 0.0 {
+    return x, fmt.Errorf("using l1- and l2-regularizations is not supported")
+  }
 
-  return saga(f, n, x, gamma, epsilon, maxEpochs, maxIterations, hook, inSitu, options)
+  return saga(f, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSitu)
 }
 
 /* -------------------------------------------------------------------------- */
