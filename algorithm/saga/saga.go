@@ -63,10 +63,6 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-// nomenclature:
-// f(x) = y
-// g: gradient
-// H: Hessian
 func saga(
   f objective,
   n int,
