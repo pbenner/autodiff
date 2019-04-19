@@ -170,7 +170,8 @@ func saga(
       max_x     = math.Max(max_x    , math.Abs(x2.ValueAt(i)))
       max_delta = math.Max(max_delta, math.Abs(x2.ValueAt(i) - x1.ValueAt(i)))
     }
-    if max_delta/max_x <= epsilon.Value {
+    if max_x != 0.0 && max_delta/max_x <= epsilon.Value ||
+      (max_x == 0.0 && max_delta == 0.0) {
       return x2, nil
     }
     x1, x2 = x2, x1
