@@ -32,6 +32,7 @@ type ConstVector interface {
   ConstAt         (int)                  ConstScalar
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64
+  Range           ()                     chan int
 }
 
 type Vector interface {
@@ -44,6 +45,7 @@ type Vector interface {
   ConstAt         (int)                  ConstScalar
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64
+  Range           ()                     chan int
   // other methods
   At              (int)                  Scalar
   Reset           ()
