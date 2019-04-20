@@ -63,19 +63,19 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-func l1regularization(x Vector, w ConstVector, t Scalar, l1reg L1Regularization) {
+func l1regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
   for i := 0; i < x.Dim(); i++ {
     if yi := w.ValueAt(i); yi < 0.0 {
-      x.At(i).SetValue(-1.0*math.Max(math.Abs(yi) - l1reg.Value, 0.0))
+      x.At(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
     } else {
-      x.At(i).SetValue( 1.0*math.Max(math.Abs(yi) - l1reg.Value, 0.0))
+      x.At(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
     }
   }
 }
 
-func l2regularization(x Vector, w ConstVector, t Scalar, l2reg L2Regularization) {
+func l2regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
   t.Vnorm(w)
-  t.Div(ConstReal(l2reg.Value), t)
+  t.Div(ConstReal(lambda), t)
   t.Sub(ConstReal(1.0), t)
   t.Max(ConstReal(0.0), t)
   x.VmulS(w, t)
@@ -152,11 +152,11 @@ func saga(
 
     if l1reg.Value != 0.0 {
       t1.VsubV(x1, t1)
-      l1regularization(x2, t1, t2, l1reg)
+      l1regularization(x2, t1, t2, gamma.Value*l1reg.Value)
     } else
     if l2reg.Value != 0.0 {
       t1.VsubV(x1, t1)
-      l2regularization(x2, t1, t2, l2reg)
+      l2regularization(x2, t1, t2, gamma.Value*l2reg.Value)
     } else {
       x2.VsubV(x1, t1)
     }
