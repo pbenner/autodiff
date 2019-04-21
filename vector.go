@@ -32,6 +32,12 @@ type VectorRangeType struct {
   Value Scalar
 }
 
+type VectorJointRangeType struct {
+  Index  int
+  Value1 Scalar
+  Value2 ConstScalar
+}
+
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
@@ -58,6 +64,7 @@ type Vector interface {
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64
   ConstRange      ()                     chan VectorConstRangeType
+  JointRange      (ConstVector)          chan VectorJointRangeType
   Range           ()                     chan VectorRangeType
   // other methods
   At              (int)                  Scalar

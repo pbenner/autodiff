@@ -126,6 +126,26 @@ func (v DenseRealVector) Range() chan VectorRangeType {
   }()
   return channel
 }
+func (v DenseRealVector) JointRange(b ConstVector) chan VectorJointRangeType {
+  channel := make(chan VectorJointRangeType)
+  go func() {
+    for i := 0; i < v.Dim(); i++ {
+      r := VectorJointRangeType{}
+      r.Index = i
+      if s := v .At(i); s.GetValue() != 0.0 {
+        r.Value1 = v.At(i)
+      }
+      if s := b.ConstAt(i); s.GetValue() != 0.0 {
+        r.Value2 = b.ConstAt(i)
+      }
+      if r.Value1 != nil || r.Value2 != nil {
+        channel <- r
+      }
+    }
+    close(channel)
+  }()
+  return channel
+}
 /* -------------------------------------------------------------------------- */
 func (v DenseRealVector) Dim() int {
   return len(v)
