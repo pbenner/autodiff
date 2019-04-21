@@ -20,6 +20,18 @@ package autodiff
 
 import "encoding/json"
 
+/* -------------------------------------------------------------------------- */
+
+type VectorConstRangeType struct {
+  Index int
+  Value ConstScalar
+}
+
+type VectorRangeType struct {
+  Index int
+  Value Scalar
+}
+
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
@@ -32,7 +44,7 @@ type ConstVector interface {
   ConstAt         (int)                  ConstScalar
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64
-  Range           ()                     chan int
+  ConstRange      ()                     chan VectorConstRangeType
 }
 
 type Vector interface {
@@ -45,7 +57,8 @@ type Vector interface {
   ConstAt         (int)                  ConstScalar
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64
-  Range           ()                     chan int
+  ConstRange      ()                     chan VectorConstRangeType
+  Range           ()                     chan VectorRangeType
   // other methods
   At              (int)                  Scalar
   Reset           ()

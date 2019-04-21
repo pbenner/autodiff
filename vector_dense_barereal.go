@@ -106,11 +106,21 @@ func (v DenseBareRealVector) GetValues() []float64 {
   }
   return s
 }
-func (v DenseBareRealVector) Range() chan int {
-  channel := make(chan int)
+func (v DenseBareRealVector) ConstRange() chan VectorConstRangeType {
+  channel := make(chan VectorConstRangeType)
   go func() {
     for i := 0; i < v.Dim(); i++ {
-      channel <- i
+      channel <- VectorConstRangeType{i, v[i]}
+    }
+    close(channel)
+  }()
+  return channel
+}
+func (v DenseBareRealVector) Range() chan VectorRangeType {
+  channel := make(chan VectorRangeType)
+  go func() {
+    for i := 0; i < v.Dim(); i++ {
+      channel <- VectorRangeType{i, v[i]}
     }
     close(channel)
   }()
@@ -210,7 +220,7 @@ func (v DenseBareRealVector) Permute(pi []int) error {
   }
   // permute vector
   for i := 0; i < len(v); i++ {
-    if pi[i] < 0 || pi[i] > len(v) {
+    if pi[i] < 0 || pi[i] >= len(v) {
       return errors.New("Permute(): invalid permutation")
     }
     if i != pi[i] && pi[i] > i {
