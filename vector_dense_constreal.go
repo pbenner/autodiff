@@ -58,6 +58,17 @@ func (v DenseConstRealVector) GetValues() []float64 {
   return v
 }
 
+func (v DenseConstRealVector) Range() chan int {
+  channel := make(chan int)
+  go func() {
+    for i := 0; i < v.Dim(); i++ {
+      channel <- i
+    }
+    close(channel)
+  }()
+  return channel
+}
+
 func (v DenseConstRealVector) ElementType() ScalarType {
   return BareRealType
 }

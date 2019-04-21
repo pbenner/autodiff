@@ -106,6 +106,16 @@ func (v DenseBareRealVector) GetValues() []float64 {
   }
   return s
 }
+func (v DenseBareRealVector) Range() chan int {
+  channel := make(chan int)
+  go func() {
+    for i := 0; i < v.Dim(); i++ {
+      channel <- i
+    }
+    close(channel)
+  }()
+  return channel
+}
 /* -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) Dim() int {
   return len(v)
