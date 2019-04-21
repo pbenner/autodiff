@@ -201,7 +201,7 @@ func (v DenseRealVector) Permute(pi []int) error {
   // permute vector
   for i := 0; i < len(v); i++ {
     if pi[i] < 0 || pi[i] > len(v) {
-      return errors.New("SymmetricPermutation(): invalid permutation")
+      return errors.New("Permute(): invalid permutation")
     }
     if i != pi[i] && pi[i] > i {
       // permute elements
