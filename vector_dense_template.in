@@ -106,7 +106,8 @@ func (v VECTOR_TYPE) Set(w ConstVector) {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* const vector methods
+ * -------------------------------------------------------------------------- */
 
 func (v VECTOR_TYPE) ValueAt(i int) float64 {
   return v[i].GetValue()
@@ -138,6 +139,9 @@ func (v VECTOR_TYPE) ConstRange() chan VectorConstRangeType {
   }()
   return channel
 }
+
+/* range methods
+ * -------------------------------------------------------------------------- */
 
 func (v VECTOR_TYPE) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)

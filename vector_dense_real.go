@@ -89,7 +89,8 @@ func (v DenseRealVector) Set(w ConstVector) {
     v[i].Set(w.ConstAt(i))
   }
 }
-/* -------------------------------------------------------------------------- */
+/* const vector methods
+ * -------------------------------------------------------------------------- */
 func (v DenseRealVector) ValueAt(i int) float64 {
   return v[i].GetValue()
 }
@@ -116,6 +117,8 @@ func (v DenseRealVector) ConstRange() chan VectorConstRangeType {
   }()
   return channel
 }
+/* range methods
+ * -------------------------------------------------------------------------- */
 func (v DenseRealVector) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {

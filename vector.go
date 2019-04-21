@@ -64,6 +64,7 @@ type Vector interface {
   ConstSlice      (i, j int)             ConstVector
   GetValues       ()                     []float64
   ConstRange      ()                     chan VectorConstRangeType
+  // range methods
   JointRange      (ConstVector)          chan VectorJointRangeType
   Range           ()                     chan VectorRangeType
   // other methods
