@@ -189,34 +189,28 @@ func (obj *SparseRealVector) JointRange(b ConstVector) chan VectorJointRangeType
   go func() {
     obj.indices.sort()
     // set values
-    c1 := obj. Range()
+    c1 := obj. RANGE()
     c2 := b.ConstRange()
     r1, ok1 := <- c1
     r2, ok2 := <- c2
-    for {
-      switch {
-      case !ok1 && !ok2:
-        break
-      case !ok1 && ok2:
-        channel <- VectorJointRangeType{r2.Index, nil, r2.Value}
-        r2, ok2 = <- c2
-      case ok1 && !ok2:
-        channel <- VectorJointRangeType{r1.Index, r1.Value, nil}
-        r1, ok1 = <- c1
-      default:
+    for ok1 || ok2 {
+      r := VectorJointRangeType{}
+      r.Value2 = ConstReal(0.0)
+      if ok1 {
+        r.Index = r1.Index
+        r.Value1 = r1.Value
+      }
+      if ok2 {
         switch {
-        case r1.Index < r2.Index:
-          channel <- VectorJointRangeType{r1.Index, r1.Value, nil}
-          r1, ok1 = <- c1
-        case r1.Index > r2.Index:
-          channel <- VectorJointRangeType{r2.Index, nil, r2.Value}
-          r2, ok2 = <- c2
-        default:
-          channel <- VectorJointRangeType{r1.Index, r1.Value, r2.Value}
-          r1, ok1 = <- c1
-          r2, ok2 = <- c2
+        case r.Index > r2.Index:
+          r.Index = r2.Index
+          r.Value1 = nil
+          r.Value2 = r2.Value
+        case r.Index == r2.Index:
+          r.Value2 = r2.Value
         }
       }
+      channel <- r
     }
     close(channel)
   }()
