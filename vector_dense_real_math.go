@@ -136,7 +136,7 @@ func (r DenseRealVector) MdotV(a Matrix, b ConstVector) Vector {
   if n == 0 || m == 0 {
     return r
   }
-  if r[0] == b.ConstAt(0) {
+  if r.AT(0) == b.ConstAt(0) {
     panic("result and argument must be different vectors")
   }
   t := NullReal()
@@ -159,7 +159,7 @@ func (r DenseRealVector) VdotM(a ConstVector, b Matrix) Vector {
   if n == 0 || m == 0 {
     return r
   }
-  if r.At(0) == a.ConstAt(0) {
+  if r.AT(0) == a.ConstAt(0) {
     panic("result and argument must be different vectors")
   }
   t := NullReal()
