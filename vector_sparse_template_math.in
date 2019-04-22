@@ -28,11 +28,10 @@ func (a *VECTOR_TYPE) Equals(b ConstVector, epsilon float64) bool {
     panic("VEqual(): Vector dimensions do not match!")
   }
   for entry := range a.JOINT_RANGE(b) {
-    if entry.Value1 != nil && entry.Value2 != nil {
-      if !entry.Value1.Equals(entry.Value2, epsilon) {
-        return false
-      }
-    } else {
+    if entry.Value1 == nil {
+      return false
+    }
+    if !entry.Value1.Equals(entry.Value2, epsilon) {
       return false
     }
   }
