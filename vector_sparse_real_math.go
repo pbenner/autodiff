@@ -110,7 +110,7 @@ func (r *SparseRealVector) VmulV(a, b ConstVector) Vector {
     s_a := entry.Value2
     s_b := entry.Value3
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      continue
     }
     s_r.Mul(s_a, s_b)
   }
@@ -126,7 +126,7 @@ func (r *SparseRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
     s_r := entry.Value1
     s_a := entry.Value2
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      continue
     }
     s_r.Mul(s_a, s)
   }
@@ -143,7 +143,7 @@ func (r *SparseRealVector) VdivV(a, b ConstVector) Vector {
     s_a := entry.Value2
     s_b := entry.Value3
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      continue
     }
     s_r.Div(s_a, s_b)
   }
@@ -159,7 +159,7 @@ func (r *SparseRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
     s_r := entry.Value1
     s_a := entry.Value2
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      continue
     }
     s_r.Div(s_a, s)
   }
