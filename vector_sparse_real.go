@@ -72,8 +72,10 @@ func NewSparseRealVector(indices []int, values []float64, n int) *SparseRealVect
     if k >= n {
       panic("index larger than vector dimension")
     }
-    r.values[k] = NewReal(values[i])
-    r.indices.insert(k)
+    if values[i] != 0.0 {
+      r.values[k] = NewReal(values[i])
+      r.indices.insert(k)
+    }
   }
   return r
 }
@@ -545,29 +547,35 @@ func (obj *SparseRealVector) ToDenseRealMatrix(n, m int) *DenseRealMatrix {
 func (obj *SparseRealVector) String() string {
   var buffer bytes.Buffer
   buffer.WriteString(fmt.Sprintf("%d:[", obj.n))
-  for i, v := range obj.values {
-    if i != 0 {
+  first := true
+  for entry := range obj.Range() {
+    if !first {
       buffer.WriteString(", ")
+    } else {
+      first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", i, v.String()))
+    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
   }
   buffer.WriteString("]")
   return buffer.String()
 }
 func (obj *SparseRealVector) Table() string {
   var buffer bytes.Buffer
-  for i, v := range obj.values {
-    if i != 0 {
+  first := true
+  for entry := range obj.Range() {
+    if !first {
       buffer.WriteString(" ")
+    } else {
+      first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", i, v.String()))
+    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
   }
   if _, ok := obj.values[obj.n-1]; !ok {
     i := obj.n-1
     if i != 0 {
       buffer.WriteString(" ")
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", i, ConstReal(0.0).String()))
+    buffer.WriteString(fmt.Sprintf("%d:%s", i, ConstReal(0.0)))
   }
   return buffer.String()
 }
@@ -607,8 +615,9 @@ func (obj *SparseRealVector) Import(filename string) error {
   } else {
     scanner = bufio.NewScanner(f)
   }
-  // reset vector
-  *obj = *nilSparseRealVector(0)
+  values := []float64{}
+  indices := []int{}
+  n := 0
   for scanner.Scan() {
     fields := strings.Fields(scanner.Text())
     if len(fields) == 0 {
@@ -623,22 +632,24 @@ func (obj *SparseRealVector) Import(filename string) error {
         return fmt.Errorf("invalid sparse table")
       }
       // parse index
-      k, err := strconv.ParseInt(split[0], 10, 64)
-      if err != nil {
+      if k, err := strconv.ParseInt(split[0], 10, 64); err != nil {
         return fmt.Errorf("invalid sparse table")
+      } else {
+        indices = append(indices, int(k))
+        // update vector length length
+        if int(k)+1 > n {
+          n = int(k)+1
+        }
       }
       // parse value
-      value, err := strconv.ParseFloat(split[1], 64)
-      if err != nil {
+      if v, err := strconv.ParseFloat(split[1], 64); err != nil {
         return fmt.Errorf("invalid sparse table")
-      }
-      obj.values[int(k)] = NewReal(value)
-      // update vector length length
-      if int(k)+1 > obj.n {
-        obj.n = int(k)+1
+      } else {
+        values = append(values, v)
       }
     }
   }
+  *obj = *NewSparseRealVector(indices, values, n)
   return nil
 }
 /* json
