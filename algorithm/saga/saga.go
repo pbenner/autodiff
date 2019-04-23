@@ -150,14 +150,14 @@ func saga(
     t1.VsubV(t1, g1)
     t1.VmulS(t1, ConstReal(gamma.Value))
 
-    if l1reg.Value != 0.0 {
+    switch {
+    case l1reg.Value != 0.0:
       t1.VsubV(x1, t1)
       l1regularization(x2, t1, t2, gamma.Value*l1reg.Value)
-    } else
-    if l2reg.Value != 0.0 {
+    case l2reg.Value != 0.0:
       t1.VsubV(x1, t1)
       l2regularization(x2, t1, t2, gamma.Value*l2reg.Value)
-    } else {
+    default:
       x2.VsubV(x1, t1)
     }
     // evaluate stopping criterion

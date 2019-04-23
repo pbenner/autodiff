@@ -60,6 +60,17 @@ func (obj DenseGradient) GetValues() []float64 {
   return x
 }
 
+func (obj DenseGradient) ConstRange() chan VectorConstRangeType {
+  channel := make(chan VectorConstRangeType)
+  go func() {
+    for i := 0; i < obj.Dim(); i++ {
+      channel <- VectorConstRangeType{i, obj.ConstAt(i)}
+    }
+    close(channel)
+  }()
+  return channel
+}
+
 func (obj DenseGradient) ElementType() ScalarType {
   return BareRealType
 }
@@ -92,6 +103,16 @@ func (obj DenseGradient) Table() string {
   }
 
   return buffer.String()
+}
+
+/* imlement ConstScalarContainer
+ * -------------------------------------------------------------------------- */
+
+func (obj DenseGradient) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
+  for i := 0; i < obj.Dim(); i++ {
+    r = f(r, obj.ConstAt(i))
+  }
+  return r
 }
 
 /* -------------------------------------------------------------------------- */
