@@ -68,6 +68,7 @@ func (obj NormalSteinEstimator) steinEigen(l ConstVector, n int) Vector {
     t.Mul(ConstReal(float64(n)), l.ConstAt(i))
     r.At(i).Div(t, r.ConstAt(i))
   }
+  r.Sort(true)
   return r
 }
 
