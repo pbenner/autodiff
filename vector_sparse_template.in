@@ -524,7 +524,7 @@ func (obj *VECTOR_TYPE) MapSet(f func(Scalar) Scalar) {
   }
 }
 
-func (obj *VECTOR_TYPE) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
+func (obj *VECTOR_TYPE) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
   for _, v := range obj.values {
     r = f(r, v)
   }

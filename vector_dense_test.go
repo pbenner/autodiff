@@ -110,7 +110,7 @@ func TestVectorMapReduce(t *testing.T) {
   t1 := NewReal(0.0)
   a := NewVector(RealType, []float64{1, 2,3,4})
   a.Map(func(x Scalar) { x.Exp(x) })
-  b := a.Reduce(func(x, y Scalar) Scalar { return x.Add(x, y) }, t1)
+  b := a.Reduce(func(x Scalar, y ConstScalar) Scalar { return x.Add(x, y) }, t1)
   s := NullReal()
 
   if s.Vnorm(a.VsubV(a,r1)).GetValue() > 1e-2 {

@@ -191,7 +191,7 @@ func TestMatrixMapReduce(t *testing.T) {
   t1 := NewReal(0.0)
   m := NewMatrix(RealType, 2, 2, []float64{1, 2,3,4})
   m.Map(func(x Scalar) { x.Exp(x) })
-  a := m.Reduce(func(x, y Scalar) Scalar { return x.Add(x, y) }, t1)
+  a := m.Reduce(func(x Scalar, y ConstScalar) Scalar { return x.Add(x, y) }, t1)
   s := NullReal()
 
   if s.Mnorm(m.MsubM(m, r1)).GetValue() > 1e-8  {

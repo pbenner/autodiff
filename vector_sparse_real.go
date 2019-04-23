@@ -466,7 +466,7 @@ func (obj *SparseRealVector) MapSet(f func(Scalar) Scalar) {
     v.Set(f(v))
   }
 }
-func (obj *SparseRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
+func (obj *SparseRealVector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
   for _, v := range obj.values {
     r = f(r, v)
   }

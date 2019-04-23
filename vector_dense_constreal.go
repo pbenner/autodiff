@@ -99,6 +99,16 @@ func (v DenseConstRealVector) Table() string {
   return buffer.String()
 }
 
+/* imlement ConstScalarContainer
+ * -------------------------------------------------------------------------- */
+
+func (v DenseConstRealVector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
+  for i := 0; i < len(v); i++ {
+    r = f(r, v.ConstAt(i))
+  }
+  return r
+}
+
 /* math
  * -------------------------------------------------------------------------- */
 

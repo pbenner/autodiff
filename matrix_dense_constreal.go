@@ -203,6 +203,19 @@ func (a DenseConstRealMatrix) Table() string {
   return buffer.String()
 }
 
+/* implement ConstScalarContainer
+ * -------------------------------------------------------------------------- */
+
+func (matrix DenseConstRealMatrix) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
+  n, m := matrix.Dims()
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r = f(r, matrix.ConstAt(i, j))
+    }
+  }
+  return r
+}
+
 /* math
  * -------------------------------------------------------------------------- */
 

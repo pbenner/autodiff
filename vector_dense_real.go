@@ -218,7 +218,7 @@ func (v DenseRealVector) MapSet(f func(Scalar) Scalar) {
     v[i].Set(f(v[i]))
   }
 }
-func (v DenseRealVector) Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar {
+func (v DenseRealVector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
     r = f(r, v[i])
   }

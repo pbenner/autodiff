@@ -24,6 +24,7 @@ import "fmt"
 
 type ConstScalarContainer interface {
   ElementType() ScalarType
+  Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar
   // nice printing
   fmt.Stringer
 }
@@ -31,7 +32,7 @@ type ConstScalarContainer interface {
 type ScalarContainer interface {
   Map   (f func(Scalar))
   MapSet(f func(Scalar) Scalar)
-  Reduce(f func(Scalar, Scalar) Scalar, r Scalar) Scalar
+  Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar
   Variables(int) error
   ElementType() ScalarType
   // nice printing
