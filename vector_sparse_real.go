@@ -53,6 +53,21 @@ func (obj *SparseRealVectorIndexSet) revoke(k int) {
   obj.values[k] = int(^uint(0) >> 1)
   obj.isSorted = false
 }
+func (obj *SparseRealVectorIndexSet) reverse() {
+  for i := len(obj.values)/2-1; i >= 0; i-- {
+    j := len(obj.values)-1-i
+    obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
+  }
+}
+func (obj *SparseRealVectorIndexSet) find(i int) int {
+  obj.sort()
+  return sort.SearchInts(obj.values, i)
+}
+func (obj *SparseRealVectorIndexSet) swap(i, j int) {
+  i_k := obj.find(i)
+  j_k := obj.find(j)
+  obj.values[i_k], obj.values[j_k] = obj.values[j_k], obj.values[i_k]
+}
 func (obj SparseRealVectorIndexSet) clone() SparseRealVectorIndexSet {
   r := SparseRealVectorIndexSet{}
   r.values = make([]int, len(obj.values))
@@ -187,6 +202,9 @@ func (obj *SparseRealVector) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {
     obj.indices.sort()
+    fmt.Println()
+    fmt.Println("indices:", obj.indices.values)
+    fmt.Println("values :", obj.values)
     for k, i := range obj.indices.values {
       if s := obj.values[i]; obj.nullScalar(s) {
         obj.indices.revoke(k)
@@ -383,36 +401,39 @@ func (obj *SparseRealVector) ResetDerivatives() {
 }
 func (obj *SparseRealVector) ReverseOrder() {
   n := obj.Dim()
-  r := nilSparseRealVector(n)
-  for i, v := range obj.values {
-    r.values[n-i-1] = v
+  v := make(map[int]*Real)
+  for i, s := range obj.values {
+    v[n-i-1] = s
   }
-  obj.values = r.values
+  for i := 0; i < len(obj.indices.values); i++ {
+    if obj.indices.values[i] != int(^uint(0) >> 1) {
+      obj.indices.values[i] = n-obj.indices.values[i]-1
+    }
+  }
+  obj.indices.reverse()
+  obj.values = v
 }
 func (obj *SparseRealVector) Slice(i, j int) Vector {
   r := nilSparseRealVector(j-i)
-  for k, v := range obj.values {
-    if i <= k && k < j {
-      r.values[k-i] = v
-    }
+  for i_k := obj.indices.find(i); obj.indices.values[i_k] < j; i_k++ {
+    k := obj.indices.values[i_k]
+    r.values[k] = obj.values[k]
+    r.indices.values = append(r.indices.values, k)
   }
   return r
 }
 func (obj *SparseRealVector) Append(w *SparseRealVector) *SparseRealVector {
-  r := nilSparseRealVector(obj.n + w.Dim())
-  for i, v := range obj.values {
-    r.values[i] = v
-  }
+  r := obj.Clone()
+  r.n = obj.n + w.Dim()
   for entry := range w.RANGE() {
     r.values[obj.n+entry.Index] = entry.Value
+    r.indices.values = append(r.indices.values, obj.n+entry.Index)
   }
   return r
 }
 func (obj *SparseRealVector) AppendScalar(scalars ...Scalar) Vector {
-  r := nilSparseRealVector(obj.n + len(scalars))
-  for i, v := range obj.values {
-    r.values[i] = v
-  }
+  r := obj.Clone()
+  r.n = obj.n + len(scalars)
   for i, scalar := range scalars {
     switch s := scalar.(type) {
     case *Real:
@@ -420,6 +441,7 @@ func (obj *SparseRealVector) AppendScalar(scalars ...Scalar) Vector {
     default:
       r.values[obj.n+i] = s.ConvertType(RealType).(*Real)
     }
+    r.indices.values = append(r.indices.values, obj.n+i)
   }
   return r
 }
@@ -428,15 +450,18 @@ func (obj *SparseRealVector) AppendVector(w_ Vector) Vector {
   case *SparseRealVector:
     return obj.Append(w)
   default:
-    r := nilSparseRealVector(obj.n + w.Dim())
+    r := obj.Clone()
+    r.n = obj.n + w.Dim()
     for entry := range w.Range() {
       r.values[obj.n+entry.Index] = entry.Value.ConvertType(RealType).(*Real)
+      r.indices.values = append(r.indices.values, obj.n+entry.Index)
     }
     return r
   }
 }
 func (obj *SparseRealVector) Swap(i, j int) {
   obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
+  obj.indices.swap(i,j)
 }
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
@@ -495,6 +520,8 @@ func (obj *SparseRealVector) Permute(pi []int) error {
       }
     }
   }
+  copy(obj.indices.values, pi)
+  obj.indices.isSorted = false
   return nil
 }
 /* sorting

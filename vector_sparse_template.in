@@ -66,6 +66,24 @@ func (obj *INDEX_SLICE) revoke(k int) {
   obj.isSorted  = false
 }
 
+func (obj *INDEX_SLICE) reverse() {
+  for i := len(obj.values)/2-1; i >= 0; i-- {
+    j := len(obj.values)-1-i
+    obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
+  }
+}
+
+func (obj *INDEX_SLICE) find(i int) int {
+  obj.sort()
+  return sort.SearchInts(obj.values, i)
+}
+
+func (obj *INDEX_SLICE) swap(i, j int) {
+  i_k := obj.find(i)
+  j_k := obj.find(j)
+  obj.values[i_k], obj.values[j_k] = obj.values[j_k], obj.values[i_k]
+}
+
 func (obj INDEX_SLICE) clone() INDEX_SLICE {
   r := INDEX_SLICE{}
   r.values = make([]int, len(obj.values))
@@ -219,6 +237,9 @@ func (obj *VECTOR_TYPE) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {
     obj.indices.sort()
+    fmt.Println()
+    fmt.Println("indices:", obj.indices.values)
+    fmt.Println("values :", obj.values)
     for k, i := range obj.indices.values {
       if s := obj.values[i]; obj.nullScalar(s) {
         obj.indices.revoke(k)
@@ -429,39 +450,42 @@ func (obj *VECTOR_TYPE) ResetDerivatives() {
 
 func (obj *VECTOR_TYPE) ReverseOrder() {
   n := obj.Dim()
-  r := NIL_VECTOR(n)
-  for i, v := range obj.values {
-    r.values[n-i-1] = v
+  v := make(map[int]*SCALAR_TYPE)
+  for i, s := range obj.values {
+    v[n-i-1] = s
   }
-  obj.values = r.values
+  for i := 0; i < len(obj.indices.values); i++ {
+    if obj.indices.values[i] != INDEX_MAX {
+      obj.indices.values[i] = n-obj.indices.values[i]-1
+    }
+  }
+  obj.indices.reverse()
+  obj.values = v
 }
 
 func (obj *VECTOR_TYPE) Slice(i, j int) Vector {
   r := NIL_VECTOR(j-i)
-  for k, v := range obj.values {
-    if i <= k && k < j {
-      r.values[k-i] = v
-    }
+  for i_k := obj.indices.find(i); obj.indices.values[i_k] < j; i_k++ {
+    k := obj.indices.values[i_k]
+    r.values[k]      = obj.values[k]
+    r.indices.values = append(r.indices.values, k)
   }
   return r
 }
 
 func (obj *VECTOR_TYPE) Append(w *VECTOR_TYPE) *VECTOR_TYPE {
-  r := NIL_VECTOR(obj.n + w.Dim())
-  for i, v := range obj.values {
-    r.values[i] = v
-  }
+  r  := obj.Clone()
+  r.n = obj.n + w.Dim()
   for entry := range w.RANGE() {
     r.values[obj.n+entry.Index] = entry.Value
+    r.indices.values = append(r.indices.values, obj.n+entry.Index)
   }
   return r
 }
 
 func (obj *VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
-  r := NIL_VECTOR(obj.n + len(scalars))
-  for i, v := range obj.values {
-    r.values[i] = v
-  }
+  r  := obj.Clone()
+  r.n = obj.n + len(scalars)
   for i, scalar := range scalars {
     switch s := scalar.(type) {
     case *SCALAR_TYPE:
@@ -469,6 +493,7 @@ func (obj *VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
     default:
       r.values[obj.n+i] = s.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
     }
+    r.indices.values = append(r.indices.values, obj.n+i)
   }
   return r
 }
@@ -478,9 +503,11 @@ func (obj *VECTOR_TYPE) AppendVector(w_ Vector) Vector {
   case *VECTOR_TYPE:
     return obj.Append(w)
   default:
-    r := NIL_VECTOR(obj.n + w.Dim())
+    r  := obj.Clone()
+    r.n = obj.n + w.Dim()
     for entry := range w.Range() {
       r.values[obj.n+entry.Index] = entry.Value.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
+      r.indices.values = append(r.indices.values, obj.n+entry.Index)
     }
     return r
   }
@@ -488,6 +515,7 @@ func (obj *VECTOR_TYPE) AppendVector(w_ Vector) Vector {
 
 func (obj *VECTOR_TYPE) Swap(i, j int) {
   obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
+  obj.indices.swap(i,j)
 }
 
 /* imlement ScalarContainer
@@ -554,6 +582,8 @@ func (obj *VECTOR_TYPE) Permute(pi []int) error {
       }
     }
   }
+  copy(obj.indices.values, pi)
+  obj.indices.isSorted = false
   return nil
 }
 
