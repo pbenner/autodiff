@@ -249,7 +249,6 @@ func (obj *SparseRealVector) JOINT_RANGE(b ConstVector) chan VECTOR_JOINT_RANGE_
     r2, ok2 := <- c2
     for ok1 || ok2 {
       r := VECTOR_JOINT_RANGE_TYPE{}
-      r.Value2 = ConstReal(0.0)
       if ok1 {
         r.Index = r1.Index
         r.Value1 = r1.Value
@@ -263,6 +262,14 @@ func (obj *SparseRealVector) JOINT_RANGE(b ConstVector) chan VECTOR_JOINT_RANGE_
         case r.Index == r2.Index:
           r.Value2 = r2.Value
         }
+      }
+      if r.Value1 != nil {
+        r1, ok1 = <- c1
+      }
+      if r.Value2 != nil {
+        r2, ok2 = <- c2
+      } else {
+        r.Value2 = ConstReal(0.0)
       }
       channel <- r
     }
@@ -289,8 +296,6 @@ func (obj *SparseRealVector) JOINT_RANGE3(b, c ConstVector) chan VECTOR_JOINT_RA
     r3, ok3 := <- c3
     for ok1 || ok2 || ok3 {
       r := VECTOR_JOINT_RANGE3_TYPE{}
-      r.Value2 = ConstReal(0.0)
-      r.Value3 = ConstReal(0.0)
       if ok1 {
         r.Index = r1.Index
         r.Value1 = r1.Value
@@ -310,11 +315,24 @@ func (obj *SparseRealVector) JOINT_RANGE3(b, c ConstVector) chan VECTOR_JOINT_RA
         case r.Index > r3.Index:
           r.Index = r3.Index
           r.Value1 = nil
-          r.Value2 = ConstReal(0.0)
+          r.Value2 = nil
           r.Value3 = r3.Value
         case r.Index == r3.Index:
           r.Value3 = r3.Value
         }
+      }
+      if r.Value1 != nil {
+        r1, ok1 = <- c1
+      }
+      if r.Value2 != nil {
+        r2, ok2 = <- c2
+      } else {
+        r.Value2 = ConstReal(0.0)
+      }
+      if r.Value3 != nil {
+        r3, ok3 = <- c3
+      } else {
+        r.Value3 = ConstReal(0.0)
       }
       channel <- r
     }
