@@ -122,7 +122,6 @@ func (obj SparseConstRealVector) ElementType() ScalarType {
 /* range methods
  * -------------------------------------------------------------------------- */
 
-
 type SparseConstRealVectorRange struct {
   Index int
   Value ConstReal
