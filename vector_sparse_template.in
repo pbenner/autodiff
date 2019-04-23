@@ -531,12 +531,11 @@ func (obj *VECTOR_TYPE) Permute(pi []int) error {
 #define SORT_TYPE STR_CONCAT(STR_CONCAT(sort, VECTOR_TYPE), ByValue)
 
 type SORT_TYPE struct {
-  Index []int
   Value []*SCALAR_TYPE
 }
 
 func (obj SORT_TYPE) Len() int {
-  return len(obj.Index)
+  return len(obj.Value)
 }
 func (obj SORT_TYPE) Swap(i, j int) {
   obj.Value[i], obj.Value[j] = obj.Value[j], obj.Value[i]
@@ -547,15 +546,9 @@ func (obj SORT_TYPE) Less(i, j int) bool {
 
 func (obj *VECTOR_TYPE) Sort(reverse bool) {
   r := SORT_TYPE{}
-  for _, v := range obj.values {
-    r.Value = append(r.Value, v)
+  for entry := range obj.RANGE() {
+    r.Value = append(r.Value, entry.Value)
   }
-  if reverse {
-    sort.Sort(sort.Reverse(r))
-  } else {
-    sort.Sort(SORT_TYPE(r))
-  }
-  obj = NIL_VECTOR(obj.n)
   ip := 0
   in := 0
   if reverse {
@@ -563,16 +556,24 @@ func (obj *VECTOR_TYPE) Sort(reverse bool) {
   } else {
     ip = obj.n - len(obj.values)
   }
+  obj.values = make(map[int]*SCALAR_TYPE)
+  if reverse {
+    sort.Sort(sort.Reverse(r))
+  } else {
+    sort.Sort(SORT_TYPE(r))
+  }
   for i := 0; i < len(r.Value); i++ {
     if r.Value[i].GetValue() > 0.0 {
       // copy negative values
       obj.values[i+ip] = r.Value[i]
+      obj.indices.values[i] = i+ip
     } else {
       // copy negative values
       obj.values[i+in] = r.Value[i]
+      obj.indices.values[i] = i+in
     }
-    obj.indices.values[i] = r.Index[i]
   }
+  obj.indices.isSorted = false
 }
 
 /* type conversion

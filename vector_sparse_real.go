@@ -477,11 +477,10 @@ func (obj *SparseRealVector) Permute(pi []int) error {
 /* sorting
  * -------------------------------------------------------------------------- */
 type sortSparseRealVectorByValue struct {
-  Index []int
   Value []*Real
 }
 func (obj sortSparseRealVectorByValue) Len() int {
-  return len(obj.Index)
+  return len(obj.Value)
 }
 func (obj sortSparseRealVectorByValue) Swap(i, j int) {
   obj.Value[i], obj.Value[j] = obj.Value[j], obj.Value[i]
@@ -491,15 +490,9 @@ func (obj sortSparseRealVectorByValue) Less(i, j int) bool {
 }
 func (obj *SparseRealVector) Sort(reverse bool) {
   r := sortSparseRealVectorByValue{}
-  for _, v := range obj.values {
-    r.Value = append(r.Value, v)
+  for entry := range obj.RANGE() {
+    r.Value = append(r.Value, entry.Value)
   }
-  if reverse {
-    sort.Sort(sort.Reverse(r))
-  } else {
-    sort.Sort(sortSparseRealVectorByValue(r))
-  }
-  obj = nilSparseRealVector(obj.n)
   ip := 0
   in := 0
   if reverse {
@@ -507,16 +500,24 @@ func (obj *SparseRealVector) Sort(reverse bool) {
   } else {
     ip = obj.n - len(obj.values)
   }
+  obj.values = make(map[int]*Real)
+  if reverse {
+    sort.Sort(sort.Reverse(r))
+  } else {
+    sort.Sort(sortSparseRealVectorByValue(r))
+  }
   for i := 0; i < len(r.Value); i++ {
     if r.Value[i].GetValue() > 0.0 {
       // copy negative values
       obj.values[i+ip] = r.Value[i]
+      obj.indices.values[i] = i+ip
     } else {
       // copy negative values
       obj.values[i+in] = r.Value[i]
+      obj.indices.values[i] = i+in
     }
-    obj.indices.values[i] = r.Index[i]
   }
+  obj.indices.isSorted = false
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
