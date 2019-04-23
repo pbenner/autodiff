@@ -237,9 +237,6 @@ func (obj *VECTOR_TYPE) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {
     obj.indices.sort()
-    fmt.Println()
-    fmt.Println("indices:", obj.indices.values)
-    fmt.Println("values :", obj.values)
     for k, i := range obj.indices.values {
       if s := obj.values[i]; obj.nullScalar(s) {
         obj.indices.revoke(k)

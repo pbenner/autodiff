@@ -36,7 +36,7 @@ type SparseRealVectorIndexSet struct {
 func (obj *SparseRealVectorIndexSet) sort() {
   if obj.isSorted == false {
     sort.Ints(obj.values)
-    // remove invoked indices
+    // remove revoked indices
     for i := len(obj.values)-1; i >= 0; i-- {
       if obj.values[i] == int(^uint(0) >> 1) {
         obj.values = obj.values[0:i]
@@ -202,9 +202,6 @@ func (obj *SparseRealVector) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {
     obj.indices.sort()
-    fmt.Println()
-    fmt.Println("indices:", obj.indices.values)
-    fmt.Println("values :", obj.values)
     for k, i := range obj.indices.values {
       if s := obj.values[i]; obj.nullScalar(s) {
         obj.indices.revoke(k)
