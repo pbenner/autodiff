@@ -92,13 +92,10 @@ func (obj *SparseRealVector) Set(x ConstVector) {
     panic("Set(): Vector dimensions do not match!")
   }
   for entry := range obj.JOINT_RANGE(x) {
-    if entry.Value1 != nil && entry.Value2 != nil {
-      entry.Value1.Set(entry.Value2)
-    } else
-    if entry.Value1 != nil {
-      entry.Value1.SetValue(0.0)
-    } else {
-      obj.AT(entry.Index).Set(entry.Value2)
+    switch {
+    case entry.Value1 != nil && entry.Value2 != nil: entry.Value1.Set(entry.Value2)
+    case entry.Value1 != nil : entry.Value1.SetValue(0.0)
+    default : obj.AT(entry.Index).Set(entry.Value2)
     }
   }
 }
