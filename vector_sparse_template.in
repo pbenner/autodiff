@@ -196,13 +196,7 @@ func (obj *VECTOR_TYPE) ConstAt(i int) ConstScalar {
 }
 
 func (obj *VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
-  r := NIL_VECTOR(j-i)
-  for k, v := range obj.values {
-    if i <= k && k < j {
-      r.values[k-i] = v
-    }
-  }
-  return r
+  return obj.Slice(i, j)
 }
 
 func (obj *VECTOR_TYPE) GetValues() []float64 {

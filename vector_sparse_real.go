@@ -165,13 +165,7 @@ func (obj *SparseRealVector) ConstAt(i int) ConstScalar {
   }
 }
 func (obj *SparseRealVector) ConstSlice(i, j int) ConstVector {
-  r := nilSparseRealVector(j-i)
-  for k, v := range obj.values {
-    if i <= k && k < j {
-      r.values[k-i] = v
-    }
-  }
-  return r
+  return obj.Slice(i, j)
 }
 func (obj *SparseRealVector) GetValues() []float64 {
   r := make([]float64, obj.Dim())
