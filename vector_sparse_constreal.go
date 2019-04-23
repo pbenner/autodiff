@@ -94,8 +94,8 @@ func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
   r := NilSparseConstRealVector(j-i)
   for i_k := obj.indices.find(i); obj.indices.values[i_k] < j; i_k++ {
     k := obj.indices.values[i_k]
-    r.values[k]      = obj.values[k]
-    r.indices.values = append(r.indices.values, k)
+    r.values[k-i]    = obj.values[k]
+    r.indices.values = append(r.indices.values, k-i)
   }
   return r
 }

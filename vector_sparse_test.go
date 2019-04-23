@@ -112,3 +112,33 @@ func TestSparseVector4Const(test *testing.T) {
     test.Errorf("test failed")
   }
 }
+
+func TestSparseVector5(test *testing.T) {
+
+  i := 101
+  j := 400
+
+  v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3,4,-5,6}, 20000)
+  w := v.Slice(i,j)
+  r := NewSparseRealVector([]int{210-i,310-i}, []float64{3,4}, j-i)
+  t := NullReal()
+
+  if t.Vnorm(r.VsubV(r, w)); t.GetValue() > 0.0 {
+    test.Errorf("test failed")
+  }
+}
+
+func TestSparseVector5Const(test *testing.T) {
+
+  i := 101
+  j := 400
+
+  v := NewSparseConstRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3,4,-5,6}, 20000)
+  w := v.ConstSlice(i,j)
+  r := NewSparseRealVector([]int{210-i,310-i}, []float64{3,4}, j-i)
+  t := NullReal()
+
+  if t.Vnorm(r.VsubV(r, w)); t.GetValue() > 0.0 {
+    test.Errorf("test failed")
+  }
+}
