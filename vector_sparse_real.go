@@ -241,8 +241,6 @@ type VECTOR_JOINT_RANGE_TYPE struct {
 func (obj *SparseRealVector) JOINT_RANGE(b ConstVector) chan VECTOR_JOINT_RANGE_TYPE {
   channel := make(chan VECTOR_JOINT_RANGE_TYPE)
   go func() {
-    obj.indices.sort()
-    // set values
     c1 := obj. RANGE()
     c2 := b.ConstRange()
     r1, ok1 := <- c1
@@ -286,8 +284,6 @@ type VECTOR_JOINT_RANGE3_TYPE struct {
 func (obj *SparseRealVector) JOINT_RANGE3(b, c ConstVector) chan VECTOR_JOINT_RANGE3_TYPE {
   channel := make(chan VECTOR_JOINT_RANGE3_TYPE)
   go func() {
-    obj.indices.sort()
-    // set values
     c1 := obj. RANGE()
     c2 := b.ConstRange()
     c3 := c.ConstRange()
