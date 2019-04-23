@@ -68,7 +68,7 @@ func NULL_VECTOR(length int) *VECTOR_TYPE {
 
 // Create a empty vector without allocating memory for the scalar variables.
 func NIL_VECTOR(length int) *VECTOR_TYPE {
-  return &VECTOR_TYPE{indices: vectorSparseIndexSlice{}, values: make(map[int]*SCALAR_TYPE), n: length}
+  return &VECTOR_TYPE{values: make(map[int]*SCALAR_TYPE), n: length}
 }
 
 // Convert vector type.

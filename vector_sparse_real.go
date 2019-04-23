@@ -58,7 +58,7 @@ func NullSparseRealVector(length int) *SparseRealVector {
 }
 // Create a empty vector without allocating memory for the scalar variables.
 func nilSparseRealVector(length int) *SparseRealVector {
-  return &SparseRealVector{indices: vectorSparseIndexSlice{}, values: make(map[int]*Real), n: length}
+  return &SparseRealVector{values: make(map[int]*Real), n: length}
 }
 // Convert vector type.
 func AsSparseRealVector(v ConstVector) *SparseRealVector {
