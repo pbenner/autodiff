@@ -28,56 +28,10 @@ import "sort"
 import "strconv"
 import "strings"
 import "os"
-/* -------------------------------------------------------------------------- */
-type SparseRealVectorIndexSet struct {
-  values []int
-  isSorted bool
-}
-func (obj *SparseRealVectorIndexSet) sort() {
-  if obj.isSorted == false {
-    sort.Ints(obj.values)
-    // remove revoked indices
-    for i := len(obj.values)-1; i >= 0; i-- {
-      if obj.values[i] == int(^uint(0) >> 1) {
-        obj.values = obj.values[0:i]
-      }
-    }
-    obj.isSorted = true
-  }
-}
-func (obj *SparseRealVectorIndexSet) insert(i int) {
-  obj.values = append(obj.values, i)
-  obj.isSorted = false
-}
-func (obj *SparseRealVectorIndexSet) revoke(k int) {
-  obj.values[k] = int(^uint(0) >> 1)
-  obj.isSorted = false
-}
-func (obj *SparseRealVectorIndexSet) reverse() {
-  for i := len(obj.values)/2-1; i >= 0; i-- {
-    j := len(obj.values)-1-i
-    obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
-  }
-}
-func (obj *SparseRealVectorIndexSet) find(i int) int {
-  obj.sort()
-  return sort.SearchInts(obj.values, i)
-}
-func (obj *SparseRealVectorIndexSet) swap(i, j int) {
-  i_k := obj.find(i)
-  j_k := obj.find(j)
-  obj.values[i_k], obj.values[j_k] = obj.values[j_k], obj.values[i_k]
-}
-func (obj SparseRealVectorIndexSet) clone() SparseRealVectorIndexSet {
-  r := SparseRealVectorIndexSet{}
-  r.values = make([]int, len(obj.values))
-  copy(r.values, obj.values)
-  return r
-}
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 type SparseRealVector struct {
-  indices SparseRealVectorIndexSet
+  indices vectorSparseIndexSlice
   values map[int]*Real
   n int
 }
@@ -104,7 +58,7 @@ func NullSparseRealVector(length int) *SparseRealVector {
 }
 // Create a empty vector without allocating memory for the scalar variables.
 func nilSparseRealVector(length int) *SparseRealVector {
-  return &SparseRealVector{indices: SparseRealVectorIndexSet{}, values: make(map[int]*Real), n: length}
+  return &SparseRealVector{indices: vectorSparseIndexSlice{}, values: make(map[int]*Real), n: length}
 }
 // Convert vector type.
 func AsSparseRealVector(v ConstVector) *SparseRealVector {
@@ -246,8 +200,13 @@ func (obj *SparseRealVector) RANGE() chan VECTOR_RANGE_TYPE {
   channel := make(chan VECTOR_RANGE_TYPE)
   go func() {
     obj.indices.sort()
-    for _, i := range obj.indices.values {
-      channel <- VECTOR_RANGE_TYPE{i, obj.values[i]}
+    for k, i := range obj.indices.values {
+      if s := obj.values[i]; obj.nullScalar(s) {
+        obj.indices.revoke(k)
+        delete(obj.values, i)
+      } else {
+        channel <- VECTOR_RANGE_TYPE{i, s}
+      }
     }
     close(channel)
   }()
@@ -397,7 +356,7 @@ func (obj *SparseRealVector) ReverseOrder() {
     v[n-i-1] = s
   }
   for i := 0; i < len(obj.indices.values); i++ {
-    if obj.indices.values[i] != int(^uint(0) >> 1) {
+    if obj.indices.values[i] != vectorSparseIndexMax {
       obj.indices.values[i] = n-obj.indices.values[i]-1
     }
   }

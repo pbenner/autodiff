@@ -33,69 +33,11 @@ import "strconv"
 import "strings"
 import "os"
 
-/* -------------------------------------------------------------------------- */
-
-#define INDEX_SLICE STR_CONCAT(VECTOR_TYPE, IndexSet)
-#define INDEX_MAX   int(^uint(0) >> 1)
-
-type INDEX_SLICE struct {
-  values   []int
-  isSorted   bool
-}
-
-func (obj *INDEX_SLICE) sort() {
-  if obj.isSorted == false {
-    sort.Ints(obj.values)
-    // remove revoked indices
-    for i := len(obj.values)-1; i >= 0; i-- {
-      if obj.values[i] == INDEX_MAX {
-        obj.values = obj.values[0:i]
-      }
-    }
-    obj.isSorted = true
-  }
-}
-
-func (obj *INDEX_SLICE) insert(i int) {
-  obj.values = append(obj.values, i)
-  obj.isSorted = false
-}
-
-func (obj *INDEX_SLICE) revoke(k int) {
-  obj.values[k] = INDEX_MAX
-  obj.isSorted  = false
-}
-
-func (obj *INDEX_SLICE) reverse() {
-  for i := len(obj.values)/2-1; i >= 0; i-- {
-    j := len(obj.values)-1-i
-    obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
-  }
-}
-
-func (obj *INDEX_SLICE) find(i int) int {
-  obj.sort()
-  return sort.SearchInts(obj.values, i)
-}
-
-func (obj *INDEX_SLICE) swap(i, j int) {
-  i_k := obj.find(i)
-  j_k := obj.find(j)
-  obj.values[i_k], obj.values[j_k] = obj.values[j_k], obj.values[i_k]
-}
-
-func (obj INDEX_SLICE) clone() INDEX_SLICE {
-  r := INDEX_SLICE{}
-  r.values = make([]int, len(obj.values))
-  copy(r.values, obj.values)
-  return r
-}
-
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
 type VECTOR_TYPE struct {
-  indices INDEX_SLICE
+  indices vectorSparseIndexSlice
   values  map[int]*SCALAR_TYPE
   n       int
 }
@@ -126,7 +68,7 @@ func NULL_VECTOR(length int) *VECTOR_TYPE {
 
 // Create a empty vector without allocating memory for the scalar variables.
 func NIL_VECTOR(length int) *VECTOR_TYPE {
-  return &VECTOR_TYPE{indices: INDEX_SLICE{}, values: make(map[int]*SCALAR_TYPE), n: length}
+  return &VECTOR_TYPE{indices: vectorSparseIndexSlice{}, values: make(map[int]*SCALAR_TYPE), n: length}
 }
 
 // Convert vector type.
@@ -284,8 +226,13 @@ func (obj *VECTOR_TYPE) RANGE() chan VECTOR_RANGE_TYPE {
   channel := make(chan VECTOR_RANGE_TYPE)
   go func() {
     obj.indices.sort()
-    for _, i := range obj.indices.values {
-      channel <- VECTOR_RANGE_TYPE{i, obj.values[i]}
+    for k, i := range obj.indices.values {
+      if s := obj.values[i]; obj.nullScalar(s) {
+        obj.indices.revoke(k)
+        delete(obj.values, i)
+      } else {
+        channel <- VECTOR_RANGE_TYPE{i, s}
+      }
     }
     close(channel)
   }()
@@ -446,7 +393,7 @@ func (obj *VECTOR_TYPE) ReverseOrder() {
     v[n-i-1] = s
   }
   for i := 0; i < len(obj.indices.values); i++ {
-    if obj.indices.values[i] != INDEX_MAX {
+    if obj.indices.values[i] != vectorSparseIndexMax {
       obj.indices.values[i] = n-obj.indices.values[i]-1
     }
   }
