@@ -33,9 +33,15 @@ type SparseRealVectorIndexSet struct {
   values []int
   isSorted bool
 }
-func (obj SparseRealVectorIndexSet) sort() {
+func (obj *SparseRealVectorIndexSet) sort() {
   if obj.isSorted == false {
     sort.Ints(obj.values)
+    // remove invoked indices
+    for i := len(obj.values)-1; i >= 0; i-- {
+      if obj.values[i] == int(^uint(0) >> 1) {
+        obj.values = obj.values[0:i]
+      }
+    }
     obj.isSorted = true
   }
 }
@@ -43,12 +49,9 @@ func (obj *SparseRealVectorIndexSet) insert(i int) {
   obj.values = append(obj.values, i)
   obj.isSorted = false
 }
-func (obj *SparseRealVectorIndexSet) insertSorted(i int) {
- index := sort.Search(len(obj.values), func(i int) bool {
-    return obj.values[i] > i })
- obj.values = append(obj.values, 0)
- copy(obj.values[index+1:], obj.values[index:])
- obj.values[index] = i
+func (obj *SparseRealVectorIndexSet) revoke(k int) {
+  obj.values[k] = int(^uint(0) >> 1)
+  obj.isSorted = false
 }
 func (obj SparseRealVectorIndexSet) clone() SparseRealVectorIndexSet {
   r := SparseRealVectorIndexSet{}
@@ -166,8 +169,13 @@ func (obj *SparseRealVector) ConstRange() chan VectorConstRangeType {
   channel := make(chan VectorConstRangeType)
   go func() {
     obj.indices.sort()
-    for _, i := range obj.indices.values {
-      channel <- VectorConstRangeType{i, obj.values[i]}
+    for k, i := range obj.indices.values {
+      if s := obj.values[i]; obj.nullScalar(s) {
+        obj.indices.revoke(k)
+        delete(obj.values, i)
+      } else {
+        channel <- VectorConstRangeType{i, s}
+      }
     }
     close(channel)
   }()
@@ -179,8 +187,13 @@ func (obj *SparseRealVector) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {
     obj.indices.sort()
-    for _, i := range obj.indices.values {
-      channel <- VectorRangeType{i, obj.values[i]}
+    for k, i := range obj.indices.values {
+      if s := obj.values[i]; obj.nullScalar(s) {
+        obj.indices.revoke(k)
+        delete(obj.values, i)
+      } else {
+        channel <- VectorRangeType{i, s}
+      }
     }
     close(channel)
   }()
@@ -189,8 +202,6 @@ func (obj *SparseRealVector) Range() chan VectorRangeType {
 func (obj *SparseRealVector) JointRange(b ConstVector) chan VectorJointRangeType {
   channel := make(chan VectorJointRangeType)
   go func() {
-    obj.indices.sort()
-    // set values
     c1 := obj. RANGE()
     c2 := b.ConstRange()
     r1, ok1 := <- c1
@@ -697,4 +708,27 @@ func (obj *SparseRealVector) UnmarshalJSON(data []byte) error {
   }
   *obj = *NewSparseRealVector(r.Index, r.Value, r.Length)
   return nil
+}
+/* -------------------------------------------------------------------------- */
+func (obj *SparseRealVector) nullScalar(s *Real) bool {
+  if s.GetValue() != 0.0 {
+    return false
+  }
+  if s.GetOrder() >= 1 {
+    for i := 0; i < s.GetN(); i++ {
+      if v := s.GetDerivative(i); v != 0.0 {
+        return false
+      }
+    }
+  }
+  if s.GetOrder() >= 2 {
+    for i := 0; i < s.GetN(); i++ {
+      for j := 0; j < s.GetN(); j++ {
+        if v := s.GetHessian(i, j); v != 0.0 {
+          return false
+        }
+      }
+    }
+  }
+  return true
 }

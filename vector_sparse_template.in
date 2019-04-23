@@ -36,15 +36,22 @@ import "os"
 /* -------------------------------------------------------------------------- */
 
 #define INDEX_SLICE STR_CONCAT(VECTOR_TYPE, IndexSet)
+#define INDEX_MAX   int(^uint(0) >> 1)
 
 type INDEX_SLICE struct {
   values   []int
   isSorted   bool
 }
 
-func (obj INDEX_SLICE) sort() {
+func (obj *INDEX_SLICE) sort() {
   if obj.isSorted == false {
     sort.Ints(obj.values)
+    // remove invoked indices
+    for i := len(obj.values)-1; i >= 0; i-- {
+      if obj.values[i] == INDEX_MAX {
+        obj.values = obj.values[0:i]
+      }
+    }
     obj.isSorted = true
   }
 }
@@ -54,12 +61,9 @@ func (obj *INDEX_SLICE) insert(i int) {
   obj.isSorted = false
 }
 
-func (obj *INDEX_SLICE) insertSorted(i int) {
-	index := sort.Search(len(obj.values), func(i int) bool {
-    return obj.values[i] > i })
-	obj.values = append(obj.values, 0)
-	copy(obj.values[index+1:], obj.values[index:])
-	obj.values[index] = i
+func (obj *INDEX_SLICE) revoke(k int) {
+  obj.values[k] = INDEX_MAX
+  obj.isSorted  = false
 }
 
 func (obj INDEX_SLICE) clone() INDEX_SLICE {
@@ -195,8 +199,13 @@ func (obj *VECTOR_TYPE) ConstRange() chan VectorConstRangeType {
   channel := make(chan VectorConstRangeType)
   go func() {
     obj.indices.sort()
-    for _, i := range obj.indices.values {
-      channel <- VectorConstRangeType{i, obj.values[i]}
+    for k, i := range obj.indices.values {
+      if s := obj.values[i]; obj.nullScalar(s) {
+        obj.indices.revoke(k)
+        delete(obj.values, i)
+      } else {
+        channel <- VectorConstRangeType{i, s}
+      }
     }
     close(channel)
   }()
@@ -210,8 +219,13 @@ func (obj *VECTOR_TYPE) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {
     obj.indices.sort()
-    for _, i := range obj.indices.values {
-      channel <- VectorRangeType{i, obj.values[i]}
+    for k, i := range obj.indices.values {
+      if s := obj.values[i]; obj.nullScalar(s) {
+        obj.indices.revoke(k)
+        delete(obj.values, i)
+      } else {
+        channel <- VectorRangeType{i, s}
+      }
     }
     close(channel)
   }()
@@ -221,8 +235,6 @@ func (obj *VECTOR_TYPE) Range() chan VectorRangeType {
 func (obj *VECTOR_TYPE) JointRange(b ConstVector) chan VectorJointRangeType {
   channel := make(chan VectorJointRangeType)
   go func() {
-    obj.indices.sort()
-    // set values
     c1 := obj.     RANGE()
     c2 :=   b.ConstRange()
     r1, ok1 := <- c1
@@ -778,4 +790,29 @@ func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
   }
   *obj = *NEW_VECTOR(r.Index, r.Value, r.Length)
   return nil
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (obj *VECTOR_TYPE) nullScalar(s *SCALAR_TYPE) bool {
+  if s.GetValue() != 0.0 {
+    return false
+  }
+  if s.GetOrder() >= 1 {
+    for i := 0; i < s.GetN(); i++ {
+      if v := s.GetDerivative(i); v != 0.0 {
+        return false
+      }
+    }
+  }
+  if s.GetOrder() >= 2 {
+    for i := 0; i < s.GetN(); i++ {
+      for j := 0; j < s.GetN(); j++ {
+        if v := s.GetHessian(i, j); v != 0.0 {
+          return false
+        }
+      }
+    }
+  }
+  return true
 }
