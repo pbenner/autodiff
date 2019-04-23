@@ -736,39 +736,32 @@ func (obj *VECTOR_TYPE) Import(filename string) error {
 
 func (obj *VECTOR_TYPE) MarshalJSON() ([]byte, error) {
   k := []int{}
-  v := []*SCALAR_TYPE{}
+  v := []float64{}
   r := struct{
-    Index []int
-    Value []*SCALAR_TYPE}{}
-  for i, s := range obj.values {
-    k = append(k, i)
-    v = append(v, s)
+    Index  []int
+    Value  []float64
+    Length   int}{}
+  for entry := range obj.Range() {
+    k = append(k, entry.Index)
+    v = append(v, entry.Value.GetValue())
   }
-  if _, ok := obj.values[obj.n-1]; !ok {
-    k = append(k, obj.n-1)
-    v = append(v, NULL_SCALAR())
-  }
-  r.Index = k
-  r.Value = v
+  r.Index  = k
+  r.Value  = v
+  r.Length = obj.n
   return json.MarshalIndent(r, "", "  ")
 }
 
 func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
   r := struct{
-    Index []int
-    Value []*SCALAR_TYPE}{}
+    Index  []int
+    Value  []float64
+    Length   int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
   if len(r.Index) != len(r.Value) {
     return fmt.Errorf("invalid sparse vector")
   }
-  *obj = *NIL_VECTOR(0)
-  for i := 0; i < len(r.Index); i++ {
-    obj.values[r.Index[i]] = r.Value[i]
-    if r.Index[i]+1 > obj.n {
-      obj.n = r.Index[i]+1
-    }
-  }
+  *obj = *NEW_VECTOR(r.Index, r.Value, r.Length)
   return nil
 }

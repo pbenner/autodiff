@@ -656,38 +656,31 @@ func (obj *SparseRealVector) Import(filename string) error {
  * -------------------------------------------------------------------------- */
 func (obj *SparseRealVector) MarshalJSON() ([]byte, error) {
   k := []int{}
-  v := []*Real{}
+  v := []float64{}
   r := struct{
     Index []int
-    Value []*Real}{}
-  for i, s := range obj.values {
-    k = append(k, i)
-    v = append(v, s)
-  }
-  if _, ok := obj.values[obj.n-1]; !ok {
-    k = append(k, obj.n-1)
-    v = append(v, NullReal())
+    Value []float64
+    Length int}{}
+  for entry := range obj.Range() {
+    k = append(k, entry.Index)
+    v = append(v, entry.Value.GetValue())
   }
   r.Index = k
   r.Value = v
+  r.Length = obj.n
   return json.MarshalIndent(r, "", "  ")
 }
 func (obj *SparseRealVector) UnmarshalJSON(data []byte) error {
   r := struct{
     Index []int
-    Value []*Real}{}
+    Value []float64
+    Length int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
   if len(r.Index) != len(r.Value) {
     return fmt.Errorf("invalid sparse vector")
   }
-  *obj = *nilSparseRealVector(0)
-  for i := 0; i < len(r.Index); i++ {
-    obj.values[r.Index[i]] = r.Value[i]
-    if r.Index[i]+1 > obj.n {
-      obj.n = r.Index[i]+1
-    }
-  }
+  *obj = *NewSparseRealVector(r.Index, r.Value, r.Length)
   return nil
 }
