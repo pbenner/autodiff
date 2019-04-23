@@ -178,7 +178,7 @@ func (obj *SparseRealVector) JointRange(b ConstVector) chan VectorJointRangeType
       }
       if ok2 {
         switch {
-        case r.Index > r2.Index:
+        case r.Index > r2.Index || !ok1:
           r.Index = r2.Index
           r.Value1 = nil
           r.Value2 = r2.Value
@@ -232,7 +232,7 @@ func (obj *SparseRealVector) JOINT_RANGE(b ConstVector) chan VECTOR_JOINT_RANGE_
       }
       if ok2 {
         switch {
-        case r.Index > r2.Index:
+        case r.Index > r2.Index || !ok1:
           r.Index = r2.Index
           r.Value1 = nil
           r.Value2 = r2.Value
@@ -277,7 +277,7 @@ func (obj *SparseRealVector) JOINT_RANGE3(b, c ConstVector) chan VECTOR_JOINT_RA
       }
       if ok2 {
         switch {
-        case r.Index > r2.Index:
+        case r.Index > r2.Index || !ok1:
           r.Index = r2.Index
           r.Value1 = nil
           r.Value2 = r2.Value
@@ -287,7 +287,7 @@ func (obj *SparseRealVector) JOINT_RANGE3(b, c ConstVector) chan VECTOR_JOINT_RA
       }
       if ok3 {
         switch {
-        case r.Index > r3.Index:
+        case r.Index > r3.Index || (!ok1 && !ok2):
           r.Index = r3.Index
           r.Value1 = nil
           r.Value2 = nil

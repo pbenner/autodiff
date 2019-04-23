@@ -160,7 +160,7 @@ func (obj SparseConstRealVector) JOINT_RANGE(b ConstVector) chan SparseConstReal
       }
       if ok2 {
         switch {
-        case r.Index >  r2.Index:
+        case r.Index >  r2.Index || !ok1:
           r.Index  = r2.Index
           r.Value1 = 0.0
           r.Value2 = ConstReal(r2.Value.GetValue())
