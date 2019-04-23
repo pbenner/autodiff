@@ -35,8 +35,7 @@ type SparseConstRealVector struct {
 
 // Allocate a new vector. Scalars are set to the given values.
 func NewSparseConstRealVector(indices []int, values []float64, n int) SparseConstRealVector {
-  r  := SparseConstRealVector{}
-  r.n = n
+  r := NilSparseConstRealVector(n)
   for i, k := range indices {
     if k >= n {
       panic("index larger than vector dimension")
@@ -49,11 +48,18 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
   return r
 }
 
+func NilSparseConstRealVector(n int) SparseConstRealVector {
+  r := SparseConstRealVector{}
+  r.n      = n
+  r.values = make(map[int]ConstReal)
+  return r
+}
+
 /* -------------------------------------------------------------------------- */
 
 // Create a deep copy of the vector.
 func (obj SparseConstRealVector) Clone() SparseConstRealVector {
-  r := SparseConstRealVector{}
+  r := NilSparseConstRealVector(obj.n)
   for i, v := range obj.values {
     r.values[i] = v
   }
@@ -85,8 +91,7 @@ func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
 }
 
 func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
-  r  := SparseConstRealVector{}
-  r.n = j-i
+  r := NilSparseConstRealVector(j-i)
   for i_k := obj.indices.find(i); obj.indices.values[i_k] < j; i_k++ {
     k := obj.indices.values[i_k]
     r.values[k]      = obj.values[k]
