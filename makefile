@@ -17,6 +17,7 @@ SUBDIRS = \
 	algorithm/msqrt \
 	algorithm/msqrtInv \
 	algorithm/newton \
+	algorithm/saga \
 	algorithm/svd \
 	algorithm/qrAlgorithm \
 	algorithm/rprop \

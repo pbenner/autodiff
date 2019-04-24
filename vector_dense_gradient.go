@@ -44,6 +44,10 @@ func (obj DenseGradient) ConstAt(i int) ConstScalar {
   return ConstReal(obj.S.GetDerivative(i))
 }
 
+func (obj DenseGradient) AT(i int) ConstReal {
+  return ConstReal(obj.S.GetDerivative(i))
+}
+
 func (obj DenseGradient) ConstSlice(i, j int) ConstVector {
   x := make([]float64, j-i)
   for k := i; k < j; k++ {
@@ -58,6 +62,25 @@ func (obj DenseGradient) GetValues() []float64 {
     x[i] = obj.S.GetDerivative(i)
   }
   return x
+}
+
+func (obj DenseGradient) ConstIterator() VectorConstIterator {
+  return obj.ITERATOR()
+}
+
+func (obj DenseGradient) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  r := DenseGradientJointIterator{}
+  r.it1 = obj.ITERATOR()
+  r.it2 = b.ConstIterator()
+  r.idx = -1
+  r.Next()
+  return &r
+}
+
+func (obj DenseGradient) ITERATOR() *DenseGradientIterator {
+  r := DenseGradientIterator{obj, -1}
+  r.Next()
+  return &r
 }
 
 func (obj DenseGradient) ElementType() ScalarType {
@@ -92,6 +115,82 @@ func (obj DenseGradient) Table() string {
   }
 
   return buffer.String()
+}
+
+/* const iterator
+ * -------------------------------------------------------------------------- */
+
+type DenseGradientIterator struct {
+  v DenseGradient
+  i int
+}
+
+func (obj *DenseGradientIterator) GetConst() ConstScalar {
+  return obj.v.ConstAt(obj.i)
+}
+
+func (obj *DenseGradientIterator) GET() ConstReal {
+  return obj.v.AT(obj.i)
+}
+
+func (obj *DenseGradientIterator) Ok() bool {
+  return obj.i < obj.v.Dim()
+}
+
+func (obj *DenseGradientIterator) Next() {
+  obj.i++
+}
+
+func (obj *DenseGradientIterator) Index() int {
+  return obj.i
+}
+
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+
+type DenseGradientJointIterator struct {
+  it1 *DenseGradientIterator
+  it2  VectorConstIterator
+  idx  int
+  s1   ConstReal
+  s2   ConstReal
+}
+
+func (obj *DenseGradientJointIterator) Index() int {
+  return obj.idx
+}
+
+func (obj *DenseGradientJointIterator) Ok() bool {
+  return obj.it1.Ok() || obj.it2.Ok()
+}
+
+func (obj *DenseGradientJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = 0.0
+  obj.s2 = 0.0
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1  = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx >  obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1  = 0.0
+      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+    case obj.idx == obj.it2.Index():
+      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+    }
+  }
+}
+
+func (obj *DenseGradientJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+
+func (obj *DenseGradientJointIterator) GET() (ConstReal, ConstScalar) {
+  return obj.s1, obj.s2
 }
 
 /* imlement ConstScalarContainer
