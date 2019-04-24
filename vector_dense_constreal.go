@@ -67,6 +67,7 @@ func (v DenseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJoint
   r.it1 = v.ITERATOR()
   r.it2 = b.ConstIterator()
   r.idx = -1
+  r.Next()
   return &r
 }
 

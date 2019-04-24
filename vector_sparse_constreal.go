@@ -118,6 +118,7 @@ func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJo
   r.it1 = obj.ITERATOR()
   r.it2 = b.ConstIterator()
   r.idx = -1
+  r.Next()
   return &r
 }
 
