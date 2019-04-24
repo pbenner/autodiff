@@ -111,9 +111,10 @@ func (v DenseBareRealVector) GetValues() []float64 {
 /* iterator methods
  * -------------------------------------------------------------------------- */
 func (obj DenseBareRealVector) ConstIterator() VectorConstIterator {
-  r := DenseBareRealVectorIterator{obj, -1}
-  r.Next()
-  return &r
+  return obj.ITERATOR()
+}
+func (obj DenseBareRealVector) Iterator() VectorIterator {
+  return obj.ITERATOR()
 }
 func (obj DenseBareRealVector) JointIterator(b ConstVector) VectorJointIterator {
   r := DenseBareRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
@@ -122,11 +123,6 @@ func (obj DenseBareRealVector) JointIterator(b ConstVector) VectorJointIterator 
 }
 func (obj DenseBareRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   r := DenseBareRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
-}
-func (obj DenseBareRealVector) Iterator() VectorIterator {
-  r := DenseBareRealVectorIterator{obj, -1}
   r.Next()
   return &r
 }
