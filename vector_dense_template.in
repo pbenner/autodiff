@@ -560,6 +560,14 @@ func (obj *VECTOR_JOINT_ITERATOR) Next() {
       obj.s2  = obj.it2.GetConst()
     }
   }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  } else {
+    obj.s2 = CONST_SCALAR_TYPE(0.0)
+  }
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {

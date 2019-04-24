@@ -40,12 +40,12 @@ func (r *SparseRealVector) VaddV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE3(a, b) {
-    s_r := entry.Value1
-    s_a := entry.Value2
-    s_b := entry.Value3
+  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      s_r = r.AT(it.Index())
     }
     s_r.Add(s_a, s_b)
   }
@@ -57,11 +57,11 @@ func (r *SparseRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE(a) {
-    s_r := entry.Value1
-    s_a := entry.Value2
+  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      s_r = r.AT(it.Index())
     }
     s_r.Add(s_a, b)
   }
@@ -73,12 +73,12 @@ func (r *SparseRealVector) VsubV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE3(a, b) {
-    s_r := entry.Value1
-    s_a := entry.Value2
-    s_b := entry.Value3
+  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      s_r = r.AT(it.Index())
     }
     s_r.Sub(s_a, s_b)
   }
@@ -90,11 +90,11 @@ func (r *SparseRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE(a) {
-    s_r := entry.Value1
-    s_a := entry.Value2
+  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
     if s_r == nil {
-      s_r = r.AT(entry.Index)
+      s_r = r.AT(it.Index())
     }
     s_r.Sub(s_a, b)
   }
@@ -106,10 +106,10 @@ func (r *SparseRealVector) VmulV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE3(a, b) {
-    s_r := entry.Value1
-    s_a := entry.Value2
-    s_b := entry.Value3
+  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
     if s_r == nil {
       continue
     }
@@ -123,9 +123,9 @@ func (r *SparseRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE(a) {
-    s_r := entry.Value1
-    s_a := entry.Value2
+  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
     if s_r == nil {
       continue
     }
@@ -139,10 +139,10 @@ func (r *SparseRealVector) VdivV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE3(a, b) {
-    s_r := entry.Value1
-    s_a := entry.Value2
-    s_b := entry.Value3
+  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
     if s_r == nil {
       continue
     }
@@ -156,9 +156,9 @@ func (r *SparseRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for entry := range r.JOINT_RANGE(a) {
-    s_r := entry.Value1
-    s_a := entry.Value2
+  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
     if s_r == nil {
       continue
     }

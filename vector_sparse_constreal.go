@@ -337,6 +337,14 @@ func (obj *SparseConstRealVectorJointIterator) Next() {
       obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
     }
   }
+  if obj.s1 != 0.0 {
+    obj.it1.Next()
+  }
+  if obj.s2 != 0.0 {
+    obj.it2.Next()
+  } else {
+    obj.s2 = 0.0
+  }
 }
 
 func (obj *SparseConstRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {

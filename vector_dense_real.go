@@ -468,6 +468,14 @@ func (obj *DenseRealVectorJointIterator) Next() {
       obj.s2 = obj.it2.GetConst()
     }
   }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  } else {
+    obj.s2 = ConstReal(0.0)
+  }
 }
 func (obj *DenseRealVectorJointIterator) Get() (Scalar, ConstScalar) {
   return obj.s1, obj.s2

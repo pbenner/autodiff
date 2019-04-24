@@ -15,15 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "macros.h"
-
-package autodiff
-
 /* -------------------------------------------------------------------------- */
-
+package autodiff
+/* -------------------------------------------------------------------------- */
 // Test if elements in a equal elements in b.
-func (a *VECTOR_TYPE) Equals(b ConstVector, epsilon float64) bool {
+func (a *SparseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
   if a.Dim() != b.Dim() {
     panic("VEqual(): Vector dimensions do not match!")
   }
@@ -38,11 +34,9 @@ func (a *VECTOR_TYPE) Equals(b ConstVector, epsilon float64) bool {
   }
   return true
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise addition of two vectors. The result is stored in r.
-func (r *VECTOR_TYPE) VaddV(a, b ConstVector) Vector {
+func (r *SparseBareRealVector) VaddV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
@@ -57,11 +51,9 @@ func (r *VECTOR_TYPE) VaddV(a, b ConstVector) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise addition of a vector and a scalar. The result is stored in r.
-func (r *VECTOR_TYPE) VaddS(a ConstVector, b ConstScalar) Vector {
+func (r *SparseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
@@ -75,11 +67,9 @@ func (r *VECTOR_TYPE) VaddS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise substraction of two vectors. The result is stored in r.
-func (r *VECTOR_TYPE) VsubV(a, b ConstVector) Vector {
+func (r *SparseBareRealVector) VsubV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
@@ -94,11 +84,9 @@ func (r *VECTOR_TYPE) VsubV(a, b ConstVector) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
-func (r *VECTOR_TYPE) VsubS(a ConstVector, b ConstScalar) Vector {
+func (r *SparseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
@@ -112,11 +100,9 @@ func (r *VECTOR_TYPE) VsubS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise multiplication of two vectors. The result is stored in r.
-func (r *VECTOR_TYPE) VmulV(a, b ConstVector) Vector {
+func (r *SparseBareRealVector) VmulV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
@@ -131,11 +117,9 @@ func (r *VECTOR_TYPE) VmulV(a, b ConstVector) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
-func (r *VECTOR_TYPE) VmulS(a ConstVector, s ConstScalar) Vector {
+func (r *SparseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
@@ -149,11 +133,9 @@ func (r *VECTOR_TYPE) VmulS(a ConstVector, s ConstScalar) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise division of two vectors. The result is stored in r.
-func (r *VECTOR_TYPE) VdivV(a, b ConstVector) Vector {
+func (r *SparseBareRealVector) VdivV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
@@ -168,11 +150,9 @@ func (r *VECTOR_TYPE) VdivV(a, b ConstVector) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Element-wise division of a vector and a scalar. The result is stored in r.
-func (r *VECTOR_TYPE) VdivS(a ConstVector, s ConstScalar) Vector {
+func (r *SparseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
@@ -186,11 +166,9 @@ func (r *VECTOR_TYPE) VdivS(a ConstVector, s ConstScalar) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Matrix vector product of a and b. The result is stored in r.
-func (r *VECTOR_TYPE) MdotV(a Matrix, b ConstVector) Vector {
+func (r *SparseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
   n, m := a.Dims()
   if r.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
@@ -201,7 +179,7 @@ func (r *VECTOR_TYPE) MdotV(a Matrix, b ConstVector) Vector {
   if r.AT(0) == b.ConstAt(0) {
     panic("result and argument must be different vectors")
   }
-  t := NULL_SCALAR()
+  t := NullBareReal()
   for i := 0; i < n; i++ {
     r.AT(i).Reset()
     for j := 0; j < m; j++ {
@@ -211,11 +189,9 @@ func (r *VECTOR_TYPE) MdotV(a Matrix, b ConstVector) Vector {
   }
   return r
 }
-
 /* -------------------------------------------------------------------------- */
-
 // Vector matrix product of a and b. The result is stored in r.
-func (r *VECTOR_TYPE) VdotM(a ConstVector, b Matrix) Vector {
+func (r *SparseBareRealVector) VdotM(a ConstVector, b Matrix) Vector {
   n, m := b.Dims()
   if r.Dim() != m || a.Dim() != n {
     panic("matrix/vector dimensions do not match!")
@@ -226,7 +202,7 @@ func (r *VECTOR_TYPE) VdotM(a ConstVector, b Matrix) Vector {
   if r.AT(0) == a.ConstAt(0) {
     panic("result and argument must be different vectors")
   }
-  t := NULL_SCALAR()
+  t := NullBareReal()
   for i := 0; i < m; i++ {
     r.AT(i).Reset()
     for j := 0; j < n; j++ {
