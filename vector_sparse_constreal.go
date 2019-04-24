@@ -25,7 +25,7 @@ import "bytes"
  * -------------------------------------------------------------------------- */
 
 type SparseConstRealVector struct {
-  indices vectorSparseIndexSlice
+  vectorSparseIndexSlice
   values  map[int]ConstReal
   n       int
 }
@@ -42,7 +42,7 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
     }
     if values[i] != 0.0 {
       r.values[k] = ConstReal(values[i])
-      r.indices.insert(k)
+      r.indexInsert(k)
     }
   }
   return r
@@ -63,7 +63,7 @@ func (obj SparseConstRealVector) Clone() SparseConstRealVector {
   for i, v := range obj.values {
     r.values[i] = v
   }
-  r.indices = obj.indices.clone()
+  r.vectorSparseIndexSlice = obj.indexClone()
   return r
 }
 
@@ -92,10 +92,10 @@ func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
 
 func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
   r := NilSparseConstRealVector(j-i)
-  for i_k := obj.indices.find(i); obj.indices.values[i_k] < j; i_k++ {
-    k := obj.indices.values[i_k]
+  for i_k := obj.indexFind(i); obj.index[i_k] < j; i_k++ {
+    k := obj.index[i_k]
     r.values[k-i]    = obj.values[k]
-    r.indices.values = append(r.indices.values, k-i)
+    r.indexInsert(k-i)
   }
   return r
 }
@@ -111,8 +111,8 @@ func (obj SparseConstRealVector) GetValues() []float64 {
 func (obj SparseConstRealVector) ConstRange() chan VectorConstRangeType {
   channel := make(chan VectorConstRangeType)
   go func() {
-    obj.indices.sort()
-    for _, i := range obj.indices.values {
+    obj.indexSort()
+    for _, i := range obj.index {
       channel <- VectorConstRangeType{i, obj.values[i]}
     }
     close(channel)
@@ -135,8 +135,8 @@ type SparseConstRealVectorRange struct {
 func (obj SparseConstRealVector) RANGE() chan SparseConstRealVectorRange {
   channel := make(chan SparseConstRealVectorRange)
   go func() {
-    obj.indices.sort()
-    for _, i := range obj.indices.values {
+    obj.indexSort()
+    for _, i := range obj.index {
       channel <- SparseConstRealVectorRange{i, obj.values[i]}
     }
     close(channel)

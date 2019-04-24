@@ -33,13 +33,19 @@ import "strconv"
 import "strings"
 import "os"
 
+/* -------------------------------------------------------------------------- */
+
+#define VECTOR_RANGE_TYPE        STR_CONCAT(VECTOR_TYPE, Range)
+#define VECTOR_JOINT_RANGE_TYPE  STR_CONCAT(VECTOR_TYPE, JointRange)
+#define VECTOR_JOINT_RANGE3_TYPE STR_CONCAT(VECTOR_TYPE, JointRange3)
+
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
 type VECTOR_TYPE struct {
-  indices vectorSparseIndexSlice
-  values  map[int]*SCALAR_TYPE
-  n       int
+  vectorSparseIndexSlice
+  values map[int]*SCALAR_TYPE
+  n      int
 }
 
 /* constructors
@@ -54,7 +60,7 @@ func NEW_VECTOR(indices []int, values []float64, n int) *VECTOR_TYPE {
     }
     if values[i] != 0.0 {
       r.values[k] = NEW_SCALAR(values[i])
-      r.indices.insert(k)
+      r.indexInsert(k)
     }
   }
   return r
@@ -92,7 +98,7 @@ func (obj *VECTOR_TYPE) Clone() *VECTOR_TYPE {
   for i, v := range obj.values {
     r.values[i] = v.Clone()
   }
-  r.indices = obj.indices.clone()
+  r.vectorSparseIndexSlice = obj.indexClone()
   return r
 }
 
@@ -149,10 +155,10 @@ func (obj *VECTOR_TYPE) GetValues() []float64 {
 func (obj *VECTOR_TYPE) ConstRange() chan VectorConstRangeType {
   channel := make(chan VectorConstRangeType)
   go func() {
-    obj.indices.sort()
-    for k, i := range obj.indices.values {
+    obj.indexSort()
+    for k, i := range obj.index {
       if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indices.revoke(k)
+        obj.indexRevoke(k)
         delete(obj.values, i)
       } else {
         channel <- VectorConstRangeType{i, s}
@@ -169,10 +175,10 @@ func (obj *VECTOR_TYPE) ConstRange() chan VectorConstRangeType {
 func (obj *VECTOR_TYPE) Range() chan VectorRangeType {
   channel := make(chan VectorRangeType)
   go func() {
-    obj.indices.sort()
-    for k, i := range obj.indices.values {
+    obj.indexSort()
+    for k, i := range obj.index {
       if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indices.revoke(k)
+        obj.indexRevoke(k)
         delete(obj.values, i)
       } else {
         channel <- VectorRangeType{i, s}
@@ -222,10 +228,10 @@ type VECTOR_RANGE_TYPE struct {
 func (obj *VECTOR_TYPE) RANGE() chan VECTOR_RANGE_TYPE {
   channel := make(chan VECTOR_RANGE_TYPE)
   go func() {
-    obj.indices.sort()
-    for k, i := range obj.indices.values {
+    obj.indexSort()
+    for k, i := range obj.index {
       if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indices.revoke(k)
+        obj.indexRevoke(k)
         delete(obj.values, i)
       } else {
         channel <- VECTOR_RANGE_TYPE{i, s}
@@ -355,7 +361,7 @@ func (obj *VECTOR_TYPE) At(i int) Scalar {
   } else {
     v = NULL_SCALAR()
     obj.values[i] = v
-    obj.indices.insert(i)
+    obj.indexInsert(i)
     return v
   }
 }
@@ -366,7 +372,7 @@ func (obj *VECTOR_TYPE) AT(i int) *SCALAR_TYPE {
   } else {
     v = NULL_SCALAR()
     obj.values[i] = v
-    obj.indices.insert(i)
+    obj.indexInsert(i)
     return v
   }
 }
@@ -389,21 +395,21 @@ func (obj *VECTOR_TYPE) ReverseOrder() {
   for i, s := range obj.values {
     v[n-i-1] = s
   }
-  for i := 0; i < len(obj.indices.values); i++ {
-    if obj.indices.values[i] != vectorSparseIndexMax {
-      obj.indices.values[i] = n-obj.indices.values[i]-1
+  for i := 0; i < len(obj.index); i++ {
+    if obj.index[i] != vectorSparseIndexMax {
+      obj.index[i] = n-obj.index[i]-1
     }
   }
-  obj.indices.reverse()
+  obj.indexReverse()
   obj.values = v
 }
 
 func (obj *VECTOR_TYPE) Slice(i, j int) Vector {
   r := NIL_VECTOR(j-i)
-  for i_k := obj.indices.find(i); obj.indices.values[i_k] < j; i_k++ {
-    k := obj.indices.values[i_k]
-    r.values[k-i]    = obj.values[k]
-    r.indices.values = append(r.indices.values, k-i)
+  for i_k := obj.indexFind(i); obj.index[i_k] < j; i_k++ {
+    k := obj.index[i_k]
+    r.values[k-i] = obj.values[k]
+    r.indexInsert(k-i)
   }
   return r
 }
@@ -413,7 +419,7 @@ func (obj *VECTOR_TYPE) Append(w *VECTOR_TYPE) *VECTOR_TYPE {
   r.n = obj.n + w.Dim()
   for entry := range w.RANGE() {
     r.values[obj.n+entry.Index] = entry.Value
-    r.indices.values = append(r.indices.values, obj.n+entry.Index)
+    r.indexInsert(obj.n+entry.Index)
   }
   return r
 }
@@ -428,7 +434,7 @@ func (obj *VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
     default:
       r.values[obj.n+i] = s.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
     }
-    r.indices.values = append(r.indices.values, obj.n+i)
+    r.indexInsert(obj.n+i)
   }
   return r
 }
@@ -442,7 +448,7 @@ func (obj *VECTOR_TYPE) AppendVector(w_ Vector) Vector {
     r.n = obj.n + w.Dim()
     for entry := range w.Range() {
       r.values[obj.n+entry.Index] = entry.Value.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
-      r.indices.values = append(r.indices.values, obj.n+entry.Index)
+      r.indexInsert(obj.n+entry.Index)
     }
     return r
   }
@@ -450,7 +456,7 @@ func (obj *VECTOR_TYPE) AppendVector(w_ Vector) Vector {
 
 func (obj *VECTOR_TYPE) Swap(i, j int) {
   obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
-  obj.indices.swap(i,j)
+  obj.indexSwap(i,j)
 }
 
 /* imlement ScalarContainer
@@ -517,8 +523,7 @@ func (obj *VECTOR_TYPE) Permute(pi []int) error {
       }
     }
   }
-  copy(obj.indices.values, pi)
-  obj.indices.isSorted = false
+  obj.indexCopy(pi)
   return nil
 }
 
@@ -563,14 +568,14 @@ func (obj *VECTOR_TYPE) Sort(reverse bool) {
     if r.Value[i].GetValue() > 0.0 {
       // copy negative values
       obj.values[i+ip] = r.Value[i]
-      obj.indices.values[i] = i+ip
+      obj.index [i]    = i+ip
     } else {
       // copy negative values
       obj.values[i+in] = r.Value[i]
-      obj.indices.values[i] = i+in
+      obj.index [i]    = i+in
     }
   }
-  obj.indices.isSorted = false
+  obj.indexSorted = false
 }
 
 /* type conversion

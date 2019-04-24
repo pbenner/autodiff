@@ -26,54 +26,59 @@ import "sort"
 const vectorSparseIndexMax = int(^uint(0) >> 1)
 
 type vectorSparseIndexSlice struct {
-  values   []int
-  isSorted   bool
+  index       []int
+  indexSorted   bool
 }
 
-func (obj *vectorSparseIndexSlice) sort() {
-  if obj.isSorted == false {
-    sort.Ints(obj.values)
+func (obj vectorSparseIndexSlice) indexSort() {
+  if obj.indexSorted == false {
+    sort.Ints(obj.index)
     // remove revoked indices
-    for i := len(obj.values)-1; i >= 0; i-- {
-      if obj.values[i] == vectorSparseIndexMax {
-        obj.values = obj.values[0:i]
+    for i := len(obj.index)-1; i >= 0; i-- {
+      if obj.index[i] == vectorSparseIndexMax {
+        obj.index = obj.index[0:i]
       }
     }
-    obj.isSorted = true
+    obj.indexSorted = true
   }
 }
 
-func (obj *vectorSparseIndexSlice) insert(i int) {
-  obj.values = append(obj.values, i)
-  obj.isSorted = false
+func (obj *vectorSparseIndexSlice) indexInsert(i int) {
+  obj.index = append(obj.index, i)
+  obj.indexSorted = false
 }
 
-func (obj *vectorSparseIndexSlice) revoke(k int) {
-  obj.values[k] = vectorSparseIndexMax
-  obj.isSorted  = false
+func (obj vectorSparseIndexSlice) indexRevoke(k int) {
+  obj.index[k] = vectorSparseIndexMax
+  obj.indexSorted  = false
 }
 
-func (obj *vectorSparseIndexSlice) reverse() {
-  for i := len(obj.values)/2-1; i >= 0; i-- {
-    j := len(obj.values)-1-i
-    obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
+func (obj vectorSparseIndexSlice) indexReverse() {
+  for i :=len(obj.index)/2-1; i >= 0; i-- {
+    j := len(obj.index)-1-i
+    obj.index[i], obj.index[j] = obj.index[j], obj.index[i]
   }
 }
 
-func (obj *vectorSparseIndexSlice) find(i int) int {
-  obj.sort()
-  return sort.SearchInts(obj.values, i)
+func (obj vectorSparseIndexSlice) indexFind(i int) int {
+  obj.indexSort()
+  return sort.SearchInts(obj.index, i)
 }
 
-func (obj *vectorSparseIndexSlice) swap(i, j int) {
-  i_k := obj.find(i)
-  j_k := obj.find(j)
-  obj.values[i_k], obj.values[j_k] = obj.values[j_k], obj.values[i_k]
+func (obj vectorSparseIndexSlice) indexSwap(i, j int) {
+  i_k := obj.indexFind(i)
+  j_k := obj.indexFind(j)
+  obj.index[i_k], obj.index[j_k] = obj.index[j_k], obj.index[i_k]
 }
 
-func (obj vectorSparseIndexSlice) clone() vectorSparseIndexSlice {
+func (obj vectorSparseIndexSlice) indexCopy(src []int) {
+  copy(obj.index, src)
+  obj.indexSorted = false
+}
+
+func (obj vectorSparseIndexSlice) indexClone() vectorSparseIndexSlice {
   r := vectorSparseIndexSlice{}
-  r.values = make([]int, len(obj.values))
-  copy(r.values, obj.values)
+  r.index = make([]int, len(obj.index))
+  copy(r.index, obj.index)
   return r
 }
