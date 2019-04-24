@@ -45,6 +45,7 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
       r.indexInsert(k)
     }
   }
+  r.indexSort()
   return r
 }
 
@@ -241,7 +242,7 @@ func (obj *SparseConstRealVectorJointIterator) Index() int {
 }
 
 func (obj *SparseConstRealVectorJointIterator) Ok() bool {
-  return obj.it1.Ok() || obj.it2.Ok()
+  return obj.s1.GetValue() != 0.0 || obj.s2.GetValue() != 0.0
 }
 
 func (obj *SparseConstRealVectorJointIterator) Next() {
