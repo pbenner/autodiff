@@ -110,17 +110,20 @@ func (obj SparseConstRealVector) GetValues() []float64 {
 }
 
 func (obj SparseConstRealVector) ConstIterator() VectorConstIterator {
-  r := SparseConstRealVectorIterator{obj, -1}
-  r.Next()
-  return &r
+  return obj.ITERATOR()
 }
 
 func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   r := SparseConstRealVectorJointIterator{}
-  r.it1 = &SparseConstRealVectorIterator{obj, -1}
-  r.it1.Next()
+  r.it1 = obj.ITERATOR()
   r.it2 = b.ConstIterator()
   r.idx = -1
+  return &r
+}
+
+func (obj SparseConstRealVector) ITERATOR() *SparseConstRealVectorIterator {
+  r := SparseConstRealVectorIterator{obj, -1}
+  r.Next()
   return &r
 }
 

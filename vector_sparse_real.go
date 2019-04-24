@@ -130,10 +130,10 @@ func (obj *SparseRealVector) GetValues() []float64 {
 /* iterator methods
  * -------------------------------------------------------------------------- */
 func (obj *SparseRealVector) ConstIterator() VectorConstIterator {
-  obj.indexSort()
-  r := SparseRealVectorIterator{obj, nil, -1}
-  r.Next()
-  return &r
+  return obj.ITERATOR()
+}
+func (obj *SparseRealVector) Iterator() VectorIterator {
+  return obj.ITERATOR()
 }
 func (obj *SparseRealVector) JointIterator(b ConstVector) VectorJointIterator {
   obj.indexSort()
@@ -144,12 +144,6 @@ func (obj *SparseRealVector) JointIterator(b ConstVector) VectorJointIterator {
 func (obj *SparseRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   obj.indexSort()
   r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
-}
-func (obj *SparseRealVector) Iterator() VectorIterator {
-  obj.indexSort()
-  r := SparseRealVectorIterator{obj, nil, -1}
   r.Next()
   return &r
 }

@@ -59,9 +59,7 @@ func (v DenseConstRealVector) GetValues() []float64 {
 }
 
 func (v DenseConstRealVector) ConstIterator() VectorConstIterator {
-  r := DenseConstRealVectorIterator{v, -1}
-  r.Next()
-  return &r
+  return v.ITERATOR()
 }
 
 func (v DenseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
