@@ -69,6 +69,21 @@ func (v DenseConstRealVector) ConstRange() chan VectorConstRangeType {
   return channel
 }
 
+func (v DenseConstRealVector) ConstIterator() VectorConstIterator {
+  r := DenseConstRealVectorIterator{v, -1}
+  r.Next()
+  return &r
+}
+
+func (v DenseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  r := DenseConstRealVectorJointIterator{}
+  r.it1 = &DenseConstRealVectorIterator{v, -1}
+  r.it1.Next()
+  r.it2 = b.ConstIterator()
+  r.idx = -1
+  return &r
+}
+
 func (v DenseConstRealVector) ElementType() ScalarType {
   return BareRealType
 }
@@ -122,4 +137,80 @@ func (a DenseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
     }
   }
   return true
+}
+
+/* const iterator
+ * -------------------------------------------------------------------------- */
+
+type DenseConstRealVectorIterator struct {
+  v DenseConstRealVector
+  i int
+}
+
+func (obj *DenseConstRealVectorIterator) GetConst() ConstScalar {
+  return ConstReal(obj.v[obj.i])
+}
+
+func (obj *DenseConstRealVectorIterator) GET() ConstReal {
+  return ConstReal(obj.v[obj.i])
+}
+
+func (obj *DenseConstRealVectorIterator) Ok() bool {
+  return obj.i < len(obj.v)
+}
+
+func (obj *DenseConstRealVectorIterator) Next() {
+  obj.i++
+}
+
+func (obj *DenseConstRealVectorIterator) Index() int {
+  return obj.i
+}
+
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+
+type DenseConstRealVectorJointIterator struct {
+  it1 *DenseConstRealVectorIterator
+  it2  VectorConstIterator
+  idx  int
+  s1   ConstReal
+  s2   ConstReal
+}
+
+func (obj *DenseConstRealVectorJointIterator) Index() int {
+  return obj.idx
+}
+
+func (obj *DenseConstRealVectorJointIterator) Ok() bool {
+  return obj.it1.Ok() || obj.it2.Ok()
+}
+
+func (obj *DenseConstRealVectorJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = 0.0
+  obj.s2 = 0.0
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1  = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx >  obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1  = 0.0
+      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+    case obj.idx == obj.it2.Index():
+      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+    }
+  }
+}
+
+func (obj *DenseConstRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+
+func (obj *DenseConstRealVectorJointIterator) GET() (ConstReal, ConstScalar) {
+  return obj.s1, obj.s2
 }

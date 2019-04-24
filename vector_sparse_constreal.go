@@ -120,6 +120,21 @@ func (obj SparseConstRealVector) ConstRange() chan VectorConstRangeType {
   return channel
 }
 
+func (obj SparseConstRealVector) ConstIterator() VectorConstIterator {
+  r := SparseConstRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+
+func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  r := SparseConstRealVectorJointIterator{}
+  r.it1 = &SparseConstRealVectorIterator{obj, -1}
+  r.it1.Next()
+  r.it2 = b.ConstIterator()
+  r.idx = -1
+  return &r
+}
+
 func (obj SparseConstRealVector) ElementType() ScalarType {
   return BareRealType
 }
@@ -247,10 +262,87 @@ func (a SparseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
   if a.Dim() != b.Dim() {
     panic("VEqual(): Vector dimensions do not match!")
   }
-  for entry := range a.JOINT_RANGE(b) {
-    if !entry.Value1.Equals(entry.Value2, epsilon) {
+  for it := a.ConstJointIterator(b); it.Ok(); it.Next() {
+    s1, s2 := it.GetConst()
+    if !s1.Equals(s2, epsilon) {
       return false
     }
   }
   return true
+}
+
+/* const iterator
+ * -------------------------------------------------------------------------- */
+
+type SparseConstRealVectorIterator struct {
+  SparseConstRealVector
+  i int
+}
+
+func (obj *SparseConstRealVectorIterator) GetConst() ConstScalar {
+  return ConstReal(obj.values[obj.Index()])
+}
+
+func (obj *SparseConstRealVectorIterator) GET() ConstReal {
+  return ConstReal(obj.values[obj.Index()])
+}
+
+func (obj *SparseConstRealVectorIterator) Ok() bool {
+  return obj.i < len(obj.index)
+}
+
+func (obj *SparseConstRealVectorIterator) Next() {
+  obj.i++
+}
+
+func (obj *SparseConstRealVectorIterator) Index() int {
+  return obj.index[obj.i]
+}
+
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+
+type SparseConstRealVectorJointIterator struct {
+  it1 *SparseConstRealVectorIterator
+  it2  VectorConstIterator
+  idx  int
+  s1   ConstReal
+  s2   ConstReal
+}
+
+func (obj *SparseConstRealVectorJointIterator) Index() int {
+  return obj.idx
+}
+
+func (obj *SparseConstRealVectorJointIterator) Ok() bool {
+  return obj.it1.Ok() || obj.it2.Ok()
+}
+
+func (obj *SparseConstRealVectorJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = 0.0
+  obj.s2 = 0.0
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1  = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx >  obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1  = 0.0
+      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+    case obj.idx == obj.it2.Index():
+      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+    }
+  }
+}
+
+func (obj *SparseConstRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+
+func (obj *SparseConstRealVectorJointIterator) GET() (ConstReal, ConstScalar) {
+  return obj.s1, obj.s2
 }

@@ -28,6 +28,7 @@ import "sort"
 import "strconv"
 import "strings"
 import "os"
+/* -------------------------------------------------------------------------- */
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 type DenseRealVector []*Real
@@ -148,6 +149,33 @@ func (v DenseRealVector) JointRange(b ConstVector) chan VectorJointRangeType {
     close(channel)
   }()
   return channel
+}
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+func (obj DenseRealVector) ConstIterator() VectorConstIterator {
+  r := DenseRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+func (obj DenseRealVector) JointIterator(b ConstVector) VectorJointIterator {
+  r := DenseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+func (obj DenseRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  r := DenseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+func (obj DenseRealVector) Iterator() VectorIterator {
+  r := DenseRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+func (obj DenseRealVector) ITERATOR() *DenseRealVectorIterator {
+  r := DenseRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
 }
 /* -------------------------------------------------------------------------- */
 func (v DenseRealVector) Dim() int {
@@ -381,4 +409,72 @@ func (obj *DenseRealVector) UnmarshalJSON(data []byte) error {
     (*obj)[i] = r[i]
   }
   return nil
+}
+/* iterator
+ * -------------------------------------------------------------------------- */
+type DenseRealVectorIterator struct {
+  v DenseRealVector
+  i int
+}
+func (obj *DenseRealVectorIterator) Get() Scalar {
+  return obj.v[obj.i]
+}
+func (obj *DenseRealVectorIterator) GetConst() ConstScalar {
+  return obj.v[obj.i]
+}
+func (obj *DenseRealVectorIterator) GET() *Real {
+  return obj.v[obj.i]
+}
+func (obj *DenseRealVectorIterator) Ok() bool {
+  return obj.i < len(obj.v)
+}
+func (obj *DenseRealVectorIterator) Next() {
+  obj.i++
+}
+func (obj *DenseRealVectorIterator) Index() int {
+  return obj.i
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type DenseRealVectorJointIterator struct {
+  it1 *DenseRealVectorIterator
+  it2 VectorConstIterator
+  idx int
+  s1 *Real
+  s2 ConstScalar
+}
+func (obj *DenseRealVectorJointIterator) Index() int {
+  return obj.idx
+}
+func (obj *DenseRealVectorJointIterator) Ok() bool {
+  return obj.it1.Ok() || obj.it2.Ok()
+}
+func (obj *DenseRealVectorJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx > obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1 = nil
+      obj.s2 = obj.it2.GetConst()
+    case obj.idx == obj.it2.Index():
+      obj.s2 = obj.it2.GetConst()
+    }
+  }
+}
+func (obj *DenseRealVectorJointIterator) Get() (Scalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *DenseRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *DenseRealVectorJointIterator) GET() (*Real, ConstScalar) {
+  return obj.s1, obj.s2
 }

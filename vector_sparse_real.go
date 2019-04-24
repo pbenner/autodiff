@@ -29,6 +29,7 @@ import "strconv"
 import "strings"
 import "os"
 /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 type SparseRealVector struct {
@@ -141,6 +142,38 @@ func (obj *SparseRealVector) ConstRange() chan VectorConstRangeType {
     close(channel)
   }()
   return channel
+}
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+func (obj *SparseRealVector) ConstIterator() VectorConstIterator {
+  r := SparseRealVectorIterator{obj, nil, -1}
+  r.Next()
+  return &r
+}
+func (obj *SparseRealVector) JointIterator(b ConstVector) VectorJointIterator {
+  r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+func (obj *SparseRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+func (obj *SparseRealVector) Iterator() VectorIterator {
+  r := SparseRealVectorIterator{obj, nil, -1}
+  r.Next()
+  return &r
+}
+func (obj *SparseRealVector) ITERATOR() *SparseRealVectorIterator {
+  r := SparseRealVectorIterator{obj, nil, -1}
+  r.Next()
+  return &r
+}
+func (obj *SparseRealVector) CONST_JOINT_ITERATOR(b ConstVector) *SparseRealVectorJointIterator {
+  r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
 }
 /* range methods
  * -------------------------------------------------------------------------- */
@@ -706,4 +739,81 @@ func (obj *SparseRealVector) nullScalar(s *Real) bool {
     }
   }
   return true
+}
+/* iterator
+ * -------------------------------------------------------------------------- */
+type SparseRealVectorIterator struct {
+  *SparseRealVector
+  s *Real
+  i int
+}
+func (obj *SparseRealVectorIterator) Get() Scalar {
+  return obj.s
+}
+func (obj *SparseRealVectorIterator) GetConst() ConstScalar {
+  return obj.s
+}
+func (obj *SparseRealVectorIterator) GET() *Real {
+  return obj.s
+}
+func (obj *SparseRealVectorIterator) Ok() bool {
+  return obj.i < len(obj.index)
+}
+func (obj *SparseRealVectorIterator) Next() {
+  for obj.i++;; obj.i++ {
+    i := obj.Index()
+    if s := obj.values[i]; obj.nullScalar(s) {
+      obj.indexRevoke(obj.i)
+      delete(obj.values, i)
+    } else {
+      obj.s = s; break
+    }
+  }
+}
+func (obj *SparseRealVectorIterator) Index() int {
+  return obj.index[obj.i]
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type SparseRealVectorJointIterator struct {
+  it1 *SparseRealVectorIterator
+  it2 VectorConstIterator
+  idx int
+  s1 *Real
+  s2 ConstScalar
+}
+func (obj *SparseRealVectorJointIterator) Index() int {
+  return obj.idx
+}
+func (obj *SparseRealVectorJointIterator) Ok() bool {
+  return obj.it1.Ok() || obj.it2.Ok()
+}
+func (obj *SparseRealVectorJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx > obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1 = nil
+      obj.s2 = obj.it2.GetConst()
+    case obj.idx == obj.it2.Index():
+      obj.s2 = obj.it2.GetConst()
+    }
+  }
+}
+func (obj *SparseRealVectorJointIterator) Get() (Scalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *SparseRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *SparseRealVectorJointIterator) GET() (*Real, ConstScalar) {
+  return obj.s1, obj.s2
 }

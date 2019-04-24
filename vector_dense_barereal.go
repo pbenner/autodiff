@@ -28,6 +28,7 @@ import "sort"
 import "strconv"
 import "strings"
 import "os"
+/* -------------------------------------------------------------------------- */
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 type DenseBareRealVector []*BareReal
@@ -148,6 +149,33 @@ func (v DenseBareRealVector) JointRange(b ConstVector) chan VectorJointRangeType
     close(channel)
   }()
   return channel
+}
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+func (obj DenseBareRealVector) ConstIterator() VectorConstIterator {
+  r := DenseBareRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+func (obj DenseBareRealVector) JointIterator(b ConstVector) VectorJointIterator {
+  r := DenseBareRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+func (obj DenseBareRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  r := DenseBareRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+func (obj DenseBareRealVector) Iterator() VectorIterator {
+  r := DenseBareRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+func (obj DenseBareRealVector) ITERATOR() *DenseBareRealVectorIterator {
+  r := DenseBareRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
 }
 /* -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) Dim() int {
@@ -381,4 +409,72 @@ func (obj *DenseBareRealVector) UnmarshalJSON(data []byte) error {
     (*obj)[i] = r[i]
   }
   return nil
+}
+/* iterator
+ * -------------------------------------------------------------------------- */
+type DenseBareRealVectorIterator struct {
+  v DenseBareRealVector
+  i int
+}
+func (obj *DenseBareRealVectorIterator) Get() Scalar {
+  return obj.v[obj.i]
+}
+func (obj *DenseBareRealVectorIterator) GetConst() ConstScalar {
+  return obj.v[obj.i]
+}
+func (obj *DenseBareRealVectorIterator) GET() *BareReal {
+  return obj.v[obj.i]
+}
+func (obj *DenseBareRealVectorIterator) Ok() bool {
+  return obj.i < len(obj.v)
+}
+func (obj *DenseBareRealVectorIterator) Next() {
+  obj.i++
+}
+func (obj *DenseBareRealVectorIterator) Index() int {
+  return obj.i
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type DenseBareRealVectorJointIterator struct {
+  it1 *DenseBareRealVectorIterator
+  it2 VectorConstIterator
+  idx int
+  s1 *BareReal
+  s2 ConstScalar
+}
+func (obj *DenseBareRealVectorJointIterator) Index() int {
+  return obj.idx
+}
+func (obj *DenseBareRealVectorJointIterator) Ok() bool {
+  return obj.it1.Ok() || obj.it2.Ok()
+}
+func (obj *DenseBareRealVectorJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx > obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1 = nil
+      obj.s2 = obj.it2.GetConst()
+    case obj.idx == obj.it2.Index():
+      obj.s2 = obj.it2.GetConst()
+    }
+  }
+}
+func (obj *DenseBareRealVectorJointIterator) Get() (Scalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *DenseBareRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *DenseBareRealVectorJointIterator) GET() (*BareReal, ConstScalar) {
+  return obj.s1, obj.s2
 }

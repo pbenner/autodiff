@@ -22,6 +22,36 @@ import "encoding/json"
 
 /* -------------------------------------------------------------------------- */
 
+type VectorConstIterator interface {
+  GetConst() ConstScalar
+  Ok      () bool
+  Next    ()
+  Index   () int
+}
+
+type VectorConstJointIterator interface {
+  GetConst() (ConstScalar, ConstScalar)
+  Ok      () bool
+  Next    ()
+  Index   () int
+}
+
+type VectorIterator interface {
+  Get  () Scalar
+  Ok   () bool
+  Next ()
+  Index() int
+}
+
+type VectorJointIterator interface {
+  Get  () (Scalar, ConstScalar)
+  Ok   () bool
+  Next ()
+  Index() int
+}
+
+/* -------------------------------------------------------------------------- */
+
 type VectorConstRangeType struct {
   Index int
   Value ConstScalar
@@ -43,47 +73,54 @@ type VectorJointRangeType struct {
 
 type ConstVector interface {
   ConstScalarContainer
-  Dim             ()                     int
-  Equals          (ConstVector, float64) bool
-  Table           ()                     string
-  ValueAt         (int)                  float64
-  ConstAt         (int)                  ConstScalar
-  ConstSlice      (i, j int)             ConstVector
-  GetValues       ()                     []float64
-  ConstRange      ()                     chan VectorConstRangeType
+  Dim               ()                     int
+  Equals            (ConstVector, float64) bool
+  Table             ()                     string
+  ValueAt           (int)                  float64
+  ConstAt           (int)                  ConstScalar
+  ConstSlice        (i, j int)             ConstVector
+  GetValues         ()                     []float64
+  ConstRange        ()                     chan VectorConstRangeType
+  ConstIterator     ()                     VectorConstIterator
+  ConstJointIterator(ConstVector)          VectorConstJointIterator
 }
 
 type Vector interface {
   ScalarContainer
   // const methods
-  Dim             ()                     int
-  Equals          (ConstVector, float64) bool
-  Table           ()                     string
-  ValueAt         (int)                  float64
-  ConstAt         (int)                  ConstScalar
-  ConstSlice      (i, j int)             ConstVector
-  GetValues       ()                     []float64
-  ConstRange      ()                     chan VectorConstRangeType
+  Dim               ()                     int
+  Equals            (ConstVector, float64) bool
+  Table             ()                     string
+  ValueAt           (int)                  float64
+  ConstAt           (int)                  ConstScalar
+  ConstSlice        (i, j int)             ConstVector
+  GetValues         ()                     []float64
+  ConstRange        ()                     chan VectorConstRangeType
   // range methods
-  JointRange      (ConstVector)          chan VectorJointRangeType
-  Range           ()                     chan VectorRangeType
+  JointRange        (ConstVector)          chan VectorJointRangeType
+  Range             ()                     chan VectorRangeType
+  // iterators
+  ConstIterator     ()                     VectorConstIterator
+  JointIterator     (ConstVector)          VectorJointIterator
+  ConstJointIterator(ConstVector)          VectorConstJointIterator
+  Iterator          ()                     VectorIterator
   // other methods
-  At              (int)                  Scalar
-  Reset           ()
-  ResetDerivatives()
+  At                (int)                  Scalar
+  Reset             ()
+  ResetDerivatives  ()
   // basic methods
-  CloneVector     ()                     Vector
-  Set             (ConstVector)
-  Export          (string)               error
-  Permute         ([]int)                error
-  ReverseOrder    ()
-  Sort            (bool)
-  Slice           (i, j int)             Vector
-  AppendScalar    (...Scalar)            Vector
-  AppendVector    (Vector)               Vector
-  Swap            (i, j int)
+  CloneVector       ()                     Vector
+  Set               (ConstVector)
+  Export            (string)               error
+  Permute           ([]int)                error
+  ReverseOrder      ()
+  Sort              (bool)
+  Slice             (i, j int)             Vector
+  AppendScalar      (...Scalar)            Vector
+  AppendVector      (Vector)               Vector
+  Swap              (i, j int)
   // type conversions
-  AsMatrix        (n, m int)             Matrix
+  AsMatrix          (n, m int)             Matrix
   // math operations
   VaddV(a,             b ConstVector) Vector
   VaddS(a ConstVector, b ConstScalar) Vector
