@@ -66,10 +66,15 @@ func (v DenseConstRealVector) ConstIterator() VectorConstIterator {
 
 func (v DenseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   r := DenseConstRealVectorJointIterator{}
-  r.it1 = &DenseConstRealVectorIterator{v, -1}
-  r.it1.Next()
+  r.it1 = v.ITERATOR()
   r.it2 = b.ConstIterator()
   r.idx = -1
+  return &r
+}
+
+func (v DenseConstRealVector) ITERATOR() *DenseConstRealVectorIterator {
+  r := DenseConstRealVectorIterator{v, -1}
+  r.Next()
   return &r
 }
 
