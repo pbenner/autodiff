@@ -166,17 +166,11 @@ func (obj *VECTOR_TYPE) Iterator() VectorIterator {
 }
 
 func (obj *VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
-  obj.indexSort()
-  r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
+  return obj.JOINT_ITERATOR(b)
 }
 
 func (obj *VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterator {
-  obj.indexSort()
-  r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
+  return obj.JOINT_ITERATOR(b)
 }
 
 func (obj *VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
@@ -187,12 +181,14 @@ func (obj *VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
 }
 
 func (obj *VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
+  obj.indexSort()
   r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 
 func (obj *VECTOR_TYPE) JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATOR {
+  obj.indexSort()
   r := VECTOR_JOINT3_ITERATOR{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
   r.Next()
   return &r

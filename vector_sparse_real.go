@@ -136,16 +136,10 @@ func (obj *SparseRealVector) Iterator() VectorIterator {
   return obj.ITERATOR()
 }
 func (obj *SparseRealVector) JointIterator(b ConstVector) VectorJointIterator {
-  obj.indexSort()
-  r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
+  return obj.JOINT_ITERATOR(b)
 }
 func (obj *SparseRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
-  obj.indexSort()
-  r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
+  return obj.JOINT_ITERATOR(b)
 }
 func (obj *SparseRealVector) ITERATOR() *SparseRealVectorIterator {
   obj.indexSort()
@@ -154,11 +148,13 @@ func (obj *SparseRealVector) ITERATOR() *SparseRealVectorIterator {
   return &r
 }
 func (obj *SparseRealVector) JOINT_ITERATOR(b ConstVector) *SparseRealVectorJointIterator {
+  obj.indexSort()
   r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) JOINT3_ITERATOR(b, c ConstVector) *SparseRealVectorJoint3Iterator {
+  obj.indexSort()
   r := SparseRealVectorJoint3Iterator{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
   r.Next()
   return &r

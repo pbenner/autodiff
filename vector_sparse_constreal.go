@@ -114,16 +114,20 @@ func (obj SparseConstRealVector) ConstIterator() VectorConstIterator {
 }
 
 func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
-  r := SparseConstRealVectorJointIterator{}
-  r.it1 = obj.ITERATOR()
-  r.it2 = b.ConstIterator()
-  r.idx = -1
-  r.Next()
-  return &r
+  return obj.JOINT_ITERATOR(b)
 }
 
 func (obj SparseConstRealVector) ITERATOR() *SparseConstRealVectorIterator {
   r := SparseConstRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+
+func (obj SparseConstRealVector) JOINT_ITERATOR(b ConstVector) *SparseConstRealVectorJointIterator {
+  r := SparseConstRealVectorJointIterator{}
+  r.it1 = obj.ITERATOR()
+  r.it2 = b.ConstIterator()
+  r.idx = -1
   r.Next()
   return &r
 }
