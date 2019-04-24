@@ -108,48 +108,6 @@ func (v DenseBareRealVector) GetValues() []float64 {
   }
   return s
 }
-func (v DenseBareRealVector) ConstRange() chan VectorConstRangeType {
-  channel := make(chan VectorConstRangeType)
-  go func() {
-    for i := 0; i < v.Dim(); i++ {
-      channel <- VectorConstRangeType{i, v[i]}
-    }
-    close(channel)
-  }()
-  return channel
-}
-/* range methods
- * -------------------------------------------------------------------------- */
-func (v DenseBareRealVector) Range() chan VectorRangeType {
-  channel := make(chan VectorRangeType)
-  go func() {
-    for i := 0; i < v.Dim(); i++ {
-      channel <- VectorRangeType{i, v[i]}
-    }
-    close(channel)
-  }()
-  return channel
-}
-func (v DenseBareRealVector) JointRange(b ConstVector) chan VectorJointRangeType {
-  channel := make(chan VectorJointRangeType)
-  go func() {
-    for i := 0; i < v.Dim(); i++ {
-      r := VectorJointRangeType{}
-      r.Index = i
-      if s := v .At(i); s.GetValue() != 0.0 {
-        r.Value1 = v.At(i)
-      }
-      if s := b.ConstAt(i); s.GetValue() != 0.0 {
-        r.Value2 = b.ConstAt(i)
-      }
-      if r.Value1 != nil || r.Value2 != nil {
-        channel <- r
-      }
-    }
-    close(channel)
-  }()
-  return channel
-}
 /* iterator methods
  * -------------------------------------------------------------------------- */
 func (obj DenseBareRealVector) ConstIterator() VectorConstIterator {

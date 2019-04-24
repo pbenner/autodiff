@@ -524,8 +524,8 @@ func (r *Real) VdotV(a, b ConstVector) Scalar {
 func (r *Real) Vnorm(a ConstVector) Scalar {
   r.Reset()
   t := NewReal(0.0)
-  for entry := range a.ConstRange() {
-    t.Pow(entry.Value, ConstReal(2.0))
+  for it := a.ConstIterator(); it.Ok(); it.Next() {
+    t.Pow(it.GetConst(), ConstReal(2.0))
     r.Add(r, t)
   }
   r.Sqrt(r)

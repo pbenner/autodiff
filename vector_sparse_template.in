@@ -40,12 +40,6 @@ import "os"
 #define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_TYPE, ConstIterator)
 #define VECTOR_ITERATOR        STR_CONCAT(VECTOR_TYPE, Iterator)
 
-/* -------------------------------------------------------------------------- */
-
-#define VECTOR_RANGE_TYPE        STR_CONCAT(VECTOR_TYPE, Range)
-#define VECTOR_JOINT_RANGE_TYPE  STR_CONCAT(VECTOR_TYPE, JointRange)
-#define VECTOR_JOINT_RANGE3_TYPE STR_CONCAT(VECTOR_TYPE, JointRange3)
-
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
@@ -91,8 +85,8 @@ func AS_VECTOR(v ConstVector) *VECTOR_TYPE {
     return v_
   }
   r := NULL_VECTOR(v.Dim())
-  for entry := range v.ConstRange() {
-    r.AT(entry.Index).Set(entry.Value)
+  for it := v.ConstIterator(); it.Ok(); it.Next() {
+    r.AT(it.Index()).Set(it.GetConst())
   }
   return r
 }
@@ -119,11 +113,12 @@ func (obj *VECTOR_TYPE) Set(x ConstVector) {
   if obj.Dim() != x.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
-  for entry := range obj.JOINT_RANGE(x) {
+  for it := obj.JOINT_ITERATOR(x); it.Ok(); it.Next() {
+    s1, s2 := it.Get()
     switch {
-    case entry.Value1 != nil && entry.Value2 != nil: entry.Value1.Set(entry.Value2)
-    case entry.Value1 != nil                       : entry.Value1.SetValue(0.0)
-    default                                        : obj.AT(entry.Index).Set(entry.Value2)
+    case s1 != nil && s2 != nil: s1.Set(s2)
+    case s1 != nil             : s1.SetValue(0.0)
+    default                    : obj.AT(it.Index()).Set(s2)
     }
   }
 }
@@ -159,246 +154,54 @@ func (obj *VECTOR_TYPE) GetValues() []float64 {
   return r
 }
 
-func (obj *VECTOR_TYPE) ConstRange() chan VectorConstRangeType {
-  channel := make(chan VectorConstRangeType)
-  go func() {
-    obj.indexSort()
-    for k, i := range obj.index {
-      if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indexRevoke(k)
-        delete(obj.values, i)
-      } else {
-        channel <- VectorConstRangeType{i, s}
-      }
-    }
-    close(channel)
-  }()
-  return channel
-}
-
 /* iterator methods
  * -------------------------------------------------------------------------- */
 
 func (obj *VECTOR_TYPE) ConstIterator() VectorConstIterator {
+  obj.indexSort()
   r := VECTOR_ITERATOR{obj, nil, -1}
   r.Next()
   return &r
 }
 
 func (obj *VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
+  obj.indexSort()
   r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 
 func (obj *VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  obj.indexSort()
   r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 
 func (obj *VECTOR_TYPE) Iterator() VectorIterator {
+  obj.indexSort()
   r := VECTOR_ITERATOR{obj, nil, -1}
   r.Next()
   return &r
 }
 
 func (obj *VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
+  obj.indexSort()
   r := VECTOR_ITERATOR{obj, nil, -1}
   r.Next()
   return &r
 }
 
-func (obj *VECTOR_TYPE) CONST_JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
+func (obj *VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
   r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 
-func (obj *VECTOR_TYPE) CONST_JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATOR {
+func (obj *VECTOR_TYPE) JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATOR {
   r := VECTOR_JOINT3_ITERATOR{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
   r.Next()
   return &r
-}
-
-/* range methods
- * -------------------------------------------------------------------------- */
-
-func (obj *VECTOR_TYPE) Range() chan VectorRangeType {
-  channel := make(chan VectorRangeType)
-  go func() {
-    obj.indexSort()
-    for k, i := range obj.index {
-      if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indexRevoke(k)
-        delete(obj.values, i)
-      } else {
-        channel <- VectorRangeType{i, s}
-      }
-    }
-    close(channel)
-  }()
-  return channel
-}
-
-func (obj *VECTOR_TYPE) JointRange(b ConstVector) chan VectorJointRangeType {
-  channel := make(chan VectorJointRangeType)
-  go func() {
-    c1 := obj.     RANGE()
-    c2 :=   b.ConstRange()
-    r1, ok1 := <- c1
-    r2, ok2 := <- c2
-    for ok1 || ok2 {
-      r := VectorJointRangeType{}
-      r.Value2 = CONST_SCALAR_TYPE(0.0)
-      if ok1 {
-        r.Index  = r1.Index
-        r.Value1 = r1.Value
-      }
-      if ok2 {
-        switch {
-        case r.Index >  r2.Index || !ok1:
-          r.Index  = r2.Index
-          r.Value1 = nil
-          r.Value2 = r2.Value
-        case r.Index == r2.Index:
-          r.Value2 = r2.Value
-        }
-      }
-      channel <- r
-    }
-    close(channel)
-  }()
-  return channel
-}
-
-type VECTOR_RANGE_TYPE struct {
-  Index int
-  Value *SCALAR_TYPE
-}
-
-func (obj *VECTOR_TYPE) RANGE() chan VECTOR_RANGE_TYPE {
-  channel := make(chan VECTOR_RANGE_TYPE)
-  go func() {
-    obj.indexSort()
-    for k, i := range obj.index {
-      if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indexRevoke(k)
-        delete(obj.values, i)
-      } else {
-        channel <- VECTOR_RANGE_TYPE{i, s}
-      }
-    }
-    close(channel)
-  }()
-  return channel
-}
-
-type VECTOR_JOINT_RANGE_TYPE struct {
-  Index   int
-  Value1 *SCALAR_TYPE
-  Value2  ConstScalar
-}
-
-func (obj *VECTOR_TYPE) JOINT_RANGE(b ConstVector) chan VECTOR_JOINT_RANGE_TYPE {
-  channel := make(chan VECTOR_JOINT_RANGE_TYPE)
-  go func() {
-    c1 := obj.     RANGE()
-    c2 :=   b.ConstRange()
-    r1, ok1 := <- c1
-    r2, ok2 := <- c2
-    for ok1 || ok2 {
-      r := VECTOR_JOINT_RANGE_TYPE{}
-      if ok1 {
-        r.Index  = r1.Index
-        r.Value1 = r1.Value
-      }
-      if ok2 {
-        switch {
-        case r.Index >  r2.Index || !ok1:
-          r.Index  = r2.Index
-          r.Value1 = nil
-          r.Value2 = r2.Value
-        case r.Index == r2.Index:
-          r.Value2 = r2.Value
-        }
-      }
-      if r.Value1 != nil {
-        r1, ok1 = <- c1
-      }
-      if r.Value2 != nil {
-        r2, ok2 = <- c2
-      } else {
-        r.Value2 = CONST_SCALAR_TYPE(0.0)
-      }
-      channel <- r
-    }
-    close(channel)
-  }()
-  return channel
-}
-
-type VECTOR_JOINT_RANGE3_TYPE struct {
-  Index   int
-  Value1 *SCALAR_TYPE
-  Value2  ConstScalar
-  Value3  ConstScalar
-}
-
-func (obj *VECTOR_TYPE) JOINT_RANGE3(b, c ConstVector) chan VECTOR_JOINT_RANGE3_TYPE {
-  channel := make(chan VECTOR_JOINT_RANGE3_TYPE)
-  go func() {
-    c1 := obj.     RANGE()
-    c2 :=   b.ConstRange()
-    c3 :=   c.ConstRange()
-    r1, ok1 := <- c1
-    r2, ok2 := <- c2
-    r3, ok3 := <- c3
-    for ok1 || ok2 || ok3 {
-      r := VECTOR_JOINT_RANGE3_TYPE{}
-      if ok1 {
-        r.Index  = r1.Index
-        r.Value1 = r1.Value
-      }
-      if ok2 {
-        switch {
-        case r.Index >  r2.Index || !ok1:
-          r.Index  = r2.Index
-          r.Value1 = nil
-          r.Value2 = r2.Value
-        case r.Index == r2.Index:
-          r.Value2 = r2.Value
-        }
-      }
-      if ok3 {
-        switch {
-        case r.Index > r3.Index || (!ok1 && !ok2):
-          r.Index  = r3.Index
-          r.Value1 = nil
-          r.Value2 = nil
-          r.Value3 = r3.Value
-        case r.Index == r3.Index:
-          r.Value3 = r3.Value
-        }
-      }
-      if r.Value1 != nil {
-        r1, ok1 = <- c1
-      }
-      if r.Value2 != nil {
-        r2, ok2 = <- c2
-      } else {
-        r.Value2 = CONST_SCALAR_TYPE(0.0)
-      }
-      if r.Value3 != nil {
-        r3, ok3 = <- c3
-      } else {
-        r.Value3 = CONST_SCALAR_TYPE(0.0)
-      }
-      channel <- r
-    }
-    close(channel)
-  }()
-  return channel
 }
 
 /* -------------------------------------------------------------------------- */
@@ -469,9 +272,10 @@ func (obj *VECTOR_TYPE) Slice(i, j int) Vector {
 func (obj *VECTOR_TYPE) Append(w *VECTOR_TYPE) *VECTOR_TYPE {
   r  := obj.Clone()
   r.n = obj.n + w.Dim()
-  for entry := range w.RANGE() {
-    r.values[obj.n+entry.Index] = entry.Value
-    r.indexInsert(obj.n+entry.Index)
+  for it := w.ITERATOR(); it.Ok(); it.Next() {
+    i := obj.n+it.Index()
+    r.values[i] = it.GET()
+    r.indexInsert(i)
   }
   return r
 }
@@ -498,9 +302,9 @@ func (obj *VECTOR_TYPE) AppendVector(w_ Vector) Vector {
   default:
     r  := obj.Clone()
     r.n = obj.n + w.Dim()
-    for entry := range w.Range() {
-      r.values[obj.n+entry.Index] = entry.Value.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
-      r.indexInsert(obj.n+entry.Index)
+    for it := w.Iterator(); it.Ok(); it.Next() {
+      r.values[obj.n+it.Index()] = it.Get().ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
+      r.indexInsert(obj.n+it.Index())
     }
     return r
   }
@@ -600,8 +404,8 @@ func (obj SORT_TYPE) Less(i, j int) bool {
 
 func (obj *VECTOR_TYPE) Sort(reverse bool) {
   r := SORT_TYPE{}
-  for entry := range obj.RANGE() {
-    r.Value = append(r.Value, entry.Value)
+  for it := obj.ITERATOR(); it.Ok(); it.Next() {
+    r.Value = append(r.Value, it.GET())
   }
   ip := 0
   in := 0
@@ -666,13 +470,13 @@ func (obj *VECTOR_TYPE) String() string {
 
   buffer.WriteString(fmt.Sprintf("%d:[", obj.n))
   first := true
-  for entry := range obj.Range() {
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
     if !first {
       buffer.WriteString(", ")
     } else {
       first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
+    buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
   buffer.WriteString("]")
 
@@ -683,13 +487,13 @@ func (obj *VECTOR_TYPE) Table() string {
   var buffer bytes.Buffer
 
   first := true
-  for entry := range obj.Range() {
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
     if !first {
       buffer.WriteString(" ")
     } else {
       first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
+    buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
   if _, ok := obj.values[obj.n-1]; !ok {
     i := obj.n-1
@@ -790,9 +594,9 @@ func (obj *VECTOR_TYPE) MarshalJSON() ([]byte, error) {
     Index  []int
     Value  []float64
     Length   int}{}
-  for entry := range obj.Range() {
-    k = append(k, entry.Index)
-    v = append(v, entry.Value.GetValue())
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
+    k = append(k, it.Index())
+    v = append(v, it.GetConst().GetValue())
   }
   r.Index  = k
   r.Value  = v
@@ -866,8 +670,11 @@ func (obj *VECTOR_ITERATOR) Ok() bool {
 }
 
 func (obj *VECTOR_ITERATOR) Next() {
-  for obj.i++; obj.Ok() ; obj.i++ {
+  for obj.i++; obj.Ok(); obj.i++ {
     i := obj.Index()
+    if i == vectorSparseIndexMax {
+      continue
+    }
     if s := obj.values[i]; obj.nullScalar(s) {
       obj.indexRevoke(obj.i)
       delete(obj.values, i)

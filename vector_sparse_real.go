@@ -29,7 +29,6 @@ import "strconv"
 import "strings"
 import "os"
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 type SparseRealVector struct {
@@ -69,8 +68,8 @@ func AsSparseRealVector(v ConstVector) *SparseRealVector {
     return v_
   }
   r := NullSparseRealVector(v.Dim())
-  for entry := range v.ConstRange() {
-    r.AT(entry.Index).Set(entry.Value)
+  for it := v.ConstIterator(); it.Ok(); it.Next() {
+    r.AT(it.Index()).Set(it.GetConst())
   }
   return r
 }
@@ -93,11 +92,12 @@ func (obj *SparseRealVector) Set(x ConstVector) {
   if obj.Dim() != x.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
-  for entry := range obj.JOINT_RANGE(x) {
+  for it := obj.JOINT_ITERATOR(x); it.Ok(); it.Next() {
+    s1, s2 := it.Get()
     switch {
-    case entry.Value1 != nil && entry.Value2 != nil: entry.Value1.Set(entry.Value2)
-    case entry.Value1 != nil : entry.Value1.SetValue(0.0)
-    default : obj.AT(entry.Index).Set(entry.Value2)
+    case s1 != nil && s2 != nil: s1.Set(s2)
+    case s1 != nil : s1.SetValue(0.0)
+    default : obj.AT(it.Index()).Set(s2)
     }
   }
 }
@@ -127,229 +127,47 @@ func (obj *SparseRealVector) GetValues() []float64 {
   }
   return r
 }
-func (obj *SparseRealVector) ConstRange() chan VectorConstRangeType {
-  channel := make(chan VectorConstRangeType)
-  go func() {
-    obj.indexSort()
-    for k, i := range obj.index {
-      if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indexRevoke(k)
-        delete(obj.values, i)
-      } else {
-        channel <- VectorConstRangeType{i, s}
-      }
-    }
-    close(channel)
-  }()
-  return channel
-}
 /* iterator methods
  * -------------------------------------------------------------------------- */
 func (obj *SparseRealVector) ConstIterator() VectorConstIterator {
+  obj.indexSort()
   r := SparseRealVectorIterator{obj, nil, -1}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) JointIterator(b ConstVector) VectorJointIterator {
+  obj.indexSort()
   r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  obj.indexSort()
   r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) Iterator() VectorIterator {
+  obj.indexSort()
   r := SparseRealVectorIterator{obj, nil, -1}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) ITERATOR() *SparseRealVectorIterator {
+  obj.indexSort()
   r := SparseRealVectorIterator{obj, nil, -1}
   r.Next()
   return &r
 }
-func (obj *SparseRealVector) CONST_JOINT_ITERATOR(b ConstVector) *SparseRealVectorJointIterator {
+func (obj *SparseRealVector) JOINT_ITERATOR(b ConstVector) *SparseRealVectorJointIterator {
   r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
-func (obj *SparseRealVector) CONST_JOINT3_ITERATOR(b, c ConstVector) *SparseRealVectorJoint3Iterator {
+func (obj *SparseRealVector) JOINT3_ITERATOR(b, c ConstVector) *SparseRealVectorJoint3Iterator {
   r := SparseRealVectorJoint3Iterator{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
   r.Next()
   return &r
-}
-/* range methods
- * -------------------------------------------------------------------------- */
-func (obj *SparseRealVector) Range() chan VectorRangeType {
-  channel := make(chan VectorRangeType)
-  go func() {
-    obj.indexSort()
-    for k, i := range obj.index {
-      if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indexRevoke(k)
-        delete(obj.values, i)
-      } else {
-        channel <- VectorRangeType{i, s}
-      }
-    }
-    close(channel)
-  }()
-  return channel
-}
-func (obj *SparseRealVector) JointRange(b ConstVector) chan VectorJointRangeType {
-  channel := make(chan VectorJointRangeType)
-  go func() {
-    c1 := obj. RANGE()
-    c2 := b.ConstRange()
-    r1, ok1 := <- c1
-    r2, ok2 := <- c2
-    for ok1 || ok2 {
-      r := VectorJointRangeType{}
-      r.Value2 = ConstReal(0.0)
-      if ok1 {
-        r.Index = r1.Index
-        r.Value1 = r1.Value
-      }
-      if ok2 {
-        switch {
-        case r.Index > r2.Index || !ok1:
-          r.Index = r2.Index
-          r.Value1 = nil
-          r.Value2 = r2.Value
-        case r.Index == r2.Index:
-          r.Value2 = r2.Value
-        }
-      }
-      channel <- r
-    }
-    close(channel)
-  }()
-  return channel
-}
-type SparseRealVectorRange struct {
-  Index int
-  Value *Real
-}
-func (obj *SparseRealVector) RANGE() chan SparseRealVectorRange {
-  channel := make(chan SparseRealVectorRange)
-  go func() {
-    obj.indexSort()
-    for k, i := range obj.index {
-      if s := obj.values[i]; obj.nullScalar(s) {
-        obj.indexRevoke(k)
-        delete(obj.values, i)
-      } else {
-        channel <- SparseRealVectorRange{i, s}
-      }
-    }
-    close(channel)
-  }()
-  return channel
-}
-type SparseRealVectorJointRange struct {
-  Index int
-  Value1 *Real
-  Value2 ConstScalar
-}
-func (obj *SparseRealVector) JOINT_RANGE(b ConstVector) chan SparseRealVectorJointRange {
-  channel := make(chan SparseRealVectorJointRange)
-  go func() {
-    c1 := obj. RANGE()
-    c2 := b.ConstRange()
-    r1, ok1 := <- c1
-    r2, ok2 := <- c2
-    for ok1 || ok2 {
-      r := SparseRealVectorJointRange{}
-      if ok1 {
-        r.Index = r1.Index
-        r.Value1 = r1.Value
-      }
-      if ok2 {
-        switch {
-        case r.Index > r2.Index || !ok1:
-          r.Index = r2.Index
-          r.Value1 = nil
-          r.Value2 = r2.Value
-        case r.Index == r2.Index:
-          r.Value2 = r2.Value
-        }
-      }
-      if r.Value1 != nil {
-        r1, ok1 = <- c1
-      }
-      if r.Value2 != nil {
-        r2, ok2 = <- c2
-      } else {
-        r.Value2 = ConstReal(0.0)
-      }
-      channel <- r
-    }
-    close(channel)
-  }()
-  return channel
-}
-type SparseRealVectorJointRange3 struct {
-  Index int
-  Value1 *Real
-  Value2 ConstScalar
-  Value3 ConstScalar
-}
-func (obj *SparseRealVector) JOINT_RANGE3(b, c ConstVector) chan SparseRealVectorJointRange3 {
-  channel := make(chan SparseRealVectorJointRange3)
-  go func() {
-    c1 := obj. RANGE()
-    c2 := b.ConstRange()
-    c3 := c.ConstRange()
-    r1, ok1 := <- c1
-    r2, ok2 := <- c2
-    r3, ok3 := <- c3
-    for ok1 || ok2 || ok3 {
-      r := SparseRealVectorJointRange3{}
-      if ok1 {
-        r.Index = r1.Index
-        r.Value1 = r1.Value
-      }
-      if ok2 {
-        switch {
-        case r.Index > r2.Index || !ok1:
-          r.Index = r2.Index
-          r.Value1 = nil
-          r.Value2 = r2.Value
-        case r.Index == r2.Index:
-          r.Value2 = r2.Value
-        }
-      }
-      if ok3 {
-        switch {
-        case r.Index > r3.Index || (!ok1 && !ok2):
-          r.Index = r3.Index
-          r.Value1 = nil
-          r.Value2 = nil
-          r.Value3 = r3.Value
-        case r.Index == r3.Index:
-          r.Value3 = r3.Value
-        }
-      }
-      if r.Value1 != nil {
-        r1, ok1 = <- c1
-      }
-      if r.Value2 != nil {
-        r2, ok2 = <- c2
-      } else {
-        r.Value2 = ConstReal(0.0)
-      }
-      if r.Value3 != nil {
-        r3, ok3 = <- c3
-      } else {
-        r.Value3 = ConstReal(0.0)
-      }
-      channel <- r
-    }
-    close(channel)
-  }()
-  return channel
 }
 /* -------------------------------------------------------------------------- */
 func (obj *SparseRealVector) Dim() int {
@@ -411,9 +229,10 @@ func (obj *SparseRealVector) Slice(i, j int) Vector {
 func (obj *SparseRealVector) Append(w *SparseRealVector) *SparseRealVector {
   r := obj.Clone()
   r.n = obj.n + w.Dim()
-  for entry := range w.RANGE() {
-    r.values[obj.n+entry.Index] = entry.Value
-    r.indexInsert(obj.n+entry.Index)
+  for it := w.ITERATOR(); it.Ok(); it.Next() {
+    i := obj.n+it.Index()
+    r.values[i] = it.GET()
+    r.indexInsert(i)
   }
   return r
 }
@@ -438,9 +257,9 @@ func (obj *SparseRealVector) AppendVector(w_ Vector) Vector {
   default:
     r := obj.Clone()
     r.n = obj.n + w.Dim()
-    for entry := range w.Range() {
-      r.values[obj.n+entry.Index] = entry.Value.ConvertType(RealType).(*Real)
-      r.indexInsert(obj.n+entry.Index)
+    for it := w.Iterator(); it.Ok(); it.Next() {
+      r.values[obj.n+it.Index()] = it.Get().ConvertType(RealType).(*Real)
+      r.indexInsert(obj.n+it.Index())
     }
     return r
   }
@@ -525,8 +344,8 @@ func (obj sortSparseRealVectorByValue) Less(i, j int) bool {
 }
 func (obj *SparseRealVector) Sort(reverse bool) {
   r := sortSparseRealVectorByValue{}
-  for entry := range obj.RANGE() {
-    r.Value = append(r.Value, entry.Value)
+  for it := obj.ITERATOR(); it.Ok(); it.Next() {
+    r.Value = append(r.Value, it.GET())
   }
   ip := 0
   in := 0
@@ -586,13 +405,13 @@ func (obj *SparseRealVector) String() string {
   var buffer bytes.Buffer
   buffer.WriteString(fmt.Sprintf("%d:[", obj.n))
   first := true
-  for entry := range obj.Range() {
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
     if !first {
       buffer.WriteString(", ")
     } else {
       first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
+    buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
   buffer.WriteString("]")
   return buffer.String()
@@ -600,13 +419,13 @@ func (obj *SparseRealVector) String() string {
 func (obj *SparseRealVector) Table() string {
   var buffer bytes.Buffer
   first := true
-  for entry := range obj.Range() {
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
     if !first {
       buffer.WriteString(" ")
     } else {
       first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
+    buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
   if _, ok := obj.values[obj.n-1]; !ok {
     i := obj.n-1
@@ -699,9 +518,9 @@ func (obj *SparseRealVector) MarshalJSON() ([]byte, error) {
     Index []int
     Value []float64
     Length int}{}
-  for entry := range obj.Range() {
-    k = append(k, entry.Index)
-    v = append(v, entry.Value.GetValue())
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
+    k = append(k, it.Index())
+    v = append(v, it.GetConst().GetValue())
   }
   r.Index = k
   r.Value = v
@@ -765,8 +584,11 @@ func (obj *SparseRealVectorIterator) Ok() bool {
   return obj.i < len(obj.index)
 }
 func (obj *SparseRealVectorIterator) Next() {
-  for obj.i++; obj.Ok() ; obj.i++ {
+  for obj.i++; obj.Ok(); obj.i++ {
     i := obj.Index()
+    if i == vectorSparseIndexMax {
+      continue
+    }
     if s := obj.values[i]; obj.nullScalar(s) {
       obj.indexRevoke(obj.i)
       delete(obj.values, i)

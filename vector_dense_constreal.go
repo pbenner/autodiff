@@ -58,17 +58,6 @@ func (v DenseConstRealVector) GetValues() []float64 {
   return v
 }
 
-func (v DenseConstRealVector) ConstRange() chan VectorConstRangeType {
-  channel := make(chan VectorConstRangeType)
-  go func() {
-    for i := 0; i < v.Dim(); i++ {
-      channel <- VectorConstRangeType{i, ConstReal(v[i])}
-    }
-    close(channel)
-  }()
-  return channel
-}
-
 func (v DenseConstRealVector) ConstIterator() VectorConstIterator {
   r := DenseConstRealVectorIterator{v, -1}
   r.Next()

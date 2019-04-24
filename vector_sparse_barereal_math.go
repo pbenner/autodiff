@@ -23,7 +23,7 @@ func (a *SparseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
   if a.Dim() != b.Dim() {
     panic("VEqual(): Vector dimensions do not match!")
   }
-  for it := a.CONST_JOINT_ITERATOR(b); it.Ok(); it.Next() {
+  for it := a.JOINT_ITERATOR(b); it.Ok(); it.Next() {
     s1, s2 := it.GET()
     if s1 == nil {
       return false
@@ -40,7 +40,7 @@ func (r *SparseBareRealVector) VaddV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     s_b := it.s3
@@ -57,7 +57,7 @@ func (r *SparseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     if s_r == nil {
@@ -73,7 +73,7 @@ func (r *SparseBareRealVector) VsubV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     s_b := it.s3
@@ -90,7 +90,7 @@ func (r *SparseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     if s_r == nil {
@@ -106,7 +106,7 @@ func (r *SparseBareRealVector) VmulV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     s_b := it.s3
@@ -123,7 +123,7 @@ func (r *SparseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     if s_r == nil {
@@ -139,7 +139,7 @@ func (r *SparseBareRealVector) VdivV(a, b ConstVector) Vector {
   if n := r.Dim(); a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     s_b := it.s3
@@ -156,7 +156,7 @@ func (r *SparseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for it := r.CONST_JOINT_ITERATOR(a); it.Ok(); it.Next() {
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
     s_r := it.s1
     s_a := it.s2
     if s_r == nil {

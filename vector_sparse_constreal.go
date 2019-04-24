@@ -108,18 +108,6 @@ func (obj SparseConstRealVector) GetValues() []float64 {
   return r
 }
 
-func (obj SparseConstRealVector) ConstRange() chan VectorConstRangeType {
-  channel := make(chan VectorConstRangeType)
-  go func() {
-    obj.indexSort()
-    for _, i := range obj.index {
-      channel <- VectorConstRangeType{i, obj.values[i]}
-    }
-    close(channel)
-  }()
-  return channel
-}
-
 func (obj SparseConstRealVector) ConstIterator() VectorConstIterator {
   r := SparseConstRealVectorIterator{obj, -1}
   r.Next()
@@ -137,68 +125,6 @@ func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJo
 
 func (obj SparseConstRealVector) ElementType() ScalarType {
   return BareRealType
-}
-
-/* range methods
- * -------------------------------------------------------------------------- */
-
-type SparseConstRealVectorRange struct {
-  Index int
-  Value ConstReal
-}
-
-func (obj SparseConstRealVector) RANGE() chan SparseConstRealVectorRange {
-  channel := make(chan SparseConstRealVectorRange)
-  go func() {
-    obj.indexSort()
-    for _, i := range obj.index {
-      channel <- SparseConstRealVectorRange{i, obj.values[i]}
-    }
-    close(channel)
-  }()
-  return channel
-}
-
-type SparseConstRealVectorJointRange struct {
-  Index  int
-  Value1 ConstReal
-  Value2 ConstReal
-}
-
-func (obj SparseConstRealVector) JOINT_RANGE(b ConstVector) chan SparseConstRealVectorJointRange {
-  channel := make(chan SparseConstRealVectorJointRange)
-  go func() {
-    c1 := obj.     RANGE()
-    c2 :=   b.ConstRange()
-    r1, ok1 := <- c1
-    r2, ok2 := <- c2
-    for ok1 || ok2 {
-      r := SparseConstRealVectorJointRange{}
-      if ok1 {
-        r.Index  = r1.Index
-        r.Value1 = r1.Value
-      }
-      if ok2 {
-        switch {
-        case r.Index >  r2.Index || !ok1:
-          r.Index  = r2.Index
-          r.Value1 = 0.0
-          r.Value2 = ConstReal(r2.Value.GetValue())
-        case r.Index == r2.Index:
-          r.Value2 = ConstReal(r2.Value.GetValue())
-        }
-      }
-      if r.Value1 != 0.0 {
-        r1, ok1 = <- c1
-      }
-      if r.Value2 != 0.0 {
-        r2, ok2 = <- c2
-      }
-      channel <- r
-    }
-    close(channel)
-  }()
-  return channel
 }
 
 /* imlement ScalarContainer
@@ -219,13 +145,13 @@ func (obj SparseConstRealVector) String() string {
 
   buffer.WriteString(fmt.Sprintf("%d:[", obj.n))
   first := true
-  for entry := range obj.RANGE() {
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
     if !first {
       buffer.WriteString(", ")
     } else {
       first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
+    buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
   buffer.WriteString("]")
 
@@ -236,13 +162,13 @@ func (obj SparseConstRealVector) Table() string {
   var buffer bytes.Buffer
 
   first := true
-  for entry := range obj.RANGE() {
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
     if !first {
       buffer.WriteString(" ")
     } else {
       first = false
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", entry.Index, entry.Value))
+    buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
   if _, ok := obj.values[obj.n-1]; !ok {
     i := obj.n-1

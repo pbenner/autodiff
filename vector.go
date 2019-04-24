@@ -50,24 +50,6 @@ type VectorJointIterator interface {
   Index() int
 }
 
-/* -------------------------------------------------------------------------- */
-
-type VectorConstRangeType struct {
-  Index int
-  Value ConstScalar
-}
-
-type VectorRangeType struct {
-  Index int
-  Value Scalar
-}
-
-type VectorJointRangeType struct {
-  Index  int
-  Value1 Scalar
-  Value2 ConstScalar
-}
-
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
@@ -80,7 +62,6 @@ type ConstVector interface {
   ConstAt           (int)                  ConstScalar
   ConstSlice        (i, j int)             ConstVector
   GetValues         ()                     []float64
-  ConstRange        ()                     chan VectorConstRangeType
   ConstIterator     ()                     VectorConstIterator
   ConstJointIterator(ConstVector)          VectorConstJointIterator
 }
@@ -95,10 +76,6 @@ type Vector interface {
   ConstAt           (int)                  ConstScalar
   ConstSlice        (i, j int)             ConstVector
   GetValues         ()                     []float64
-  ConstRange        ()                     chan VectorConstRangeType
-  // range methods
-  JointRange        (ConstVector)          chan VectorJointRangeType
-  Range             ()                     chan VectorRangeType
   // iterators
   ConstIterator     ()                     VectorConstIterator
   JointIterator     (ConstVector)          VectorJointIterator
