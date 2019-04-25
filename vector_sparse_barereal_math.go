@@ -34,6 +34,24 @@ func (a *SparseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
   }
   return true
 }
+func (a *SparseBareRealVector) EQUALS(b *SparseBareRealVector, epsilon float64) bool {
+  if a.Dim() != b.Dim() {
+    panic("VEqual(): Vector dimensions do not match!")
+  }
+  for it := a.JOINT_ITERATOR_(b); it.Ok(); it.Next() {
+    s1, s2 := it.GET()
+    if s1 == nil {
+      return false
+    }
+    if s2 == nil {
+      return false
+    }
+    if !s1.EQUALS(s2, epsilon) {
+      return false
+    }
+  }
+  return true
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of two vectors. The result is stored in r.
 func (r *SparseBareRealVector) VaddV(a, b ConstVector) Vector {
@@ -48,6 +66,30 @@ func (r *SparseBareRealVector) VaddV(a, b ConstVector) Vector {
       s_r = r.AT(it.Index())
     }
     s_r.Add(s_a, s_b)
+  }
+  return r
+}
+func (r *SparseBareRealVector) VADDV(a, b *SparseBareRealVector) Vector {
+  if n := r.Dim(); a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT3_ITERATOR_(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    switch {
+    case s_a == nil && s_b == nil:
+      s_r.SetValue(0.0)
+    case s_a == nil:
+      s_r.SET(s_a)
+    case s_b == nil:
+      s_r.SET(s_b)
+    default:
+      s_r.ADD(s_a, s_b)
+    }
   }
   return r
 }

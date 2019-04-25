@@ -162,6 +162,18 @@ func (obj *SparseBareRealVector) JOINT3_ITERATOR(b, c ConstVector) *SparseBareRe
   r.Next()
   return &r
 }
+func (obj *SparseBareRealVector) JOINT_ITERATOR_(b *SparseBareRealVector) *SparseBareRealVectorJointIterator_ {
+  obj.indexSort()
+  r := SparseBareRealVectorJointIterator_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+func (obj *SparseBareRealVector) JOINT3_ITERATOR_(b, c *SparseBareRealVector) *SparseBareRealVectorJoint3Iterator_ {
+  obj.indexSort()
+  r := SparseBareRealVectorJoint3Iterator_{obj.ITERATOR(), b.ITERATOR(), c.ITERATOR(), -1, nil, nil, nil}
+  r.Next()
+  return &r
+}
 /* -------------------------------------------------------------------------- */
 func (obj *SparseBareRealVector) Dim() int {
   return obj.n
@@ -717,5 +729,116 @@ func (obj *SparseBareRealVectorJoint3Iterator) Get() (Scalar, ConstScalar, Const
   return obj.s1, obj.s2, obj.s3
 }
 func (obj *SparseBareRealVectorJoint3Iterator) GET() (*BareReal, ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2, obj.s3
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type SparseBareRealVectorJointIterator_ struct {
+  it1 *SparseBareRealVectorIterator
+  it2 *SparseBareRealVectorIterator
+  idx int
+  s1 *BareReal
+  s2 *BareReal
+}
+func (obj *SparseBareRealVectorJointIterator_) Index() int {
+  return obj.idx
+}
+func (obj *SparseBareRealVectorJointIterator_) Ok() bool {
+  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
+         !(obj.s2 == nil || obj.s2.GetValue() == 0.0)
+}
+func (obj *SparseBareRealVectorJointIterator_) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx > obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1 = nil
+      obj.s2 = obj.it2.GET()
+    case obj.idx == obj.it2.Index():
+      obj.s2 = obj.it2.GET()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  }
+}
+func (obj *SparseBareRealVectorJointIterator_) GET() (*BareReal, *BareReal) {
+  return obj.s1, obj.s2
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type SparseBareRealVectorJoint3Iterator_ struct {
+  it1 *SparseBareRealVectorIterator
+  it2 *SparseBareRealVectorIterator
+  it3 *SparseBareRealVectorIterator
+  idx int
+  s1 *BareReal
+  s2 *BareReal
+  s3 *BareReal
+}
+func (obj *SparseBareRealVectorJoint3Iterator_) Index() int {
+  return obj.idx
+}
+func (obj *SparseBareRealVectorJoint3Iterator_) Ok() bool {
+  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
+         !(obj.s2 == nil || obj.s2.GetValue() == 0.0) ||
+         !(obj.s3 == nil || obj.s3.GetValue() == 0.0)
+}
+func (obj *SparseBareRealVectorJoint3Iterator_) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  ok3 := obj.it3.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  obj.s3 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    i := obj.it2.Index()
+    switch {
+    case obj.idx > i || !ok1:
+      obj.idx = i
+      obj.s1 = nil
+      obj.s2 = obj.it2.GET()
+    case obj.idx == i:
+      obj.s2 = obj.it2.GET()
+    }
+  }
+  if ok3 {
+    i := obj.it3.Index()
+    switch {
+    case obj.idx > i || (!ok1 && !ok2):
+      obj.idx = i
+      obj.s1 = nil
+      obj.s2 = nil
+      obj.s3 = obj.it3.GET()
+    case obj.idx == i:
+      obj.s3 = obj.it3.GET()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  }
+  if obj.s3 != nil {
+    obj.it3.Next()
+  }
+}
+func (obj *SparseBareRealVectorJoint3Iterator_) GET() (*BareReal, *BareReal, *BareReal) {
   return obj.s1, obj.s2, obj.s3
 }

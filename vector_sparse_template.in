@@ -35,10 +35,12 @@ import "os"
 
 /* -------------------------------------------------------------------------- */
 
-#define VECTOR_JOINT3_ITERATOR STR_CONCAT(VECTOR_NAME, Joint3Iterator)
-#define VECTOR_JOINT_ITERATOR  STR_CONCAT(VECTOR_NAME, JointIterator)
-#define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_NAME, ConstIterator)
-#define VECTOR_ITERATOR        STR_CONCAT(VECTOR_NAME, Iterator)
+#define VECTOR_JOINT3_ITERATOR_ STR_CONCAT(VECTOR_NAME, Joint3Iterator_)
+#define VECTOR_JOINT_ITERATOR_  STR_CONCAT(VECTOR_NAME, JointIterator_)
+#define VECTOR_JOINT3_ITERATOR  STR_CONCAT(VECTOR_NAME, Joint3Iterator)
+#define VECTOR_JOINT_ITERATOR   STR_CONCAT(VECTOR_NAME, JointIterator)
+#define VECTOR_CONST_ITERATOR   STR_CONCAT(VECTOR_NAME, ConstIterator)
+#define VECTOR_ITERATOR         STR_CONCAT(VECTOR_NAME, Iterator)
 
 /* vector type declaration
  * -------------------------------------------------------------------------- */
@@ -194,6 +196,20 @@ func (obj VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
 func (obj VECTOR_TYPE) JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATOR {
   obj.indexSort()
   r := VECTOR_JOINT3_ITERATOR{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
+  r.Next()
+  return &r
+}
+
+func (obj VECTOR_TYPE) JOINT_ITERATOR_(b VECTOR_TYPE) *VECTOR_JOINT_ITERATOR_ {
+  obj.indexSort()
+  r := VECTOR_JOINT_ITERATOR_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+
+func (obj VECTOR_TYPE) JOINT3_ITERATOR_(b, c VECTOR_TYPE) *VECTOR_JOINT3_ITERATOR_ {
+  obj.indexSort()
+  r := VECTOR_JOINT3_ITERATOR_{obj.ITERATOR(), b.ITERATOR(), c.ITERATOR(), -1, nil, nil, nil}
   r.Next()
   return &r
 }
@@ -820,5 +836,128 @@ func (obj *VECTOR_JOINT3_ITERATOR) Get() (Scalar, ConstScalar, ConstScalar) {
 }
 
 func (obj *VECTOR_JOINT3_ITERATOR) GET() (SCALAR_TYPE, ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2, obj.s3
+}
+
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+
+type VECTOR_JOINT_ITERATOR_ struct {
+  it1 *VECTOR_ITERATOR
+  it2 *VECTOR_ITERATOR
+  idx  int
+  s1   SCALAR_TYPE
+  s2   SCALAR_TYPE
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) Index() int {
+  return obj.idx
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) Ok() bool {
+  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
+         !(obj.s2 == nil || obj.s2.GetValue() == 0.0)
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1  = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx >  obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1  = nil
+      obj.s2  = obj.it2.GET()
+    case obj.idx == obj.it2.Index():
+      obj.s2  = obj.it2.GET()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  }
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) GET() (SCALAR_TYPE, SCALAR_TYPE) {
+  return obj.s1, obj.s2
+}
+
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+
+type VECTOR_JOINT3_ITERATOR_ struct {
+  it1 *VECTOR_ITERATOR
+  it2 *VECTOR_ITERATOR
+  it3 *VECTOR_ITERATOR
+  idx  int
+  s1   SCALAR_TYPE
+  s2   SCALAR_TYPE
+  s3   SCALAR_TYPE
+}
+
+func (obj *VECTOR_JOINT3_ITERATOR_) Index() int {
+  return obj.idx
+}
+
+func (obj *VECTOR_JOINT3_ITERATOR_) Ok() bool {
+  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
+         !(obj.s2 == nil || obj.s2.GetValue() == 0.0) ||
+         !(obj.s3 == nil || obj.s3.GetValue() == 0.0)
+}
+
+func (obj *VECTOR_JOINT3_ITERATOR_) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  ok3 := obj.it3.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  obj.s3 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1  = obj.it1.GET()
+  }
+  if ok2 {
+    i := obj.it2.Index()
+    switch {
+    case obj.idx > i || !ok1:
+      obj.idx = i
+      obj.s1  = nil
+      obj.s2  = obj.it2.GET()
+    case obj.idx == i:
+      obj.s2  = obj.it2.GET()
+    }
+  }
+  if ok3 {
+    i := obj.it3.Index()
+    switch {
+    case obj.idx > i || (!ok1 && !ok2):
+      obj.idx = i
+      obj.s1  = nil
+      obj.s2  = nil
+      obj.s3  = obj.it3.GET()
+    case obj.idx == i:
+      obj.s3  = obj.it3.GET()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  }
+  if obj.s3 != nil {
+    obj.it3.Next()
+  }
+}
+
+func (obj *VECTOR_JOINT3_ITERATOR_) GET() (SCALAR_TYPE, SCALAR_TYPE, SCALAR_TYPE) {
   return obj.s1, obj.s2, obj.s3
 }
