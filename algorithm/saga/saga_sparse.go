@@ -99,7 +99,6 @@ func sagaSparse(
   // length of gradient
   d := x.Dim()
   // gradient
-  var y ConstReal
   var g1 GradientSparse
   var g2 GradientSparse
   // allocate temporary memory
@@ -127,7 +126,7 @@ func sagaSparse(
       dict[i].add(s)
     }
   }
-  y = ConstReal(math.NaN())
+  y := ConstReal(math.NaN())
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
     // execute hook if available
     if hook.Value != nil && hook.Value(x1, s, y) {
