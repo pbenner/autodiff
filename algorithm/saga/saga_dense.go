@@ -36,28 +36,32 @@ type GradientDense struct {
   w ConstReal
 }
 func (obj GradientDense) add(v DenseBareRealVector) {
-  for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
-    s_a, s_b := it.Get()
+  for it := v.JOINT_ITERATOR_(obj.g); it.Ok(); it.Next() {
+    s_a, s_b := it.GET()
     if s_a == nil {
-      s_a = v.At(it.Index())
+      s_a = v.AT(it.Index())
     }
-    s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
+    if s_b != nil {
+      s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
+    }
   }
 }
 func (obj GradientDense) sub(v DenseBareRealVector) {
-  for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
-    s_a, s_b := it.Get()
+  for it := v.JOINT_ITERATOR(obj.g); it.Ok(); it.Next() {
+    s_a, s_b := it.GET()
     if s_a == nil {
-      s_a = v.At(it.Index())
+      s_a = v.AT(it.Index())
     }
-    s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
+    if s_b != nil {
+      s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
+    }
   }
 }
 func (obj *GradientDense) set(g DenseBareRealVector, w ConstReal) {
   if obj.g == nil {
     obj.g = NullDenseBareRealVector(g.Dim())
   }
-  obj.g.Set(g)
+  obj.g.SET(g)
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */

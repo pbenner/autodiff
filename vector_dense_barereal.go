@@ -93,6 +93,14 @@ func (v DenseBareRealVector) Set(w ConstVector) {
     v[i].Set(w.ConstAt(i))
   }
 }
+func (v DenseBareRealVector) SET(w DenseBareRealVector) {
+  if v.Dim() != w.Dim() {
+    panic("Set(): Vector dimensions do not match!")
+  }
+  for i := 0; i < w.Dim(); i++ {
+    v[i].SET(w.AT(i))
+  }
+}
 /* const vector methods
  * -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) ValueAt(i int) float64 {

@@ -117,6 +117,15 @@ func (v VECTOR_TYPE) Set(w ConstVector) {
   }
 }
 
+func (v VECTOR_TYPE) SET(w VECTOR_TYPE) {
+  if v.Dim() != w.Dim() {
+    panic("Set(): Vector dimensions do not match!")
+  }
+  for i := 0; i < w.Dim(); i++ {
+    v[i].SET(w.AT(i))
+  }
+}
+
 /* const vector methods
  * -------------------------------------------------------------------------- */
 

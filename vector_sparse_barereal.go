@@ -104,6 +104,19 @@ func (obj *SparseBareRealVector) Set(x ConstVector) {
     }
   }
 }
+func (obj *SparseBareRealVector) SET(x *SparseBareRealVector) {
+  if obj.Dim() != x.Dim() {
+    panic("Set(): Vector dimensions do not match!")
+  }
+  for it := obj.JOINT_ITERATOR_(x); it.Ok(); it.Next() {
+    s1, s2 := it.GET()
+    switch {
+    case s1 != nil && s2 != nil: s1.SET(s2)
+    case s1 != nil : s1.SetValue(0.0)
+    default : obj.AT(it.Index()).SET(s2)
+    }
+  }
+}
 /* const vector methods
  * -------------------------------------------------------------------------- */
 func (obj *SparseBareRealVector) ValueAt(i int) float64 {

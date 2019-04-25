@@ -36,28 +36,32 @@ type GradientSparse struct {
   w ConstReal
 }
 func (obj GradientSparse) add(v *SparseBareRealVector) {
-  for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
-    s_a, s_b := it.Get()
+  for it := v.JOINT_ITERATOR_(obj.g); it.Ok(); it.Next() {
+    s_a, s_b := it.GET()
     if s_a == nil {
-      s_a = v.At(it.Index())
+      s_a = v.AT(it.Index())
     }
-    s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
+    if s_b != nil {
+      s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
+    }
   }
 }
 func (obj GradientSparse) sub(v *SparseBareRealVector) {
-  for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
-    s_a, s_b := it.Get()
+  for it := v.JOINT_ITERATOR(obj.g); it.Ok(); it.Next() {
+    s_a, s_b := it.GET()
     if s_a == nil {
-      s_a = v.At(it.Index())
+      s_a = v.AT(it.Index())
     }
-    s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
+    if s_b != nil {
+      s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
+    }
   }
 }
 func (obj *GradientSparse) set(g *SparseBareRealVector, w ConstReal) {
   if obj.g == nil {
     obj.g = NullSparseBareRealVector(g.Dim())
   }
-  obj.g.Set(g)
+  obj.g.SET(g)
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
