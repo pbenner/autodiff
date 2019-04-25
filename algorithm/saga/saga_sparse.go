@@ -156,11 +156,14 @@ func sagaSparse(
     // evaluate stopping criterion
     max_x := 0.0
     max_delta := 0.0
-    for it := x1.JOINT_ITERATOR(x2); it.Ok(); it.Next() {
+    for it := x1.JOINT_ITERATOR_(x2); it.Ok(); it.Next() {
       s1, s2 := it.GET()
-      v1, v2 := 0.0, s2.GetValue()
+      v1, v2 := 0.0, 0.0
       if s1 != nil {
         v1 = s1.GetValue()
+      }
+      if s2 != nil {
+        v2 = s2.GetValue()
       }
       if math.IsNaN(v2) {
         return x1, fmt.Errorf("NaN value detected")

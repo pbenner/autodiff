@@ -744,8 +744,7 @@ func (obj *SparseBareRealVectorJointIterator_) Index() int {
   return obj.idx
 }
 func (obj *SparseBareRealVectorJointIterator_) Ok() bool {
-  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
-         !(obj.s2 == nil || obj.s2.GetValue() == 0.0)
+  return obj.s1 != nil || obj.s2 != nil
 }
 func (obj *SparseBareRealVectorJointIterator_) Next() {
   ok1 := obj.it1.Ok()
@@ -791,9 +790,7 @@ func (obj *SparseBareRealVectorJoint3Iterator_) Index() int {
   return obj.idx
 }
 func (obj *SparseBareRealVectorJoint3Iterator_) Ok() bool {
-  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
-         !(obj.s2 == nil || obj.s2.GetValue() == 0.0) ||
-         !(obj.s3 == nil || obj.s3.GetValue() == 0.0)
+  return obj.s1 != nil || obj.s2 != nil || obj.s3 != nil
 }
 func (obj *SparseBareRealVectorJoint3Iterator_) Next() {
   ok1 := obj.it1.Ok()
