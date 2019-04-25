@@ -47,7 +47,7 @@ func (obj GradientSparse) add(v *SparseBareRealVector) {
   }
 }
 func (obj GradientSparse) sub(v *SparseBareRealVector) {
-  for it := v.JOINT_ITERATOR(obj.g); it.Ok(); it.Next() {
+  for it := v.JOINT_ITERATOR_(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.GET()
     if s_a == nil {
       s_a = v.AT(it.Index())
