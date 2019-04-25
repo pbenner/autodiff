@@ -48,7 +48,7 @@ func Test1(test *testing.T) {
   class := []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
 
-  theta_0 := NewVector(RealType, []float64{-3.549, 0.1841, 0.5067})
+  theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
   lr, _   := NewLogisticRegression(theta_0)
 
   f := func(i int, theta Vector, r Scalar) error {
@@ -73,7 +73,7 @@ func Test1(test *testing.T) {
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(Wrapper(f), len(cellSize), theta_0, Hook{hook}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, err := Run(Wrapper(f), len(cellSize), theta_0, Hook{hook}, Gamma{1.0/20}, Epsilon{1e-10}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
