@@ -65,21 +65,21 @@ func (obj *GradientSparse) set(g *SparseBareRealVector, w ConstReal) {
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
-func l1regularizationSparse(x Vector, w *SparseBareRealVector, t *BareReal, lambda float64) {
+func l1regularizationSparse(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal, lambda float64) {
   for i := 0; i < x.Dim(); i++ {
     if yi := w.ValueAt(i); yi < 0.0 {
-      x.At(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+      x.AT(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
     } else {
-      x.At(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+      x.AT(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
     }
   }
 }
-func l2regularizationSparse(x Vector, w *SparseBareRealVector, t *BareReal, lambda float64) {
+func l2regularizationSparse(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal, lambda float64) {
   t.Vnorm(w)
   t.Div(ConstReal(lambda), t)
   t.Sub(ConstReal(1.0), t)
   t.Max(ConstReal(0.0), t)
-  x.VmulS(w, t)
+  x.VMULS(w, t)
 }
 /* -------------------------------------------------------------------------- */
 func sagaSparse(
@@ -155,7 +155,7 @@ func sagaSparse(
       t1.VSUBV(x1, t1)
       l2regularizationSparse(x2, t1, t2, gamma.Value*l2reg.Value)
     default:
-      x2.VsubV(x1, t1)
+      x2.VSUBV(x1, t1)
     }
     // evaluate stopping criterion
     max_x := 0.0
