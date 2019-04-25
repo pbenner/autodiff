@@ -24,11 +24,12 @@ import "math"
 import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
-type gradientType struct {
+/* -------------------------------------------------------------------------- */
+type denseGradient struct {
   g DenseBareRealVector
   w *BareReal
 }
-func (obj gradientType) add(v Vector) {
+func (obj denseGradient) add(v Vector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -37,7 +38,7 @@ func (obj gradientType) add(v Vector) {
     s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
   }
 }
-func (obj gradientType) sub(v Vector) {
+func (obj denseGradient) sub(v Vector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -46,7 +47,7 @@ func (obj gradientType) sub(v Vector) {
     s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
   }
 }
-func (obj *gradientType) set(g ConstVector, w ConstScalar) {
+func (obj *denseGradient) set(g ConstVector, w ConstScalar) {
   if obj.g == nil {
     obj.g = NullDenseBareRealVector(g.Dim())
   }
@@ -57,7 +58,7 @@ func (obj *gradientType) set(g ConstVector, w ConstScalar) {
   obj.w.Set(w)
 }
 /* -------------------------------------------------------------------------- */
-func l1regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
+func densel1regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
   for i := 0; i < x.Dim(); i++ {
     if yi := w.ValueAt(i); yi < 0.0 {
       x.At(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
@@ -66,7 +67,7 @@ func l1regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
     }
   }
 }
-func l2regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
+func densel2regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
   t.Vnorm(w)
   t.Div(ConstReal(lambda), t)
   t.Sub(ConstReal(1.0), t)
@@ -92,8 +93,8 @@ func saga(
   d := x.Dim()
   // gradient
   var y ConstScalar
-  var g1 gradientType
-  var g2 gradientType
+  var g1 denseGradient
+  var g2 denseGradient
   // allocate temporary memory
   if inSitu.T1 == nil {
     inSitu.T1 = NullDenseBareRealVector(d)
@@ -106,7 +107,7 @@ func saga(
   t2 := inSitu.T2
   // sum of gradients
   s := NullDenseBareRealVector(d)
-  dict := make([]gradientType, n)
+  dict := make([]denseGradient, n)
   // initialize s and d
   for i := 0; i < n; i++ {
     if _, g, w, err := f(i, x1); err != nil {
@@ -139,10 +140,10 @@ func saga(
     switch {
     case l1reg.Value != 0.0:
       t1.VsubV(x1, t1)
-      l1regularization(x2, t1, t2, gamma.Value*l1reg.Value)
+      densel1regularization(x2, t1, t2, gamma.Value*l1reg.Value)
     case l2reg.Value != 0.0:
       t1.VsubV(x1, t1)
-      l2regularization(x2, t1, t2, gamma.Value*l2reg.Value)
+      densel2regularization(x2, t1, t2, gamma.Value*l2reg.Value)
     default:
       x2.VsubV(x1, t1)
     }
