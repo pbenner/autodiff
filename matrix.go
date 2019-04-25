@@ -25,17 +25,18 @@ import "encoding/json"
 
 type ConstMatrix interface {
   ConstScalarContainer
-  Dims         ()                           (int, int)
-  Equals       (ConstMatrix, float64)       bool
-  Table        ()                           string
-  ValueAt      (i, j int)                   float64
-  ConstAt      (i, j int)                   ConstScalar
-  ConstSlice   (rfrom, rto, cfrom, cto int) ConstMatrix
-  ConstRow     (i int)                      ConstVector
-  ConstCol     (j int)                      ConstVector
-  ConstDiag    ()                           ConstVector
-  GetValues    ()                           []float64
-  AsConstVector()                           ConstVector
+  Dims            ()                           (int, int)
+  Equals          (ConstMatrix, float64)       bool
+  Table           ()                           string
+  ValueAt         (i, j int)                   float64
+  ConstAt         (i, j int)                   ConstScalar
+  ConstSlice      (rfrom, rto, cfrom, cto int) ConstMatrix
+  ConstRow        (i int)                      ConstVector
+  ConstCol        (j int)                      ConstVector
+  ConstDiag       ()                           ConstVector
+  GetValues       ()                           []float64
+  AsConstVector   ()                           ConstVector
+  CloneConstMatrix()                           ConstMatrix
   // private methods
   storageLocation() uintptr
 }
@@ -59,6 +60,7 @@ type Matrix interface {
   ResetDerivatives    ()
   // basic methods
   CloneMatrix         ()                   Matrix
+  CloneConstMatrix    ()                   ConstMatrix
   Set                 (ConstMatrix)
   Row                 (i int)              Vector
   Col                 (j int)              Vector

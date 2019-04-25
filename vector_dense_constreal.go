@@ -38,6 +38,18 @@ func NullDenseConstRealVector(n int) DenseConstRealVector {
 
 /* -------------------------------------------------------------------------- */
 
+func (v DenseConstRealVector) Clone() DenseConstRealVector {
+  w := make(DenseConstRealVector, len(v))
+  copy(w, v)
+  return w
+}
+
+func (v DenseConstRealVector) CloneConstVector() ConstVector {
+  return v.Clone()
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (v DenseConstRealVector) Dim() int {
   return len(v)
 }
@@ -180,7 +192,7 @@ func (obj *DenseConstRealVectorJointIterator) Index() int {
 }
 
 func (obj *DenseConstRealVectorJointIterator) Ok() bool {
-  return obj.it1.Ok() || obj.it2.Ok()
+  return obj.s1.GetValue() != 0.0 || obj.s2.GetValue() != 0.0
 }
 
 func (obj *DenseConstRealVectorJointIterator) Next() {

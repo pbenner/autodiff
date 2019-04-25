@@ -36,6 +36,16 @@ func (obj DenseGradient) Dim() int {
 
 /* -------------------------------------------------------------------------- */
 
+func (obj DenseGradient) Clone() DenseGradient {
+  return DenseGradient{obj.S.CloneScalar()}
+}
+
+func (obj DenseGradient) CloneConstVector() ConstVector {
+  return obj.Clone()
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (obj DenseGradient) ValueAt(i int) float64 {
   return obj.S.GetDerivative(i)
 }
@@ -165,7 +175,7 @@ func (obj *DenseGradientJointIterator) Index() int {
 }
 
 func (obj *DenseGradientJointIterator) Ok() bool {
-  return obj.it1.Ok() || obj.it2.Ok()
+  return obj.s1.GetValue() != 0.0 || obj.s2.GetValue() != 0.0
 }
 
 func (obj *DenseGradientJointIterator) Next() {

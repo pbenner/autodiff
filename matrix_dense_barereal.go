@@ -129,6 +129,9 @@ func (matrix *DenseBareRealMatrix) Clone() *DenseBareRealMatrix {
 func (matrix *DenseBareRealMatrix) CloneMatrix() Matrix {
   return matrix.Clone()
 }
+func (matrix *DenseBareRealMatrix) CloneConstMatrix() ConstMatrix {
+  return matrix.Clone()
+}
 /* field access
  * -------------------------------------------------------------------------- */
 func (matrix *DenseBareRealMatrix) index(i, j int) int {

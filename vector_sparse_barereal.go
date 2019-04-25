@@ -86,6 +86,9 @@ func (obj *SparseBareRealVector) Clone() *SparseBareRealVector {
 func (obj *SparseBareRealVector) CloneVector() Vector {
   return obj.Clone()
 }
+func (obj *SparseBareRealVector) CloneConstVector() ConstVector {
+  return obj.Clone()
+}
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
 func (obj *SparseBareRealVector) Set(x ConstVector) {

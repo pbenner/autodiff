@@ -64,6 +64,19 @@ func NullDenseConstRealMatrix(rows, cols int) DenseConstRealMatrix {
 
 /* -------------------------------------------------------------------------- */
 
+func (matrix DenseConstRealMatrix) CloneConstMatrix() ConstMatrix {
+  return matrix.Clone()
+}
+
+func (matrix DenseConstRealMatrix) Clone() DenseConstRealMatrix {
+  r := matrix
+  r.values = make([]float64, len(matrix.values))
+  copy(r.values, matrix.values)
+  return r
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (matrix DenseConstRealMatrix) index(i, j int) int {
   if i < 0 || j < 0 || i >= matrix.rows || j >= matrix.cols {
     panic(fmt.Errorf("index (%d,%d) out of bounds for matrix of dimension %dx%d", i, j, matrix.rows, matrix.cols))

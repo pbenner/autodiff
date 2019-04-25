@@ -68,6 +68,10 @@ func (obj SparseConstRealVector) Clone() SparseConstRealVector {
   return r
 }
 
+func (obj SparseConstRealVector) CloneConstVector() ConstVector {
+  return obj.Clone()
+}
+
 /* const vector methods
  * -------------------------------------------------------------------------- */
 

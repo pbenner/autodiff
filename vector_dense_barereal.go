@@ -80,6 +80,9 @@ func (v DenseBareRealVector) Clone() DenseBareRealVector {
 func (v DenseBareRealVector) CloneVector() Vector {
   return v.Clone()
 }
+func (v DenseBareRealVector) CloneConstVector() ConstVector {
+  return v.Clone()
+}
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
 func (v DenseBareRealVector) Set(w ConstVector) {
@@ -401,7 +404,8 @@ func (obj *DenseBareRealVectorJointIterator) Index() int {
   return obj.idx
 }
 func (obj *DenseBareRealVectorJointIterator) Ok() bool {
-  return obj.it1.Ok() || obj.it2.Ok()
+  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
+         !(obj.s2 == nil || obj.s2.GetValue() == 0.0)
 }
 func (obj *DenseBareRealVectorJointIterator) Next() {
   ok1 := obj.it1.Ok()

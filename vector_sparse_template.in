@@ -107,6 +107,10 @@ func (obj *VECTOR_TYPE) CloneVector() Vector {
   return obj.Clone()
 }
 
+func (obj *VECTOR_TYPE) CloneConstVector() ConstVector {
+  return obj.Clone()
+}
+
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
 func (obj *VECTOR_TYPE) Set(x ConstVector) {

@@ -146,6 +146,10 @@ func (matrix *MATRIX_TYPE) CloneMatrix() Matrix {
   return matrix.Clone()
 }
 
+func (matrix *MATRIX_TYPE) CloneConstMatrix() ConstMatrix {
+  return matrix.Clone()
+}
+
 /* field access
  * -------------------------------------------------------------------------- */
 
