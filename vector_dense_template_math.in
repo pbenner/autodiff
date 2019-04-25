@@ -86,7 +86,7 @@ func (r VECTOR_TYPE) VaddS(a ConstVector, b ConstScalar) Vector {
   return r
 }
 
-func (r VECTOR_TYPE) VADDS(a VECTOR_TYPE, b *SCALAR_TYPE) Vector {
+func (r VECTOR_TYPE) VADDS(a VECTOR_TYPE, b SCALAR_TYPE) Vector {
   n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")
@@ -136,7 +136,7 @@ func (r VECTOR_TYPE) VsubS(a ConstVector, b ConstScalar) Vector {
   return r
 }
 
-func (r VECTOR_TYPE) VSUBS(a VECTOR_TYPE, b *SCALAR_TYPE) Vector {
+func (r VECTOR_TYPE) VSUBS(a VECTOR_TYPE, b SCALAR_TYPE) Vector {
   n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")
@@ -186,7 +186,7 @@ func (r VECTOR_TYPE) VmulS(a ConstVector, s ConstScalar) Vector {
   return r
 }
 
-func (r VECTOR_TYPE) VMULS(a VECTOR_TYPE, s *SCALAR_TYPE) Vector {
+func (r VECTOR_TYPE) VMULS(a VECTOR_TYPE, s SCALAR_TYPE) Vector {
   n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")
@@ -236,7 +236,7 @@ func (r VECTOR_TYPE) VdivS(a ConstVector, s ConstScalar) Vector {
   return r
 }
 
-func (r VECTOR_TYPE) VDIVS(a VECTOR_TYPE, s *SCALAR_TYPE) Vector {
+func (r VECTOR_TYPE) VDIVS(a VECTOR_TYPE, s SCALAR_TYPE) Vector {
   n := r.Dim()
   if a.Dim() != n {
     panic("vector dimensions do not match")

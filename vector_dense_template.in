@@ -42,7 +42,7 @@ import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
-type VECTOR_TYPE []*SCALAR_TYPE
+type VECTOR_NAME []SCALAR_TYPE
 
 /* constructors
  * -------------------------------------------------------------------------- */
@@ -69,7 +69,7 @@ func NULL_VECTOR(length int) VECTOR_TYPE {
 
 // Create a empty vector without allocating memory for the scalar variables.
 func NIL_VECTOR(length int) VECTOR_TYPE {
-  return make(VECTOR_TYPE, length)
+  return make(VECTOR_NAME, length)
 }
 
 // Convert vector type.
@@ -89,7 +89,7 @@ func AS_VECTOR(v ConstVector) VECTOR_TYPE {
 
 // Create a deep copy of the vector.
 func (v VECTOR_TYPE) Clone() VECTOR_TYPE {
-  result := make(VECTOR_TYPE, len(v))
+  result := make(VECTOR_NAME, len(v))
 
   for i, _ := range v {
     result[i] = v[i].Clone()
@@ -178,7 +178,7 @@ func (v VECTOR_TYPE) At(i int) Scalar {
   return v[i]
 }
 
-func (v VECTOR_TYPE) AT(i int) *SCALAR_TYPE {
+func (v VECTOR_TYPE) AT(i int) SCALAR_TYPE {
   return v[i]
 }
 
@@ -212,10 +212,10 @@ func (v VECTOR_TYPE) Append(w VECTOR_TYPE) VECTOR_TYPE {
 func (v VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
   for _, scalar := range scalars {
     switch s := scalar.(type) {
-    case *SCALAR_TYPE:
+    case SCALAR_TYPE:
       v = append(v, s)
     default:
-      v = append(v, s.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE))
+      v = append(v, s.ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
     }
   }
   return v
@@ -227,7 +227,7 @@ func (v VECTOR_TYPE) AppendVector(w_ Vector) Vector {
     return append(v, w...)
   default:
     for i := 0; i < w.Dim(); i++ {
-      v = append(v, w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE))
+      v = append(v, w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
     }
     return v
   }
@@ -315,14 +315,14 @@ func (v VECTOR_TYPE) Sort(reverse bool) {
  * -------------------------------------------------------------------------- */
 
 func (v VECTOR_TYPE) AsMatrix(n, m int) Matrix {
-  return v.STR_CONCAT(To, MATRIX_TYPE)(n, m)
+  return v.STR_CONCAT(To, MATRIX_NAME)(n, m)
 }
 
-func (v VECTOR_TYPE) STR_CONCAT(To, MATRIX_TYPE)(n, m int) *MATRIX_TYPE {
+func (v VECTOR_TYPE) STR_CONCAT(To, MATRIX_NAME)(n, m int) MATRIX_TYPE {
   if n*m != len(v) {
     panic("Matrix dimension does not fit input vector!")
   }
-  matrix := MATRIX_TYPE{}
+  matrix := MATRIX_NAME{}
   matrix.values    = v
   matrix.rows      = n
   matrix.cols      = m
@@ -402,7 +402,7 @@ func (v *VECTOR_TYPE) Import(filename string) error {
     scanner = bufio.NewScanner(f)
   }
   // reset vector
-  *v = VECTOR_TYPE{}
+  *v = VECTOR_NAME{}
 
   for scanner.Scan() {
     fields := strings.Fields(scanner.Text())
@@ -427,13 +427,13 @@ func (v *VECTOR_TYPE) Import(filename string) error {
  * -------------------------------------------------------------------------- */
 
 func (obj VECTOR_TYPE) MarshalJSON() ([]byte, error) {
-  r := []*SCALAR_TYPE{}
+  r := []SCALAR_TYPE{}
   r  = obj
   return json.MarshalIndent(r, "", "  ")
 }
 
 func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
-  r := []*SCALAR_TYPE{}
+  r := []SCALAR_TYPE{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
@@ -460,7 +460,7 @@ func (obj *VECTOR_ITERATOR) GetConst() ConstScalar {
   return obj.v[obj.i]
 }
 
-func (obj *VECTOR_ITERATOR) GET() *SCALAR_TYPE {
+func (obj *VECTOR_ITERATOR) GET() SCALAR_TYPE {
   return obj.v[obj.i]
 }
 
@@ -483,7 +483,7 @@ type VECTOR_JOINT_ITERATOR struct {
   it1 *VECTOR_ITERATOR
   it2  VectorConstIterator
   idx  int
-  s1  *SCALAR_TYPE
+  s1  SCALAR_TYPE
   s2   ConstScalar
 }
 
@@ -533,6 +533,6 @@ func (obj *VECTOR_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
   return obj.s1, obj.s2
 }
 
-func (obj *VECTOR_JOINT_ITERATOR) GET() (*SCALAR_TYPE, ConstScalar) {
+func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
   return obj.s1, obj.s2
 }
