@@ -30,6 +30,17 @@ func (a DenseRealVector) Equals(b ConstVector, epsilon float64) bool {
   }
   return true
 }
+func (a DenseRealVector) EQUALS(b DenseRealVector, epsilon float64) bool {
+  if a.Dim() != b.Dim() {
+    panic("VEqual(): Vector dimensions do not match!")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    if !a.AT(i).EQUALS(b.AT(i), epsilon) {
+      return false
+    }
+  }
+  return true
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of two vectors. The result is stored in r.
 func (r DenseRealVector) VaddV(a, b ConstVector) Vector {
@@ -39,6 +50,16 @@ func (r DenseRealVector) VaddV(a, b ConstVector) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Add(a.ConstAt(i), b.ConstAt(i))
+  }
+  return r
+}
+func (r DenseRealVector) VADDV(a, b DenseRealVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).ADD(a.AT(i), b.AT(i))
   }
   return r
 }
@@ -54,6 +75,16 @@ func (r DenseRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
+func (r DenseRealVector) VADDS(a DenseRealVector, b *Real) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).ADD(a.AT(i), b)
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of two vectors. The result is stored in r.
 func (r DenseRealVector) VsubV(a, b ConstVector) Vector {
@@ -63,6 +94,16 @@ func (r DenseRealVector) VsubV(a, b ConstVector) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Sub(a.ConstAt(i), b.ConstAt(i))
+  }
+  return r
+}
+func (r DenseRealVector) VSUBV(a, b DenseRealVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).SUB(a.AT(i), b.AT(i))
   }
   return r
 }
@@ -78,6 +119,16 @@ func (r DenseRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
+func (r DenseRealVector) VSUBS(a DenseRealVector, b *Real) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).SUB(a.AT(i), b)
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise multiplication of two vectors. The result is stored in r.
 func (r DenseRealVector) VmulV(a, b ConstVector) Vector {
@@ -87,6 +138,16 @@ func (r DenseRealVector) VmulV(a, b ConstVector) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Mul(a.ConstAt(i), b.ConstAt(i))
+  }
+  return r
+}
+func (r DenseRealVector) VMULV(a, b DenseRealVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).MUL(a.AT(i), b.AT(i))
   }
   return r
 }
@@ -102,6 +163,16 @@ func (r DenseRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
   }
   return r
 }
+func (r DenseRealVector) VMULS(a DenseRealVector, s *Real) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).MUL(a.AT(i), s)
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise division of two vectors. The result is stored in r.
 func (r DenseRealVector) VdivV(a, b ConstVector) Vector {
@@ -114,6 +185,16 @@ func (r DenseRealVector) VdivV(a, b ConstVector) Vector {
   }
   return r
 }
+func (r DenseRealVector) VDIVV(a, b DenseRealVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).DIV(a.AT(i), b.AT(i))
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.
 func (r DenseRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
@@ -123,6 +204,16 @@ func (r DenseRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Div(a.ConstAt(i), s)
+  }
+  return r
+}
+func (r DenseRealVector) VDIVS(a DenseRealVector, s *Real) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).DIV(a.AT(i), s)
   }
   return r
 }
