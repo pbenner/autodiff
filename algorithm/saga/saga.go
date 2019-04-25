@@ -64,11 +64,10 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-func Wrapper(f func(int, Vector, Scalar) error, n int) objective {
-  y := NullDenseRealVector(n)
+func Wrapper(f func(int, Vector, Scalar) error) objective {
+  y := NullReal()
   w := ConstReal(1.0)
   g := func(i int, x Vector) (ConstScalar, ConstVector, ConstScalar, error) {
-    y := y.AT(i)
     if err := f(i, x, y); err != nil {
       return nil, nil, nil, err
     }
