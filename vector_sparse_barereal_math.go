@@ -18,6 +18,8 @@
 /* -------------------------------------------------------------------------- */
 package autodiff
 /* -------------------------------------------------------------------------- */
+import "math"
+/* -------------------------------------------------------------------------- */
 // Test if elements in a equal elements in b.
 func (a *SparseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
   if a.Dim() != b.Dim() {
@@ -109,6 +111,24 @@ func (r *SparseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
+func (r *SparseBareRealVector) VADDS(a *SparseBareRealVector, b *BareReal) Vector {
+  if r.Dim() != a.Dim() {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT_ITERATOR_(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    if s_a == nil {
+      s_r.SET(b)
+    } else {
+      s_r.ADD(s_a, b)
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of two vectors. The result is stored in r.
 func (r *SparseBareRealVector) VsubV(a, b ConstVector) Vector {
@@ -126,6 +146,31 @@ func (r *SparseBareRealVector) VsubV(a, b ConstVector) Vector {
   }
   return r
 }
+func (r *SparseBareRealVector) VSUBV(a, b *SparseBareRealVector) Vector {
+  if n := r.Dim(); a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT3_ITERATOR_(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    switch {
+    case s_a == nil && s_b == nil:
+      s_r.SetValue(0.0)
+    case s_a == nil:
+      s_r.SET(s_a)
+    case s_b == nil:
+      s_r.SET(s_b)
+      s_r.NEG(s_r)
+    default:
+      s_r.SUB(s_a, s_b)
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
 func (r *SparseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
@@ -139,6 +184,25 @@ func (r *SparseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
       s_r = r.AT(it.Index())
     }
     s_r.Sub(s_a, b)
+  }
+  return r
+}
+func (r *SparseBareRealVector) VSUBS(a *SparseBareRealVector, b *BareReal) Vector {
+  if r.Dim() != a.Dim() {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT_ITERATOR_(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    if s_a == nil {
+      s_r.SET(b)
+      s_r.NEG(s_r)
+    } else {
+      s_r.SUB(s_a, b)
+    }
   }
   return r
 }
@@ -159,6 +223,26 @@ func (r *SparseBareRealVector) VmulV(a, b ConstVector) Vector {
   }
   return r
 }
+func (r *SparseBareRealVector) VMULV(a, b *SparseBareRealVector) Vector {
+  if n := r.Dim(); a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT3_ITERATOR_(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    switch {
+    case s_a == nil || s_b == nil:
+      s_r.SetValue(0.0)
+    default:
+      s_r.MUL(s_a, s_b)
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
 func (r *SparseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
@@ -172,6 +256,24 @@ func (r *SparseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
       continue
     }
     s_r.Mul(s_a, s)
+  }
+  return r
+}
+func (r *SparseBareRealVector) VMULS(a *SparseBareRealVector, b *BareReal) Vector {
+  if r.Dim() != a.Dim() {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT_ITERATOR_(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    if s_a == nil {
+      s_r.SetValue(0.0)
+    } else {
+      s_r.MUL(s_a, b)
+    }
   }
   return r
 }
@@ -192,6 +294,28 @@ func (r *SparseBareRealVector) VdivV(a, b ConstVector) Vector {
   }
   return r
 }
+func (r *SparseBareRealVector) VDIVV(a, b *SparseBareRealVector) Vector {
+  if n := r.Dim(); a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT3_ITERATOR_(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    switch {
+    case s_b == nil:
+      s_r.SetValue(math.NaN())
+    case s_a == nil:
+      s_r.SetValue(0.0)
+    default:
+      s_r.MUL(s_a, s_b)
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.
 func (r *SparseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
@@ -205,6 +329,24 @@ func (r *SparseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
       continue
     }
     s_r.Div(s_a, s)
+  }
+  return r
+}
+func (r *SparseBareRealVector) VDIVS(a *SparseBareRealVector, b *BareReal) Vector {
+  if r.Dim() != a.Dim() {
+    panic("vector dimensions do not match")
+  }
+  for it := r.JOINT_ITERATOR_(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    if s_a == nil {
+      s_r.SetValue(0.0)
+    } else {
+      s_r.DIV(s_a, b)
+    }
   }
   return r
 }
