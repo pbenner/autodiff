@@ -87,7 +87,7 @@ func nilDenseBareRealMatrix(rows, cols int) *DenseBareRealMatrix {
 func AsDenseBareRealMatrix(matrix ConstMatrix) *DenseBareRealMatrix {
   switch matrix_ := matrix.(type) {
   case *DenseBareRealMatrix:
-    return matrix_
+    return matrix_.Clone()
   }
   n, m := matrix.Dims()
   r := NullDenseBareRealMatrix(n, m)

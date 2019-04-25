@@ -87,7 +87,7 @@ func nilDenseRealMatrix(rows, cols int) *DenseRealMatrix {
 func AsDenseRealMatrix(matrix ConstMatrix) *DenseRealMatrix {
   switch matrix_ := matrix.(type) {
   case *DenseRealMatrix:
-    return matrix_
+    return matrix_.Clone()
   }
   n, m := matrix.Dims()
   r := NullDenseRealMatrix(n, m)

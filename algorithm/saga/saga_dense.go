@@ -25,7 +25,7 @@ import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-type ObjectiveDense func(int, Vector) (ConstReal, DenseBareRealVector, ConstReal, error)
+type ObjectiveDense func(int, DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error)
 type InSituDense struct {
   T1 DenseBareRealVector
   T2 *BareReal
@@ -90,8 +90,8 @@ func sagaDense(
   l2reg L2Regularization,
   hook Hook,
   inSitu *InSituDense) (Vector, error) {
-  x1 := x.CloneVector()
-  x2 := x.CloneVector()
+  x1 := AsDenseBareRealVector(x)
+  x2 := AsDenseBareRealVector(x)
   // length of gradient
   d := x.Dim()
   // gradient
@@ -108,6 +108,9 @@ func sagaDense(
   // temporary variables
   t1 := inSitu.T1
   t2 := inSitu.T2
+  // some constants
+  t_n := NewBareReal(float64(n))
+  t_g := NewBareReal(gamma.Value)
   // sum of gradients
   s := NullDenseBareRealVector(d)
   dict := make([]GradientDense, n)
@@ -136,16 +139,16 @@ func sagaDense(
       y = y_
       g2.set(g, w)
     }
-    t1.VdivS(s , ConstReal(float64(n)))
+    t1.VDIVS(s , t_n)
     g2.add(t1)
     g1.sub(t1)
-    t1.VmulS(t1, ConstReal(gamma.Value))
+    t1.VMULS(t1, t_g)
     switch {
     case l1reg.Value != 0.0:
-      t1.VsubV(x1, t1)
+      t1.VSUBV(x1, t1)
       l1regularizationDense(x2, t1, t2, gamma.Value*l1reg.Value)
     case l2reg.Value != 0.0:
-      t1.VsubV(x1, t1)
+      t1.VSUBV(x1, t1)
       l2regularizationDense(x2, t1, t2, gamma.Value*l2reg.Value)
     default:
       x2.VsubV(x1, t1)

@@ -60,7 +60,7 @@ func nilDenseRealVector(length int) DenseRealVector {
 func AsDenseRealVector(v ConstVector) DenseRealVector {
   switch v_ := v.(type) {
   case DenseRealVector:
-    return v_
+    return v_.Clone()
   }
   r := NullDenseRealVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {

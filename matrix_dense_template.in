@@ -99,7 +99,7 @@ func NIL_MATRIX(rows, cols int) MATRIX_TYPE {
 func AS_MATRIX(matrix ConstMatrix) MATRIX_TYPE {
   switch matrix_ := matrix.(type) {
   case MATRIX_TYPE:
-    return matrix_
+    return matrix_.Clone()
   }
   n, m := matrix.Dims()
   r := NULL_MATRIX(n, m)

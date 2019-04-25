@@ -60,7 +60,7 @@ func nilDenseBareRealVector(length int) DenseBareRealVector {
 func AsDenseBareRealVector(v ConstVector) DenseBareRealVector {
   switch v_ := v.(type) {
   case DenseBareRealVector:
-    return v_
+    return v_.Clone()
   }
   r := NullDenseBareRealVector(v.Dim())
   for i := 0; i < v.Dim(); i++ {

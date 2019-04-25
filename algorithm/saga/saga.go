@@ -55,16 +55,21 @@ type MaxEpochs struct {
 /* -------------------------------------------------------------------------- */
 
 func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
+  x := NullDenseRealVector(0)
   y := NullReal()
   w := ConstReal(1.0)
   g := DenseBareRealVector{}
-  f_ := func(i int, x Vector) (ConstReal, DenseBareRealVector, ConstReal, error) {
+  f_ := func(i int, x_ DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error) {
+    if x.Dim() == 0 {
+      x = NullDenseRealVector(x_.Dim())
+    }
+    if g.Dim() == 0 {
+      g = NullDenseBareRealVector(x_.Dim())
+    }
+    x.Set(x_)
     x.Variables(1)
     if err := f(i, x, y); err != nil {
       return ConstReal(0.0), nil, ConstReal(0.0), err
-    }
-    if g.Dim() == 0 {
-      g = NullDenseBareRealVector(x.Dim())
     }
     g.Set(DenseGradient{y})
     return ConstReal(y.GetValue()), g, w, nil

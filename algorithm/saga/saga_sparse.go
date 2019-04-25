@@ -25,7 +25,7 @@ import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-type ObjectiveSparse func(int, Vector) (ConstReal, *SparseBareRealVector, ConstReal, error)
+type ObjectiveSparse func(int, *SparseBareRealVector) (ConstReal, *SparseBareRealVector, ConstReal, error)
 type InSituSparse struct {
   T1 *SparseBareRealVector
   T2 *BareReal
@@ -90,8 +90,8 @@ func sagaSparse(
   l2reg L2Regularization,
   hook Hook,
   inSitu *InSituSparse) (Vector, error) {
-  x1 := x.CloneVector()
-  x2 := x.CloneVector()
+  x1 := AsSparseBareRealVector(x)
+  x2 := AsSparseBareRealVector(x)
   // length of gradient
   d := x.Dim()
   // gradient
@@ -108,6 +108,9 @@ func sagaSparse(
   // temporary variables
   t1 := inSitu.T1
   t2 := inSitu.T2
+  // some constants
+  t_n := NewBareReal(float64(n))
+  t_g := NewBareReal(gamma.Value)
   // sum of gradients
   s := NullSparseBareRealVector(d)
   dict := make([]GradientSparse, n)
@@ -136,16 +139,16 @@ func sagaSparse(
       y = y_
       g2.set(g, w)
     }
-    t1.VdivS(s , ConstReal(float64(n)))
+    t1.VDIVS(s , t_n)
     g2.add(t1)
     g1.sub(t1)
-    t1.VmulS(t1, ConstReal(gamma.Value))
+    t1.VMULS(t1, t_g)
     switch {
     case l1reg.Value != 0.0:
-      t1.VsubV(x1, t1)
+      t1.VSUBV(x1, t1)
       l1regularizationSparse(x2, t1, t2, gamma.Value*l1reg.Value)
     case l2reg.Value != 0.0:
-      t1.VsubV(x1, t1)
+      t1.VSUBV(x1, t1)
       l2regularizationSparse(x2, t1, t2, gamma.Value*l2reg.Value)
     default:
       x2.VsubV(x1, t1)
