@@ -109,8 +109,8 @@ type Vector interface {
   VmulS(a ConstVector, b ConstScalar) Vector
   VdivV(a,             b ConstVector) Vector
   VdivS(a ConstVector, b ConstScalar) Vector
-  MdotV(a      Matrix, b ConstVector) Vector
-  VdotM(a ConstVector, b      Matrix) Vector
+  MdotV(a ConstMatrix, b ConstVector) Vector
+  VdotM(a ConstVector, b ConstMatrix) Vector
   // json
   json.Marshaler
 }

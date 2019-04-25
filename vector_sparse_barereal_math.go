@@ -168,7 +168,7 @@ func (r *SparseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
 }
 /* -------------------------------------------------------------------------- */
 // Matrix vector product of a and b. The result is stored in r.
-func (r *SparseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
+func (r *SparseBareRealVector) MdotV(a ConstMatrix, b ConstVector) Vector {
   n, m := a.Dims()
   if r.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
@@ -183,7 +183,7 @@ func (r *SparseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
   for i := 0; i < n; i++ {
     r.AT(i).Reset()
     for j := 0; j < m; j++ {
-      t.Mul(a.At(i, j), b.ConstAt(j))
+      t.Mul(a.ConstAt(i, j), b.ConstAt(j))
       r.AT(i).ADD(r.AT(i), t)
     }
   }
@@ -191,7 +191,7 @@ func (r *SparseBareRealVector) MdotV(a Matrix, b ConstVector) Vector {
 }
 /* -------------------------------------------------------------------------- */
 // Vector matrix product of a and b. The result is stored in r.
-func (r *SparseBareRealVector) VdotM(a ConstVector, b Matrix) Vector {
+func (r *SparseBareRealVector) VdotM(a ConstVector, b ConstMatrix) Vector {
   n, m := b.Dims()
   if r.Dim() != m || a.Dim() != n {
     panic("matrix/vector dimensions do not match!")
@@ -206,7 +206,7 @@ func (r *SparseBareRealVector) VdotM(a ConstVector, b Matrix) Vector {
   for i := 0; i < m; i++ {
     r.AT(i).Reset()
     for j := 0; j < n; j++ {
-      t.Mul(a.ConstAt(j), b.At(j, i))
+      t.Mul(a.ConstAt(j), b.ConstAt(j, i))
       r.AT(i).ADD(r.AT(i), t)
     }
   }
