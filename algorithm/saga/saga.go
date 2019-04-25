@@ -26,7 +26,8 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type objective func(int, Vector, Scalar) error
+// f_i(x) -> (y, gradient_vector, gradient_weight, error)
+type objective func(int, Vector) (ConstScalar, ConstVector, ConstScalar, error)
 
 type Epsilon struct {
   Value float64
@@ -45,7 +46,7 @@ type L2Regularization struct {
 }
 
 type Hook struct {
-  Value func(Vector, Vector, Scalar) bool
+  Value func(ConstVector, ConstVector, ConstScalar) bool
 }
 
 type MaxIterations struct {
@@ -59,6 +60,60 @@ type MaxEpochs struct {
 type InSitu struct {
   T1 Vector
   T2 Scalar
+}
+
+/* -------------------------------------------------------------------------- */
+
+func Wrapper(f func(int, Vector, Scalar) error, n int) objective {
+  y := NullDenseRealVector(n)
+  w := ConstReal(1.0)
+  g := func(i int, x Vector) (ConstScalar, ConstVector, ConstScalar, error) {
+    y := y.AT(i)
+    if err := f(i, x, y); err != nil {
+      return nil, nil, nil, err
+    }
+    g := DenseGradient{y}
+    return ConstReal(y.GetValue()), g, w, nil
+  }
+  return g
+}
+
+/* -------------------------------------------------------------------------- */
+
+type gradientType struct {
+  g DenseBareRealVector
+  w *BareReal
+}
+
+func (obj gradientType) Vadd(v Vector) {
+  for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
+    s_a, s_b := it.Get()
+    if s_a == nil {
+      s_a = v.At(it.Index())
+    }
+    s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
+  }
+}
+
+func (obj gradientType) Vsub(v Vector) {
+  for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
+    s_a, s_b := it.Get()
+    if s_a == nil {
+      s_a = v.At(it.Index())
+    }
+    s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
+  }
+}
+
+func (obj *gradientType) set(g ConstVector, w ConstScalar) {
+  if obj.g == nil {
+    obj.g = NullDenseBareRealVector(g.Dim())
+  }
+  if obj.w == nil {
+    obj.w = NullBareReal()
+  }
+  obj.g.Set(g)
+  obj.w.Set(w)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -98,13 +153,13 @@ func saga(
 
   x1 := x.CloneVector()
   x2 := x.CloneVector()
-  y  := NullReal()
 
   // length of gradient
   d := x.Dim()
   // gradient
-  var g1 DenseGradient
-  var g2 DenseGradient
+  var y  ConstScalar
+  var g1 gradientType
+  var g2 gradientType
 
   // allocate temporary memory
   if inSitu.T1 == nil {
@@ -119,17 +174,18 @@ func saga(
 
   // sum of gradients
   s    := NullDenseBareRealVector(d)
-  dict := make([]*Real, n)
+  dict := make([]gradientType, n)
   // initialize s and d
   x1.Variables(1)
   for i := 0; i < n; i++ {
-    if err := f(i, x1, y); err != nil {
+    if _, g, w, err := f(i, x1); err != nil {
       return nil, err
     } else {
-      dict[i] = y.Clone()
-      s.VaddV(s, DenseGradient{y})
+      dict[i].set(g, w)
+      dict[i].Vadd(s)
     }
   }
+  y = ConstReal(math.NaN())
 
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
     x1.Variables(1)
@@ -139,15 +195,19 @@ func saga(
     }
     j := rand.Intn(n)
 
-    if err := f(j, x1, y); err != nil {
+    // get old gradient
+    g1 = dict[j]
+    // evaluate objective function
+    if y_, g, w, err := f(j, x1); err != nil {
       return x1, err
+    } else {
+      y = y_
+      g2.set(g, w)
     }
-    g1 = DenseGradient{dict[j]}
-    g2 = DenseGradient{y}
 
     t1.VdivS(s , ConstReal(float64(n)))
-    t1.VaddV(t1, g2)
-    t1.VsubV(t1, g1)
+    g2.Vadd(t1)
+    g1.Vsub(t1)
     t1.VmulS(t1, ConstReal(gamma.Value))
 
     switch {
@@ -176,11 +236,11 @@ func saga(
     }
     x1, x2 = x2, x1
     // update table
-    s.VsubV(s, g1)
-    s.VaddV(s, g2)
+    g1.Vsub(s)
+    g2.Vadd(s)
 
     // update dictionary
-    y, dict[j] = dict[j], y
+    dict[j].set(g2.g, g2.w)
   }
   return x1, nil
 }
@@ -237,7 +297,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f func(int, Vector, Scalar) error, n int, x Vector, args ...interface{}) (Vector, error) {
+func Run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
 
   return run(f, n, x, args...)
 }

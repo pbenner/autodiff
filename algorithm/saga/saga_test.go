@@ -27,7 +27,7 @@ import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 
 /* -------------------------------------------------------------------------- */
 
-func hook(x, g Vector, y Scalar) bool {
+func hook(x, g ConstVector, y ConstScalar) bool {
   fmt.Printf("x: %v\n", x)
   fmt.Printf("g: %v\n", g)
   fmt.Println()
@@ -73,7 +73,7 @@ func Test1(test *testing.T) {
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(f, len(cellSize), theta_0, Hook{hook}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, err := Run(Wrapper(f, len(cellSize)), len(cellSize), theta_0, Hook{hook}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
