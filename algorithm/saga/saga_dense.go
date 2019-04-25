@@ -25,11 +25,34 @@ import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-type denseGradient struct {
-  g DenseBareRealVector
-  w *BareReal
+type ObjectiveDense func(int, Vector) (ConstReal, DenseBareRealVector, ConstReal, error)
+type InSituDense struct {
+  T1 DenseBareRealVector
+  T2 *BareReal
 }
-func (obj denseGradient) add(v Vector) {
+func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
+  y := NullReal()
+  w := ConstReal(1.0)
+  g := DenseBareRealVector{}
+  f_ := func(i int, x Vector) (ConstReal, DenseBareRealVector, ConstReal, error) {
+    x.Variables(1)
+    if err := f(i, x, y); err != nil {
+      return ConstReal(0.0), nil, ConstReal(0.0), err
+    }
+    if g.Dim() == 0 {
+      g = NullDenseBareRealVector(x.Dim())
+    }
+    g.Set(DenseGradient{y})
+    return ConstReal(y.GetValue()), g, w, nil
+  }
+  return f_
+}
+/* -------------------------------------------------------------------------- */
+type GradientDense struct {
+  g DenseBareRealVector
+  w ConstReal
+}
+func (obj GradientDense) add(v DenseBareRealVector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -38,7 +61,7 @@ func (obj denseGradient) add(v Vector) {
     s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
   }
 }
-func (obj denseGradient) sub(v Vector) {
+func (obj GradientDense) sub(v DenseBareRealVector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -47,18 +70,15 @@ func (obj denseGradient) sub(v Vector) {
     s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
   }
 }
-func (obj *denseGradient) set(g ConstVector, w ConstScalar) {
+func (obj *GradientDense) set(g DenseBareRealVector, w ConstReal) {
   if obj.g == nil {
     obj.g = NullDenseBareRealVector(g.Dim())
   }
-  if obj.w == nil {
-    obj.w = NullBareReal()
-  }
   obj.g.Set(g)
-  obj.w.Set(w)
+  obj.w = w
 }
 /* -------------------------------------------------------------------------- */
-func densel1regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
+func l1regularizationDense(x Vector, w DenseBareRealVector, t *BareReal, lambda float64) {
   for i := 0; i < x.Dim(); i++ {
     if yi := w.ValueAt(i); yi < 0.0 {
       x.At(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
@@ -67,7 +87,7 @@ func densel1regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
     }
   }
 }
-func densel2regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
+func l2regularizationDense(x Vector, w DenseBareRealVector, t *BareReal, lambda float64) {
   t.Vnorm(w)
   t.Div(ConstReal(lambda), t)
   t.Sub(ConstReal(1.0), t)
@@ -75,8 +95,8 @@ func densel2regularization(x Vector, w ConstVector, t Scalar, lambda float64) {
   x.VmulS(w, t)
 }
 /* -------------------------------------------------------------------------- */
-func saga(
-  f objective,
+func sagaDense(
+  f ObjectiveDense,
   n int,
   x Vector,
   gamma Gamma,
@@ -86,15 +106,15 @@ func saga(
   l1reg L1Regularization,
   l2reg L2Regularization,
   hook Hook,
-  inSitu *InSitu) (Vector, error) {
+  inSitu *InSituDense) (Vector, error) {
   x1 := x.CloneVector()
   x2 := x.CloneVector()
   // length of gradient
   d := x.Dim()
   // gradient
-  var y ConstScalar
-  var g1 denseGradient
-  var g2 denseGradient
+  var y ConstReal
+  var g1 GradientDense
+  var g2 GradientDense
   // allocate temporary memory
   if inSitu.T1 == nil {
     inSitu.T1 = NullDenseBareRealVector(d)
@@ -107,7 +127,7 @@ func saga(
   t2 := inSitu.T2
   // sum of gradients
   s := NullDenseBareRealVector(d)
-  dict := make([]denseGradient, n)
+  dict := make([]GradientDense, n)
   // initialize s and d
   for i := 0; i < n; i++ {
     if _, g, w, err := f(i, x1); err != nil {
@@ -140,10 +160,10 @@ func saga(
     switch {
     case l1reg.Value != 0.0:
       t1.VsubV(x1, t1)
-      densel1regularization(x2, t1, t2, gamma.Value*l1reg.Value)
+      l1regularizationDense(x2, t1, t2, gamma.Value*l1reg.Value)
     case l2reg.Value != 0.0:
       t1.VsubV(x1, t1)
-      densel2regularization(x2, t1, t2, gamma.Value*l2reg.Value)
+      l2regularizationDense(x2, t1, t2, gamma.Value*l2reg.Value)
     default:
       x2.VsubV(x1, t1)
     }

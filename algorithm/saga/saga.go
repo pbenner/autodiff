@@ -24,9 +24,6 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-// f_i(x) -> (y, gradient_vector, gradient_weight, error)
-type objective func(int, Vector) (ConstScalar, ConstVector, ConstScalar, error)
-
 type Epsilon struct {
   Value float64
 }
@@ -55,30 +52,9 @@ type MaxEpochs struct {
   Value int
 }
 
-type InSitu struct {
-  T1 Vector
-  T2 Scalar
-}
-
 /* -------------------------------------------------------------------------- */
 
-func Wrapper(f func(int, Vector, Scalar) error) objective {
-  y := NullReal()
-  w := ConstReal(1.0)
-  g := func(i int, x Vector) (ConstScalar, ConstVector, ConstScalar, error) {
-    x.Variables(1)
-    if err := f(i, x, y); err != nil {
-      return nil, nil, nil, err
-    }
-    g := DenseGradient{y}
-    return ConstReal(y.GetValue()), g, w, nil
-  }
-  return g
-}
-
-/* -------------------------------------------------------------------------- */
-
-func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
+func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
 
   hook          := Hook               {   nil}
   epsilon       := Epsilon            {  1e-8}
@@ -87,7 +63,7 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
   maxIterations := MaxIterations      {int(^uint(0) >> 1)}
   l1reg         := L1Regularization   { 0.0}
   l2reg         := L2Regularization   { 0.0}
-  inSitu        := &InSitu            {}
+  inSituDense   := &InSituDense       {}
 
   for _, arg := range args {
     switch a := arg.(type) {
@@ -105,9 +81,9 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
       l1reg = a
     case L2Regularization:
       l2reg = a
-    case *InSitu:
-      inSitu = a
-    case InSitu:
+    case *InSituDense:
+      inSituDense = a
+    case InSituDense:
       panic("InSitu must be passed by reference")
     default:
       panic("invalid optional argument")
@@ -122,13 +98,10 @@ func run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
   if l2reg.Value < 0.0 {
     return x, fmt.Errorf("invalid l2-regularization constant")
   }
-
-  return saga(f, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSitu)
-}
-
-/* -------------------------------------------------------------------------- */
-
-func Run(f objective, n int, x Vector, args ...interface{}) (Vector, error) {
-
-  return run(f, n, x, args...)
+  switch g := f.(type) {
+  case ObjectiveDense:
+    return sagaDense(g, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSituDense)
+  default:
+    panic("invalid objective")
+  }
 }
