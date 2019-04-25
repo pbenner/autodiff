@@ -68,6 +68,7 @@ func Wrapper(f func(int, Vector, Scalar) error) objective {
   y := NullReal()
   w := ConstReal(1.0)
   g := func(i int, x Vector) (ConstScalar, ConstVector, ConstScalar, error) {
+    x.Variables(1)
     if err := f(i, x, y); err != nil {
       return nil, nil, nil, err
     }
@@ -175,7 +176,6 @@ func saga(
   s    := NullDenseBareRealVector(d)
   dict := make([]gradientType, n)
   // initialize s and d
-  x1.Variables(1)
   for i := 0; i < n; i++ {
     if _, g, w, err := f(i, x1); err != nil {
       return nil, err
@@ -187,7 +187,6 @@ func saga(
   y = ConstReal(math.NaN())
 
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
-    x1.Variables(1)
     // execute hook if available
     if hook.Value != nil && hook.Value(x1, s, y) {
       break
