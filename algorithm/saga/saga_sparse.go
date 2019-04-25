@@ -15,48 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package saga
-
 /* -------------------------------------------------------------------------- */
-
-#include "../../macros.h"
-
 /* -------------------------------------------------------------------------- */
-
-import   "fmt"
-import   "math"
-import   "math/rand"
-
+/* -------------------------------------------------------------------------- */
+import "fmt"
+import "math"
+import "math/rand"
 import . "github.com/pbenner/autodiff"
-
 /* -------------------------------------------------------------------------- */
-
-#define OBJECTIVE STR_CONCAT(Objective, SAGA_TYPE)
-
-#define GRADIENT_TYPE STR_CONCAT(Gradient, SAGA_TYPE)
-#define IN_SITU_TYPE  STR_CONCAT(InSitu,   SAGA_TYPE)
-
-#define L1REG STR_CONCAT(l1regularization, SAGA_TYPE)
-#define L2REG STR_CONCAT(l2regularization, SAGA_TYPE)
-
 /* -------------------------------------------------------------------------- */
-
-type OBJECTIVE func(int, Vector) (CONST_SCALAR_TYPE, VECTOR_TYPE, CONST_SCALAR_TYPE, error)
-
-type IN_SITU_TYPE struct {
-  T1 VECTOR_TYPE
-  T2 SCALAR_TYPE
+type ObjectiveSparse func(int, Vector) (ConstReal, *SparseBareRealVector, ConstReal, error)
+type InSituSparse struct {
+  T1 *SparseBareRealVector
+  T2 *BareReal
 }
-
 /* -------------------------------------------------------------------------- */
-
-type GRADIENT_TYPE struct {
-  g       VECTOR_TYPE
-  w CONST_SCALAR_TYPE
+type GradientSparse struct {
+  g *SparseBareRealVector
+  w ConstReal
 }
-
-func (obj GRADIENT_TYPE) add(v VECTOR_TYPE) {
+func (obj GradientSparse) add(v *SparseBareRealVector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -65,8 +44,7 @@ func (obj GRADIENT_TYPE) add(v VECTOR_TYPE) {
     s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
   }
 }
-
-func (obj GRADIENT_TYPE) sub(v VECTOR_TYPE) {
+func (obj GradientSparse) sub(v *SparseBareRealVector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -75,18 +53,15 @@ func (obj GRADIENT_TYPE) sub(v VECTOR_TYPE) {
     s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
   }
 }
-
-func (obj *GRADIENT_TYPE) set(g VECTOR_TYPE, w CONST_SCALAR_TYPE) {
+func (obj *GradientSparse) set(g *SparseBareRealVector, w ConstReal) {
   if obj.g == nil {
-    obj.g = NULL_VECTOR(g.Dim())
+    obj.g = NullSparseBareRealVector(g.Dim())
   }
   obj.g.Set(g)
   obj.w = w
 }
-
 /* -------------------------------------------------------------------------- */
-
-func L1REG(x Vector, w VECTOR_TYPE, t SCALAR_TYPE, lambda float64) {
+func l1regularizationSparse(x Vector, w *SparseBareRealVector, t *BareReal, lambda float64) {
   for i := 0; i < x.Dim(); i++ {
     if yi := w.ValueAt(i); yi < 0.0 {
       x.At(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
@@ -95,19 +70,16 @@ func L1REG(x Vector, w VECTOR_TYPE, t SCALAR_TYPE, lambda float64) {
     }
   }
 }
-
-func L2REG(x Vector, w VECTOR_TYPE, t SCALAR_TYPE, lambda float64) {
+func l2regularizationSparse(x Vector, w *SparseBareRealVector, t *BareReal, lambda float64) {
   t.Vnorm(w)
-  t.Div(CONST_SCALAR_TYPE(lambda), t)
-  t.Sub(CONST_SCALAR_TYPE(1.0), t)
-  t.Max(CONST_SCALAR_TYPE(0.0), t)
+  t.Div(ConstReal(lambda), t)
+  t.Sub(ConstReal(1.0), t)
+  t.Max(ConstReal(0.0), t)
   x.VmulS(w, t)
 }
-
 /* -------------------------------------------------------------------------- */
-
-func STR_CONCAT(saga, SAGA_TYPE)(
-  f OBJECTIVE,
+func sagaSparse(
+  f ObjectiveSparse,
   n int,
   x Vector,
   gamma Gamma,
@@ -117,32 +89,28 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   l1reg L1Regularization,
   l2reg L2Regularization,
   hook Hook,
-  inSitu *IN_SITU_TYPE) (Vector, error) {
-
+  inSitu *InSituSparse) (Vector, error) {
   x1 := x.CloneVector()
   x2 := x.CloneVector()
-
   // length of gradient
   d := x.Dim()
   // gradient
-  var y  CONST_SCALAR_TYPE
-  var g1 GRADIENT_TYPE
-  var g2 GRADIENT_TYPE
-
+  var y ConstReal
+  var g1 GradientSparse
+  var g2 GradientSparse
   // allocate temporary memory
   if inSitu.T1 == nil {
-    inSitu.T1 = NULL_VECTOR(d)
+    inSitu.T1 = NullSparseBareRealVector(d)
   }
   if inSitu.T2 == nil {
-    inSitu.T2 = NULL_SCALAR()
+    inSitu.T2 = NullBareReal()
   }
   // temporary variables
   t1 := inSitu.T1
   t2 := inSitu.T2
-
   // sum of gradients
-  s    := NULL_VECTOR(d)
-  dict := make([]GRADIENT_TYPE, n)
+  s := NullSparseBareRealVector(d)
+  dict := make([]GradientSparse, n)
   // initialize s and d
   for i := 0; i < n; i++ {
     if _, g, w, err := f(i, x1); err != nil {
@@ -152,15 +120,13 @@ func STR_CONCAT(saga, SAGA_TYPE)(
       dict[i].add(s)
     }
   }
-  y = CONST_SCALAR_TYPE(math.NaN())
-
+  y = ConstReal(math.NaN())
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
     // execute hook if available
     if hook.Value != nil && hook.Value(x1, s, y) {
       break
     }
     j := rand.Intn(n)
-
     // get old gradient
     g1 = dict[j]
     // evaluate objective function
@@ -170,30 +136,28 @@ func STR_CONCAT(saga, SAGA_TYPE)(
       y = y_
       g2.set(g, w)
     }
-
-    t1.VdivS(s , CONST_SCALAR_TYPE(float64(n)))
+    t1.VdivS(s , ConstReal(float64(n)))
     g2.add(t1)
     g1.sub(t1)
-    t1.VmulS(t1, CONST_SCALAR_TYPE(gamma.Value))
-
+    t1.VmulS(t1, ConstReal(gamma.Value))
     switch {
     case l1reg.Value != 0.0:
       t1.VsubV(x1, t1)
-      L1REG(x2, t1, t2, gamma.Value*l1reg.Value)
+      l1regularizationSparse(x2, t1, t2, gamma.Value*l1reg.Value)
     case l2reg.Value != 0.0:
       t1.VsubV(x1, t1)
-      L2REG(x2, t1, t2, gamma.Value*l2reg.Value)
+      l2regularizationSparse(x2, t1, t2, gamma.Value*l2reg.Value)
     default:
       x2.VsubV(x1, t1)
     }
     // evaluate stopping criterion
-    max_x     := 0.0
+    max_x := 0.0
     max_delta := 0.0
     for i := 0; i < d; i ++ {
       if math.IsNaN(x2.ValueAt(i)) {
         return x1, fmt.Errorf("NaN value detected")
       }
-      max_x     = math.Max(max_x    , math.Abs(x2.ValueAt(i)))
+      max_x = math.Max(max_x , math.Abs(x2.ValueAt(i)))
       max_delta = math.Max(max_delta, math.Abs(x2.ValueAt(i) - x1.ValueAt(i)))
     }
     if max_x != 0.0 && max_delta/max_x <= epsilon.Value*gamma.Value ||
@@ -204,7 +168,6 @@ func STR_CONCAT(saga, SAGA_TYPE)(
     // update table
     g1.sub(s)
     g2.add(s)
-
     // update dictionary
     dict[j].set(g2.g, g2.w)
   }

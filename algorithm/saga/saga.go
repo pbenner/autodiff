@@ -54,6 +54,26 @@ type MaxEpochs struct {
 
 /* -------------------------------------------------------------------------- */
 
+func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
+  y := NullReal()
+  w := ConstReal(1.0)
+  g := DenseBareRealVector{}
+  f_ := func(i int, x Vector) (ConstReal, DenseBareRealVector, ConstReal, error) {
+    x.Variables(1)
+    if err := f(i, x, y); err != nil {
+      return ConstReal(0.0), nil, ConstReal(0.0), err
+    }
+    if g.Dim() == 0 {
+      g = NullDenseBareRealVector(x.Dim())
+    }
+    g.Set(DenseGradient{y})
+    return ConstReal(y.GetValue()), g, w, nil
+  }
+  return f_
+}
+
+/* -------------------------------------------------------------------------- */
+
 func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
 
   hook          := Hook               {   nil}
@@ -64,6 +84,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   l1reg         := L1Regularization   { 0.0}
   l2reg         := L2Regularization   { 0.0}
   inSituDense   := &InSituDense       {}
+  inSituSparse  := &InSituSparse      {}
 
   for _, arg := range args {
     switch a := arg.(type) {
@@ -83,7 +104,11 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       l2reg = a
     case *InSituDense:
       inSituDense = a
+    case *InSituSparse:
+      inSituSparse = a
     case InSituDense:
+      panic("InSitu must be passed by reference")
+    case InSituSparse:
       panic("InSitu must be passed by reference")
     default:
       panic("invalid optional argument")
@@ -100,7 +125,9 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   }
   switch g := f.(type) {
   case ObjectiveDense:
-    return sagaDense(g, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSituDense)
+    return sagaDense (g, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSituDense)
+  case ObjectiveSparse:
+    return sagaSparse(g, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSituSparse)
   default:
     panic("invalid objective")
   }

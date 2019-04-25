@@ -27,7 +27,7 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 // True if matrix a equals b.
-func (a *MATRIX_TYPE) Equals(b ConstMatrix, epsilon float64) bool {
+func (a MATRIX_TYPE) Equals(b ConstMatrix, epsilon float64) bool {
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
   if n1 != n2 || m1 != m2 {
@@ -46,7 +46,7 @@ func (a *MATRIX_TYPE) Equals(b ConstMatrix, epsilon float64) bool {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise addition of two matrices. The result is stored in r.
-func (r *MATRIX_TYPE) MaddM(a, b ConstMatrix) Matrix {
+func (r MATRIX_TYPE) MaddM(a, b ConstMatrix) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
@@ -64,7 +64,7 @@ func (r *MATRIX_TYPE) MaddM(a, b ConstMatrix) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Add scalar b to all elements of a. The result is stored in r.
-func (r *MATRIX_TYPE) MaddS(a ConstMatrix, b ConstScalar) Matrix {
+func (r MATRIX_TYPE) MaddS(a ConstMatrix, b ConstScalar) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
@@ -81,7 +81,7 @@ func (r *MATRIX_TYPE) MaddS(a ConstMatrix, b ConstScalar) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise substraction of two matrices. The result is stored in r.
-func (r *MATRIX_TYPE) MsubM(a, b ConstMatrix) Matrix {
+func (r MATRIX_TYPE) MsubM(a, b ConstMatrix) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
@@ -99,7 +99,7 @@ func (r *MATRIX_TYPE) MsubM(a, b ConstMatrix) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Substract b from all elements of a. The result is stored in r.
-func (r *MATRIX_TYPE) MsubS(a ConstMatrix, b ConstScalar) Matrix {
+func (r MATRIX_TYPE) MsubS(a ConstMatrix, b ConstScalar) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
@@ -116,7 +116,7 @@ func (r *MATRIX_TYPE) MsubS(a ConstMatrix, b ConstScalar) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise multiplication of two matrices. The result is stored in r.
-func (r *MATRIX_TYPE) MmulM(a, b ConstMatrix) Matrix {
+func (r MATRIX_TYPE) MmulM(a, b ConstMatrix) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
@@ -134,7 +134,7 @@ func (r *MATRIX_TYPE) MmulM(a, b ConstMatrix) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Multiply all elements of a with b. The result is stored in r.
-func (r *MATRIX_TYPE) MmulS(a ConstMatrix, b ConstScalar) Matrix {
+func (r MATRIX_TYPE) MmulS(a ConstMatrix, b ConstScalar) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
@@ -151,7 +151,7 @@ func (r *MATRIX_TYPE) MmulS(a ConstMatrix, b ConstScalar) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Element-wise division of two matrices. The result is stored in r.
-func (r *MATRIX_TYPE) MdivM(a, b ConstMatrix) Matrix {
+func (r MATRIX_TYPE) MdivM(a, b ConstMatrix) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
@@ -169,7 +169,7 @@ func (r *MATRIX_TYPE) MdivM(a, b ConstMatrix) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Divide all elements of a by b. The result is stored in r.
-func (r *MATRIX_TYPE) MdivS(a ConstMatrix, b ConstScalar) Matrix {
+func (r MATRIX_TYPE) MdivS(a ConstMatrix, b ConstScalar) Matrix {
   n,  m  := r.Dims()
   n1, m1 := a.Dims()
   if n1 != n || m1 != m {
@@ -186,7 +186,7 @@ func (r *MATRIX_TYPE) MdivS(a ConstMatrix, b ConstScalar) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Matrix product of a and b. The result is stored in r.
-func (r *MATRIX_TYPE) MdotM(a, b ConstMatrix) Matrix {
+func (r MATRIX_TYPE) MdotM(a, b ConstMatrix) Matrix {
   n , m  := r.Dims()
   n1, m1 := a.Dims()
   n2, m2 := b.Dims()
@@ -232,7 +232,7 @@ func (r *MATRIX_TYPE) MdotM(a, b ConstMatrix) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Outer product of two vectors. The result is stored in r.
-func (r *MATRIX_TYPE) Outer(a, b ConstVector) Matrix {
+func (r MATRIX_TYPE) Outer(a, b ConstVector) Matrix {
   n, m := r.Dims()
   if a.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
@@ -248,7 +248,7 @@ func (r *MATRIX_TYPE) Outer(a, b ConstVector) Matrix {
 /* -------------------------------------------------------------------------- */
 
 // Compute the Jacobian of f at x_. The result is stored in r.
-func (r *MATRIX_TYPE) Jacobian(f func(ConstVector) ConstVector, x_ Vector) Matrix {
+func (r MATRIX_TYPE) Jacobian(f func(ConstVector) ConstVector, x_ Vector) Matrix {
   n, m := r.Dims()
   x := x_.CloneVector()
   x.Variables(1)
@@ -270,7 +270,7 @@ func (r *MATRIX_TYPE) Jacobian(f func(ConstVector) ConstVector, x_ Vector) Matri
 }
 
 // Compute the Hessian of f at x_. The result is stored in r.
-func (r *MATRIX_TYPE) Hessian(f func(ConstVector) ConstScalar, x_ Vector) Matrix {
+func (r MATRIX_TYPE) Hessian(f func(ConstVector) ConstScalar, x_ Vector) Matrix {
   n, m := r.Dims()
   // reallocate matrix if dimensions do not match
   if r == nil || x_.Dim() != n || n != m {

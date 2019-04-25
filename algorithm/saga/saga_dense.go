@@ -30,23 +30,6 @@ type InSituDense struct {
   T1 DenseBareRealVector
   T2 *BareReal
 }
-func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
-  y := NullReal()
-  w := ConstReal(1.0)
-  g := DenseBareRealVector{}
-  f_ := func(i int, x Vector) (ConstReal, DenseBareRealVector, ConstReal, error) {
-    x.Variables(1)
-    if err := f(i, x, y); err != nil {
-      return ConstReal(0.0), nil, ConstReal(0.0), err
-    }
-    if g.Dim() == 0 {
-      g = NullDenseBareRealVector(x.Dim())
-    }
-    g.Set(DenseGradient{y})
-    return ConstReal(y.GetValue()), g, w, nil
-  }
-  return f_
-}
 /* -------------------------------------------------------------------------- */
 type GradientDense struct {
   g DenseBareRealVector
