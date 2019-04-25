@@ -368,7 +368,7 @@ func (obj *SparseRealVector) Sort(reverse bool) {
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
-func (v SparseRealVector) AsMatrix(n, m int) Matrix {
+func (v *SparseRealVector) AsMatrix(n, m int) Matrix {
   return v.ToDenseRealMatrix(n, m)
 }
 func (obj *SparseRealVector) ToDenseRealMatrix(n, m int) *DenseRealMatrix {

@@ -35,17 +35,17 @@ import "os"
 
 /* -------------------------------------------------------------------------- */
 
-#define VECTOR_JOINT3_ITERATOR STR_CONCAT(VECTOR_TYPE, Joint3Iterator)
-#define VECTOR_JOINT_ITERATOR  STR_CONCAT(VECTOR_TYPE, JointIterator)
-#define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_TYPE, ConstIterator)
-#define VECTOR_ITERATOR        STR_CONCAT(VECTOR_TYPE, Iterator)
+#define VECTOR_JOINT3_ITERATOR STR_CONCAT(VECTOR_NAME, Joint3Iterator)
+#define VECTOR_JOINT_ITERATOR  STR_CONCAT(VECTOR_NAME, JointIterator)
+#define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_NAME, ConstIterator)
+#define VECTOR_ITERATOR        STR_CONCAT(VECTOR_NAME, Iterator)
 
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
-type VECTOR_TYPE struct {
+type VECTOR_NAME struct {
   vectorSparseIndexSlice
-  values map[int]*SCALAR_TYPE
+  values map[int]SCALAR_TYPE
   n      int
 }
 
@@ -53,7 +53,7 @@ type VECTOR_TYPE struct {
  * -------------------------------------------------------------------------- */
 
 // Allocate a new vector. Scalars are set to the given values.
-func NEW_VECTOR(indices []int, values []float64, n int) *VECTOR_TYPE {
+func NEW_VECTOR(indices []int, values []float64, n int) VECTOR_TYPE {
   r := NIL_VECTOR(n)
   for i, k := range indices {
     if k >= n {
@@ -68,20 +68,20 @@ func NEW_VECTOR(indices []int, values []float64, n int) *VECTOR_TYPE {
 }
 
 // Allocate a new vector. All scalars are set to zero.
-func NULL_VECTOR(length int) *VECTOR_TYPE {
+func NULL_VECTOR(length int) VECTOR_TYPE {
   v := NIL_VECTOR(length)
   return v
 }
 
 // Create a empty vector without allocating memory for the scalar variables.
-func NIL_VECTOR(length int) *VECTOR_TYPE {
-  return &VECTOR_TYPE{values: make(map[int]*SCALAR_TYPE), n: length}
+func NIL_VECTOR(length int) VECTOR_TYPE {
+  return &VECTOR_NAME{values: make(map[int]SCALAR_TYPE), n: length}
 }
 
 // Convert vector type.
-func AS_VECTOR(v ConstVector) *VECTOR_TYPE {
+func AS_VECTOR(v ConstVector) VECTOR_TYPE {
   switch v_ := v.(type) {
-  case *VECTOR_TYPE:
+  case VECTOR_TYPE:
     return v_
   }
   r := NULL_VECTOR(v.Dim())
@@ -94,7 +94,7 @@ func AS_VECTOR(v ConstVector) *VECTOR_TYPE {
 /* -------------------------------------------------------------------------- */
 
 // Create a deep copy of the vector.
-func (obj *VECTOR_TYPE) Clone() *VECTOR_TYPE {
+func (obj VECTOR_TYPE) Clone() VECTOR_TYPE {
   r := NIL_VECTOR(obj.n)
   for i, v := range obj.values {
     r.values[i] = v.Clone()
@@ -103,17 +103,17 @@ func (obj *VECTOR_TYPE) Clone() *VECTOR_TYPE {
   return r
 }
 
-func (obj *VECTOR_TYPE) CloneVector() Vector {
+func (obj VECTOR_TYPE) CloneVector() Vector {
   return obj.Clone()
 }
 
-func (obj *VECTOR_TYPE) CloneConstVector() ConstVector {
+func (obj VECTOR_TYPE) CloneConstVector() ConstVector {
   return obj.Clone()
 }
 
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
-func (obj *VECTOR_TYPE) Set(x ConstVector) {
+func (obj VECTOR_TYPE) Set(x ConstVector) {
   if obj.Dim() != x.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
@@ -130,7 +130,7 @@ func (obj *VECTOR_TYPE) Set(x ConstVector) {
 /* const vector methods
  * -------------------------------------------------------------------------- */
 
-func (obj *VECTOR_TYPE) ValueAt(i int) float64 {
+func (obj VECTOR_TYPE) ValueAt(i int) float64 {
   if v, ok := obj.values[i]; ok {
     return v.GetValue()
   } else {
@@ -138,7 +138,7 @@ func (obj *VECTOR_TYPE) ValueAt(i int) float64 {
   }
 }
 
-func (obj *VECTOR_TYPE) ConstAt(i int) ConstScalar {
+func (obj VECTOR_TYPE) ConstAt(i int) ConstScalar {
   if v, ok := obj.values[i]; ok {
     return v
   } else {
@@ -146,11 +146,11 @@ func (obj *VECTOR_TYPE) ConstAt(i int) ConstScalar {
   }
 }
 
-func (obj *VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
+func (obj VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
   return obj.Slice(i, j)
 }
 
-func (obj *VECTOR_TYPE) GetValues() []float64 {
+func (obj VECTOR_TYPE) GetValues() []float64 {
   r := make([]float64, obj.Dim())
   for i, v := range obj.values {
     r[i] = v.GetValue()
@@ -161,37 +161,37 @@ func (obj *VECTOR_TYPE) GetValues() []float64 {
 /* iterator methods
  * -------------------------------------------------------------------------- */
 
-func (obj *VECTOR_TYPE) ConstIterator() VectorConstIterator {
+func (obj VECTOR_TYPE) ConstIterator() VectorConstIterator {
   return obj.ITERATOR()
 }
 
-func (obj *VECTOR_TYPE) Iterator() VectorIterator {
+func (obj VECTOR_TYPE) Iterator() VectorIterator {
   return obj.ITERATOR()
 }
 
-func (obj *VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
+func (obj VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
 
-func (obj *VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+func (obj VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
 
-func (obj *VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
+func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
   obj.indexSort()
   r := VECTOR_ITERATOR{obj, nil, -1}
   r.Next()
   return &r
 }
 
-func (obj *VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
+func (obj VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
   obj.indexSort()
   r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 
-func (obj *VECTOR_TYPE) JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATOR {
+func (obj VECTOR_TYPE) JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATOR {
   obj.indexSort()
   r := VECTOR_JOINT3_ITERATOR{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
   r.Next()
@@ -200,11 +200,11 @@ func (obj *VECTOR_TYPE) JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATO
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *VECTOR_TYPE) Dim() int {
+func (obj VECTOR_TYPE) Dim() int {
   return obj.n
 }
 
-func (obj *VECTOR_TYPE) At(i int) Scalar {
+func (obj VECTOR_TYPE) At(i int) Scalar {
   if v, ok := obj.values[i]; ok {
     return v
   } else {
@@ -215,7 +215,7 @@ func (obj *VECTOR_TYPE) At(i int) Scalar {
   }
 }
 
-func (obj *VECTOR_TYPE) AT(i int) *SCALAR_TYPE {
+func (obj VECTOR_TYPE) AT(i int) SCALAR_TYPE {
   if v, ok := obj.values[i]; ok {
     return v
   } else {
@@ -226,21 +226,21 @@ func (obj *VECTOR_TYPE) AT(i int) *SCALAR_TYPE {
   }
 }
 
-func (obj *VECTOR_TYPE) Reset() {
+func (obj VECTOR_TYPE) Reset() {
   for _, v := range obj.values {
     v.Reset()
   }
 }
 
-func (obj *VECTOR_TYPE) ResetDerivatives() {
+func (obj VECTOR_TYPE) ResetDerivatives() {
   for _, v := range obj.values {
     v.ResetDerivatives()
   }
 }
 
-func (obj *VECTOR_TYPE) ReverseOrder() {
+func (obj VECTOR_TYPE) ReverseOrder() {
   n := obj.Dim()
-  v := make(map[int]*SCALAR_TYPE)
+  v := make(map[int]SCALAR_TYPE)
   for i, s := range obj.values {
     v[n-i-1] = s
   }
@@ -253,7 +253,7 @@ func (obj *VECTOR_TYPE) ReverseOrder() {
   obj.values = v
 }
 
-func (obj *VECTOR_TYPE) Slice(i, j int) Vector {
+func (obj VECTOR_TYPE) Slice(i, j int) Vector {
   r := NIL_VECTOR(j-i)
   for i_k := obj.indexFind(i); obj.index[i_k] < j; i_k++ {
     k := obj.index[i_k]
@@ -263,7 +263,7 @@ func (obj *VECTOR_TYPE) Slice(i, j int) Vector {
   return r
 }
 
-func (obj *VECTOR_TYPE) Append(w *VECTOR_TYPE) *VECTOR_TYPE {
+func (obj VECTOR_TYPE) Append(w VECTOR_TYPE) VECTOR_TYPE {
   r  := obj.Clone()
   r.n = obj.n + w.Dim()
   for it := w.ITERATOR(); it.Ok(); it.Next() {
@@ -274,37 +274,37 @@ func (obj *VECTOR_TYPE) Append(w *VECTOR_TYPE) *VECTOR_TYPE {
   return r
 }
 
-func (obj *VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
+func (obj VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
   r  := obj.Clone()
   r.n = obj.n + len(scalars)
   for i, scalar := range scalars {
     switch s := scalar.(type) {
-    case *SCALAR_TYPE:
+    case SCALAR_TYPE:
       r.values[obj.n+i] = s
     default:
-      r.values[obj.n+i] = s.ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
+      r.values[obj.n+i] = s.ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE)
     }
     r.indexInsert(obj.n+i)
   }
   return r
 }
 
-func (obj *VECTOR_TYPE) AppendVector(w_ Vector) Vector {
+func (obj VECTOR_TYPE) AppendVector(w_ Vector) Vector {
   switch w := w_.(type) {
-  case *VECTOR_TYPE:
+  case VECTOR_TYPE:
     return obj.Append(w)
   default:
     r  := obj.Clone()
     r.n = obj.n + w.Dim()
     for it := w.Iterator(); it.Ok(); it.Next() {
-      r.values[obj.n+it.Index()] = it.Get().ConvertType(SCALAR_REFLECT_TYPE).(*SCALAR_TYPE)
+      r.values[obj.n+it.Index()] = it.Get().ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE)
       r.indexInsert(obj.n+it.Index())
     }
     return r
   }
 }
 
-func (obj *VECTOR_TYPE) Swap(i, j int) {
+func (obj VECTOR_TYPE) Swap(i, j int) {
   obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
   obj.indexSwap(i,j)
 }
@@ -312,30 +312,30 @@ func (obj *VECTOR_TYPE) Swap(i, j int) {
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 
-func (obj *VECTOR_TYPE) Map(f func(Scalar)) {
+func (obj VECTOR_TYPE) Map(f func(Scalar)) {
   for _, v := range obj.values {
     f(v)
   }
 }
 
-func (obj *VECTOR_TYPE) MapSet(f func(Scalar) Scalar) {
+func (obj VECTOR_TYPE) MapSet(f func(Scalar) Scalar) {
   for _, v := range obj.values {
     v.Set(f(v))
   }
 }
 
-func (obj *VECTOR_TYPE) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
+func (obj VECTOR_TYPE) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
   for _, v := range obj.values {
     r = f(r, v)
   }
   return r
 }
 
-func (obj *VECTOR_TYPE) ElementType() ScalarType {
+func (obj VECTOR_TYPE) ElementType() ScalarType {
   return SCALAR_REFLECT_TYPE
 }
 
-func (obj *VECTOR_TYPE) Variables(order int) error {
+func (obj VECTOR_TYPE) Variables(order int) error {
   for i, v := range obj.values {
     if err := v.SetVariable(i, obj.n, order); err != nil {
       return err
@@ -347,7 +347,7 @@ func (obj *VECTOR_TYPE) Variables(order int) error {
 /* permutations
  * -------------------------------------------------------------------------- */
 
-func (obj *VECTOR_TYPE) Permute(pi []int) error {
+func (obj VECTOR_TYPE) Permute(pi []int) error {
   if len(pi) != obj.n {
     return errors.New("Permute(): permutation vector has invalid length!")
   }
@@ -380,10 +380,10 @@ func (obj *VECTOR_TYPE) Permute(pi []int) error {
 /* sorting
  * -------------------------------------------------------------------------- */
 
-#define SORT_TYPE STR_CONCAT(STR_CONCAT(sort, VECTOR_TYPE), ByValue)
+#define SORT_TYPE STR_CONCAT(STR_CONCAT(sort, VECTOR_NAME), ByValue)
 
 type SORT_TYPE struct {
-  Value []*SCALAR_TYPE
+  Value []SCALAR_TYPE
 }
 
 func (obj SORT_TYPE) Len() int {
@@ -396,7 +396,7 @@ func (obj SORT_TYPE) Less(i, j int) bool {
   return obj.Value[i].GetValue() < obj.Value[j].GetValue()
 }
 
-func (obj *VECTOR_TYPE) Sort(reverse bool) {
+func (obj VECTOR_TYPE) Sort(reverse bool) {
   r := SORT_TYPE{}
   for it := obj.ITERATOR(); it.Ok(); it.Next() {
     r.Value = append(r.Value, it.GET())
@@ -408,7 +408,7 @@ func (obj *VECTOR_TYPE) Sort(reverse bool) {
   } else {
     ip = obj.n - len(obj.values)
   }
-  obj.values = make(map[int]*SCALAR_TYPE)
+  obj.values = make(map[int]SCALAR_TYPE)
   if reverse {
     sort.Sort(sort.Reverse(r))
   } else {
@@ -432,10 +432,10 @@ func (obj *VECTOR_TYPE) Sort(reverse bool) {
  * -------------------------------------------------------------------------- */
 
 func (v VECTOR_TYPE) AsMatrix(n, m int) Matrix {
-  return v.STR_CONCAT(To, MATRIX_TYPE)(n, m)
+  return v.STR_CONCAT(To, MATRIX_NAME)(n, m)
 }
 
-func (obj *VECTOR_TYPE) STR_CONCAT(To, MATRIX_TYPE)(n, m int) *MATRIX_TYPE {
+func (obj VECTOR_TYPE) STR_CONCAT(To, MATRIX_NAME)(n, m int) MATRIX_TYPE {
   if n*m != obj.n {
     panic("Matrix dimension does not fit input vector!")
   }
@@ -447,7 +447,7 @@ func (obj *VECTOR_TYPE) STR_CONCAT(To, MATRIX_TYPE)(n, m int) *MATRIX_TYPE {
       v[i] = NULL_SCALAR()
     }
   }
-  matrix := MATRIX_TYPE{}
+  matrix := MATRIX_NAME{}
   matrix.values    = v
   matrix.rows      = n
   matrix.cols      = m
@@ -459,7 +459,7 @@ func (obj *VECTOR_TYPE) STR_CONCAT(To, MATRIX_TYPE)(n, m int) *MATRIX_TYPE {
   return &matrix
 }
 
-func (obj *VECTOR_TYPE) String() string {
+func (obj VECTOR_TYPE) String() string {
   var buffer bytes.Buffer
 
   buffer.WriteString(fmt.Sprintf("%d:[", obj.n))
@@ -477,7 +477,7 @@ func (obj *VECTOR_TYPE) String() string {
   return buffer.String()
 }
 
-func (obj *VECTOR_TYPE) Table() string {
+func (obj VECTOR_TYPE) Table() string {
   var buffer bytes.Buffer
 
   first := true
@@ -500,7 +500,7 @@ func (obj *VECTOR_TYPE) Table() string {
   return buffer.String()
 }
 
-func (obj *VECTOR_TYPE) Export(filename string) error {
+func (obj VECTOR_TYPE) Export(filename string) error {
   f, err := os.Create(filename)
   if err != nil {
     return err
@@ -516,7 +516,7 @@ func (obj *VECTOR_TYPE) Export(filename string) error {
   return nil
 }
 
-func (obj *VECTOR_TYPE) Import(filename string) error {
+func (obj VECTOR_TYPE) Import(filename string) error {
   var scanner *bufio.Scanner
   // open file
   f, err := os.Open(filename)
@@ -581,7 +581,7 @@ func (obj *VECTOR_TYPE) Import(filename string) error {
 /* json
  * -------------------------------------------------------------------------- */
 
-func (obj *VECTOR_TYPE) MarshalJSON() ([]byte, error) {
+func (obj VECTOR_TYPE) MarshalJSON() ([]byte, error) {
   k := []int{}
   v := []float64{}
   r := struct{
@@ -598,7 +598,7 @@ func (obj *VECTOR_TYPE) MarshalJSON() ([]byte, error) {
   return json.MarshalIndent(r, "", "  ")
 }
 
-func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
+func (obj VECTOR_TYPE) UnmarshalJSON(data []byte) error {
   r := struct{
     Index  []int
     Value  []float64
@@ -615,7 +615,7 @@ func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *VECTOR_TYPE) nullScalar(s *SCALAR_TYPE) bool {
+func (obj VECTOR_TYPE) nullScalar(s SCALAR_TYPE) bool {
   if s.GetValue() != 0.0 {
     return false
   }
@@ -642,9 +642,9 @@ func (obj *VECTOR_TYPE) nullScalar(s *SCALAR_TYPE) bool {
  * -------------------------------------------------------------------------- */
 
 type VECTOR_ITERATOR struct {
-  *VECTOR_TYPE
-  s *SCALAR_TYPE
-  i  int
+  VECTOR_TYPE
+  s SCALAR_TYPE
+  i int
 }
 
 func (obj *VECTOR_ITERATOR) Get() Scalar {
@@ -655,7 +655,7 @@ func (obj *VECTOR_ITERATOR) GetConst() ConstScalar {
   return obj.s
 }
 
-func (obj *VECTOR_ITERATOR) GET() *SCALAR_TYPE {
+func (obj *VECTOR_ITERATOR) GET() SCALAR_TYPE {
   return obj.s
 }
 
@@ -689,7 +689,7 @@ type VECTOR_JOINT_ITERATOR struct {
   it1 *VECTOR_ITERATOR
   it2  VectorConstIterator
   idx  int
-  s1  *SCALAR_TYPE
+  s1  SCALAR_TYPE
   s2   ConstScalar
 }
 
@@ -739,7 +739,7 @@ func (obj *VECTOR_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
   return obj.s1, obj.s2
 }
 
-func (obj *VECTOR_JOINT_ITERATOR) GET() (*SCALAR_TYPE, ConstScalar) {
+func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
   return obj.s1, obj.s2
 }
 
@@ -751,7 +751,7 @@ type VECTOR_JOINT3_ITERATOR struct {
   it2  VectorConstIterator
   it3  VectorConstIterator
   idx  int
-  s1  *SCALAR_TYPE
+  s1   SCALAR_TYPE
   s2   ConstScalar
   s3   ConstScalar
 }
@@ -819,6 +819,6 @@ func (obj *VECTOR_JOINT3_ITERATOR) Get() (Scalar, ConstScalar, ConstScalar) {
   return obj.s1, obj.s2, obj.s3
 }
 
-func (obj *VECTOR_JOINT3_ITERATOR) GET() (*SCALAR_TYPE, ConstScalar, ConstScalar) {
+func (obj *VECTOR_JOINT3_ITERATOR) GET() (SCALAR_TYPE, ConstScalar, ConstScalar) {
   return obj.s1, obj.s2, obj.s3
 }
