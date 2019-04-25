@@ -689,7 +689,7 @@ type VECTOR_JOINT_ITERATOR struct {
   it1 *VECTOR_ITERATOR
   it2  VectorConstIterator
   idx  int
-  s1  SCALAR_TYPE
+  s1   SCALAR_TYPE
   s2   ConstScalar
 }
 
