@@ -35,6 +35,7 @@ import "os"
 
 /* -------------------------------------------------------------------------- */
 
+#define VECTOR_JOINT_ITERATOR_ STR_CONCAT(VECTOR_TYPE, JointIterator_)
 #define VECTOR_JOINT_ITERATOR  STR_CONCAT(VECTOR_TYPE, JointIterator)
 #define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_TYPE, ConstIterator)
 #define VECTOR_ITERATOR        STR_CONCAT(VECTOR_TYPE, Iterator)
@@ -166,6 +167,12 @@ func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
 
 func (obj VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
   r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
+  r.Next()
+  return &r
+}
+
+func (obj VECTOR_TYPE) JOINT_ITERATOR_(b VECTOR_TYPE) *VECTOR_JOINT_ITERATOR_ {
+  r := VECTOR_JOINT_ITERATOR_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
   r.Next()
   return &r
 }
@@ -536,5 +543,55 @@ func (obj *VECTOR_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
+  return obj.s1, obj.s2
+}
+
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+
+type VECTOR_JOINT_ITERATOR_ struct {
+  it1 *VECTOR_ITERATOR
+  it2 *VECTOR_ITERATOR
+  idx  int
+  s1   SCALAR_TYPE
+  s2   SCALAR_TYPE
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) Index() int {
+  return obj.idx
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) Ok() bool {
+  return obj.s1 != nil || obj.s2 != nil
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1  = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx >  obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1  = nil
+      obj.s2  = obj.it2.GET()
+    case obj.idx == obj.it2.Index():
+      obj.s2  = obj.it2.GET()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  }
+}
+
+func (obj *VECTOR_JOINT_ITERATOR_) GET() (SCALAR_TYPE, SCALAR_TYPE) {
   return obj.s1, obj.s2
 }

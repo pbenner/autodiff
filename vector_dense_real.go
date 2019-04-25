@@ -135,6 +135,11 @@ func (obj DenseRealVector) JOINT_ITERATOR(b ConstVector) *DenseRealVectorJointIt
   r.Next()
   return &r
 }
+func (obj DenseRealVector) JOINT_ITERATOR_(b DenseRealVector) *DenseRealVectorJointIterator_ {
+  r := DenseRealVectorJointIterator_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
+  r.Next()
+  return &r
+}
 /* -------------------------------------------------------------------------- */
 func (v DenseRealVector) Dim() int {
   return len(v)
@@ -443,5 +448,49 @@ func (obj *DenseRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
   return obj.s1, obj.s2
 }
 func (obj *DenseRealVectorJointIterator) GET() (*Real, ConstScalar) {
+  return obj.s1, obj.s2
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type DenseRealVectorJointIterator_ struct {
+  it1 *DenseRealVectorIterator
+  it2 *DenseRealVectorIterator
+  idx int
+  s1 *Real
+  s2 *Real
+}
+func (obj *DenseRealVectorJointIterator_) Index() int {
+  return obj.idx
+}
+func (obj *DenseRealVectorJointIterator_) Ok() bool {
+  return obj.s1 != nil || obj.s2 != nil
+}
+func (obj *DenseRealVectorJointIterator_) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx > obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1 = nil
+      obj.s2 = obj.it2.GET()
+    case obj.idx == obj.it2.Index():
+      obj.s2 = obj.it2.GET()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  }
+}
+func (obj *DenseRealVectorJointIterator_) GET() (*Real, *Real) {
   return obj.s1, obj.s2
 }

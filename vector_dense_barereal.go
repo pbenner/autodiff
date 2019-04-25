@@ -135,6 +135,11 @@ func (obj DenseBareRealVector) JOINT_ITERATOR(b ConstVector) *DenseBareRealVecto
   r.Next()
   return &r
 }
+func (obj DenseBareRealVector) JOINT_ITERATOR_(b DenseBareRealVector) *DenseBareRealVectorJointIterator_ {
+  r := DenseBareRealVectorJointIterator_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
+  r.Next()
+  return &r
+}
 /* -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) Dim() int {
   return len(v)
@@ -443,5 +448,49 @@ func (obj *DenseBareRealVectorJointIterator) GetConst() (ConstScalar, ConstScala
   return obj.s1, obj.s2
 }
 func (obj *DenseBareRealVectorJointIterator) GET() (*BareReal, ConstScalar) {
+  return obj.s1, obj.s2
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type DenseBareRealVectorJointIterator_ struct {
+  it1 *DenseBareRealVectorIterator
+  it2 *DenseBareRealVectorIterator
+  idx int
+  s1 *BareReal
+  s2 *BareReal
+}
+func (obj *DenseBareRealVectorJointIterator_) Index() int {
+  return obj.idx
+}
+func (obj *DenseBareRealVectorJointIterator_) Ok() bool {
+  return obj.s1 != nil || obj.s2 != nil
+}
+func (obj *DenseBareRealVectorJointIterator_) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.idx = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    switch {
+    case obj.idx > obj.it2.Index() || !ok1:
+      obj.idx = obj.it2.Index()
+      obj.s1 = nil
+      obj.s2 = obj.it2.GET()
+    case obj.idx == obj.it2.Index():
+      obj.s2 = obj.it2.GET()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  }
+}
+func (obj *DenseBareRealVectorJointIterator_) GET() (*BareReal, *BareReal) {
   return obj.s1, obj.s2
 }
