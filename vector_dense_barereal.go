@@ -120,17 +120,18 @@ func (obj DenseBareRealVector) Iterator() VectorIterator {
   return obj.ITERATOR()
 }
 func (obj DenseBareRealVector) JointIterator(b ConstVector) VectorJointIterator {
-  r := DenseBareRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
+  return obj.JOINT_ITERATOR(b)
 }
 func (obj DenseBareRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
-  r := DenseBareRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
+  return obj.JOINT_ITERATOR(b)
 }
 func (obj DenseBareRealVector) ITERATOR() *DenseBareRealVectorIterator {
   r := DenseBareRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+func (obj DenseBareRealVector) JOINT_ITERATOR(b ConstVector) *DenseBareRealVectorJointIterator {
+  r := DenseBareRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }

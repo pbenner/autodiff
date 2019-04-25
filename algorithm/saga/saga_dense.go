@@ -156,12 +156,17 @@ func sagaDense(
     // evaluate stopping criterion
     max_x := 0.0
     max_delta := 0.0
-    for i := 0; i < d; i ++ {
-      if math.IsNaN(x2.ValueAt(i)) {
+    for it := x1.JOINT_ITERATOR(x2); it.Ok(); it.Next() {
+      s1, s2 := it.GET()
+      v1, v2 := 0.0, s2.GetValue()
+      if s1 != nil {
+        v1 = s1.GetValue()
+      }
+      if math.IsNaN(v2) {
         return x1, fmt.Errorf("NaN value detected")
       }
-      max_x = math.Max(max_x , math.Abs(x2.ValueAt(i)))
-      max_delta = math.Max(max_delta, math.Abs(x2.ValueAt(i) - x1.ValueAt(i)))
+      max_x = math.Max(max_x , math.Abs(v2))
+      max_delta = math.Max(max_delta, math.Abs(v2 - v1))
     }
     if max_x != 0.0 && max_delta/max_x <= epsilon.Value*gamma.Value ||
       (max_x == 0.0 && max_delta == 0.0) {
