@@ -85,7 +85,7 @@ type gradientType struct {
   w *BareReal
 }
 
-func (obj gradientType) Vadd(v Vector) {
+func (obj gradientType) add(v Vector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -95,7 +95,7 @@ func (obj gradientType) Vadd(v Vector) {
   }
 }
 
-func (obj gradientType) Vsub(v Vector) {
+func (obj gradientType) sub(v Vector) {
   for it := v.JointIterator(obj.g); it.Ok(); it.Next() {
     s_a, s_b := it.Get()
     if s_a == nil {
@@ -181,7 +181,7 @@ func saga(
       return nil, err
     } else {
       dict[i].set(g, w)
-      dict[i].Vadd(s)
+      dict[i].add(s)
     }
   }
   y = ConstReal(math.NaN())
@@ -204,8 +204,8 @@ func saga(
     }
 
     t1.VdivS(s , ConstReal(float64(n)))
-    g2.Vadd(t1)
-    g1.Vsub(t1)
+    g2.add(t1)
+    g1.sub(t1)
     t1.VmulS(t1, ConstReal(gamma.Value))
 
     switch {
@@ -234,8 +234,8 @@ func saga(
     }
     x1, x2 = x2, x1
     // update table
-    g1.Vsub(s)
-    g2.Vadd(s)
+    g1.sub(s)
+    g2.add(s)
 
     // update dictionary
     dict[j].set(g2.g, g2.w)
