@@ -336,7 +336,6 @@ func (obj VECTOR_TYPE) AppendVector(w_ Vector) Vector {
 
 func (obj VECTOR_TYPE) Swap(i, j int) {
   obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
-  obj.indexSwap(i,j)
 }
 
 /* imlement ScalarContainer

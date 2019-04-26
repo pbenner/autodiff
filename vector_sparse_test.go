@@ -160,3 +160,15 @@ func TestSparseVector6(test *testing.T) {
   test.Error("test failed")
 ok:
 }
+
+func TestSparseVector7(test *testing.T) {
+
+  v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
+  r := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,3,2, 4,-5, 6}, 20000)
+  t := NullReal()
+
+  v.Swap(100, 210)
+  if t.Vnorm(r.VsubV(r, v)); t.GetValue() > 0 {
+    test.Errorf("test failed")
+  }
+}

@@ -284,7 +284,6 @@ func (obj *SparseBareRealVector) AppendVector(w_ Vector) Vector {
 }
 func (obj *SparseBareRealVector) Swap(i, j int) {
   obj.values[i], obj.values[j] = obj.values[j], obj.values[i]
-  obj.indexSwap(i,j)
 }
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */

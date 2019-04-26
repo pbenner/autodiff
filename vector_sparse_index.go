@@ -65,12 +65,6 @@ func (obj vectorSparseIndexSlice) indexFind(i int) int {
   return sort.SearchInts(obj.index, i)
 }
 
-func (obj vectorSparseIndexSlice) indexSwap(i, j int) {
-  i_k := obj.indexFind(i)
-  j_k := obj.indexFind(j)
-  obj.index[i_k], obj.index[j_k] = obj.index[j_k], obj.index[i_k]
-}
-
 func (obj vectorSparseIndexSlice) indexCopy(src []int) {
   copy(obj.index, src)
   obj.indexSorted = false
