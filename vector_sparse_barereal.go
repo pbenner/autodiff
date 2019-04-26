@@ -609,7 +609,7 @@ func (obj *SparseBareRealVectorIterator) Next() {
       continue
     }
     if s := obj.v.values[i]; obj.v.nullScalar(s) {
-      obj.indexRevoke(obj.i)
+      obj.v.indexRevoke(obj.i)
       delete(obj.v.values, i)
     } else {
       obj.s = s; break
