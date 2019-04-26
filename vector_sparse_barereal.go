@@ -32,7 +32,7 @@ import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 type SparseBareRealVector struct {
-  vectorSparseIndexSlice
+  vectorSparseIndex
   values map[int]*BareReal
   n int
 }
@@ -80,7 +80,7 @@ func (obj *SparseBareRealVector) Clone() *SparseBareRealVector {
   for i, v := range obj.values {
     r.values[i] = v.Clone()
   }
-  r.vectorSparseIndexSlice = obj.indexClone()
+  r.vectorSparseIndex = obj.indexClone()
   return r
 }
 func (obj *SparseBareRealVector) CloneVector() Vector {
@@ -584,7 +584,7 @@ func (obj *SparseBareRealVector) nullScalar(s *BareReal) bool {
 /* iterator
  * -------------------------------------------------------------------------- */
 type SparseBareRealVectorIterator struct {
-  vectorSparseIndexSlice
+  vectorSparseIndex
   v *SparseBareRealVector
   s *BareReal
   i int

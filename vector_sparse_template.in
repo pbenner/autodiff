@@ -46,7 +46,7 @@ import "os"
  * -------------------------------------------------------------------------- */
 
 type VECTOR_NAME struct {
-  vectorSparseIndexSlice
+  vectorSparseIndex
   values map[int]SCALAR_TYPE
   n      int
 }
@@ -101,7 +101,7 @@ func (obj VECTOR_TYPE) Clone() VECTOR_TYPE {
   for i, v := range obj.values {
     r.values[i] = v.Clone()
   }
-  r.vectorSparseIndexSlice = obj.indexClone()
+  r.vectorSparseIndex = obj.indexClone()
   return r
 }
 
@@ -671,7 +671,7 @@ func (obj VECTOR_TYPE) nullScalar(s SCALAR_TYPE) bool {
  * -------------------------------------------------------------------------- */
 
 type VECTOR_ITERATOR struct {
-  vectorSparseIndexSlice
+  vectorSparseIndex
   v VECTOR_TYPE
   s SCALAR_TYPE
   i int

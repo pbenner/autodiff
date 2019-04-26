@@ -25,12 +25,12 @@ import "sort"
 
 const vectorSparseIndexMax = int(^uint(0) >> 1)
 
-type vectorSparseIndexSlice struct {
+type vectorSparseIndex struct {
   index       []int
   indexSorted   bool
 }
 
-func (obj vectorSparseIndexSlice) indexSort() {
+func (obj vectorSparseIndex) indexSort() {
   if obj.indexSorted == false {
     sort.Ints(obj.index)
     // remove revoked indices
@@ -43,35 +43,35 @@ func (obj vectorSparseIndexSlice) indexSort() {
   }
 }
 
-func (obj *vectorSparseIndexSlice) indexInsert(i int) {
+func (obj *vectorSparseIndex) indexInsert(i int) {
   obj.index = append(obj.index, i)
   obj.indexSorted = false
 }
 
-func (obj vectorSparseIndexSlice) indexRevoke(k int) {
+func (obj vectorSparseIndex) indexRevoke(k int) {
   obj.index[k] = vectorSparseIndexMax
   obj.indexSorted  = false
 }
 
-func (obj vectorSparseIndexSlice) indexReverse() {
+func (obj vectorSparseIndex) indexReverse() {
   for i := len(obj.index)/2-1; i >= 0; i-- {
     j := len(obj.index)-1-i
     obj.index[i], obj.index[j] = obj.index[j], obj.index[i]
   }
 }
 
-func (obj vectorSparseIndexSlice) indexFind(i int) int {
+func (obj vectorSparseIndex) indexFind(i int) int {
   obj.indexSort()
   return sort.SearchInts(obj.index, i)
 }
 
-func (obj vectorSparseIndexSlice) indexCopy(src []int) {
+func (obj vectorSparseIndex) indexCopy(src []int) {
   copy(obj.index, src)
   obj.indexSorted = false
 }
 
-func (obj vectorSparseIndexSlice) indexClone() vectorSparseIndexSlice {
-  r := vectorSparseIndexSlice{}
+func (obj vectorSparseIndex) indexClone() vectorSparseIndex {
+  r := vectorSparseIndex{}
   r.index = make([]int, len(obj.index))
   copy(r.index, obj.index)
   return r

@@ -25,7 +25,7 @@ import "bytes"
  * -------------------------------------------------------------------------- */
 
 type SparseConstRealVector struct {
-  vectorSparseIndexSlice
+  vectorSparseIndex
   values  map[int]ConstReal
   n       int
 }
@@ -64,7 +64,7 @@ func (obj SparseConstRealVector) Clone() SparseConstRealVector {
   for i, v := range obj.values {
     r.values[i] = v
   }
-  r.vectorSparseIndexSlice = obj.indexClone()
+  r.vectorSparseIndex = obj.indexClone()
   return r
 }
 
