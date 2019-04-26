@@ -54,7 +54,7 @@ func (obj vectorSparseIndexSlice) indexRevoke(k int) {
 }
 
 func (obj vectorSparseIndexSlice) indexReverse() {
-  for i :=len(obj.index)/2-1; i >= 0; i-- {
+  for i := len(obj.index)/2-1; i >= 0; i-- {
     j := len(obj.index)-1-i
     obj.index[i], obj.index[j] = obj.index[j], obj.index[i]
   }
