@@ -159,7 +159,7 @@ func (obj *SparseBareRealVector) ConstJointIterator(b ConstVector) VectorConstJo
 }
 func (obj *SparseBareRealVector) ITERATOR() *SparseBareRealVectorIterator {
   obj.indexSort()
-  r := SparseBareRealVectorIterator{obj, nil, -1}
+  r := SparseBareRealVectorIterator{obj.indexClone(), obj, nil, -1}
   r.Next()
   return &r
 }
@@ -585,7 +585,8 @@ func (obj *SparseBareRealVector) nullScalar(s *BareReal) bool {
 /* iterator
  * -------------------------------------------------------------------------- */
 type SparseBareRealVectorIterator struct {
-  *SparseBareRealVector
+  vectorSparseIndexSlice
+  v *SparseBareRealVector
   s *BareReal
   i int
 }
@@ -607,9 +608,9 @@ func (obj *SparseBareRealVectorIterator) Next() {
     if i == vectorSparseIndexMax {
       continue
     }
-    if s := obj.values[i]; obj.nullScalar(s) {
+    if s := obj.v.values[i]; obj.v.nullScalar(s) {
       obj.indexRevoke(obj.i)
-      delete(obj.values, i)
+      delete(obj.v.values, i)
     } else {
       obj.s = s; break
     }

@@ -159,7 +159,7 @@ func (obj *SparseRealVector) ConstJointIterator(b ConstVector) VectorConstJointI
 }
 func (obj *SparseRealVector) ITERATOR() *SparseRealVectorIterator {
   obj.indexSort()
-  r := SparseRealVectorIterator{obj, nil, -1}
+  r := SparseRealVectorIterator{obj.indexClone(), obj, nil, -1}
   r.Next()
   return &r
 }
@@ -585,7 +585,8 @@ func (obj *SparseRealVector) nullScalar(s *Real) bool {
 /* iterator
  * -------------------------------------------------------------------------- */
 type SparseRealVectorIterator struct {
-  *SparseRealVector
+  vectorSparseIndexSlice
+  v *SparseRealVector
   s *Real
   i int
 }
@@ -607,9 +608,9 @@ func (obj *SparseRealVectorIterator) Next() {
     if i == vectorSparseIndexMax {
       continue
     }
-    if s := obj.values[i]; obj.nullScalar(s) {
+    if s := obj.v.values[i]; obj.v.nullScalar(s) {
       obj.indexRevoke(obj.i)
-      delete(obj.values, i)
+      delete(obj.v.values, i)
     } else {
       obj.s = s; break
     }
