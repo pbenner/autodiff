@@ -142,3 +142,21 @@ func TestSparseVector5Const(test *testing.T) {
     test.Errorf("test failed")
   }
 }
+
+func TestSparseVector6(test *testing.T) {
+
+  v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
+
+  for it := v.ITERATOR(); it.Ok(); it.Next() {
+    s := it.GET()
+    // insert new value
+    if s.GetValue() == 3.0 {
+      v.AT(1000).SetValue(3.785)
+    }
+    if s.GetValue() == 3.785 {
+      goto ok
+    }
+  }
+  test.Error("test failed")
+ok:
+}
