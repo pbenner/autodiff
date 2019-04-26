@@ -36,6 +36,41 @@ func hook(x, g ConstVector, y ConstScalar) bool {
 
 /* -------------------------------------------------------------------------- */
 
+func Test0(test *testing.T) {
+  x := NewDenseRealVector([]float64{1, 1})
+  r := NewReal(0.0)
+  { // test positive class
+    theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
+    theta_0.Variables(1)
+    lr, _   := NewLogisticRegression(theta_0)
+
+    if err := lr.ClassLogPdf(r, x, true); err != nil {
+      test.Error(err); return
+    }
+    if math.Abs(r.GetValue() - -1.313262e+00) > 1e-4 {
+      test.Error("test failed")
+    }
+    if math.Abs(r.GetDerivative(1) - 0.7310585786300048) > 1e-4 {
+      test.Error("test failed")
+    }
+  }
+  { // test negative class
+    theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
+    theta_0.Variables(1)
+    lr, _   := NewLogisticRegression(theta_0)
+
+    if err := lr.ClassLogPdf(r, x, false); err != nil {
+      test.Error(err); return
+    }
+    if math.Abs(r.GetValue() - -0.313262) > 1e-4 {
+      test.Error("test failed")
+    }
+    if math.Abs(r.GetDerivative(1) - -0.268941) > 1e-4 {
+      test.Error("test failed")
+    }
+  }
+}
+
 func Test1(test *testing.T) {
 
   // data
