@@ -12,3 +12,5 @@ m <- glm(Class ~ Cell.size + Cell.shape, family="binomial", data = bc[1:20,])
 
 bc$Cell.size  <- bc$Cell.size  - 1
 bc$Cell.shape <- bc$Cell.shape - 1
+
+m <- glm(Class ~ Cell.size + Cell.shape, family="binomial", data = bc[1:20,])
