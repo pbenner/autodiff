@@ -163,6 +163,25 @@ func TestSparseVector6(test *testing.T) {
 func TestSparseVector7(test *testing.T) {
 
   v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
+  r := []float64{1.0, -5.0, 2.0, 3.0, 6.0}
+
+  for i, it := 0, v.ITERATOR(); it.Ok(); it.Next() {
+    // insert new value
+    if i == 2 {
+      v.AT(310).SetValue(0.0)
+      for is := v.ITERATOR(); is.Ok(); is.Next() {
+      }
+    }
+    if s := it.GET(); it.Index() >= len(r) || s.GetValue() != r[i] {
+      test.Error("test failed")
+    }
+    i++
+  }
+}
+
+func TestSparseVector8(test *testing.T) {
+
+  v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
   r := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,3,2, 4,-5, 6}, 20000)
   t := NullReal()
 
