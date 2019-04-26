@@ -63,14 +63,22 @@ func (dist *LogisticRegression) ScalarType() ScalarType {
 }
 
 func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) error {
-  if x.Dim() != dist.Dim() {
+  if x.Dim() != dist.Dim() && x.Dim() != dist.Dim()+1 {
     return fmt.Errorf("input vector has invalid dimension")
   }
   t := dist.t
-  r.Set(dist.Theta.ConstAt(0))
-  for i := 0; i < dist.Dim(); i++ {
-    t.Mul(dist.Theta.ConstAt(i+1), x.ConstAt(i))
-    r.Add(r, t)
+  if x.Dim() == dist.Dim() {
+    r.Set(dist.Theta.ConstAt(0))
+    for i := 0; i < dist.Dim(); i++ {
+      t.Mul(dist.Theta.ConstAt(i+1), x.ConstAt(i))
+      r.Add(r, t)
+    }
+  } else {
+    r.Set(dist.Theta.ConstAt(0))
+    for i := 0; i < dist.Dim(); i++ {
+      t.Mul(dist.Theta.ConstAt(i+1), x.ConstAt(i+1))
+      r.Add(r, t)
+    }
   }
   if y {
     r.Neg(r)
@@ -84,19 +92,7 @@ func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) err
 }
 
 func (dist *LogisticRegression) LogPdf(r Scalar, x ConstVector) error {
-  if x.Dim() != dist.Dim() {
-    return fmt.Errorf("input vector has invalid dimension")
-  }
-  t := dist.t
-  r.Set(dist.Theta.ConstAt(0))
-  for i := 0; i < dist.Dim(); i++ {
-    t.Mul(dist.Theta.ConstAt(i+1), x.ConstAt(i))
-    r.Add(r, t)
-  }
-  r.Neg(r)
-  r.LogAdd(ConstReal(0.0), r, t)
-  r.Neg(r)
-  return nil
+  return dist.ClassLogPdf(r, x, true)
 }
 
 func (dist *LogisticRegression) Pdf(r Scalar, x ConstVector) error {
