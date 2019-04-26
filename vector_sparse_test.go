@@ -146,19 +146,18 @@ func TestSparseVector5Const(test *testing.T) {
 func TestSparseVector6(test *testing.T) {
 
   v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
+  r := []float64{1.0, -5.0, 2.0, 3.0, 4.0, 3.785, 6.0}
 
-  for it := v.ITERATOR(); it.Ok(); it.Next() {
-    s := it.GET()
+  for i, it := 0, v.ITERATOR(); it.Ok(); it.Next() {
     // insert new value
-    if s.GetValue() == 3.0 {
+    if i == 2 {
       v.AT(1000).SetValue(3.785)
     }
-    if s.GetValue() == 3.785 {
-      goto ok
+    if s := it.GET(); s.GetValue() != r[i] {
+      test.Error("test failed")
     }
+    i++
   }
-  test.Error("test failed")
-ok:
 }
 
 func TestSparseVector7(test *testing.T) {
