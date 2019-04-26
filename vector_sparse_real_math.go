@@ -85,9 +85,9 @@ func (r *SparseRealVector) VADDV(a, b *SparseRealVector) Vector {
     switch {
     case s_a == nil && s_b == nil:
       s_r.SetValue(0.0)
-    case s_a != nil:
+    case s_b == nil:
       s_r.SET(s_a)
-    case s_b != nil:
+    case s_a == nil:
       s_r.SET(s_b)
     default:
       s_r.ADD(s_a, s_b)
@@ -160,9 +160,9 @@ func (r *SparseRealVector) VSUBV(a, b *SparseRealVector) Vector {
     switch {
     case s_a == nil && s_b == nil:
       s_r.SetValue(0.0)
-    case s_a != nil:
+    case s_b == nil:
       s_r.SET(s_a)
-    case s_b != nil:
+    case s_a == nil:
       s_r.SET(s_b)
       s_r.NEG(s_r)
     default:
