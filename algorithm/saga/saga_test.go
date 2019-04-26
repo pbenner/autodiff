@@ -38,15 +38,18 @@ func hook(x, g ConstVector, y ConstScalar) bool {
 
 func Test1(test *testing.T) {
 
-  // x
-  x := make([]float64, 2)
+  // data
   cellSize  := []float64{
     1, 4, 1, 8, 1, 10, 1, 1, 1, 2, 1, 1, 3, 1, 7, 4, 1, 1, 7, 1}
   cellShape := []float64{
     1, 4, 1, 8, 1, 10, 1, 2, 1, 1, 1, 1, 3, 1, 5, 6, 1, 1, 7, 1}
-  // y
   class := []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
+  // x
+  x := make([]DenseBareRealVector, len(cellSize))
+  for i := 0; i < len(cellSize); i++ {
+    x[i] = NewDenseBareRealVector([]float64{cellSize[i], cellShape[i]})
+  }
 
   theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
   lr, _   := NewLogisticRegression(theta_0)
@@ -58,9 +61,7 @@ func Test1(test *testing.T) {
     if err := lr.SetParameters(theta); err != nil {
       return err
     }
-    x[0] = cellSize [i]
-    x[1] = cellShape[i]
-    if err := lr.ClassLogPdf(r, DenseConstRealVector(x), class[i] == 1); err != nil {
+    if err := lr.ClassLogPdf(r, x[i], class[i] == 1); err != nil {
       return err
     }
     if math.IsNaN(r.GetValue()) {
@@ -73,7 +74,7 @@ func Test1(test *testing.T) {
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(WrapperDense(f), len(cellSize), theta_0, Hook{hook}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, err := Run(WrapperDense(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
