@@ -235,6 +235,46 @@ func (obj *AvlNode) rotateRL() {
 
 /* -------------------------------------------------------------------------- */
 
+func (obj *AvlNode) balance1() bool {
+  switch obj.Balance {
+  case -1: obj.Balance = 0
+  case  0: obj.Balance = 1
+  case  1:
+    balance := obj.Right.Balance
+    if balance >= 0 {
+      obj.rotateRR()
+      if balance == 0 {
+        obj     .Balance = -1
+        obj.Left.Balance =  1
+      }
+    } else {
+      obj.rotateRL()
+    }
+  }
+  return obj.Balance == 0
+}
+
+func (obj *AvlNode) balance2() bool {
+  switch obj.Balance {
+  case  1: obj.Balance =  0
+  case  0: obj.Balance = -1
+  case -1:
+    balance := obj.Left.Balance
+    if balance <= 0 {
+      obj.rotateLL()
+      if balance == 0 {
+        obj     .Balance =  1
+        obj.Left.Balance = -1
+      }
+    } else {
+      obj.rotateLR()
+    }
+  }
+  return obj.Balance == 0
+}
+
+/* -------------------------------------------------------------------------- */
+
 type AvlIterator struct {
   node *AvlNode
 }
