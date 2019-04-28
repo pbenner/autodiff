@@ -235,6 +235,25 @@ func (obj *AvlNode) rotateRL() {
 
 /* -------------------------------------------------------------------------- */
 
+func (obj *AvlNode) del(parent *AvlNode) (int, bool) {
+  value := 0
+  if obj.Right != nil {
+    if v, balanced := obj.Right.del(obj); !balanced {
+      obj.balance2()
+    } else {
+      value = v
+    }
+  } else {
+    value = obj.Value
+    if obj.Value > parent.Value {
+      parent.Right = obj.Left
+    } else {
+      parent.Left  = obj.Left
+    }
+  }
+  return value, obj.Balance == 0
+}
+
 func (obj *AvlNode) balance1() bool {
   switch obj.Balance {
   case -1: obj.Balance = 0
