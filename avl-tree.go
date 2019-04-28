@@ -18,7 +18,9 @@ package autodiff
 
 /* -------------------------------------------------------------------------- */
 
-//import "fmt"
+import "fmt"
+import "bytes"
+import "io"
 
 /* -------------------------------------------------------------------------- */
 
@@ -97,6 +99,17 @@ func (obj *AvlTree) Delete(i int) bool {
 
 func (obj *AvlTree) Iterator() *AvlIterator {
   return NewAvlIterator(obj.Root)
+}
+
+func (obj *AvlTree) String() string {
+  var buffer bytes.Buffer
+
+  if obj.Root == nil {
+    buffer.WriteString("()")
+  } else {
+    obj.Root.string(&buffer)
+  }
+  return buffer.String()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -304,15 +317,16 @@ func (obj *AvlNode) deleteRec(parent *AvlNode) (int, bool) {
     } else {
       value = v
     }
+    return value, obj.Balance == 0
   } else {
     value = obj.Value
     if obj.Value > parent.Value {
-      parent.Right = obj.Left
+      parent.setRight(obj.Left)
     } else {
-      parent.Left  = obj.Left
+      parent.setLeft (obj.Left)
     }
+    return value, false
   }
-  return value, obj.Balance == 0
 }
 
 func (obj *AvlNode) balance1() bool {
@@ -351,6 +365,22 @@ func (obj *AvlNode) balance2() bool {
     }
   }
   return obj.Balance == 0
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (obj *AvlNode) string(writer io.Writer) {
+  if obj.Left != nil {
+    fmt.Fprintf(writer, "(")
+    obj.Left.string(writer)
+    fmt.Fprintf(writer, "):")
+  }
+  fmt.Fprintf(writer, "%d", obj.Value)
+  if obj.Right != nil {
+    fmt.Fprintf(writer, ":(")
+    obj.Right.string(writer)
+    fmt.Fprintf(writer, ")")
+  }
 }
 
 /* -------------------------------------------------------------------------- */
