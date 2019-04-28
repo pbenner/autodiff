@@ -120,12 +120,10 @@ func (obj *AvlNode) insert(i int, parent *AvlNode) (bool, bool) {
       return ok, obj.Balance == 0
     } else {
       if !balanced {
-        if obj.Balance == 1 {
-          obj.Balance = 0
-        } else
-        if obj.Balance == 0 {
-          obj.Balance = -1
-        } else {
+        switch obj.Balance {
+        case  1: obj.Balance =  0
+        case  0: obj.Balance = -1
+        case -1:
           if obj.Left.Balance == -1 {
             obj.rotateLL()
           } else {
@@ -139,12 +137,10 @@ func (obj *AvlNode) insert(i int, parent *AvlNode) (bool, bool) {
       return ok, true
     } else {
       if !balanced {
-        if obj.Balance == -1 {
-          obj.Balance = 0
-        } else
-        if obj.Balance ==  0 {
-          obj.Balance = 1
-        } else {
+        switch obj.Balance {
+        case -1: obj.Balance = 0
+        case  0: obj.Balance = 1
+        case  1:
           if obj.Right.Balance == 1 {
             obj.rotateRR()
           } else {
