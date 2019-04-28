@@ -235,10 +235,59 @@ func (obj *AvlNode) rotateRL() {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *AvlNode) del(parent *AvlNode) (int, bool) {
+func (obj *AvlNode) delete(i int, parent *AvlNode) (bool, bool) {
+  if obj == nil {
+    return false, obj.Balance == 0
+  }
+  if i < obj.Value {
+    ok, balanced := obj.Left .delete(i, obj)
+    if !balanced {
+      obj.balance1()
+    }
+    return ok, obj.Balance == 0
+  }
+  if i > obj.Value {
+    ok, balanced := obj.Right.delete(i, obj)
+    if !balanced {
+      obj.balance2()
+    }
+    return ok, obj.Balance == 0
+  }
+  // this node must be deleted
+  if obj.Right == nil && obj.Left == nil {
+    if i < parent.Value {
+      parent.Left  = nil
+    } else {
+      parent.Right = nil
+    }
+  } else
+  if obj.Right == nil {
+    if i < parent.Value {
+      parent.Left  = obj.Left
+    } else {
+      parent.Right = obj.Left
+    }
+  } else
+  if obj.Left == nil {
+    if i < parent.Value {
+      parent.Left  = obj.Right
+    } else {
+      parent.Right = obj.Right
+    }
+  } else {
+    v_, balanced := obj.Left.deleteRec(obj)
+    if !balanced {
+      obj.balance1()
+    }
+    obj.Value = v_
+  }
+  return true, obj.Balance == 0
+}
+
+func (obj *AvlNode) deleteRec(parent *AvlNode) (int, bool) {
   value := 0
   if obj.Right != nil {
-    if v, balanced := obj.Right.del(obj); !balanced {
+    if v, balanced := obj.Right.deleteRec(obj); !balanced {
       obj.balance2()
     } else {
       value = v
