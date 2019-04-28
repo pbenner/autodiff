@@ -18,6 +18,10 @@ package autodiff
 
 /* -------------------------------------------------------------------------- */
 
+//import "fmt"
+
+/* -------------------------------------------------------------------------- */
+
 type AvlNode struct {
   Value   int
   Balance int
@@ -110,10 +114,10 @@ func (obj *AvlNode) insert(i int, parent *AvlNode) (bool, bool) {
   }
   switch {
   case i == obj.Value:
-    return false, true
+    return false, obj.Balance == 0
   case i  < obj.Value:
     if ok, balanced := obj.Left .insert(i, obj); !ok {
-      return ok, true
+      return ok, obj.Balance == 0
     } else {
       if !balanced {
         if obj.Balance == 1 {
@@ -150,7 +154,7 @@ func (obj *AvlNode) insert(i int, parent *AvlNode) (bool, bool) {
       }
     }
   }
-  return true, true
+  return true, obj.Balance == 0
 }
 
 /* -------------------------------------------------------------------------- */
