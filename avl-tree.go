@@ -83,6 +83,18 @@ func (obj *AvlTree) Insert(i int) bool {
   return ok
 }
 
+func (obj *AvlTree) Delete(i int) bool {
+  if obj.Root == nil {
+    return false
+  }
+  if obj.Root.Value == i {
+    obj.Root = nil
+    return true
+  }
+  ok, _ := obj.Root.delete(i, nil)
+  return ok
+}
+
 func (obj *AvlTree) Iterator() *AvlIterator {
   return NewAvlIterator(obj.Root)
 }
