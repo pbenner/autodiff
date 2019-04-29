@@ -137,7 +137,7 @@ func Test2(test *testing.T) {
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error) {
+  f := func(i int, theta, g_old DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
@@ -187,7 +187,7 @@ func Test3(test *testing.T) {
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta *SparseBareRealVector) (ConstReal, *SparseBareRealVector, ConstReal, error) {
+  f := func(i int, theta, g_old *SparseBareRealVector) (ConstReal, *SparseBareRealVector, ConstReal, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
@@ -237,7 +237,7 @@ func Test4(test *testing.T) {
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta *SparseBareRealVector) (ConstReal, *SparseBareRealVector, ConstReal, error) {
+  f := func(i int, theta, g_old *SparseBareRealVector) (ConstReal, *SparseBareRealVector, ConstReal, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {

@@ -59,7 +59,7 @@ func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
   y := NullReal()
   w := ConstReal(1.0)
   g := DenseBareRealVector{}
-  f_ := func(i int, x_ DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error) {
+  f_ := func(i int, x_, g_old DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error) {
     if x.Dim() == 0 {
       x = NullDenseRealVector(x_.Dim())
     }
@@ -72,7 +72,12 @@ func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
       return ConstReal(0.0), nil, ConstReal(0.0), err
     }
     g.Set(DenseGradient{y})
-    return ConstReal(y.GetValue()), g, w, nil
+    if g_old == nil {
+      // old gradient is nil, initialization phase
+      return ConstReal(y.GetValue()), g.Clone(), w, nil
+    } else {
+      return ConstReal(y.GetValue()), g, w, nil
+    }
   }
   return f_
 }

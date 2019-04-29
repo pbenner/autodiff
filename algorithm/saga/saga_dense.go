@@ -25,7 +25,7 @@ import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-type ObjectiveDense func(int, DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error)
+type ObjectiveDense func(int, DenseBareRealVector, DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error)
 type InSituDense struct {
   T1 DenseBareRealVector
   T2 *BareReal
@@ -58,10 +58,11 @@ func (obj GradientDense) sub(v DenseBareRealVector) {
   }
 }
 func (obj *GradientDense) set(g DenseBareRealVector, w ConstReal) {
-  if obj.g == nil {
-    obj.g = NullDenseBareRealVector(g.Dim())
+  if obj.g != nil {
+    obj.g.SET(g)
+  } else {
+    obj.g = g
   }
-  obj.g.SET(g)
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
@@ -119,7 +120,7 @@ func sagaDense(
   dict := make([]GradientDense, n)
   // initialize s and d
   for i := 0; i < n; i++ {
-    if _, g, w, err := f(i, x1); err != nil {
+    if _, g, w, err := f(i, x1, nil); err != nil {
       return nil, err
     } else {
       dict[i].set(g, w)
@@ -132,11 +133,12 @@ func sagaDense(
     // get old gradient
     g1 = dict[j]
     // evaluate objective function
-    if y_, g, w, err := f(j, x1); err != nil {
+    if y_, g, w, err := f(j, x1, g1.g); err != nil {
       return x1, err
     } else {
       y = y_
-      g2.set(g, w)
+      g2.g = g
+      g2.w = w
     }
     t1.VDIVS(s , t_n)
     g2.add(t1)
