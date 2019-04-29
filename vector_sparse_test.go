@@ -148,7 +148,8 @@ func TestSparseVector6(test *testing.T) {
   v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
   r := []float64{1.0, -5.0, 2.0, 3.0, 4.0, 3.785, 6.0}
 
-  for i, it := 0, v.ITERATOR(); it.Ok(); it.Next() {
+  i := 0
+  for it := v.ITERATOR(); it.Ok(); it.Next() {
     // insert new value
     if i == 2 {
       v.AT(1000).SetValue(3.785)
@@ -158,6 +159,9 @@ func TestSparseVector6(test *testing.T) {
     }
     i++
   }
+  if i != len(r) {
+    test.Error("test failed")
+  }
 }
 
 func TestSparseVector7(test *testing.T) {
@@ -165,21 +169,49 @@ func TestSparseVector7(test *testing.T) {
   v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
   r := []float64{1.0, -5.0, 2.0, 3.0, 6.0}
 
-  for i, it := 0, v.ITERATOR(); it.Ok(); it.Next() {
+  i := 0
+  for it := v.ITERATOR(); it.Ok(); it.Next() {
     // insert new value
     if i == 2 {
       v.AT(310).SetValue(0.0)
-      for is := v.ITERATOR(); is.Ok(); is.Next() {
-      }
+      // apply changes
+      for is := v.ITERATOR(); is.Ok(); is.Next() {}
     }
     if s := it.GET(); i >= len(r) || s.GetValue() != r[i] {
       test.Error("test failed")
     }
     i++
   }
+  if i != len(r) {
+    test.Error("test failed")
+  }
 }
 
 func TestSparseVector8(test *testing.T) {
+
+  v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
+  r := []float64{1.0, -5.0, 2.0, 110.0, 3.0, 4.0, 6.0}
+
+  i := 0
+  for it := v.ITERATOR(); it.Ok(); it.Next() {
+    if s := it.GET(); i >= len(r) || s.GetValue() != r[i] {
+      test.Error("test failed")
+    }
+    // insert new value
+    if i == 2 {
+      v.AT(100).SetValue(0.0)
+      // apply changes
+      for is := v.ITERATOR(); is.Ok(); is.Next() {}
+      v.AT(110).SetValue(110.0)
+    }
+    i++
+  }
+  if i != len(r) {
+    test.Error("test failed")
+  }
+}
+
+func TestSparseVector9(test *testing.T) {
 
   v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
   r := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,3,2, 4,-5, 6}, 20000)
