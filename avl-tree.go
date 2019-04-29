@@ -101,7 +101,7 @@ func (obj *AvlTree) Iterator() *AvlIterator {
   return NewAvlIterator(obj.Root)
 }
 
-func (obj *AvlTree) String() string {
+func (obj AvlTree) String() string {
   var buffer bytes.Buffer
 
   if obj.Root == nil {
