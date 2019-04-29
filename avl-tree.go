@@ -352,7 +352,6 @@ func (obj *AvlNode) balance1() bool {
 }
 
 func (obj *AvlNode) balance2() bool {
-  fmt.Printf("calling balance2 on `%v'\n", obj)
   switch obj.Balance {
   case  1: obj.Balance =  0
   case  0: obj.Balance = -1
