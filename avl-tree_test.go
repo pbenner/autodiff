@@ -301,3 +301,35 @@ func TestAvlTree10(test *testing.T) {
     i++
   }
 }
+
+func TestAvlTree11(test *testing.T) {
+
+  tree := AvlTree{}
+  tree.Insert(50)
+  tree.Insert(25)
+  tree.Insert(10)
+  tree.Insert( 5)
+  tree.Insert( 7)
+  tree.Insert( 3)
+  tree.Insert(30)
+  tree.Insert(20)
+  tree.Insert( 8)
+  tree.Insert(15)
+
+  tree.Delete(10)
+
+  v := []int{3, 5, 7, 8, 15, 20, 25, 30, 50}
+  b := []int{0, 0, 0, 1,  0, -1,  0,  0, -1}
+
+  for i, it := 0, tree.Iterator(); it.Ok(); it.Next() {
+    switch {
+    case i >= len(v):
+      test.Error("test failed")
+    case it.Get().Value != v[i]:
+      test.Error("test failed")
+    case it.Get().Balance != b[i]:
+      test.Error("test failed")
+    }
+    i++
+  }
+}

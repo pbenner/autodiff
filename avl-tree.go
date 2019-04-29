@@ -89,7 +89,7 @@ func (obj *AvlTree) Delete(i int) bool {
   if obj.Root == nil {
     return false
   }
-  if obj.Root.Value == i {
+  if obj.Root.Value == i && obj.Root.Left == nil && obj.Root.Right == nil {
     obj.Root = nil
     return true
   }
@@ -312,23 +312,20 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (bool, bool) {
 }
 
 func (obj *AvlNode) deleteRec(parent *AvlNode) (int, bool) {
-  value := 0
   if obj.Right != nil {
     if v, balanced := obj.Right.deleteRec(obj); !balanced {
       balanced = obj.balance2()
-      return value, balanced
+      return v, balanced
     } else {
-      value = v
-      return value, balanced
+      return v, balanced
     }
   } else {
-    value = obj.Value
     if obj.Value > parent.Value {
       parent.setRight(obj.Left)
     } else {
       parent.setLeft (obj.Left)
     }
-    return value, false
+    return obj.Value, false
   }
 }
 
@@ -393,8 +390,10 @@ type AvlIterator struct {
 }
 
 func NewAvlIterator(node *AvlNode) *AvlIterator {
-  for node.Left != nil {
-    node = node.Left
+  if node != nil {
+    for node.Left != nil {
+      node = node.Left
+    }
   }
   r := AvlIterator{}
   r.node = node
