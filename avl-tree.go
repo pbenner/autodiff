@@ -281,25 +281,25 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (bool, bool) {
   // this node must be deleted
   if obj.Right == nil && obj.Left == nil {
     if i < parent.Value {
-      parent.Left  = nil
+      parent.setLeft (nil)
     } else {
-      parent.Right = nil
+      parent.setRight(nil)
     }
     return true, false
   }
   if obj.Right == nil {
     if i < parent.Value {
-      parent.Left  = obj.Left
+      parent.setLeft (obj.Left)
     } else {
-      parent.Right = obj.Left
+      parent.setRight(obj.Left)
     }
     return true, false
   }
   if obj.Left == nil {
     if i < parent.Value {
-      parent.Left  = obj.Right
+      parent.setLeft (obj.Right)
     } else {
-      parent.Right = obj.Right
+      parent.setRight(obj.Right)
     }
     return true, false
   }
