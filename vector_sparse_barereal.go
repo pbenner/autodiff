@@ -92,6 +92,9 @@ func (obj *SparseBareRealVector) CloneConstVector() ConstVector {
 // Copy scalars from w into this vector. The lengths of both vectors must
 // match.
 func (obj *SparseBareRealVector) Set(x ConstVector) {
+  if obj == x {
+    return
+  }
   if obj.Dim() != x.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
@@ -105,6 +108,9 @@ func (obj *SparseBareRealVector) Set(x ConstVector) {
   }
 }
 func (obj *SparseBareRealVector) SET(x *SparseBareRealVector) {
+  if obj == x {
+    return
+  }
   if obj.Dim() != x.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
