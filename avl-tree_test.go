@@ -355,6 +355,8 @@ func TestAvlTree12(test *testing.T) {
   v := []int{3, 8, 15, 20, 25, 30, 50}
   b := []int{0, 1,  0, -1, -1,  0, -1}
 
+  tree = *tree.Clone()
+
   for i, it := 0, tree.Iterator(); it.Ok(); it.Next() {
     switch {
     case i >= len(v):

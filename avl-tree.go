@@ -38,6 +38,10 @@ type AvlTree struct {
 
 /* -------------------------------------------------------------------------- */
 
+func NewAvlTree() *AvlTree {
+  return &AvlTree{}
+}
+
 func NewAvlNode(i int) *AvlNode {
   r := AvlNode{}
   r.Value = i
@@ -63,6 +67,12 @@ func (obj *AvlTree) Value() int {
 }
 
 /* -------------------------------------------------------------------------- */
+
+func (obj *AvlTree) Clone() *AvlTree {
+  r := AvlTree{}
+  r.Root = obj.Root.clone()
+  return &r
+}
 
 func (obj *AvlTree) FindNode(i int) *AvlNode {
   node := obj.Root
@@ -113,6 +123,18 @@ func (obj AvlTree) String() string {
 }
 
 /* -------------------------------------------------------------------------- */
+
+func (obj *AvlNode) clone() *AvlNode {
+  if obj == nil {
+    return nil
+  }
+  r := AvlNode{}
+  r.Value   = obj.Value
+  r.Balance = obj.Balance
+  r.setLeft (obj.Left .clone())
+  r.setRight(obj.Right.clone())
+  return &r
+}
 
 func (obj *AvlNode) setLeft(node *AvlNode) {
   obj.Left = node
