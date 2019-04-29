@@ -86,6 +86,27 @@ func (obj *AvlTree) FindNode(i int) *AvlNode {
   return nil
 }
 
+func (obj *AvlTree) FindNodeLE(i int) *AvlNode {
+  node1 := obj.Root
+  node1  = nil
+  node2 := obj.Root
+  for node2 != nil {
+    if i <= node2.Value {
+      node1 = node2
+    }
+    switch {
+    case i < node2.Value: node2 = node2.Left
+    case i > node2.Value: node2 = node2.Right
+    default: return node2
+    }
+  }
+  if node2 == nil {
+    return node1
+  } else {
+    return node2
+  }
+}
+
 func (obj *AvlTree) Insert(i int) bool {
   if obj.Root == nil {
     obj.Root = NewAvlNode(i)
@@ -109,6 +130,10 @@ func (obj *AvlTree) Delete(i int) bool {
 
 func (obj *AvlTree) Iterator() *AvlIterator {
   return NewAvlIterator(obj.Root)
+}
+
+func (obj *AvlTree) IteratorFrom(i int) *AvlIterator {
+  return &AvlIterator{obj.FindNodeLE(i)}
 }
 
 func (obj AvlTree) String() string {

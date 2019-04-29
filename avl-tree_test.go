@@ -369,3 +369,57 @@ func TestAvlTree12(test *testing.T) {
     i++
   }
 }
+
+func TestAvlTree13(test *testing.T) {
+
+  tree := AvlTree{}
+  tree.Insert(50)
+  tree.Insert(25)
+  tree.Insert(10)
+  tree.Insert( 5)
+  tree.Insert( 7)
+  tree.Insert( 3)
+  tree.Insert(30)
+  tree.Insert(20)
+  tree.Insert( 8)
+  tree.Insert(15)
+
+  v := []int{10, 15, 20, 25, 30, 50}
+
+  for i, it := 0, tree.IteratorFrom(9); it.Ok(); it.Next() {
+    switch {
+    case i >= len(v):
+      test.Error("test failed")
+    case it.Get().Value != v[i]:
+      test.Error("test failed")
+    }
+    i++
+  }
+}
+
+func TestAvlTree14(test *testing.T) {
+
+  tree := AvlTree{}
+  tree.Insert(50)
+  tree.Insert(25)
+  tree.Insert(10)
+  tree.Insert( 5)
+  tree.Insert( 7)
+  tree.Insert( 3)
+  tree.Insert(30)
+  tree.Insert(20)
+  tree.Insert( 8)
+  tree.Insert(15)
+
+  v := []int{7, 8, 10, 15, 20, 25, 30, 50}
+
+  for i, it := 0, tree.IteratorFrom(7); it.Ok(); it.Next() {
+    switch {
+    case i >= len(v):
+      test.Error("test failed")
+    case it.Get().Value != v[i]:
+      test.Error("test failed")
+    }
+    i++
+  }
+}
