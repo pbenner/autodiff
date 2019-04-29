@@ -120,10 +120,6 @@ func (obj *AvlTree) Delete(i int) bool {
   if obj.Root == nil {
     return false
   }
-  if obj.Root.Value == i && obj.Root.Left == nil && obj.Root.Right == nil {
-    obj.Root = nil
-    return true
-  }
   r, ok, _ := obj.Root.delete(i, nil)
   if ok {
     obj.Root = r
