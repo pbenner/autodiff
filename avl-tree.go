@@ -27,6 +27,7 @@ import "io"
 type AvlNode struct {
   Value   int
   Balance int
+  Deleted bool
   Left   *AvlNode
   Right  *AvlNode
   Parent *AvlNode
@@ -128,11 +129,11 @@ func (obj *AvlTree) Delete(i int) bool {
 }
 
 func (obj *AvlTree) Iterator() *AvlIterator {
-  return NewAvlIterator(obj.Root)
+  return NewAvlIterator(obj)
 }
 
 func (obj *AvlTree) IteratorFrom(i int) *AvlIterator {
-  return &AvlIterator{obj.FindNodeLE(i)}
+  return &AvlIterator{obj.FindNodeLE(i), obj}
 }
 
 func (obj AvlTree) String() string {
@@ -331,6 +332,7 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
     return obj, ok, balanced
   }
   // this node must be deleted
+  obj.Deleted = true
   if obj.Right == nil && obj.Left == nil {
     return nil, true, false
   }
@@ -437,9 +439,11 @@ func (obj *AvlNode) string(writer io.Writer) {
 
 type AvlIterator struct {
   node *AvlNode
+  tree *AvlTree
 }
 
-func NewAvlIterator(node *AvlNode) *AvlIterator {
+func NewAvlIterator(tree *AvlTree) *AvlIterator {
+  node := tree.Root
   if node != nil {
     for node.Left != nil {
       node = node.Left
@@ -447,6 +451,7 @@ func NewAvlIterator(node *AvlNode) *AvlIterator {
   }
   r := AvlIterator{}
   r.node = node
+  r.tree = tree
   return &r
 }
 
@@ -460,6 +465,10 @@ func (obj *AvlIterator) Ok() bool {
 
 func (obj *AvlIterator) Next() {
   if obj.node == nil {
+    return
+  }
+  if obj.node.Deleted {
+    obj.node = obj.tree.FindNodeLE(obj.node.Value+1)
     return
   }
   if obj.node.Right != nil {
