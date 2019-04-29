@@ -315,14 +315,20 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
     return obj, false, true
   }
   if i < obj.Value {
-    _, ok, balanced := obj.Left .delete(i, obj)
+    r, ok, balanced := obj.Left .delete(i, obj)
+    if ok {
+      obj.setLeft(r)
+    }
     if !balanced {
       balanced = obj.balance1()
     }
     return obj, ok, balanced
   }
   if i > obj.Value {
-    _, ok, balanced := obj.Right.delete(i, obj)
+    r, ok, balanced := obj.Right.delete(i, obj)
+    if ok {
+      obj.setRight(r)
+    }
     if !balanced {
       balanced = obj.balance2()
     }
@@ -330,33 +336,12 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
   }
   // this node must be deleted
   if obj.Right == nil && obj.Left == nil {
-    if parent != nil {
-      if i < parent.Value {
-        parent.setLeft (nil)
-      } else {
-        parent.setRight(nil)
-      }
-    }
     return nil, true, false
   }
   if obj.Right == nil {
-    if parent != nil {
-      if i < parent.Value {
-        parent.setLeft (obj.Left)
-      } else {
-        parent.setRight(obj.Left)
-      }
-    }
     return obj.Left, true, false
   }
   if obj.Left == nil {
-    if parent != nil {
-      if i < parent.Value {
-        parent.setLeft (obj.Right)
-      } else {
-        parent.setRight(obj.Right)
-      }
-    }
     return obj.Right, true, false
   }
   n_, balanced := obj.Left.deleteRec(obj)
@@ -428,14 +413,6 @@ func (obj *AvlNode) replace(node *AvlNode) *AvlNode {
   node.Balance = obj.Balance
   node.setRight(obj.Right)
   node.setLeft (obj.Left)
-  if node.Parent != nil {
-    switch {
-    case node.Value > node.Parent.Value:
-      node.Parent.setRight(node)
-    default:
-      node.Parent.setLeft (node)
-    }
-  }
   return node
 }
 
