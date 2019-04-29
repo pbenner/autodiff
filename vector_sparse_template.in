@@ -194,35 +194,29 @@ func (obj VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterato
 }
 
 func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
-  obj.indexSort()
-  r := VECTOR_ITERATOR{obj.indexClone(), obj, nil, -1}
-  r.Next()
+  r := VECTOR_ITERATOR{obj.indexIterator(), obj}
   return &r
 }
 
 func (obj VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
-  obj.indexSort()
   r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 
 func (obj VECTOR_TYPE) JOINT3_ITERATOR(b, c ConstVector) *VECTOR_JOINT3_ITERATOR {
-  obj.indexSort()
   r := VECTOR_JOINT3_ITERATOR{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
   r.Next()
   return &r
 }
 
 func (obj VECTOR_TYPE) JOINT_ITERATOR_(b VECTOR_TYPE) *VECTOR_JOINT_ITERATOR_ {
-  obj.indexSort()
   r := VECTOR_JOINT_ITERATOR_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
   r.Next()
   return &r
 }
 
 func (obj VECTOR_TYPE) JOINT3_ITERATOR_(b, c VECTOR_TYPE) *VECTOR_JOINT3_ITERATOR_ {
-  obj.indexSort()
   r := VECTOR_JOINT3_ITERATOR_{obj.ITERATOR(), b.ITERATOR(), c.ITERATOR(), -1, nil, nil, nil}
   r.Next()
   return &r
@@ -235,14 +229,7 @@ func (obj VECTOR_TYPE) Dim() int {
 }
 
 func (obj VECTOR_TYPE) At(i int) Scalar {
-  if v, ok := obj.values[i]; ok {
-    return v
-  } else {
-    v = NULL_SCALAR()
-    obj.values[i] = v
-    obj.indexInsert(i)
-    return v
-  }
+  return obj.AT(i)
 }
 
 func (obj VECTOR_TYPE) AT(i int) SCALAR_TYPE {
@@ -270,23 +257,24 @@ func (obj VECTOR_TYPE) ResetDerivatives() {
 
 func (obj VECTOR_TYPE) ReverseOrder() {
   n := obj.Dim()
-  v := make(map[int]SCALAR_TYPE)
+  values := make(map[int]SCALAR_TYPE)
+  index  := vectorSparseIndex{}
   for i, s := range obj.values {
-    v[n-i-1] = s
+    j := n-i-1
+    values[j] = s
+    index.indexInsert(j)
   }
-  for i := 0; i < len(obj.index); i++ {
-    if obj.index[i] != vectorSparseIndexMax {
-      obj.index[i] = n-obj.index[i]-1
-    }
-  }
-  obj.indexReverse()
-  obj.values = v
+  obj.values = values
+  obj.vectorSparseIndex = index
 }
 
 func (obj VECTOR_TYPE) Slice(i, j int) Vector {
   r := NIL_VECTOR(j-i)
-  for i_k := obj.indexFind(i); obj.index[i_k] < j; i_k++ {
-    k := obj.index[i_k]
+  for it := obj.indexIteratorFrom(i); it.Ok(); it.Next() {
+    if it.Get() >= j {
+      break
+    }
+    k := it.Get()
     r.values[k-i] = obj.values[k]
     r.indexInsert(k-i)
   }
@@ -402,7 +390,10 @@ func (obj VECTOR_TYPE) Permute(pi []int) error {
       }
     }
   }
-  obj.indexCopy(pi)
+  obj.vectorSparseIndex = vectorSparseIndex{}
+  for i := 0; i < len(pi); i++ {
+    obj.indexInsert(pi[i])
+  }
   return nil
 }
 
@@ -438,6 +429,7 @@ func (obj VECTOR_TYPE) Sort(reverse bool) {
     ip = obj.n - len(obj.values)
   }
   obj.values = make(map[int]SCALAR_TYPE)
+  obj.vectorSparseIndex = vectorSparseIndex{}
   if reverse {
     sort.Sort(sort.Reverse(r))
   } else {
@@ -447,14 +439,13 @@ func (obj VECTOR_TYPE) Sort(reverse bool) {
     if r.Value[i].GetValue() > 0.0 {
       // copy negative values
       obj.values[i+ip] = r.Value[i]
-      obj.index [i]    = i+ip
+      obj.indexInsert(i+ip)
     } else {
       // copy negative values
       obj.values[i+in] = r.Value[i]
-      obj.index [i]    = i+in
+      obj.indexInsert(i+in)
     }
   }
-  obj.indexSorted = false
 }
 
 /* type conversion
@@ -671,45 +662,34 @@ func (obj VECTOR_TYPE) nullScalar(s SCALAR_TYPE) bool {
  * -------------------------------------------------------------------------- */
 
 type VECTOR_ITERATOR struct {
-  vectorSparseIndex
+  vectorSparseIndexIterator
   v VECTOR_TYPE
-  s SCALAR_TYPE
-  i int
 }
 
 func (obj *VECTOR_ITERATOR) Get() Scalar {
-  return obj.s
+  return obj.GET()
 }
 
 func (obj *VECTOR_ITERATOR) GetConst() ConstScalar {
-  return obj.s
+  return obj.GET()
 }
 
 func (obj *VECTOR_ITERATOR) GET() SCALAR_TYPE {
-  return obj.s
-}
-
-func (obj *VECTOR_ITERATOR) Ok() bool {
-  return obj.i < len(obj.index)
+  return obj.v.values[obj.Index()]
 }
 
 func (obj *VECTOR_ITERATOR) Next() {
-  for obj.i++; obj.Ok(); obj.i++ {
+  obj.vectorSparseIndexIterator.Next()
+  for obj.Ok() && obj.v.nullScalar(obj.GET()) {
     i := obj.Index()
-    if i == vectorSparseIndexMax {
-      continue
-    }
-    if s := obj.v.values[i]; obj.v.nullScalar(s) {
-      obj.v.indexRevoke(obj.i)
-      delete(obj.v.values, i)
-    } else {
-      obj.s = s; break
-    }
+    obj.vectorSparseIndexIterator.Next()
+    delete(obj.v.values, i)
+    obj.v.indexDelete(i)
   }
 }
 
 func (obj *VECTOR_ITERATOR) Index() int {
-  return obj.index[obj.i]
+  return obj.vectorSparseIndexIterator.Get()
 }
 
 /* joint iterator

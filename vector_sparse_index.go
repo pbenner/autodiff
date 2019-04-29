@@ -19,60 +19,47 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 //import "fmt"
-import "sort"
 
 /* -------------------------------------------------------------------------- */
 
-const vectorSparseIndexMax = int(^uint(0) >> 1)
-
 type vectorSparseIndex struct {
-  index       []int
-  indexSorted   bool
+  AvlTree
 }
 
-func (obj vectorSparseIndex) indexSort() {
-  if obj.indexSorted == false {
-    sort.Ints(obj.index)
-    // remove revoked indices
-    for i := len(obj.index)-1; i >= 0; i-- {
-      if obj.index[i] == vectorSparseIndexMax {
-        obj.index = obj.index[0:i]
-      }
-    }
-    obj.indexSorted = true
-  }
+type vectorSparseIndexIterator struct {
+  AvlIterator
 }
+
+/* -------------------------------------------------------------------------- */
+
+func indexNew() vectorSparseIndex {
+  return vectorSparseIndex{}
+}
+
+/* -------------------------------------------------------------------------- */
 
 func (obj *vectorSparseIndex) indexInsert(i int) {
-  obj.index = append(obj.index, i)
-  obj.indexSorted = false
+  obj.AvlTree.Insert(i)
 }
 
-func (obj vectorSparseIndex) indexRevoke(k int) {
-  obj.index[k] = vectorSparseIndexMax
-  obj.indexSorted  = false
+func (obj *vectorSparseIndex) indexDelete(i int) {
+  obj.AvlTree.Delete(i)
 }
 
-func (obj vectorSparseIndex) indexReverse() {
-  for i := len(obj.index)/2-1; i >= 0; i-- {
-    j := len(obj.index)-1-i
-    obj.index[i], obj.index[j] = obj.index[j], obj.index[i]
-  }
+func (obj *vectorSparseIndex) indexIterator() vectorSparseIndexIterator {
+  return vectorSparseIndexIterator{*obj.AvlTree.Iterator()}
 }
 
-func (obj vectorSparseIndex) indexFind(i int) int {
-  obj.indexSort()
-  return sort.SearchInts(obj.index, i)
+func (obj *vectorSparseIndex) indexIteratorFrom(i int) vectorSparseIndexIterator {
+  return vectorSparseIndexIterator{*obj.AvlTree.IteratorFrom(i)}
 }
 
-func (obj vectorSparseIndex) indexCopy(src []int) {
-  copy(obj.index, src)
-  obj.indexSorted = false
+func (obj *vectorSparseIndex) indexClone() vectorSparseIndex {
+  return vectorSparseIndex{*obj.AvlTree.Clone()}
 }
 
-func (obj vectorSparseIndex) indexClone() vectorSparseIndex {
-  r := vectorSparseIndex{}
-  r.index = make([]int, len(obj.index))
-  copy(r.index, obj.index)
-  return r
+/* -------------------------------------------------------------------------- */
+
+func (obj *vectorSparseIndexIterator) Get() int {
+  return obj.AvlIterator.Get().Value
 }

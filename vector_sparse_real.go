@@ -158,31 +158,25 @@ func (obj *SparseRealVector) ConstJointIterator(b ConstVector) VectorConstJointI
   return obj.JOINT_ITERATOR(b)
 }
 func (obj *SparseRealVector) ITERATOR() *SparseRealVectorIterator {
-  obj.indexSort()
-  r := SparseRealVectorIterator{obj.indexClone(), obj, nil, -1}
-  r.Next()
+  r := SparseRealVectorIterator{obj.indexIterator(), obj}
   return &r
 }
 func (obj *SparseRealVector) JOINT_ITERATOR(b ConstVector) *SparseRealVectorJointIterator {
-  obj.indexSort()
   r := SparseRealVectorJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) JOINT3_ITERATOR(b, c ConstVector) *SparseRealVectorJoint3Iterator {
-  obj.indexSort()
   r := SparseRealVectorJoint3Iterator{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, nil, nil, nil}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) JOINT_ITERATOR_(b *SparseRealVector) *SparseRealVectorJointIterator_ {
-  obj.indexSort()
   r := SparseRealVectorJointIterator_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
   r.Next()
   return &r
 }
 func (obj *SparseRealVector) JOINT3_ITERATOR_(b, c *SparseRealVector) *SparseRealVectorJoint3Iterator_ {
-  obj.indexSort()
   r := SparseRealVectorJoint3Iterator_{obj.ITERATOR(), b.ITERATOR(), c.ITERATOR(), -1, nil, nil, nil}
   r.Next()
   return &r
@@ -192,14 +186,7 @@ func (obj *SparseRealVector) Dim() int {
   return obj.n
 }
 func (obj *SparseRealVector) At(i int) Scalar {
-  if v, ok := obj.values[i]; ok {
-    return v
-  } else {
-    v = NullReal()
-    obj.values[i] = v
-    obj.indexInsert(i)
-    return v
-  }
+  return obj.AT(i)
 }
 func (obj *SparseRealVector) AT(i int) *Real {
   if v, ok := obj.values[i]; ok {
@@ -223,22 +210,23 @@ func (obj *SparseRealVector) ResetDerivatives() {
 }
 func (obj *SparseRealVector) ReverseOrder() {
   n := obj.Dim()
-  v := make(map[int]*Real)
+  values := make(map[int]*Real)
+  index := vectorSparseIndex{}
   for i, s := range obj.values {
-    v[n-i-1] = s
+    j := n-i-1
+    values[j] = s
+    index.indexInsert(j)
   }
-  for i := 0; i < len(obj.index); i++ {
-    if obj.index[i] != vectorSparseIndexMax {
-      obj.index[i] = n-obj.index[i]-1
-    }
-  }
-  obj.indexReverse()
-  obj.values = v
+  obj.values = values
+  obj.vectorSparseIndex = index
 }
 func (obj *SparseRealVector) Slice(i, j int) Vector {
   r := nilSparseRealVector(j-i)
-  for i_k := obj.indexFind(i); obj.index[i_k] < j; i_k++ {
-    k := obj.index[i_k]
+  for it := obj.indexIteratorFrom(i); it.Ok(); it.Next() {
+    if it.Get() >= j {
+      break
+    }
+    k := it.Get()
     r.values[k-i] = obj.values[k]
     r.indexInsert(k-i)
   }
@@ -342,7 +330,10 @@ func (obj *SparseRealVector) Permute(pi []int) error {
       }
     }
   }
-  obj.indexCopy(pi)
+  obj.vectorSparseIndex = vectorSparseIndex{}
+  for i := 0; i < len(pi); i++ {
+    obj.indexInsert(pi[i])
+  }
   return nil
 }
 /* sorting
@@ -372,6 +363,7 @@ func (obj *SparseRealVector) Sort(reverse bool) {
     ip = obj.n - len(obj.values)
   }
   obj.values = make(map[int]*Real)
+  obj.vectorSparseIndex = vectorSparseIndex{}
   if reverse {
     sort.Sort(sort.Reverse(r))
   } else {
@@ -381,14 +373,13 @@ func (obj *SparseRealVector) Sort(reverse bool) {
     if r.Value[i].GetValue() > 0.0 {
       // copy negative values
       obj.values[i+ip] = r.Value[i]
-      obj.index [i] = i+ip
+      obj.indexInsert(i+ip)
     } else {
       // copy negative values
       obj.values[i+in] = r.Value[i]
-      obj.index [i] = i+in
+      obj.indexInsert(i+in)
     }
   }
-  obj.indexSorted = false
 }
 /* type conversion
  * -------------------------------------------------------------------------- */
@@ -584,39 +575,29 @@ func (obj *SparseRealVector) nullScalar(s *Real) bool {
 /* iterator
  * -------------------------------------------------------------------------- */
 type SparseRealVectorIterator struct {
-  vectorSparseIndex
+  vectorSparseIndexIterator
   v *SparseRealVector
-  s *Real
-  i int
 }
 func (obj *SparseRealVectorIterator) Get() Scalar {
-  return obj.s
+  return obj.GET()
 }
 func (obj *SparseRealVectorIterator) GetConst() ConstScalar {
-  return obj.s
+  return obj.GET()
 }
 func (obj *SparseRealVectorIterator) GET() *Real {
-  return obj.s
-}
-func (obj *SparseRealVectorIterator) Ok() bool {
-  return obj.i < len(obj.index)
+  return obj.v.values[obj.Index()]
 }
 func (obj *SparseRealVectorIterator) Next() {
-  for obj.i++; obj.Ok(); obj.i++ {
+  obj.vectorSparseIndexIterator.Next()
+  for obj.Ok() && obj.v.nullScalar(obj.GET()) {
     i := obj.Index()
-    if i == vectorSparseIndexMax {
-      continue
-    }
-    if s := obj.v.values[i]; obj.v.nullScalar(s) {
-      obj.v.indexRevoke(obj.i)
-      delete(obj.v.values, i)
-    } else {
-      obj.s = s; break
-    }
+    obj.vectorSparseIndexIterator.Next()
+    delete(obj.v.values, i)
+    obj.v.indexDelete(i)
   }
 }
 func (obj *SparseRealVectorIterator) Index() int {
-  return obj.index[obj.i]
+  return obj.vectorSparseIndexIterator.Get()
 }
 /* joint iterator
  * -------------------------------------------------------------------------- */

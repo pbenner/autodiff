@@ -45,7 +45,6 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
       r.indexInsert(k)
     }
   }
-  r.indexSort()
   return r
 }
 
@@ -97,9 +96,12 @@ func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
 
 func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
   r := NilSparseConstRealVector(j-i)
-  for i_k := obj.indexFind(i); obj.index[i_k] < j; i_k++ {
-    k := obj.index[i_k]
-    r.values[k-i]    = obj.values[k]
+  for it := obj.indexIteratorFrom(i); it.Ok(); it.Next() {
+    if it.Get() >= j {
+      break
+    }
+    k := it.Get()
+    r.values[k-i] = obj.values[k]
     r.indexInsert(k-i)
   }
   return r
@@ -122,8 +124,7 @@ func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJo
 }
 
 func (obj SparseConstRealVector) ITERATOR() *SparseConstRealVectorIterator {
-  r := SparseConstRealVectorIterator{obj, -1}
-  r.Next()
+  r := SparseConstRealVectorIterator{obj.indexIterator(), obj}
   return &r
 }
 
@@ -214,28 +215,20 @@ func (a SparseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
  * -------------------------------------------------------------------------- */
 
 type SparseConstRealVectorIterator struct {
-  SparseConstRealVector
-  i int
+  vectorSparseIndexIterator
+  v SparseConstRealVector
 }
 
 func (obj *SparseConstRealVectorIterator) GetConst() ConstScalar {
-  return ConstReal(obj.values[obj.Index()])
+  return obj.GET()
 }
 
 func (obj *SparseConstRealVectorIterator) GET() ConstReal {
-  return ConstReal(obj.values[obj.Index()])
-}
-
-func (obj *SparseConstRealVectorIterator) Ok() bool {
-  return obj.i < len(obj.index)
-}
-
-func (obj *SparseConstRealVectorIterator) Next() {
-  obj.i++
+  return obj.v.values[obj.vectorSparseIndexIterator.Get()]
 }
 
 func (obj *SparseConstRealVectorIterator) Index() int {
-  return obj.index[obj.i]
+  return obj.vectorSparseIndexIterator.Get()
 }
 
 /* joint iterator
