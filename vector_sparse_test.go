@@ -172,7 +172,7 @@ func TestSparseVector7(test *testing.T) {
       for is := v.ITERATOR(); is.Ok(); is.Next() {
       }
     }
-    if s := it.GET(); it.Index() >= len(r) || s.GetValue() != r[i] {
+    if s := it.GET(); i >= len(r) || s.GetValue() != r[i] {
       test.Error("test failed")
     }
     i++
