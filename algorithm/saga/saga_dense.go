@@ -128,10 +128,6 @@ func sagaDense(
   }
   y := ConstReal(math.NaN())
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
-    // execute hook if available
-    if hook.Value != nil && hook.Value(x1, s, y) {
-      break
-    }
     j := rand.Intn(n)
     // get old gradient
     g1 = dict[j]
@@ -159,6 +155,7 @@ func sagaDense(
     // evaluate stopping criterion
     max_x := 0.0
     max_delta := 0.0
+    delta := 0.0
     for it := x1.JOINT_ITERATOR_(x2); it.Ok(); it.Next() {
       s1, s2 := it.GET()
       v1, v2 := 0.0, 0.0
@@ -173,6 +170,15 @@ func sagaDense(
       }
       max_x = math.Max(max_x , math.Abs(v2))
       max_delta = math.Max(max_delta, math.Abs(v2 - v1))
+    }
+    if max_x != 0.0 {
+      delta = max_delta/max_x
+    } else {
+      delta = max_delta
+    }
+    // execute hook if available
+    if hook.Value != nil && hook.Value(x1, ConstReal(delta), y) {
+      break
     }
     if max_x != 0.0 && max_delta/max_x <= epsilon.Value*gamma.Value ||
       (max_x == 0.0 && max_delta == 0.0) {

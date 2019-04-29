@@ -27,9 +27,9 @@ import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 
 /* -------------------------------------------------------------------------- */
 
-func hook(x, g ConstVector, y ConstScalar) bool {
+func hook(x ConstVector, step, y ConstScalar) bool {
   fmt.Printf("x: %v\n", x)
-  fmt.Printf("g: %v\n", g)
+  fmt.Printf("s: %v\n", step)
   fmt.Println()
   return false
 }
