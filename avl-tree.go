@@ -262,21 +262,21 @@ func (obj *AvlNode) rotateRL() {
 
 func (obj *AvlNode) delete(i int, parent *AvlNode) (bool, bool) {
   if obj == nil {
-    return false, obj.Balance == 0
+    return false, true
   }
   if i < obj.Value {
     ok, balanced := obj.Left .delete(i, obj)
     if !balanced {
-      obj.balance1()
+      balanced = obj.balance1()
     }
-    return ok, obj.Balance == 0
+    return ok, balanced
   }
   if i > obj.Value {
     ok, balanced := obj.Right.delete(i, obj)
     if !balanced {
-      obj.balance2()
+      balanced = obj.balance2()
     }
-    return ok, obj.Balance == 0
+    return ok, balanced
   }
   // this node must be deleted
   if obj.Right == nil && obj.Left == nil {
@@ -285,39 +285,42 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (bool, bool) {
     } else {
       parent.Right = nil
     }
-  } else
+    return true, false
+  }
   if obj.Right == nil {
     if i < parent.Value {
       parent.Left  = obj.Left
     } else {
       parent.Right = obj.Left
     }
-  } else
+    return true, false
+  }
   if obj.Left == nil {
     if i < parent.Value {
       parent.Left  = obj.Right
     } else {
       parent.Right = obj.Right
     }
-  } else {
-    v_, balanced := obj.Left.deleteRec(obj)
-    if !balanced {
-      obj.balance1()
-    }
-    obj.Value = v_
+    return true, false
   }
-  return true, obj.Balance == 0
+  v_, balanced := obj.Left.deleteRec(obj)
+  if !balanced {
+    balanced = obj.balance1()
+  }
+  obj.Value = v_
+  return true, balanced
 }
 
 func (obj *AvlNode) deleteRec(parent *AvlNode) (int, bool) {
   value := 0
   if obj.Right != nil {
     if v, balanced := obj.Right.deleteRec(obj); !balanced {
-      obj.balance2()
+      balanced = obj.balance2()
+      return value, balanced
     } else {
       value = v
+      return value, balanced
     }
-    return value, obj.Balance == 0
   } else {
     value = obj.Value
     if obj.Value > parent.Value {
@@ -345,10 +348,11 @@ func (obj *AvlNode) balance1() bool {
       obj.rotateRL()
     }
   }
-  return obj.Balance == 0
+  return obj.Balance != 0
 }
 
 func (obj *AvlNode) balance2() bool {
+  fmt.Printf("calling balance2 on `%v'\n", obj)
   switch obj.Balance {
   case  1: obj.Balance =  0
   case  0: obj.Balance = -1
@@ -364,7 +368,7 @@ func (obj *AvlNode) balance2() bool {
       obj.rotateLR()
     }
   }
-  return obj.Balance == 0
+  return obj.Balance != 0
 }
 
 /* -------------------------------------------------------------------------- */

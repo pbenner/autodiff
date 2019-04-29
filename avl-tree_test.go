@@ -188,7 +188,7 @@ func TestAvlTree7(test *testing.T) {
   tree.Delete(25)
 
   v := []int{3,  5,  7, 8, 10, 15, 20, 30, 50}
-  b := []int{0, -1, -1, 0,  0,  0, -1,  0, -1}
+  b := []int{0, -1, -1, 0,  0,  0,  1,  0, -1}
 
   for i, it := 0, tree.Iterator(); it.Ok(); it.Next() {
     switch {
