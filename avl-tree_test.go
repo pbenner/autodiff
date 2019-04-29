@@ -174,6 +174,33 @@ func TestAvlTree6(test *testing.T) {
 func TestAvlTree7(test *testing.T) {
 
   tree := AvlTree{}
+  tree.Insert(1)
+  tree.Insert(0)
+
+  tree.Delete(1)
+
+  v := []int{0}
+  b := []int{0}
+
+  if tree.Root == nil || tree.Root.Parent != nil {
+    test.Error("test failed")
+  }
+  for i, it := 0, tree.Iterator(); it.Ok(); it.Next() {
+    switch {
+    case i >= len(v):
+      test.Error("test failed")
+    case it.Get().Value != v[i]:
+      test.Error("test failed")
+    case it.Get().Balance != b[i]:
+      test.Error("test failed")
+    }
+    i++
+  }
+}
+
+func TestAvlTree8(test *testing.T) {
+
+  tree := AvlTree{}
   tree.Insert(50)
   tree.Insert(25)
   tree.Insert(10)
@@ -203,7 +230,7 @@ func TestAvlTree7(test *testing.T) {
   }
 }
 
-func TestAvlTree8(test *testing.T) {
+func TestAvlTree9(test *testing.T) {
 
   tree := AvlTree{}
   tree.Insert(50)
@@ -235,7 +262,7 @@ func TestAvlTree8(test *testing.T) {
   }
 }
 
-func TestAvlTree9(test *testing.T) {
+func TestAvlTree10(test *testing.T) {
 
   tree := AvlTree{}
   tree.Insert(50)
@@ -268,7 +295,7 @@ func TestAvlTree9(test *testing.T) {
   }
 }
 
-func TestAvlTree10(test *testing.T) {
+func TestAvlTree11(test *testing.T) {
 
   tree := AvlTree{}
   tree.Insert(50)
@@ -302,7 +329,7 @@ func TestAvlTree10(test *testing.T) {
   }
 }
 
-func TestAvlTree11(test *testing.T) {
+func TestAvlTree12(test *testing.T) {
 
   tree := AvlTree{}
   tree.Insert(50)
@@ -334,7 +361,7 @@ func TestAvlTree11(test *testing.T) {
   }
 }
 
-func TestAvlTree12(test *testing.T) {
+func TestAvlTree13(test *testing.T) {
 
   tree := AvlTree{}
   tree.Insert(50)
@@ -370,7 +397,7 @@ func TestAvlTree12(test *testing.T) {
   }
 }
 
-func TestAvlTree13(test *testing.T) {
+func TestAvlTree14(test *testing.T) {
 
   tree := AvlTree{}
   tree.Insert(50)
@@ -397,7 +424,7 @@ func TestAvlTree13(test *testing.T) {
   }
 }
 
-func TestAvlTree14(test *testing.T) {
+func TestAvlTree15(test *testing.T) {
 
   tree := AvlTree{}
   tree.Insert(50)

@@ -335,9 +335,11 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
     return nil, true, false
   }
   if obj.Right == nil {
+    obj.Left.Parent = nil
     return obj.Left, true, false
   }
   if obj.Left == nil {
+    obj.Right.Parent = nil
     return obj.Right, true, false
   }
   n_, balanced := obj.Left.deleteRec(obj)
@@ -409,6 +411,9 @@ func (obj *AvlNode) replace(node *AvlNode) *AvlNode {
   node.Balance = obj.Balance
   node.setRight(obj.Right)
   node.setLeft (obj.Left)
+  obj.Parent = nil
+  obj.Right  = nil
+  obj.Left   = nil
   return node
 }
 
