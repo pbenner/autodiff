@@ -42,7 +42,7 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type OBJECTIVE func(int, VECTOR_TYPE, VECTOR_TYPE) (CONST_SCALAR_TYPE, VECTOR_TYPE, CONST_SCALAR_TYPE, error)
+type OBJECTIVE func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SCALAR_TYPE, VECTOR_TYPE, bool, error)
 
 type IN_SITU_TYPE struct {
   T1 VECTOR_TYPE
@@ -54,6 +54,7 @@ type IN_SITU_TYPE struct {
 type GRADIENT_TYPE struct {
   g       VECTOR_TYPE
   w CONST_SCALAR_TYPE
+  g_const bool
 }
 
 func (obj GRADIENT_TYPE) add(v VECTOR_TYPE) {
@@ -80,13 +81,18 @@ func (obj GRADIENT_TYPE) sub(v VECTOR_TYPE) {
   }
 }
 
-func (obj *GRADIENT_TYPE) set(g VECTOR_TYPE, w CONST_SCALAR_TYPE) {
-  if obj.g != nil {
-    obj.g.SET(g)
-  } else {
+func (obj *GRADIENT_TYPE) set(w CONST_SCALAR_TYPE, g VECTOR_TYPE, g_const bool) {
+  if g_const {
     obj.g = g
+  } else {
+    if obj.g != nil {
+      obj.g.SET(g)
+    } else {
+      obj.g = g.Clone()
+    }
   }
-  obj.w = w
+  obj.g_const = g_const
+  obj.w       = w
 }
 
 /* -------------------------------------------------------------------------- */
@@ -152,10 +158,10 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   dict := make([]GRADIENT_TYPE, n)
   // initialize s and d
   for i := 0; i < n; i++ {
-    if _, g, w, err := f(i, x1, nil); err != nil {
+    if _, w, g, g_const, err := f(i, x1); err != nil {
       return nil, err
     } else {
-      dict[i].set(g, w)
+      dict[i].set(w, g, g_const)
       dict[i].add(s)
     }
   }
@@ -167,12 +173,11 @@ func STR_CONCAT(saga, SAGA_TYPE)(
     // get old gradient
     g1 = dict[j]
     // evaluate objective function
-    if y_, g, w, err := f(j, x1, g1.g); err != nil {
+    if y_, w, g, g_const, err := f(j, x1); err != nil {
       return x1, err
     } else {
-      y    = y_
-      g2.g = g
-      g2.w = w
+      y = y_
+      g2.set(w, g, g_const)
     }
 
     t1.VDIVS(s , t_n)
@@ -228,7 +233,7 @@ func STR_CONCAT(saga, SAGA_TYPE)(
     g2.add(s)
 
     // update dictionary
-    dict[j].set(g2.g, g2.w)
+    dict[j].set(g2.w, g2.g, g2.g_const)
   }
   return x1, nil
 }

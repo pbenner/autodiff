@@ -25,7 +25,7 @@ import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-type ObjectiveDense func(int, DenseBareRealVector, DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error)
+type ObjectiveDense func(int, DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error)
 type InSituDense struct {
   T1 DenseBareRealVector
   T2 *BareReal
@@ -34,6 +34,7 @@ type InSituDense struct {
 type GradientDense struct {
   g DenseBareRealVector
   w ConstReal
+  g_const bool
 }
 func (obj GradientDense) add(v DenseBareRealVector) {
   for it := v.JOINT_ITERATOR_(obj.g); it.Ok(); it.Next() {
@@ -57,12 +58,17 @@ func (obj GradientDense) sub(v DenseBareRealVector) {
     }
   }
 }
-func (obj *GradientDense) set(g DenseBareRealVector, w ConstReal) {
-  if obj.g != nil {
-    obj.g.SET(g)
-  } else {
+func (obj *GradientDense) set(w ConstReal, g DenseBareRealVector, g_const bool) {
+  if g_const {
     obj.g = g
+  } else {
+    if obj.g != nil {
+      obj.g.SET(g)
+    } else {
+      obj.g = g.Clone()
+    }
   }
+  obj.g_const = g_const
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
@@ -120,10 +126,10 @@ func sagaDense(
   dict := make([]GradientDense, n)
   // initialize s and d
   for i := 0; i < n; i++ {
-    if _, g, w, err := f(i, x1, nil); err != nil {
+    if _, w, g, g_const, err := f(i, x1); err != nil {
       return nil, err
     } else {
-      dict[i].set(g, w)
+      dict[i].set(w, g, g_const)
       dict[i].add(s)
     }
   }
@@ -133,12 +139,11 @@ func sagaDense(
     // get old gradient
     g1 = dict[j]
     // evaluate objective function
-    if y_, g, w, err := f(j, x1, g1.g); err != nil {
+    if y_, w, g, g_const, err := f(j, x1); err != nil {
       return x1, err
     } else {
       y = y_
-      g2.g = g
-      g2.w = w
+      g2.set(w, g, g_const)
     }
     t1.VDIVS(s , t_n)
     g2.add(t1)
@@ -191,7 +196,7 @@ func sagaDense(
     g1.sub(s)
     g2.add(s)
     // update dictionary
-    dict[j].set(g2.g, g2.w)
+    dict[j].set(g2.w, g2.g, g2.g_const)
   }
   return x1, nil
 }

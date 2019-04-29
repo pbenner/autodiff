@@ -137,24 +137,24 @@ func Test2(test *testing.T) {
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta, g_old DenseBareRealVector) (ConstReal, DenseBareRealVector, ConstReal, error) {
+  f := func(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
-      return y, nil, w, fmt.Errorf("index out of bounds")
+      return y, w, nil, true, fmt.Errorf("index out of bounds")
     }
     if err := lr.SetParameters(theta); err != nil {
-      return y, nil, w, err
+      return y, w, nil, true, err
     }
     if err := lr.LogPdf(r, x[i]); err != nil {
-      return y, nil, w, err
+      return y, w, nil, true, err
     }
     if math.IsNaN(r.GetValue()) {
-      return y, nil, w, fmt.Errorf("NaN value detected")
+      return y, w, nil, true, fmt.Errorf("NaN value detected")
     }
     y = ConstReal(r.GetValue())
     w = ConstReal(math.Exp(r.GetValue()) - class[i])
-    return y, x[i], w, nil
+    return y, w, x[i], true, nil
   }
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
@@ -187,24 +187,24 @@ func Test3(test *testing.T) {
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta, g_old *SparseBareRealVector) (ConstReal, *SparseBareRealVector, ConstReal, error) {
+  f := func(i int, theta *SparseBareRealVector) (ConstReal, ConstReal, *SparseBareRealVector, bool, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
-      return y, nil, w, fmt.Errorf("index out of bounds")
+      return y, w, nil, true, fmt.Errorf("index out of bounds")
     }
     if err := lr.SetParameters(theta); err != nil {
-      return y, nil, w, err
+      return y, w, nil, true, err
     }
     if err := lr.LogPdf(r, x[i]); err != nil {
-      return y, nil, w, err
+      return y, w, nil, true, err
     }
     if math.IsNaN(r.GetValue()) {
-      return y, nil, w, fmt.Errorf("NaN value detected")
+      return y, w, nil, true, fmt.Errorf("NaN value detected")
     }
     y = ConstReal(r.GetValue())
     w = ConstReal(math.Exp(r.GetValue()) - class[i])
-    return y, x[i], w, nil
+    return y, w, x[i], true, nil
   }
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
@@ -237,24 +237,24 @@ func Test4(test *testing.T) {
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta, g_old *SparseBareRealVector) (ConstReal, *SparseBareRealVector, ConstReal, error) {
+  f := func(i int, theta *SparseBareRealVector) (ConstReal, ConstReal, *SparseBareRealVector, bool, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
-      return y, nil, w, fmt.Errorf("index out of bounds")
+      return y, w, nil, true, fmt.Errorf("index out of bounds")
     }
     if err := lr.SetParameters(theta); err != nil {
-      return y, nil, w, err
+      return y, w, nil, true, err
     }
     if err := lr.LogPdf(r, x[i]); err != nil {
-      return y, nil, w, err
+      return y, w, nil, true, err
     }
     if math.IsNaN(r.GetValue()) {
-      return y, nil, w, fmt.Errorf("NaN value detected")
+      return y, w, nil, true, fmt.Errorf("NaN value detected")
     }
     y = ConstReal(r.GetValue())
     w = ConstReal(math.Exp(r.GetValue()) - class[i])
-    return y, x[i], w, nil
+    return y, w, x[i], true, nil
   }
   z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
   t := NullReal()
