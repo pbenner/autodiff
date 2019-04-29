@@ -124,7 +124,10 @@ func (obj *AvlTree) Delete(i int) bool {
     obj.Root = nil
     return true
   }
-  ok, _ := obj.Root.delete(i, nil)
+  r, ok, _ := obj.Root.delete(i, nil)
+  if ok {
+    obj.Root = r
+  }
   return ok
 }
 
@@ -307,58 +310,64 @@ func (obj *AvlNode) rotateRL() {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *AvlNode) delete(i int, parent *AvlNode) (bool, bool) {
+func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
   if obj == nil {
-    return false, true
+    return obj, false, true
   }
   if i < obj.Value {
-    ok, balanced := obj.Left .delete(i, obj)
+    _, ok, balanced := obj.Left .delete(i, obj)
     if !balanced {
       balanced = obj.balance1()
     }
-    return ok, balanced
+    return obj, ok, balanced
   }
   if i > obj.Value {
-    ok, balanced := obj.Right.delete(i, obj)
+    _, ok, balanced := obj.Right.delete(i, obj)
     if !balanced {
       balanced = obj.balance2()
     }
-    return ok, balanced
+    return obj, ok, balanced
   }
   // this node must be deleted
   if obj.Right == nil && obj.Left == nil {
-    if i < parent.Value {
-      parent.setLeft (nil)
-    } else {
-      parent.setRight(nil)
+    if parent != nil {
+      if i < parent.Value {
+        parent.setLeft (nil)
+      } else {
+        parent.setRight(nil)
+      }
     }
-    return true, false
+    return nil, true, false
   }
   if obj.Right == nil {
-    if i < parent.Value {
-      parent.setLeft (obj.Left)
-    } else {
-      parent.setRight(obj.Left)
+    if parent != nil {
+      if i < parent.Value {
+        parent.setLeft (obj.Left)
+      } else {
+        parent.setRight(obj.Left)
+      }
     }
-    return true, false
+    return obj.Left, true, false
   }
   if obj.Left == nil {
-    if i < parent.Value {
-      parent.setLeft (obj.Right)
-    } else {
-      parent.setRight(obj.Right)
+    if parent != nil {
+      if i < parent.Value {
+        parent.setLeft (obj.Right)
+      } else {
+        parent.setRight(obj.Right)
+      }
     }
-    return true, false
+    return obj.Right, true, false
   }
-  v_, balanced := obj.Left.deleteRec(obj)
+  n_, balanced := obj.Left.deleteRec(obj)
+  obj = obj.replace(n_)
   if !balanced {
     balanced = obj.balance1()
   }
-  obj.Value = v_
-  return true, balanced
+  return obj, true, balanced
 }
 
-func (obj *AvlNode) deleteRec(parent *AvlNode) (int, bool) {
+func (obj *AvlNode) deleteRec(parent *AvlNode) (*AvlNode, bool) {
   if obj.Right != nil {
     if v, balanced := obj.Right.deleteRec(obj); !balanced {
       balanced = obj.balance2()
@@ -372,7 +381,7 @@ func (obj *AvlNode) deleteRec(parent *AvlNode) (int, bool) {
     } else {
       parent.setLeft (obj.Left)
     }
-    return obj.Value, false
+    return obj, false
   }
 }
 
@@ -412,6 +421,22 @@ func (obj *AvlNode) balance2() bool {
     }
   }
   return obj.Balance != 0
+}
+
+func (obj *AvlNode) replace(node *AvlNode) *AvlNode {
+  node.Parent  = obj.Parent
+  node.Balance = obj.Balance
+  node.setRight(obj.Right)
+  node.setLeft (obj.Left)
+  if node.Parent != nil {
+    switch {
+    case node.Value > node.Parent.Value:
+      node.Parent.setRight(node)
+    default:
+      node.Parent.setLeft (node)
+    }
+  }
+  return node
 }
 
 /* -------------------------------------------------------------------------- */
