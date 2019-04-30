@@ -65,7 +65,7 @@ func nilSparseBareRealVector(length int) *SparseBareRealVector {
 func AsSparseBareRealVector(v ConstVector) *SparseBareRealVector {
   switch v_ := v.(type) {
   case *SparseBareRealVector:
-    return v_
+    return v_.Clone()
   }
   r := NullSparseBareRealVector(v.Dim())
   for it := v.ConstIterator(); it.Ok(); it.Next() {

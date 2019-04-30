@@ -84,7 +84,7 @@ func NIL_VECTOR(length int) VECTOR_TYPE {
 func AS_VECTOR(v ConstVector) VECTOR_TYPE {
   switch v_ := v.(type) {
   case VECTOR_TYPE:
-    return v_
+    return v_.Clone()
   }
   r := NULL_VECTOR(v.Dim())
   for it := v.ConstIterator(); it.Ok(); it.Next() {

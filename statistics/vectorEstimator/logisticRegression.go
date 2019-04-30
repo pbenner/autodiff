@@ -31,8 +31,11 @@ import . "github.com/pbenner/threadpool"
 
 type LogisticRegression struct {
   *vectorDistribution.LogisticRegression
-  StdEstimator
-  Sparse bool
+  sparse     bool
+  n          int
+  x_sparse []*SparseBareRealVector
+  x_dense  []  DenseBareRealVector
+  x        []ConstVector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -40,14 +43,14 @@ type LogisticRegression struct {
 func NewLogisticRegression(index []int, theta_ []float64, n int) (*LogisticRegression, error) {
   r := LogisticRegression{}
   if index == nil {
-    r.Sparse = false
+    r.sparse = false
     if dist, err := vectorDistribution.NewLogisticRegression(NewDenseBareRealVector(theta_)); err != nil {
       return nil, err
     } else {
       r.LogisticRegression = dist
     }
   } else {
-    r.Sparse = true
+    r.sparse = true
     if dist, err := vectorDistribution.NewLogisticRegression(NewSparseBareRealVector(index, theta_, n)); err != nil {
       return nil, err
     } else {
@@ -71,12 +74,51 @@ func (obj *LogisticRegression) CloneVectorEstimator() VectorEstimator {
 
 /* -------------------------------------------------------------------------- */
 
+func (obj *LogisticRegression) GetData() ([]ConstVector, int) {
+  return obj.x, obj.n
+}
+
+func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
+  obj.n = n
+  // reset data
+  obj.x_sparse = nil
+  obj.x_dense  = nil
+  obj.x        = nil
+  if obj.sparse {
+    for i, _ := range x {
+      switch a := x[i].(type) {
+      case *SparseBareRealVector:
+        obj.x_sparse = append(obj.x_sparse, a)
+      default:
+        obj.x_sparse = append(obj.x_sparse, AsSparseBareRealVector(x[i]))
+      }
+      obj.x = append(obj.x, obj.x_sparse[i])
+    }
+  } else {
+    for i, _ := range x {
+      switch a := x[i].(type) {
+      case DenseBareRealVector:
+        obj.x_dense = append(obj.x_dense, a)
+      default:
+        obj.x_dense = append(obj.x_dense, AsDenseBareRealVector(x[i]))
+      }
+      obj.x = append(obj.x, obj.x_dense[i])
+    }
+  }
+  return nil
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   return nil
 }
 
 func (obj *LogisticRegression) EstimateOnData(x []ConstVector, gamma ConstVector, p ThreadPool) error {
-  return nil
+  if err := obj.SetData(x, len(x)); err != nil {
+    return err
+  }
+  return obj.Estimate(gamma, p)
 }
 
 func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
