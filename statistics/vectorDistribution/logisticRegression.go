@@ -34,10 +34,9 @@ type LogisticRegression struct {
 
 func NewLogisticRegression(theta Vector) (*LogisticRegression, error) {
   r := LogisticRegression{}
-  r.Theta = theta.CloneVector()
+  r.Theta = theta
   r.t     = NullScalar(theta.ElementType())
   return &r, nil
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -67,16 +66,23 @@ func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) err
     return fmt.Errorf("input vector has invalid dimension")
   }
   t := dist.t
+  // loop over theta
+  it := dist.Theta.ConstIterator()
+  // set r to first element of theta
+  if it.Ok() {
+    r.Set(it.GetConst())
+    it.Next()
+  }
   if x.Dim() == dist.Dim() {
-    r.Set(dist.Theta.ConstAt(0))
-    for i := 0; i < dist.Dim(); i++ {
-      t.Mul(dist.Theta.ConstAt(i+1), x.ConstAt(i))
+    // dim(x) == dim(theta)-1 => substract 1 from index
+    for ; it.Ok(); it.Next() {
+      t.Mul(it.GetConst(), x.ConstAt(it.Index()-1))
       r.Add(r, t)
     }
   } else {
-    r.Set(dist.Theta.ConstAt(0))
-    for i := 0; i < dist.Dim(); i++ {
-      t.Mul(dist.Theta.ConstAt(i+1), x.ConstAt(i+1))
+    // dim(x) == dim(theta) => ignore first element of x
+    for ; it.Ok(); it.Next() {
+      t.Mul(it.GetConst(), x.ConstAt(it.Index()))
       r.Add(r, t)
     }
   }

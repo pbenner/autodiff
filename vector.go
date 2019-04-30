@@ -37,10 +37,11 @@ type VectorConstJointIterator interface {
 }
 
 type VectorIterator interface {
-  Get  () Scalar
-  Ok   () bool
-  Next ()
-  Index() int
+  Get     () Scalar
+  GetConst() ConstScalar
+  Ok      () bool
+  Next    ()
+  Index   () int
 }
 
 type VectorJointIterator interface {
