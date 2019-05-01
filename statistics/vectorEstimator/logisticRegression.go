@@ -177,3 +177,29 @@ func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstR
   }
   return y, w, x[i], true, nil
 }
+
+func (obj *LogisticRegression) f_sparse(i int, theta *SparseBareRealVector) (ConstReal, ConstReal, *SparseBareRealVector, bool, error) {
+  r := BareReal(0.0)
+  x := obj.x_sparse
+  y := ConstReal(0.0)
+  w := ConstReal(0.0)
+  if i >= len(x) {
+    return y, w, nil, true, fmt.Errorf("index out of bounds")
+  }
+  if err := obj.LogisticRegression.SetParameters(theta); err != nil {
+    return y, w, nil, true, err
+    }
+  if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
+    return y, w, nil, true, err
+  }
+  if math.IsNaN(r.GetValue()) {
+    return y, w, nil, true, fmt.Errorf("NaN value detected")
+  }
+  y = ConstReal(r.GetValue())
+  if obj.c[i] {
+    w = ConstReal(math.Exp(r.GetValue()) - 1.0)
+  } else {
+    w = ConstReal(math.Exp(r.GetValue()))
+  }
+  return y, w, x[i], true, nil
+}
