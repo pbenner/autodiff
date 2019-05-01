@@ -34,17 +34,22 @@ type LogisticRegression struct {
   *vectorDistribution.LogisticRegression
   sparse     bool
   n          int
-  m          int
   x_sparse []*SparseBareRealVector
   x_dense  []  DenseBareRealVector
   x        []ConstVector
   c        []bool
+  // optional parameters
+  Epsilon    float64
+  L1Reg      float64
+  L2Reg      float64
+  Hook       func(x ConstVector, step, y ConstScalar) bool
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewLogisticRegression(index []int, theta_ []float64, n int) (*LogisticRegression, error) {
   r := LogisticRegression{}
+  r.Epsilon = 1e-8
   if index == nil {
     r.sparse = false
     if dist, err := vectorDistribution.NewLogisticRegression(NewDenseBareRealVector(theta_)); err != nil {
@@ -67,6 +72,8 @@ func NewLogisticRegression(index []int, theta_ []float64, n int) (*LogisticRegre
 
 func (obj *LogisticRegression) Clone() *LogisticRegression {
   r := LogisticRegression{}
+  // copy data and optional arguments
+  r  = *obj
   r.LogisticRegression = obj.LogisticRegression.Clone()
   return &r
 }
@@ -143,11 +150,11 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   if obj.sparse {
     theta := obj.LogisticRegression.GetParameters()
     if r, err := saga.Run(saga.ObjectiveSparse(obj.f_sparse), len(obj.x_sparse), theta,
-      saga.Hook{},
-      saga.Gamma{1.0/20},
-      saga.Epsilon{1e-8},
-      saga.L1Regularization{0.0},
-      saga.L2Regularization{0.0}); err != nil {
+      saga.Hook            {obj.Hook},
+      saga.Gamma           {1.0/20},
+      saga.Epsilon         {obj.Epsilon},
+      saga.L1Regularization{obj.L1Reg},
+      saga.L2Regularization{obj.L2Reg}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
@@ -155,11 +162,11 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   } else {
     theta := obj.LogisticRegression.GetParameters()
     if r, err := saga.Run(saga.ObjectiveDense(obj.f_dense), len(obj.x_dense), theta,
-      saga.Hook{},
-      saga.Gamma{1.0/20},
-      saga.Epsilon{1e-8},
-      saga.L1Regularization{0.0},
-      saga.L2Regularization{0.0}); err != nil {
+      saga.Hook            {obj.Hook},
+      saga.Gamma           {1.0/20},
+      saga.Epsilon         {obj.Epsilon},
+      saga.L1Regularization{obj.L1Reg},
+      saga.L2Regularization{obj.L2Reg}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
