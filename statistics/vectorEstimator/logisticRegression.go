@@ -18,7 +18,7 @@ package vectorEstimator
 
 /* -------------------------------------------------------------------------- */
 
-//import   "fmt"
+import   "fmt"
 //import   "math"
 
 import . "github.com/pbenner/autodiff/statistics"
@@ -33,9 +33,11 @@ type LogisticRegression struct {
   *vectorDistribution.LogisticRegression
   sparse     bool
   n          int
+  m          int
   x_sparse []*SparseBareRealVector
   x_dense  []  DenseBareRealVector
   x        []ConstVector
+  y        []bool
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,31 +80,57 @@ func (obj *LogisticRegression) GetData() ([]ConstVector, int) {
   return obj.x, obj.n
 }
 
+// x_i = (class_label, x_i1, x_i2, ..., x_im)
 func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   obj.n = n
   // reset data
   obj.x_sparse = nil
   obj.x_dense  = nil
   obj.x        = nil
+  obj.y        = nil
+  if len(x) == 0 {
+    return nil
+  }
+  if x[0].Dim() <= 1 {
+    return fmt.Errorf("vector has invalid dimension")
+  }
   if obj.sparse {
     for i, _ := range x {
-      switch a := x[i].(type) {
+      if x[i].Dim() != x[0].Dim() {
+        return fmt.Errorf("data has inconsistent dimensions")
+      }
+      t := x[i].ConstSlice(1, x[1].Dim())
+      switch a := t.(type) {
       case *SparseBareRealVector:
         obj.x_sparse = append(obj.x_sparse, a)
       default:
-        obj.x_sparse = append(obj.x_sparse, AsSparseBareRealVector(x[i]))
+        obj.x_sparse = append(obj.x_sparse, AsSparseBareRealVector(t))
       }
       obj.x = append(obj.x, obj.x_sparse[i])
+      switch x[i].ConstAt(0).GetValue() {
+      case 1.0: obj.y = append(obj.y, true )
+      case 0.0: obj.y = append(obj.y, false)
+      default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
+      }
     }
   } else {
     for i, _ := range x {
-      switch a := x[i].(type) {
+      if x[i].Dim() != x[0].Dim() {
+        return fmt.Errorf("data has inconsistent dimensions")
+      }
+      t := x[i].ConstSlice(1, x[1].Dim())
+      switch a := t.(type) {
       case DenseBareRealVector:
         obj.x_dense = append(obj.x_dense, a)
       default:
-        obj.x_dense = append(obj.x_dense, AsDenseBareRealVector(x[i]))
+        obj.x_dense = append(obj.x_dense, AsDenseBareRealVector(t))
       }
       obj.x = append(obj.x, obj.x_dense[i])
+      switch x[i].ConstAt(0).GetValue() {
+      case 1.0: obj.y = append(obj.y, true )
+      case 0.0: obj.y = append(obj.y, false)
+      default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
+      }
     }
   }
   return nil
