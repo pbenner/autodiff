@@ -162,7 +162,7 @@ func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstR
   }
   if err := obj.LogisticRegression.SetParameters(theta); err != nil {
     return y, w, nil, true, err
-    }
+  }
   if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
     return y, w, nil, true, err
   }
@@ -188,7 +188,7 @@ func (obj *LogisticRegression) f_sparse(i int, theta *SparseBareRealVector) (Con
   }
   if err := obj.LogisticRegression.SetParameters(theta); err != nil {
     return y, w, nil, true, err
-    }
+  }
   if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
     return y, w, nil, true, err
   }
