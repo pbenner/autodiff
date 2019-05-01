@@ -107,11 +107,6 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
         obj.x_sparse = append(obj.x_sparse, AsSparseBareRealVector(t))
       }
       obj.x = append(obj.x, obj.x_sparse[i])
-      switch x[i].ConstAt(0).GetValue() {
-      case 1.0: obj.y = append(obj.y, true )
-      case 0.0: obj.y = append(obj.y, false)
-      default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
-      }
     }
   } else {
     for i, _ := range x {
@@ -126,11 +121,13 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
         obj.x_dense = append(obj.x_dense, AsDenseBareRealVector(t))
       }
       obj.x = append(obj.x, obj.x_dense[i])
-      switch x[i].ConstAt(0).GetValue() {
-      case 1.0: obj.y = append(obj.y, true )
-      case 0.0: obj.y = append(obj.y, false)
-      default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
-      }
+    }
+  }
+  for i, _ := range x {
+    switch x[i].ConstAt(0).GetValue() {
+    case 1.0: obj.y = append(obj.y, true )
+    case 0.0: obj.y = append(obj.y, false)
+    default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
     }
   }
   return nil
