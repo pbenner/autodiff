@@ -21,6 +21,7 @@ package vectorEstimator
 import   "fmt"
 import   "math"
 
+import   "github.com/pbenner/autodiff/algorithm/saga"
 import . "github.com/pbenner/autodiff/statistics"
 import   "github.com/pbenner/autodiff/statistics/vectorDistribution"
 
@@ -136,6 +137,34 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
 /* -------------------------------------------------------------------------- */
 
 func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
+  if gamma != nil {
+    panic("internal error")
+  }
+  if obj.sparse {
+    theta := obj.LogisticRegression.GetParameters()
+    if r, err := saga.Run(saga.ObjectiveSparse(obj.f_sparse), len(obj.x_sparse), theta,
+      saga.Hook{},
+      saga.Gamma{1.0/20},
+      saga.Epsilon{1e-8},
+      saga.L1Regularization{0.0},
+      saga.L2Regularization{0.0}); err != nil {
+      return err
+    } else {
+      obj.LogisticRegression.SetParameters(r)
+    }
+  } else {
+    theta := obj.LogisticRegression.GetParameters()
+    if r, err := saga.Run(saga.ObjectiveDense(obj.f_dense), len(obj.x_dense), theta,
+      saga.Hook{},
+      saga.Gamma{1.0/20},
+      saga.Epsilon{1e-8},
+      saga.L1Regularization{0.0},
+      saga.L2Regularization{0.0}); err != nil {
+      return err
+    } else {
+      obj.LogisticRegression.SetParameters(r)
+    }
+  }
   return nil
 }
 
