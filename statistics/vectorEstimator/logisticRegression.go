@@ -19,7 +19,7 @@ package vectorEstimator
 /* -------------------------------------------------------------------------- */
 
 import   "fmt"
-//import   "math"
+import   "math"
 
 import . "github.com/pbenner/autodiff/statistics"
 import   "github.com/pbenner/autodiff/statistics/vectorDistribution"
@@ -37,7 +37,7 @@ type LogisticRegression struct {
   x_sparse []*SparseBareRealVector
   x_dense  []  DenseBareRealVector
   x        []ConstVector
-  y        []bool
+  c        []bool
 }
 
 /* -------------------------------------------------------------------------- */
@@ -87,7 +87,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   obj.x_sparse = nil
   obj.x_dense  = nil
   obj.x        = nil
-  obj.y        = nil
+  obj.c        = nil
   if len(x) == 0 {
     return nil
   }
@@ -125,8 +125,8 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   }
   for i, _ := range x {
     switch x[i].ConstAt(0).GetValue() {
-    case 1.0: obj.y = append(obj.y, true )
-    case 0.0: obj.y = append(obj.y, false)
+    case 1.0: obj.c = append(obj.c, true )
+    case 0.0: obj.c = append(obj.c, false)
     default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
     }
   }
@@ -148,4 +148,32 @@ func (obj *LogisticRegression) EstimateOnData(x []ConstVector, gamma ConstVector
 
 func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
   return obj.LogisticRegression, nil
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error) {
+  r := BareReal(0.0)
+  x := obj.x_dense
+  y := ConstReal(0.0)
+  w := ConstReal(0.0)
+  if i >= len(x) {
+    return y, w, nil, true, fmt.Errorf("index out of bounds")
+  }
+  if err := obj.LogisticRegression.SetParameters(theta); err != nil {
+    return y, w, nil, true, err
+    }
+  if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
+    return y, w, nil, true, err
+  }
+  if math.IsNaN(r.GetValue()) {
+    return y, w, nil, true, fmt.Errorf("NaN value detected")
+  }
+  y = ConstReal(r.GetValue())
+  if obj.c[i] {
+    w = ConstReal(math.Exp(r.GetValue()) - 1.0)
+  } else {
+    w = ConstReal(math.Exp(r.GetValue()))
+  }
+  return y, w, x[i], true, nil
 }
