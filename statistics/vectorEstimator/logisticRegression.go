@@ -102,8 +102,8 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   if len(x) == 0 {
     return nil
   }
-  if x[0].Dim() <= 1 {
-    return fmt.Errorf("vector has invalid dimension")
+  if k := obj.LogisticRegression.Dim()+2; x[0].Dim() != k {
+    return fmt.Errorf("LogisticRegression: data has invalid dimension: got data of dimension `%d' but expected dimension `%d'", x[0].Dim(), k)
   }
   if obj.sparse {
     for i, _ := range x {
