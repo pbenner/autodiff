@@ -47,19 +47,22 @@ type LogisticRegression struct {
 
 /* -------------------------------------------------------------------------- */
 
-func NewLogisticRegression(index []int, theta_ []float64, n int) (*LogisticRegression, error) {
+func NewLogisticRegression(index []int, theta []float64, n int) (*LogisticRegression, error) {
   r := LogisticRegression{}
   r.Epsilon = 1e-8
   if index == nil {
+    if len(theta) != n {
+      return nil, fmt.Errorf("theta has invalid dimension")
+    }
     r.sparse = false
-    if dist, err := vectorDistribution.NewLogisticRegression(NewDenseBareRealVector(theta_)); err != nil {
+    if dist, err := vectorDistribution.NewLogisticRegression(NewDenseBareRealVector(theta)); err != nil {
       return nil, err
     } else {
       r.LogisticRegression = dist
     }
   } else {
     r.sparse = true
-    if dist, err := vectorDistribution.NewLogisticRegression(NewSparseBareRealVector(index, theta_, n)); err != nil {
+    if dist, err := vectorDistribution.NewLogisticRegression(NewSparseBareRealVector(index, theta, n)); err != nil {
       return nil, err
     } else {
       r.LogisticRegression = dist

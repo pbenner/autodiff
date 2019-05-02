@@ -47,14 +47,49 @@ func Test1(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 4)
+    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
   estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
   if err != nil {
     test.Error(err); return
   }
-  estimator.Hook = hook
+  //estimator.Hook = hook
+
+  err = estimator.EstimateOnData(x, nil, ThreadPool{})
+  if err != nil {
+    test.Error(err); return
+  }
+  // result and target
+  r := estimator.LogisticRegression.GetParameters()
+  z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
+  t := NullReal()
+
+  if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+    test.Error("test failed")
+  }
+}
+
+func Test2(test *testing.T) {
+
+  // data
+  cellSize  := []float64{
+    1, 4, 1, 8, 1, 10, 1, 1, 1, 2, 1, 1, 3, 1, 7, 4, 1, 1, 7, 1}
+  cellShape := []float64{
+    1, 4, 1, 8, 1, 10, 1, 2, 1, 1, 1, 1, 3, 1, 5, 6, 1, 1, 7, 1}
+  class := []float64{
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
+  // x
+  x := make([]ConstVector, len(cellSize))
+  for i := 0; i < len(cellSize); i++ {
+    x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 4)
+  }
+
+  estimator, err := NewLogisticRegression([]int{0, 1, 2}, []float64{-1, 0.0, 0.0}, 3)
+  if err != nil {
+    test.Error(err); return
+  }
+  //estimator.Hook = hook
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {
