@@ -47,7 +47,7 @@ func Test1(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewSparseBareRealVector([]int{0, 1, 2}, []float64{class[i], cellSize[i]-1.0, cellShape[i]-1.0}, 3)
+    x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 4)
   }
 
   estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
@@ -56,5 +56,16 @@ func Test1(test *testing.T) {
   }
   estimator.Hook = hook
 
-  estimator.EstimateOnData(x, nil, ThreadPool{})
+  err = estimator.EstimateOnData(x, nil, ThreadPool{})
+  if err != nil {
+    test.Error(err); return
+  }
+  // result and target
+  r := estimator.LogisticRegression.GetParameters()
+  z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
+  t := NullReal()
+
+  if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+    test.Error("test failed")
+  }
 }
