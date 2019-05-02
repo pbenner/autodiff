@@ -184,7 +184,7 @@ func sagaSparse(
       delta = max_delta
     }
     // execute hook if available
-    if hook.Value != nil && hook.Value(x1, ConstReal(delta), y) {
+    if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, i_) {
       break
     }
     if max_x != 0.0 && max_delta/max_x <= epsilon.Value*gamma.Value ||

@@ -43,7 +43,7 @@ type LogisticRegression struct {
   Epsilon    float64
   L1Reg      float64
   L2Reg      float64
-  Hook       func(x ConstVector, step, y ConstScalar) bool
+  Hook       func(x ConstVector, step, y ConstScalar, i int) bool
 }
 
 /* -------------------------------------------------------------------------- */

@@ -41,7 +41,7 @@ type L2Regularization struct {
 }
 
 type Hook struct {
-  Value func(ConstVector, ConstScalar, ConstScalar) bool
+  Value func(ConstVector, ConstScalar, ConstScalar, int) bool
 }
 
 type MaxIterations struct {
