@@ -65,7 +65,7 @@ func NewLogisticRegression(index []int, theta_ []float64, n int) (*LogisticRegre
       r.LogisticRegression = dist
     }
   }
-  return nil, nil
+  return &r, nil
 }
 
 /* -------------------------------------------------------------------------- */
