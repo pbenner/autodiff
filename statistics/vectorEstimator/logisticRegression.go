@@ -164,8 +164,8 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Hook            {obj.Hook},
       saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
-      saga.L1Regularization{obj.L1Reg},
-      saga.L2Regularization{obj.L2Reg}); err != nil {
+      saga.L1Regularization{obj.L1Reg/float64(obj.n)},
+      saga.L2Regularization{obj.L2Reg/float64(obj.n)}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
@@ -176,8 +176,8 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Hook            {obj.Hook},
       saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
-      saga.L1Regularization{obj.L1Reg},
-      saga.L2Regularization{obj.L2Reg}); err != nil {
+      saga.L1Regularization{obj.L1Reg/float64(obj.n)},
+      saga.L2Regularization{obj.L2Reg/float64(obj.n)}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
