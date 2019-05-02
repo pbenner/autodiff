@@ -88,7 +88,7 @@ func (obj *LogisticRegression) GetData() ([]ConstVector, int) {
   return obj.x, obj.n
 }
 
-// x_i = (class_label, x_i1, x_i2, ..., x_im)
+// x_i = (class_label, 1.0, x_i1, x_i2, ..., x_im)
 func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   obj.n = n
   // reset data
@@ -107,6 +107,9 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
       }
+      if x[i].ValueAt(1) != 1.0 {
+        return fmt.Errorf("second element of data vector must be set to one")
+      }
       t := x[i].ConstSlice(1, x[1].Dim())
       switch a := t.(type) {
       case *SparseBareRealVector:
@@ -120,6 +123,9 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     for i, _ := range x {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
+      }
+      if x[i].ValueAt(1) != 1.0 {
+        return fmt.Errorf("second element of data vector must be set to one")
       }
       t := x[i].ConstSlice(1, x[1].Dim())
       switch a := t.(type) {

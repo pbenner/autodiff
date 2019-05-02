@@ -40,14 +40,21 @@ type SparseRealVector struct {
  * -------------------------------------------------------------------------- */
 // Allocate a new vector. Scalars are set to the given values.
 func NewSparseRealVector(indices []int, values []float64, n int) *SparseRealVector {
+  if len(indices) != len(values) {
+    panic("number of indices does not match number of values")
+  }
   r := nilSparseRealVector(n)
   for i, k := range indices {
     if k >= n {
       panic("index larger than vector dimension")
     }
-    if values[i] != 0.0 {
-      r.values[k] = NewReal(values[i])
-      r.indexInsert(k)
+    if _, ok := r.values[k]; ok {
+      panic("index appeared multiple times")
+    } else {
+      if values[i] != 0.0 {
+        r.values[k] = NewReal(values[i])
+        r.indexInsert(k)
+      }
     }
   }
   return r
@@ -126,6 +133,9 @@ func (obj *SparseRealVector) SET(x *SparseRealVector) {
 /* const vector methods
  * -------------------------------------------------------------------------- */
 func (obj *SparseRealVector) ValueAt(i int) float64 {
+  if i < 0 || i >= obj.Dim() {
+    panic("index out of bounds")
+  }
   if v, ok := obj.values[i]; ok {
     return v.GetValue()
   } else {
@@ -133,6 +143,9 @@ func (obj *SparseRealVector) ValueAt(i int) float64 {
   }
 }
 func (obj *SparseRealVector) ConstAt(i int) ConstScalar {
+  if i < 0 || i >= obj.Dim() {
+    panic("index out of bounds")
+  }
   if v, ok := obj.values[i]; ok {
     return v
   } else {
@@ -195,6 +208,9 @@ func (obj *SparseRealVector) At(i int) Scalar {
   return obj.AT(i)
 }
 func (obj *SparseRealVector) AT(i int) *Real {
+  if i < 0 || i >= obj.Dim() {
+    panic("index out of bounds")
+  }
   if v, ok := obj.values[i]; ok {
     return v
   } else {
