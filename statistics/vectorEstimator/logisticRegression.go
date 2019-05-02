@@ -38,6 +38,7 @@ type LogisticRegression struct {
   x_dense  []  DenseBareRealVector
   x        []ConstVector
   c        []bool
+  stepSize   float64
   // optional parameters
   Epsilon    float64
   L1Reg      float64
@@ -147,6 +148,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
     }
   }
+  obj.setStepSize()
   return nil
 }
 
@@ -160,7 +162,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     theta := obj.LogisticRegression.GetParameters()
     if r, err := saga.Run(saga.ObjectiveSparse(obj.f_sparse), len(obj.x_sparse), theta,
       saga.Hook            {obj.Hook},
-      saga.Gamma           {1.0/20},
+      saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
       saga.L1Regularization{obj.L1Reg},
       saga.L2Regularization{obj.L2Reg}); err != nil {
@@ -172,7 +174,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     theta := obj.LogisticRegression.GetParameters()
     if r, err := saga.Run(saga.ObjectiveDense(obj.f_dense), len(obj.x_dense), theta,
       saga.Hook            {obj.Hook},
-      saga.Gamma           {1.0/20},
+      saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
       saga.L1Regularization{obj.L1Reg},
       saga.L2Regularization{obj.L2Reg}); err != nil {
@@ -196,6 +198,21 @@ func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
 }
 
 /* -------------------------------------------------------------------------- */
+
+func (obj *LogisticRegression) setStepSize() {
+  max_squared_sum := 0.0
+  for i, _ := range obj.x {
+    r := 0.0
+    for it := obj.x[i].ConstIterator(); it.Ok(); it.Next() {
+      r += it.GetConst().GetValue()*it.GetConst().GetValue()
+    }
+    if r > max_squared_sum {
+      max_squared_sum = r
+    }
+  }
+  L  := (0.25*(max_squared_sum + 1.0) + obj.L2Reg/float64(obj.n))
+  obj.stepSize = 1.0/(2.0*L + math.Min(2.0*obj.L2Reg, L))
+}
 
 func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error) {
   r := BareReal(0.0)
