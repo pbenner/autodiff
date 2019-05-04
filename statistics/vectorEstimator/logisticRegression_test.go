@@ -37,6 +37,31 @@ func hook(x ConstVector, step, y ConstScalar, i int) bool {
 
 /* -------------------------------------------------------------------------- */
 
+func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) ConstVector {
+  v := AsDenseRealVector(theta)
+  v.Variables(1)
+  t := NewReal(0.0)
+  s := NewReal(0.0)
+  l := ConstReal(1.0/(C*float64(len(x))))
+  if r, err := vectorDistribution.NewLogisticRegression(v); err != nil {
+    panic(err)
+  } else {
+    for i, _ := range x {
+      if err := r.ClassLogPdf(t, x[i].ConstSlice(1,4), x[i].ConstAt(0).GetValue() == 1.0); err != nil {
+        panic(err)
+      }
+      s.Add(s, t)
+    }
+    s.Div(s, ConstReal(float64(len(x))))
+    for i := 0; i < v.Dim(); i++ {
+      t.Abs(v.At(i))
+      t.Mul(t, l)
+      s.Add(s, t)
+    }
+  }
+  return DenseGradient{s}
+}
+
 func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) ConstVector {
   v := AsDenseRealVector(theta)
   v.Variables(1)
@@ -54,7 +79,7 @@ func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) ConstVector
     }
     s.Div(s, ConstReal(float64(len(x))))
     t.Vnorm(v)
-    t.Mul(t, t)
+    //t.Mul(t, t)
     t.Mul(l, t)
     s.Add(s, t)
   }
@@ -135,7 +160,7 @@ func TestLogistic2(test *testing.T) {
 
 func TestLogistic3(test *testing.T) {
 
-  C := 0.1
+  C := 1.0
 
   // data
   cellSize  := []float64{
@@ -155,7 +180,8 @@ func TestLogistic3(test *testing.T) {
     test.Error(err); return
   }
   //estimator.Hook  = hook
-  estimator.L2Reg = 1.0/C
+  estimator.L1Reg = 1.0/(C*float64(len(x)))
+  //estimator.L2Reg = 1.0/(C*float64(len(x)))
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {
@@ -166,11 +192,11 @@ func TestLogistic3(test *testing.T) {
   // liblinear solution
   //z := DenseConstRealVector([]float64{-0.45626633, 0.09835102, 0.10703907})
   // saga solution
-  z := DenseConstRealVector([]float64{-2.35902836, 0.24435153, 0.26729412})
+  z := DenseConstRealVector([]float64{-2.63837871, 0.16460826, 0.44788412})
   t := NullReal()
 
-  fmt.Println(eval_l2_solution(x, r, C))
-  fmt.Println(eval_l2_solution(x, z, C))
+  fmt.Println(eval_l1_solution(x, r, C))
+  fmt.Println(eval_l1_solution(x, z, C))
 
   if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
     test.Error("test failed")
