@@ -52,7 +52,7 @@ func eval_l2_solution(class []float64, x []ConstVector, theta ConstVector, C flo
       }
       s.Add(s, t)
     }
-    s.Div(s, ConstReal(1.0/float64(len(x))))
+    s.Div(s, ConstReal(float64(len(x))))
     t.Vnorm(v)
     t.Mul(t, t)
     t.Mul(l, t)
