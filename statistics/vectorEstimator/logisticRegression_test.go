@@ -22,6 +22,7 @@ import   "fmt"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
+import   "github.com/pbenner/autodiff/algorithm/rprop"
 import   "github.com/pbenner/autodiff/statistics/vectorDistribution"
 import . "github.com/pbenner/threadpool"
 
@@ -35,9 +36,14 @@ func hook(x ConstVector, step, y ConstScalar, i int) bool {
   return false
 }
 
+func rprop_hook(gradient []float64, step []float64, x Vector, value Scalar) bool {
+  fmt.Printf("%s\n", x.Table())
+  return false
+}
+
 /* -------------------------------------------------------------------------- */
 
-func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) ConstVector {
+func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) ConstScalar {
   v := AsDenseRealVector(theta)
   v.Variables(1)
   t := NewReal(0.0)
@@ -52,17 +58,18 @@ func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) ConstVector
       }
       s.Add(s, t)
     }
-    s.Div(s, ConstReal(float64(len(x))))
+    s.Neg(s)
+    //s.Div(s, ConstReal(float64(len(x))))
     for i := 0; i < v.Dim(); i++ {
       t.Abs(v.At(i))
       t.Mul(t, l)
       s.Add(s, t)
     }
   }
-  return DenseGradient{s}
+  return s
 }
 
-func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) ConstVector {
+func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
   v := AsDenseRealVector(theta)
   v.Variables(1)
   t := NewReal(0.0)
@@ -77,13 +84,14 @@ func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) ConstVector
       }
       s.Add(s, t)
     }
-    s.Div(s, ConstReal(float64(len(x))))
+    s.Neg(s)
+    //s.Div(s, ConstReal(float64(len(x))))
     t.Vnorm(v)
     //t.Mul(t, t)
     t.Mul(l, t)
     s.Add(s, t)
   }
-  return DenseGradient{s}
+  return s
 }
 
 /* -------------------------------------------------------------------------- */
@@ -172,33 +180,37 @@ func TestLogistic3(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 4)
+    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
-  estimator, err := NewLogisticRegression([]int{0, 1, 2}, []float64{-1, 0.0, 0.0}, 3)
+  estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
   if err != nil {
     test.Error(err); return
   }
   //estimator.Hook  = hook
-  estimator.L1Reg = 1.0/(C*float64(len(x)))
-  //estimator.L2Reg = 1.0/(C*float64(len(x)))
+  //estimator.L1Reg = 1.0/(C*float64(len(x)))
+  estimator.L2Reg = 1.0/(C*float64(len(x)))
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {
     test.Error(err); return
   }
   // result and target
-  r := estimator.LogisticRegression.GetParameters()
-  // liblinear solution
-  //z := DenseConstRealVector([]float64{-0.45626633, 0.09835102, 0.10703907})
-  // saga solution
-  z := DenseConstRealVector([]float64{-2.63837871, 0.16460826, 0.44788412})
+  r_saga := estimator.LogisticRegression.GetParameters()
+
+  objective := func(r Vector) (Scalar, error) {
+    return eval_l2_solution(x, r, C), nil
+  }
+  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 0, 0}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+    panic(err)
+  }
+  fmt.Println(r_saga)
+  fmt.Println(r_rprop)
+  fmt.Println(DenseGradient{eval_l2_solution(x, r_saga, C)})
+  fmt.Println(DenseGradient{eval_l2_solution(x, r_rprop, C)})
+
   t := NullReal()
-
-  fmt.Println(eval_l1_solution(x, r, C))
-  fmt.Println(eval_l1_solution(x, z, C))
-
-  if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+  if t.Vnorm(r_saga.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
     test.Error("test failed")
   }
 }
