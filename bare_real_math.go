@@ -386,7 +386,7 @@ func (r *BareReal) Vmean(a ConstVector) Scalar {
   for i := 0; i < a.Dim(); i++ {
     r.Add(r, a.ConstAt(i))
   }
-  return r.Div(r, NewBareReal(float64(a.Dim())))
+  return r.Div(r, ConstReal(float64(a.Dim())))
 }
 
 func (r *BareReal) VdotV(a, b ConstVector) Scalar {
@@ -394,10 +394,10 @@ func (r *BareReal) VdotV(a, b ConstVector) Scalar {
     panic("vector dimensions do not match")
   }
   r.Reset()
-  t := NullBareReal()
+  t := BareReal(0.0)
   for i := 0; i < a.Dim(); i++ {
     t.Mul(a.ConstAt(i), b.ConstAt(i))
-    r.Add(r, t)
+    r.Add(r, &t)
   }
   return r
 }

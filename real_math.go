@@ -505,7 +505,7 @@ func (r *Real) Vmean(a ConstVector) Scalar {
   for i := 0; i < a.Dim(); i++ {
     r.Add(r, a.ConstAt(i))
   }
-  return r.Div(r, NewBareReal(float64(a.Dim())))
+  return r.Div(r, ConstReal(float64(a.Dim())))
 }
 
 func (r *Real) VdotV(a, b ConstVector) Scalar {
@@ -553,10 +553,10 @@ func (r *Real) Mnorm(a ConstMatrix) Scalar {
   if n == 0 || m == 0 {
     return nil
   }
-  c := NewBareReal(2.0)
+  c := ConstReal(2.0)
   t := NewScalar(r.Type(), 0.0)
   v := a.AsConstVector()
-  r.Pow(v.ConstAt(0), NewBareReal(2.0))
+  r.Pow(v.ConstAt(0), ConstReal(2.0))
   for i := 1; i < v.Dim(); i++ {
     t.Pow(v.ConstAt(i), c)
     r.Add(r, t)
