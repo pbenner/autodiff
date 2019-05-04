@@ -43,7 +43,7 @@ func rprop_hook(gradient []float64, step []float64, x Vector, value Scalar) bool
 
 /* -------------------------------------------------------------------------- */
 
-func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) ConstScalar {
+func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
   v := AsDenseRealVector(theta)
   v.Variables(1)
   t := NewReal(0.0)
@@ -206,7 +206,7 @@ func TestLogistic3(test *testing.T) {
   }
   fmt.Println(r_saga)
   fmt.Println(r_rprop)
-  fmt.Println(DenseGradient{eval_l2_solution(x, r_saga, C)})
+  fmt.Println(DenseGradient{eval_l2_solution(x, r_saga , C)})
   fmt.Println(DenseGradient{eval_l2_solution(x, r_rprop, C)})
 
   t := NullReal()
