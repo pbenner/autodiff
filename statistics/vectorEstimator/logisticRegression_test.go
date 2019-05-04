@@ -54,6 +54,7 @@ func eval_l2_solution(class []float64, x []ConstVector, theta ConstVector, C flo
     }
     s.Div(s, ConstReal(1.0/float64(len(x))))
     t.Vnorm(v)
+    t.Mul(t, t)
     t.Mul(l, t)
     s.Add(s, t)
   }
@@ -162,7 +163,7 @@ func TestLogistic3(test *testing.T) {
   }
   // result and target
   r := estimator.LogisticRegression.GetParameters()
-  z := DenseConstRealVector([]float64{-2.35902836, 0.24435153, 0.26729412})
+  z := DenseConstRealVector([]float64{-0.45626633, 0.09835102, 0.10703907})
   t := NullReal()
 
   fmt.Println(eval_l2_solution(class, x, r, C))
