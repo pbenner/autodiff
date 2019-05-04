@@ -163,7 +163,10 @@ func TestLogistic3(test *testing.T) {
   }
   // result and target
   r := estimator.LogisticRegression.GetParameters()
-  z := DenseConstRealVector([]float64{-0.45626633, 0.09835102, 0.10703907})
+  // liblinear solution
+  //z := DenseConstRealVector([]float64{-0.45626633, 0.09835102, 0.10703907})
+  // saga solution
+  z := DenseConstRealVector([]float64{-2.35902836, 0.24435153, 0.26729412})
   t := NullReal()
 
   fmt.Println(eval_l2_solution(class, x, r, C))
