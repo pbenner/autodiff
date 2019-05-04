@@ -37,7 +37,7 @@ func hook(x ConstVector, step, y ConstScalar, i int) bool {
 
 /* -------------------------------------------------------------------------- */
 
-func eval_l2_solution(class []float64, x []ConstVector, theta ConstVector, C float64) ConstVector {
+func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) ConstVector {
   v := AsDenseRealVector(theta)
   v.Variables(1)
   t := NewReal(0.0)
@@ -47,7 +47,7 @@ func eval_l2_solution(class []float64, x []ConstVector, theta ConstVector, C flo
     panic(err)
   } else {
     for i, _ := range x {
-      if err := r.ClassLogPdf(t, x[i].ConstSlice(1,4), class[i] == 1.0); err != nil {
+      if err := r.ClassLogPdf(t, x[i].ConstSlice(1,4), x[i].ConstAt(0).GetValue() == 1.0); err != nil {
         panic(err)
       }
       s.Add(s, t)
@@ -169,8 +169,8 @@ func TestLogistic3(test *testing.T) {
   z := DenseConstRealVector([]float64{-2.35902836, 0.24435153, 0.26729412})
   t := NullReal()
 
-  fmt.Println(eval_l2_solution(class, x, r, C))
-  fmt.Println(eval_l2_solution(class, x, z, C))
+  fmt.Println(eval_l2_solution(x, r, C))
+  fmt.Println(eval_l2_solution(x, z, C))
 
   if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
     test.Error("test failed")
