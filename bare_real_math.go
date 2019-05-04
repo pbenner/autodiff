@@ -404,10 +404,10 @@ func (r *BareReal) VdotV(a, b ConstVector) Scalar {
 
 func (r *BareReal) Vnorm(a ConstVector) Scalar {
   r.Reset()
-  t := NewBareReal(0.0)
-  for i := 0; i < a.Dim(); i++ {
-    t.Pow(a.ConstAt(i), ConstReal(2.0))
-    r.Add(r, t)
+  t := BareReal(0.0)
+  for it := a.ConstIterator(); it.Ok(); it.Next() {
+    t.Pow(it.GetConst(), ConstReal(2.0))
+    r.Add(r, &t)
   }
   r.Sqrt(r)
   return r
