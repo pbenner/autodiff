@@ -48,7 +48,7 @@ func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
   v.Variables(1)
   t := NewReal(0.0)
   s := NewReal(0.0)
-  l := ConstReal(1.0/(C*float64(len(x))))
+  l := ConstReal(1.0/C)
   if r, err := vectorDistribution.NewLogisticRegression(v); err != nil {
     panic(err)
   } else {
@@ -59,8 +59,7 @@ func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
       s.Add(s, t)
     }
     s.Neg(s)
-    //s.Div(s, ConstReal(float64(len(x))))
-    for i := 0; i < v.Dim(); i++ {
+    for i := 1; i < v.Dim(); i++ {
       t.Abs(v.At(i))
       t.Mul(t, l)
       s.Add(s, t)
@@ -70,11 +69,12 @@ func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
 }
 
 func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
+  n := theta.Dim()
   v := AsDenseRealVector(theta)
   v.Variables(1)
   t := NewReal(0.0)
   s := NewReal(0.0)
-  l := ConstReal(1.0/(C*float64(len(x))))
+  l := ConstReal(1.0/C)
   if r, err := vectorDistribution.NewLogisticRegression(v); err != nil {
     panic(err)
   } else {
@@ -85,10 +85,10 @@ func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
       s.Add(s, t)
     }
     s.Neg(s)
-    //s.Div(s, ConstReal(float64(len(x))))
-    t.Vnorm(v)
-    //t.Mul(t, t)
-    t.Mul(l, t)
+    t.Vnorm(v[1:n])
+    t.Mul(t, t)
+    t.Mul(t, l)
+    t.Mul(t, ConstReal(0.5))
     s.Add(s, t)
   }
   return s
@@ -201,13 +201,14 @@ func TestLogistic3(test *testing.T) {
   objective := func(r Vector) (Scalar, error) {
     return eval_l2_solution(x, r, C), nil
   }
-  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 0, 0}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
   }
+
   fmt.Println(r_saga)
   fmt.Println(r_rprop)
-  fmt.Println(DenseGradient{eval_l2_solution(x, r_saga , C)})
-  fmt.Println(DenseGradient{eval_l2_solution(x, r_rprop, C)})
+  //fmt.Println(DenseGradient{eval_l2_solution(x, r_saga , C)})
+  //fmt.Println(DenseGradient{eval_l2_solution(x, r_rprop, C)})
 
   t := NullReal()
   if t.Vnorm(r_saga.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
