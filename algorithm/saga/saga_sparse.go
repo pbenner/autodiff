@@ -26,6 +26,7 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 type ObjectiveSparse func(int, *SparseBareRealVector) (ConstReal, ConstReal, *SparseBareRealVector, bool, error)
+type ProximalOperatorSparse func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal)
 type InSituSparse struct {
   T1 *SparseBareRealVector
   T2 *BareReal
@@ -72,21 +73,27 @@ func (obj *GradientSparse) set(w ConstReal, g *SparseBareRealVector, g_const boo
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
-func l1regularizationSparse(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal, lambda float64) {
-  for i := 0; i < x.Dim(); i++ {
-    if yi := w.ValueAt(i); yi < 0.0 {
-      x.AT(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-    } else {
-      x.AT(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+func l1regularizationSparse(lambda float64) ProximalOperatorSparse {
+  f := func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal) {
+    for i := 0; i < x.Dim(); i++ {
+      if yi := w.ValueAt(i); yi < 0.0 {
+        x.AT(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+      } else {
+        x.AT(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+      }
     }
   }
+  return f
 }
-func l2regularizationSparse(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal, lambda float64) {
-  t.Vnorm(w)
-  t.Div(ConstReal(lambda), t)
-  t.Sub(ConstReal(1.0), t)
-  t.Max(ConstReal(0.0), t)
-  x.VMULS(w, t)
+func l2regularizationSparse(lambda float64) ProximalOperatorSparse {
+  f := func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal) {
+    t.Vnorm(w)
+    t.Div(ConstReal(lambda), t)
+    t.Sub(ConstReal(1.0), t)
+    t.Max(ConstReal(0.0), t)
+    x.VMULS(w, t)
+  }
+  return f
 }
 /* -------------------------------------------------------------------------- */
 func sagaSparse(
@@ -97,8 +104,7 @@ func sagaSparse(
   epsilon Epsilon,
   maxEpochs MaxEpochs,
   maxIterations MaxIterations,
-  l1reg L1Regularization,
-  l2reg L2Regularization,
+  proxop ProximalOperatorSparse,
   hook Hook,
   inSitu *InSituSparse) (Vector, error) {
   x1 := AsSparseBareRealVector(x)
@@ -149,14 +155,10 @@ func sagaSparse(
     g2.add(t1)
     g1.sub(t1)
     t1.VMULS(t1, t_g)
-    switch {
-    case l1reg.Value != 0.0:
+    if proxop != nil {
       t1.VSUBV(x1, t1)
-      l1regularizationSparse(x2, t1, t2, gamma.Value*l1reg.Value)
-    case l2reg.Value != 0.0:
-      t1.VSUBV(x1, t1)
-      l2regularizationSparse(x2, t1, t2, gamma.Value*l2reg.Value)
-    default:
+      proxop(x2, t1, t2)
+    } else {
       x2.VSUBV(x1, t1)
     }
     // evaluate stopping criterion

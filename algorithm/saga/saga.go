@@ -88,6 +88,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   maxIterations := MaxIterations      {int(^uint(0) >> 1)}
   l1reg         := L1Regularization   { 0.0}
   l2reg         := L2Regularization   { 0.0}
+  proxDense     := ProximalOperatorDense (nil)
+  proxSparse    := ProximalOperatorSparse(nil)
   inSituDense   := &InSituDense       {}
   inSituSparse  := &InSituSparse      {}
 
@@ -107,6 +109,10 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       l1reg = a
     case L2Regularization:
       l2reg = a
+    case ProximalOperatorDense:
+      proxDense = a
+    case ProximalOperatorSparse:
+      proxSparse = a
     case *InSituDense:
       inSituDense = a
     case *InSituSparse:
@@ -130,9 +136,21 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   }
   switch g := f.(type) {
   case ObjectiveDense:
-    return sagaDense (g, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSituDense)
+    var f ProximalOperatorDense
+    switch {
+    case proxDense   != nil: f = proxDense
+    case l1reg.Value != 0.0: f = l1regularizationDense(gamma.Value*l1reg.Value)
+    case l2reg.Value != 0.0: f = l2regularizationDense(gamma.Value*l2reg.Value)
+    }
+    return sagaDense (g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituDense)
   case ObjectiveSparse:
-    return sagaSparse(g, n, x, gamma, epsilon, maxEpochs, maxIterations, l1reg, l2reg, hook, inSituSparse)
+    var f ProximalOperatorSparse
+    switch {
+    case proxSparse  != nil: f = proxSparse
+    case l1reg.Value != 0.0: f = l1regularizationSparse(gamma.Value*l1reg.Value)
+    case l2reg.Value != 0.0: f = l2regularizationSparse(gamma.Value*l2reg.Value)
+    }
+    return sagaSparse(g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituSparse)
   default:
     panic("invalid objective")
   }

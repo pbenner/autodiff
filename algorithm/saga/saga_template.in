@@ -37,12 +37,15 @@ import . "github.com/pbenner/autodiff"
 #define GRADIENT_TYPE STR_CONCAT(Gradient, SAGA_TYPE)
 #define IN_SITU_TYPE  STR_CONCAT(InSitu,   SAGA_TYPE)
 
+#define PROXIMAL_OPERATOR STR_CONCAT(ProximalOperator, SAGA_TYPE)
+
 #define L1REG STR_CONCAT(l1regularization, SAGA_TYPE)
 #define L2REG STR_CONCAT(l2regularization, SAGA_TYPE)
 
 /* -------------------------------------------------------------------------- */
 
 type OBJECTIVE func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SCALAR_TYPE, VECTOR_TYPE, bool, error)
+type PROXIMAL_OPERATOR func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE)
 
 type IN_SITU_TYPE struct {
   T1 VECTOR_TYPE
@@ -97,22 +100,28 @@ func (obj *GRADIENT_TYPE) set(w CONST_SCALAR_TYPE, g VECTOR_TYPE, g_const bool) 
 
 /* -------------------------------------------------------------------------- */
 
-func L1REG(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE, lambda float64) {
-  for i := 0; i < x.Dim(); i++ {
-    if yi := w.ValueAt(i); yi < 0.0 {
-      x.AT(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-    } else {
-      x.AT(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+func L1REG(lambda float64) PROXIMAL_OPERATOR {
+  f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
+    for i := 0; i < x.Dim(); i++ {
+      if yi := w.ValueAt(i); yi < 0.0 {
+        x.AT(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+      } else {
+        x.AT(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+      }
     }
   }
+  return f
 }
 
-func L2REG(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE, lambda float64) {
-  t.Vnorm(w)
-  t.Div(CONST_SCALAR_TYPE(lambda), t)
-  t.Sub(CONST_SCALAR_TYPE(1.0), t)
-  t.Max(CONST_SCALAR_TYPE(0.0), t)
-  x.VMULS(w, t)
+func L2REG(lambda float64) PROXIMAL_OPERATOR {
+  f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
+    t.Vnorm(w)
+    t.Div(CONST_SCALAR_TYPE(lambda), t)
+    t.Sub(CONST_SCALAR_TYPE(1.0), t)
+    t.Max(CONST_SCALAR_TYPE(0.0), t)
+    x.VMULS(w, t)
+  }
+  return f
 }
 
 /* -------------------------------------------------------------------------- */
@@ -125,8 +134,7 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   epsilon Epsilon,
   maxEpochs MaxEpochs,
   maxIterations MaxIterations,
-  l1reg L1Regularization,
-  l2reg L2Regularization,
+  proxop PROXIMAL_OPERATOR,
   hook Hook,
   inSitu *IN_SITU_TYPE) (Vector, error) {
 
@@ -185,14 +193,10 @@ func STR_CONCAT(saga, SAGA_TYPE)(
     g1.sub(t1)
     t1.VMULS(t1, t_g)
 
-    switch {
-    case l1reg.Value != 0.0:
+    if proxop != nil {
       t1.VSUBV(x1, t1)
-      L1REG(x2, t1, t2, gamma.Value*l1reg.Value)
-    case l2reg.Value != 0.0:
-      t1.VSUBV(x1, t1)
-      L2REG(x2, t1, t2, gamma.Value*l2reg.Value)
-    default:
+      proxop(x2, t1, t2)
+    } else {
       x2.VSUBV(x1, t1)
     }
     // evaluate stopping criterion
