@@ -40,6 +40,10 @@ type L2Regularization struct {
   Value float64
 }
 
+type TikhonovRegularization struct {
+  Value float64
+}
+
 type Hook struct {
   Value func(ConstVector, ConstScalar, ConstScalar, int) bool
 }
@@ -81,17 +85,18 @@ func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
 
 func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
 
-  hook          := Hook               {   nil}
-  epsilon       := Epsilon            {  1e-8}
-  gamma         := Gamma              {1.0/30.0}
-  maxEpochs     := MaxEpochs          {int(^uint(0) >> 1)}
-  maxIterations := MaxIterations      {int(^uint(0) >> 1)}
-  l1reg         := L1Regularization   { 0.0}
-  l2reg         := L2Regularization   { 0.0}
+  hook          := Hook                  { nil}
+  epsilon       := Epsilon               {1e-8}
+  gamma         := Gamma                 {1.0/30.0}
+  maxEpochs     := MaxEpochs             {int(^uint(0) >> 1)}
+  maxIterations := MaxIterations         {int(^uint(0) >> 1)}
+  l1reg         := L1Regularization      { 0.0}
+  l2reg         := L2Regularization      { 0.0}
+  tireg         := TikhonovRegularization{ 0.0}
   proxDense     := ProximalOperatorDense (nil)
   proxSparse    := ProximalOperatorSparse(nil)
-  inSituDense   := &InSituDense       {}
-  inSituSparse  := &InSituSparse      {}
+  inSituDense   := &InSituDense          {}
+  inSituSparse  := &InSituSparse         {}
 
   for _, arg := range args {
     switch a := arg.(type) {
@@ -109,6 +114,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       l1reg = a
     case L2Regularization:
       l2reg = a
+    case TikhonovRegularization:
+      tireg = a
     case ProximalOperatorDense:
       proxDense = a
     case ProximalOperatorSparse:
@@ -141,6 +148,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     case proxDense   != nil: f = proxDense
     case l1reg.Value != 0.0: f = ProxL1Dense(gamma.Value*l1reg.Value)
     case l2reg.Value != 0.0: f = ProxL2Dense(gamma.Value*l2reg.Value)
+    case tireg.Value != 0.0: f = ProxTiDense(gamma.Value*l2reg.Value)
     }
     return sagaDense (g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituDense)
   case ObjectiveSparse:
@@ -149,6 +157,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     case proxSparse  != nil: f = proxSparse
     case l1reg.Value != 0.0: f = ProxL1Sparse(gamma.Value*l1reg.Value)
     case l2reg.Value != 0.0: f = ProxL2Sparse(gamma.Value*l2reg.Value)
+    case tireg.Value != 0.0: f = ProxTiSparse(gamma.Value*l2reg.Value)
     }
     return sagaSparse(g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituSparse)
   default:

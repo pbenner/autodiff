@@ -95,6 +95,14 @@ func ProxL2Dense(lambda float64) ProximalOperatorDense {
   }
   return f
 }
+// Tikhonov regularization (1/2 * squared l2-norm)
+func ProxTiDense(lambda float64) ProximalOperatorDense {
+  c := NewBareReal(1.0/(lambda + 1.0))
+  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+    x.VMULS(w, c)
+  }
+  return f
+}
 /* -------------------------------------------------------------------------- */
 func sagaDense(
   f ObjectiveDense,
