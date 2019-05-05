@@ -139,16 +139,16 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     var f ProximalOperatorDense
     switch {
     case proxDense   != nil: f = proxDense
-    case l1reg.Value != 0.0: f = l1regularizationDense(gamma.Value*l1reg.Value)
-    case l2reg.Value != 0.0: f = l2regularizationDense(gamma.Value*l2reg.Value)
+    case l1reg.Value != 0.0: f = ProxL1Dense(gamma.Value*l1reg.Value)
+    case l2reg.Value != 0.0: f = ProxL2Dense(gamma.Value*l2reg.Value)
     }
     return sagaDense (g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituDense)
   case ObjectiveSparse:
     var f ProximalOperatorSparse
     switch {
     case proxSparse  != nil: f = proxSparse
-    case l1reg.Value != 0.0: f = l1regularizationSparse(gamma.Value*l1reg.Value)
-    case l2reg.Value != 0.0: f = l2regularizationSparse(gamma.Value*l2reg.Value)
+    case l1reg.Value != 0.0: f = ProxL1Sparse(gamma.Value*l1reg.Value)
+    case l2reg.Value != 0.0: f = ProxL2Sparse(gamma.Value*l2reg.Value)
     }
     return sagaSparse(g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituSparse)
   default:

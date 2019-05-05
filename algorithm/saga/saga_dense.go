@@ -73,7 +73,7 @@ func (obj *GradientDense) set(w ConstReal, g DenseBareRealVector, g_const bool) 
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
-func l1regularizationDense(lambda float64) ProximalOperatorDense {
+func ProxL1Dense(lambda float64) ProximalOperatorDense {
   f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
     for i := 0; i < x.Dim(); i++ {
       if yi := w.ValueAt(i); yi < 0.0 {
@@ -85,7 +85,7 @@ func l1regularizationDense(lambda float64) ProximalOperatorDense {
   }
   return f
 }
-func l2regularizationDense(lambda float64) ProximalOperatorDense {
+func ProxL2Dense(lambda float64) ProximalOperatorDense {
   f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
     t.Vnorm(w)
     t.Div(ConstReal(lambda), t)

@@ -73,7 +73,7 @@ func (obj *GradientSparse) set(w ConstReal, g *SparseBareRealVector, g_const boo
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
-func l1regularizationSparse(lambda float64) ProximalOperatorSparse {
+func ProxL1Sparse(lambda float64) ProximalOperatorSparse {
   f := func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal) {
     for i := 0; i < x.Dim(); i++ {
       if yi := w.ValueAt(i); yi < 0.0 {
@@ -85,7 +85,7 @@ func l1regularizationSparse(lambda float64) ProximalOperatorSparse {
   }
   return f
 }
-func l2regularizationSparse(lambda float64) ProximalOperatorSparse {
+func ProxL2Sparse(lambda float64) ProximalOperatorSparse {
   f := func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal) {
     t.Vnorm(w)
     t.Div(ConstReal(lambda), t)

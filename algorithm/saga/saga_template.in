@@ -39,8 +39,8 @@ import . "github.com/pbenner/autodiff"
 
 #define PROXIMAL_OPERATOR STR_CONCAT(ProximalOperator, SAGA_TYPE)
 
-#define L1REG STR_CONCAT(l1regularization, SAGA_TYPE)
-#define L2REG STR_CONCAT(l2regularization, SAGA_TYPE)
+#define PROX_L1 STR_CONCAT(ProxL1, SAGA_TYPE)
+#define PROX_L2 STR_CONCAT(ProxL2, SAGA_TYPE)
 
 /* -------------------------------------------------------------------------- */
 
@@ -100,7 +100,7 @@ func (obj *GRADIENT_TYPE) set(w CONST_SCALAR_TYPE, g VECTOR_TYPE, g_const bool) 
 
 /* -------------------------------------------------------------------------- */
 
-func L1REG(lambda float64) PROXIMAL_OPERATOR {
+func PROX_L1(lambda float64) PROXIMAL_OPERATOR {
   f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
     for i := 0; i < x.Dim(); i++ {
       if yi := w.ValueAt(i); yi < 0.0 {
@@ -113,7 +113,7 @@ func L1REG(lambda float64) PROXIMAL_OPERATOR {
   return f
 }
 
-func L2REG(lambda float64) PROXIMAL_OPERATOR {
+func PROX_L2(lambda float64) PROXIMAL_OPERATOR {
   f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
     t.Vnorm(w)
     t.Div(CONST_SCALAR_TYPE(lambda), t)
