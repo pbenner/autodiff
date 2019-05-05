@@ -162,7 +162,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     theta := obj.LogisticRegression.GetParameters()
     prox  := saga.ProximalOperatorSparse(nil)
     switch {
-    case obj.L1Reg != 0.0: prox = proxL1sparse(obj.stepSize*obj.L2Reg)
+    case obj.L1Reg != 0.0: prox = proxL1sparse(obj.stepSize*obj.L1Reg)
     case obj.L2Reg != 0.0: prox = proxTIsparse(obj.stepSize*obj.L2Reg)
     }
     if r, err := saga.Run(saga.ObjectiveSparse(obj.f_sparse), len(obj.x_sparse), theta,
@@ -178,7 +178,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     theta := obj.LogisticRegression.GetParameters()
     prox  := saga.ProximalOperatorDense(nil)
     switch {
-    case obj.L1Reg != 0.0: prox = proxL1dense(obj.stepSize*obj.L2Reg)
+    case obj.L1Reg != 0.0: prox = proxL1dense(obj.stepSize*obj.L1Reg)
     case obj.L2Reg != 0.0: prox = proxTIdense(obj.stepSize*obj.L2Reg)
     }
     if r, err := saga.Run(saga.ObjectiveDense(obj.f_dense), len(obj.x_dense), theta,

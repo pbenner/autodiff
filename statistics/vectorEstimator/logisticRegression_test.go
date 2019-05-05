@@ -188,8 +188,8 @@ func TestLogistic3(test *testing.T) {
     test.Error(err); return
   }
   //estimator.Hook  = hook
-  //estimator.L1Reg = 1.0/(C*float64(len(x)))
-  estimator.L2Reg = 1.0/(C*float64(len(x)))
+  estimator.L1Reg = 1.0/(C*float64(len(x)))
+  //estimator.L2Reg = 1.0/(C*float64(len(x)))
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {
@@ -199,7 +199,7 @@ func TestLogistic3(test *testing.T) {
   r_saga := estimator.LogisticRegression.GetParameters()
 
   objective := func(r Vector) (Scalar, error) {
-    return eval_l2_solution(x, r, C), nil
+    return eval_l1_solution(x, r, C), nil
   }
   r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
