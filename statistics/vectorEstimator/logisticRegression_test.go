@@ -37,7 +37,9 @@ func hook(x ConstVector, step, y ConstScalar, i int) bool {
 }
 
 func rprop_hook(gradient []float64, step []float64, x Vector, value Scalar) bool {
-  fmt.Printf("%s\n", x.Table())
+  fmt.Printf("x: %v\n", x)
+  fmt.Printf("g: %v\n", gradient)
+  fmt.Println()
   return false
 }
 
@@ -253,14 +255,19 @@ func TestLogistic4(test *testing.T) {
   r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
   }
+  r_sklearn := DenseConstRealVector([]float64{-2.63837871, 0.16460826, 0.44788412})
 
   fmt.Println(r_saga)
   fmt.Println(r_rprop)
-  //fmt.Println(DenseGradient{eval_l2_solution(x, r_saga , C)})
-  //fmt.Println(DenseGradient{eval_l2_solution(x, r_rprop, C)})
+  fmt.Println(DenseGradient{eval_l1_solution(x, r_saga , C)})
+  fmt.Println(DenseGradient{eval_l1_solution(x, r_rprop, C)})
 
   t := NullReal()
-  if t.Vnorm(r_saga.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+  s := NullDenseBareRealVector(r_saga.Dim())
+  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+    test.Error("test failed")
+  }
+  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetValue() > 1e-4 {
     test.Error("test failed")
   }
 }
