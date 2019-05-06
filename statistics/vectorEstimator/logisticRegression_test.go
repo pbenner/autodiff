@@ -191,7 +191,7 @@ func TestLogistic3(test *testing.T) {
     test.Error(err); return
   }
   //estimator.Hook  = hook
-  estimator.L2Reg = 1.0/(C*float64(len(x)))
+  estimator.TiReg = 1.0/C
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {
@@ -240,8 +240,7 @@ func TestLogistic4(test *testing.T) {
     test.Error(err); return
   }
   //estimator.Hook  = hook
-  estimator.L1Reg = 1.0/(C*float64(len(x)))
-  //estimator.L2Reg = 1.0/(C*float64(len(x)))
+  estimator.L1Reg = 1.0/C
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {

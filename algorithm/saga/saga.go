@@ -146,18 +146,18 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     var f ProximalOperatorDense
     switch {
     case proxDense   != nil: f = proxDense
-    case l1reg.Value != 0.0: f = ProxL1Dense(gamma.Value*l1reg.Value)
-    case l2reg.Value != 0.0: f = ProxL2Dense(gamma.Value*l2reg.Value)
-    case tireg.Value != 0.0: f = ProxTiDense(gamma.Value*l2reg.Value)
+    case l1reg.Value != 0.0: f = ProxL1Dense(gamma.Value*l1reg.Value/float64(n))
+    case l2reg.Value != 0.0: f = ProxL2Dense(gamma.Value*l2reg.Value/float64(n))
+    case tireg.Value != 0.0: f = ProxTiDense(gamma.Value*l2reg.Value/float64(n))
     }
     return sagaDense (g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituDense)
   case ObjectiveSparse:
     var f ProximalOperatorSparse
     switch {
     case proxSparse  != nil: f = proxSparse
-    case l1reg.Value != 0.0: f = ProxL1Sparse(gamma.Value*l1reg.Value)
-    case l2reg.Value != 0.0: f = ProxL2Sparse(gamma.Value*l2reg.Value)
-    case tireg.Value != 0.0: f = ProxTiSparse(gamma.Value*l2reg.Value)
+    case l1reg.Value != 0.0: f = ProxL1Sparse(gamma.Value*l1reg.Value/float64(n))
+    case l2reg.Value != 0.0: f = ProxL2Sparse(gamma.Value*l2reg.Value/float64(n))
+    case tireg.Value != 0.0: f = ProxTiSparse(gamma.Value*l2reg.Value/float64(n))
     }
     return sagaSparse(g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, inSituSparse)
   default:
