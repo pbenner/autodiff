@@ -44,6 +44,7 @@ type LogisticRegression struct {
   L1Reg      float64
   L2Reg      float64
   TiReg      float64
+  Seed       int64
   Hook       func(x ConstVector, step, y ConstScalar, i int) bool
 }
 
@@ -171,6 +172,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Hook   {obj.Hook},
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
+      saga.Seed   {obj.Seed},
       prox); err != nil {
       return err
     } else {
@@ -188,6 +190,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Hook   {obj.Hook},
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
+      saga.Seed   {obj.Seed},
       prox); err != nil {
       return err
     } else {
