@@ -78,10 +78,10 @@ func (r *Real) Max(a, b ConstScalar) Scalar {
 /* -------------------------------------------------------------------------- */
 
 func (c *Real) Abs(a ConstScalar) Scalar {
-  if a.Sign() == -1 {
-    c.Neg(a)
-  } else {
-    c.Set(a)
+  switch a.Sign() {
+  case -1: c.Neg(a)
+  case  0: c.Reset()
+  case  1: c.Set(a)
   }
   return c
 }

@@ -91,10 +91,10 @@ func (a *BareReal) Sign() int {
 /* -------------------------------------------------------------------------- */
 
 func (c *BareReal) Abs(a ConstScalar) Scalar {
-  if a.Sign() == -1 {
-    c.Neg(a)
-  } else {
-    c.Set(a)
+  switch a.Sign() {
+  case -1: c.Neg(a)
+  case  0: c.Reset()
+  case  1: c.Set(a)
   }
   return c
 }
