@@ -163,9 +163,9 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     theta := obj.LogisticRegression.GetParameters()
     prox  := saga.ProximalOperatorSparse(nil)
     switch {
-    case obj.L1Reg != 0.0: prox = proxL1Sparse(obj.stepSize*obj.L1Reg/float64(obj.n))
-    case obj.L2Reg != 0.0: prox = proxL2Sparse(obj.stepSize*obj.L2Reg/float64(obj.n))
-    case obj.TiReg != 0.0: prox = proxTiSparse(obj.stepSize*obj.TiReg/float64(obj.n))
+    case obj.L1Reg != 0.0: prox = proxWrapperSparse(saga.ProxL1Sparse(obj.stepSize*obj.L1Reg/float64(obj.n)))
+    case obj.L2Reg != 0.0: prox = proxWrapperSparse(saga.ProxL2Sparse(obj.stepSize*obj.L2Reg/float64(obj.n)))
+    case obj.TiReg != 0.0: prox = proxWrapperSparse(saga.ProxTiSparse(obj.stepSize*obj.TiReg/float64(obj.n)))
     }
     if r, err := saga.Run(saga.ObjectiveSparse(obj.f_sparse), len(obj.x_sparse), theta,
       saga.Hook   {obj.Hook},
@@ -180,9 +180,9 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     theta := obj.LogisticRegression.GetParameters()
     prox  := saga.ProximalOperatorDense(nil)
     switch {
-    case obj.L1Reg != 0.0: prox = proxL1Dense(obj.stepSize*obj.L1Reg/float64(obj.n))
-    case obj.L2Reg != 0.0: prox = proxL2Dense(obj.stepSize*obj.L2Reg/float64(obj.n))
-    case obj.TiReg != 0.0: prox = proxTiDense(obj.stepSize*obj.TiReg/float64(obj.n))
+    case obj.L1Reg != 0.0: prox = proxWrapperDense(saga.ProxL1Dense(obj.stepSize*obj.L1Reg/float64(obj.n)))
+    case obj.L2Reg != 0.0: prox = proxWrapperDense(saga.ProxL2Dense(obj.stepSize*obj.L2Reg/float64(obj.n)))
+    case obj.TiReg != 0.0: prox = proxWrapperDense(saga.ProxTiDense(obj.stepSize*obj.TiReg/float64(obj.n)))
     }
     if r, err := saga.Run(saga.ObjectiveDense(obj.f_dense), len(obj.x_dense), theta,
       saga.Hook   {obj.Hook},
@@ -227,8 +227,7 @@ func (obj *LogisticRegression) setStepSize() {
 
 /* -------------------------------------------------------------------------- */
 
-func proxL1Dense(lambda float64) saga.ProximalOperatorDense {
-  g := saga.ProxL1Dense(lambda)
+func proxWrapperDense(g saga.ProximalOperatorDense) saga.ProximalOperatorDense {
   f := func(x, w DenseBareRealVector, t *BareReal) {
     g(x, w, t)
     // do not regularize intercept
@@ -237,48 +236,7 @@ func proxL1Dense(lambda float64) saga.ProximalOperatorDense {
   return f
 }
 
-func proxL2Dense(lambda float64) saga.ProximalOperatorDense {
-  g := saga.ProxL2Dense(lambda)
-  f := func(x, w DenseBareRealVector, t *BareReal) {
-    g(x, w, t)
-    // do not regularize intercept
-    x.AT(0).SET(w.AT(0))
-  }
-  return f
-}
-
-func proxTiDense(lambda float64) saga.ProximalOperatorDense {
-  g := saga.ProxTiDense(lambda)
-  f := func(x, w DenseBareRealVector, t *BareReal) {
-    g(x, w, t)
-    // do not regularize intercept
-    x.AT(0).SET(w.AT(0))
-  }
-  return f
-}
-
-func proxL1Sparse(lambda float64) saga.ProximalOperatorSparse {
-  g := saga.ProxL1Sparse(lambda)
-  f := func(x, w *SparseBareRealVector, t *BareReal) {
-    g(x, w, t)
-    // do not regularize intercept
-    x.AT(0).SET(w.AT(0))
-  }
-  return f
-}
-
-func proxL2Sparse(lambda float64) saga.ProximalOperatorSparse {
-  g := saga.ProxL2Sparse(lambda)
-  f := func(x, w *SparseBareRealVector, t *BareReal) {
-    g(x, w, t)
-    // do not regularize intercept
-    x.AT(0).SET(w.AT(0))
-  }
-  return f
-}
-
-func proxTiSparse(lambda float64) saga.ProximalOperatorSparse {
-  g := saga.ProxTiSparse(lambda)
+func proxWrapperSparse(g saga.ProximalOperatorSparse) saga.ProximalOperatorSparse {
   f := func(x, w *SparseBareRealVector, t *BareReal) {
     g(x, w, t)
     // do not regularize intercept
