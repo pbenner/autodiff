@@ -37,6 +37,7 @@ func hook(x ConstVector, step, y ConstScalar, i int) bool {
 }
 
 func rprop_hook(gradient []float64, step []float64, x Vector, value Scalar) bool {
+  fmt.Printf("y: %v\n", value)
   fmt.Printf("x: %v\n", x)
   fmt.Printf("g: %v\n", gradient)
   fmt.Println()
@@ -256,11 +257,6 @@ func TestLogistic4(test *testing.T) {
     panic(err)
   }
   r_sklearn := DenseConstRealVector([]float64{-2.63837871, 0.16460826, 0.44788412})
-
-  fmt.Println(r_saga)
-  fmt.Println(r_rprop)
-  fmt.Println(DenseGradient{eval_l1_solution(x, r_saga , C)})
-  fmt.Println(DenseGradient{eval_l1_solution(x, r_rprop, C)})
 
   t := NullReal()
   s := NullDenseBareRealVector(r_saga.Dim())

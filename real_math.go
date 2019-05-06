@@ -78,7 +78,7 @@ func (r *Real) Max(a, b ConstScalar) Scalar {
 /* -------------------------------------------------------------------------- */
 
 func (c *Real) Abs(a ConstScalar) Scalar {
-  if c.Sign() == -1 {
+  if a.Sign() == -1 {
     c.Neg(a)
   } else {
     c.Set(a)
