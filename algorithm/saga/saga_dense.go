@@ -114,6 +114,7 @@ func sagaDense(
   maxIterations MaxIterations,
   proxop ProximalOperatorDense,
   hook Hook,
+  seed Seed,
   inSitu *InSituDense) (Vector, error) {
   x1 := AsDenseBareRealVector(x)
   x2 := AsDenseBareRealVector(x)
@@ -147,9 +148,10 @@ func sagaDense(
       dict[i].add(s)
     }
   }
+  g := rand.New(rand.NewSource(seed.Value))
   y := ConstReal(math.NaN())
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
-    j := rand.Intn(n)
+    j := g.Intn(n)
     // get old gradient
     g1 = dict[j]
     // evaluate objective function

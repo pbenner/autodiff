@@ -146,6 +146,7 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   maxIterations MaxIterations,
   proxop PROXIMAL_OPERATOR,
   hook Hook,
+  seed Seed,
   inSitu *IN_SITU_TYPE) (Vector, error) {
 
   x1 := AS_VECTOR(x)
@@ -183,10 +184,11 @@ func STR_CONCAT(saga, SAGA_TYPE)(
       dict[i].add(s)
     }
   }
+  g := rand.New(rand.NewSource(seed.Value))
   y := CONST_SCALAR_TYPE(math.NaN())
 
   for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
-    j := rand.Intn(n)
+    j := g.Intn(n)
 
     // get old gradient
     g1 = dict[j]
