@@ -75,11 +75,12 @@ func (obj *GradientDense) set(w ConstReal, g DenseBareRealVector, g_const bool) 
 /* -------------------------------------------------------------------------- */
 func ProxL1Dense(lambda float64) ProximalOperatorDense {
   f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    for i := 0; i < x.Dim(); i++ {
-      if yi := w.ValueAt(i); yi < 0.0 {
-        x.AT(i).SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+    for it := x.JOINT_ITERATOR(w); it.Ok(); it.Next() {
+      s1, s2 := it.GET()
+      if yi := s2.GetValue(); yi < 0.0 {
+        s1.SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
       } else {
-        x.AT(i).SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+        s1.SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
       }
     }
   }
