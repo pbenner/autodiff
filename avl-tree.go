@@ -154,8 +154,7 @@ func (obj *AvlNode) clone() *AvlNode {
     return nil
   }
   r := AvlNode{}
-  r.Value   = obj.Value
-  r.Balance = obj.Balance
+  r  = *obj
   r.setLeft (obj.Left .clone())
   r.setRight(obj.Right.clone())
   return &r
