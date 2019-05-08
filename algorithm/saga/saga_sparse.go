@@ -77,10 +77,17 @@ func ProxL1Sparse(lambda float64) ProximalOperatorSparse {
   f := func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal) {
     for it := x.JOINT_ITERATOR(w); it.Ok(); it.Next() {
       s1, s2 := it.GET()
-      if yi := s2.GetValue(); yi < 0.0 {
-        s1.SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+      if s1 == nil {
+        s1 = x.AT(it.Index())
+      }
+      if s2 == nil {
+        s1.SetValue(-1.0*math.Max(- lambda, 0.0))
       } else {
-        s1.SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+        if yi := s2.GetValue(); yi < 0.0 {
+          s1.SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+        } else {
+          s1.SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+        }
       }
     }
   }
