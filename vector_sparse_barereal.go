@@ -601,10 +601,18 @@ type SparseBareRealVectorIterator struct {
   v *SparseBareRealVector
 }
 func (obj *SparseBareRealVectorIterator) Get() Scalar {
-  return obj.GET()
+  if v := obj.GET(); v == nil {
+    return nil
+  } else {
+    return v
+  }
 }
 func (obj *SparseBareRealVectorIterator) GetConst() ConstScalar {
-  return obj.GET()
+  if v := obj.GET(); v == nil {
+    return nil
+  } else {
+    return v
+  }
 }
 func (obj *SparseBareRealVectorIterator) GET() *BareReal {
   return obj.v.values[obj.Index()]
@@ -666,7 +674,11 @@ func (obj *SparseBareRealVectorJointIterator) Next() {
   }
 }
 func (obj *SparseBareRealVectorJointIterator) Get() (Scalar, ConstScalar) {
-  return obj.s1, obj.s2
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
 }
 func (obj *SparseBareRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
   return obj.s1, obj.s2
@@ -742,7 +754,11 @@ func (obj *SparseBareRealVectorJoint3Iterator) Next() {
   }
 }
 func (obj *SparseBareRealVectorJoint3Iterator) Get() (Scalar, ConstScalar, ConstScalar) {
-  return obj.s1, obj.s2, obj.s3
+  if obj.s1 == nil {
+    return nil, obj.s2, obj.s3
+  } else {
+    return obj.s1, obj.s2, obj.s3
+  }
 }
 func (obj *SparseBareRealVectorJoint3Iterator) GET() (*BareReal, ConstScalar, ConstScalar) {
   return obj.s1, obj.s2, obj.s3

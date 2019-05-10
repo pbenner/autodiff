@@ -689,11 +689,19 @@ type VECTOR_ITERATOR struct {
 }
 
 func (obj *VECTOR_ITERATOR) Get() Scalar {
-  return obj.GET()
+  if v := obj.GET(); v == nil {
+    return nil
+  } else {
+    return v
+  }
 }
 
 func (obj *VECTOR_ITERATOR) GetConst() ConstScalar {
-  return obj.GET()
+  if v := obj.GET(); v == nil {
+    return nil
+  } else {
+    return v
+  }
 }
 
 func (obj *VECTOR_ITERATOR) GET() SCALAR_TYPE {
@@ -764,7 +772,11 @@ func (obj *VECTOR_JOINT_ITERATOR) Next() {
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {
-  return obj.s1, obj.s2
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
@@ -848,7 +860,11 @@ func (obj *VECTOR_JOINT3_ITERATOR) Next() {
 }
 
 func (obj *VECTOR_JOINT3_ITERATOR) Get() (Scalar, ConstScalar, ConstScalar) {
-  return obj.s1, obj.s2, obj.s3
+  if obj.s1 == nil {
+    return nil, obj.s2, obj.s3
+  } else {
+    return obj.s1, obj.s2, obj.s3
+  }
 }
 
 func (obj *VECTOR_JOINT3_ITERATOR) GET() (SCALAR_TYPE, ConstScalar, ConstScalar) {

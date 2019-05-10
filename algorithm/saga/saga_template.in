@@ -157,6 +157,7 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   seed Seed,
   inSitu *IN_SITU_TYPE) (Vector, error) {
 
+  xs := AS_VECTOR(x)
   x1 := AS_VECTOR(x)
   x2 := AS_VECTOR(x)
 
@@ -195,35 +196,44 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   g := rand.New(rand.NewSource(seed.Value))
   y := CONST_SCALAR_TYPE(math.NaN())
 
-  for i_ := 0; i_ < maxIterations.Value && i_/n < maxEpochs.Value; i_++ {
-    j := g.Intn(n)
+  for epoch := 0; epoch < maxIterations.Value; epoch++ {
+    for i_ := 0; i_ < n; i_++ {
+      j := g.Intn(n)
 
-    // get old gradient
-    g1 = dict[j]
-    // evaluate objective function
-    if y_, w, g, g_const, err := f(j, x1); err != nil {
-      return x1, err
-    } else {
-      y = y_
-      g2.set(w, g, g_const)
-    }
+      // get old gradient
+      g1 = dict[j]
+      // evaluate objective function
+      if y_, w, g, g_const, err := f(j, x1); err != nil {
+        return x1, err
+      } else {
+        y = y_
+        g2.set(w, g, g_const)
+      }
 
-    t1.VDIVS(s , t_n)
-    g2.add(t1)
-    g1.sub(t1)
-    t1.VMULS(t1, t_g)
+      t1.VDIVS(s , t_n)
+      g2.add(t1)
+      g1.sub(t1)
+      t1.VMULS(t1, t_g)
 
-    if proxop != nil {
-      t1.VSUBV(x1, t1)
-      proxop(x2, t1, t2)
-    } else {
-      x2.VSUBV(x1, t1)
+      if proxop != nil {
+        t1.VSUBV(x1, t1)
+        proxop(x2, t1, t2)
+      } else {
+        x2.VSUBV(x1, t1)
+      }
+      x1, x2 = x2, x1
+      // update table
+      g1.sub(s)
+      g2.add(s)
+
+      // update dictionary
+      dict[j].set(g2.w, g2.g, g2.g_const)
     }
     // evaluate stopping criterion
     max_x     := 0.0
     max_delta := 0.0
     delta     := 0.0
-    for it := x1.JOINT_ITERATOR_(x2); it.Ok(); it.Next() {
+    for it := xs.JOINT_ITERATOR_(x1); it.Ok(); it.Next() {
       s1, s2 := it.GET()
       v1, v2 := 0.0, 0.0
       if s1 != nil {
@@ -232,9 +242,9 @@ func STR_CONCAT(saga, SAGA_TYPE)(
       if s2 != nil {
         v2 = s2.GetValue()
       }
-      if math.IsNaN(v2) {
-        return x1, fmt.Errorf("NaN value detected")
-      }
+        if math.IsNaN(v2) {
+          return x1, fmt.Errorf("NaN value detected")
+        }
       max_x     = math.Max(max_x    , math.Abs(v2))
       max_delta = math.Max(max_delta, math.Abs(v2 - v1))
     }
@@ -244,20 +254,14 @@ func STR_CONCAT(saga, SAGA_TYPE)(
       delta = max_delta
     }
     // execute hook if available
-    if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, i_) {
+    if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
       break
     }
     if max_x != 0.0 && max_delta/max_x <= epsilon.Value*gamma.Value ||
       (max_x == 0.0 && max_delta == 0.0) {
-      return x2, nil
+      return x1, nil
     }
-    x1, x2 = x2, x1
-    // update table
-    g1.sub(s)
-    g2.add(s)
-
-    // update dictionary
-    dict[j].set(g2.w, g2.g, g2.g_const)
+    xs.Set(x1)
   }
   return x1, nil
 }
