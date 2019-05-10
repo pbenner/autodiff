@@ -154,8 +154,7 @@ func (obj *AvlNode) clone() *AvlNode {
     return nil
   }
   r := AvlNode{}
-  r.Value   = obj.Value
-  r.Balance = obj.Balance
+  r  = *obj
   r.setLeft (obj.Left .clone())
   r.setRight(obj.Right.clone())
   return &r
@@ -185,15 +184,13 @@ func (obj *AvlNode) insert(i int, parent *AvlNode) (bool, bool) {
     return true, false
   }
   switch {
-  case i == obj.Value:
-    return false, obj.Balance == 0
   case i  < obj.Value:
     if ok, balanced := obj.Left .insert(i, obj); !ok {
-      return ok, obj.Balance == 0
+      return ok, balanced
     } else {
       if !balanced {
         switch obj.Balance {
-        case  1: obj.Balance =  0
+        case  1: obj.Balance =  0; balanced = true
         case  0: obj.Balance = -1
         case -1:
           if obj.Left.Balance == -1 {
@@ -201,16 +198,18 @@ func (obj *AvlNode) insert(i int, parent *AvlNode) (bool, bool) {
           } else {
             obj.rotateLR()
           }
+          balanced = true
         }
       }
+      return true, balanced
     }
   case i  > obj.Value:
     if ok, balanced := obj.Right.insert(i, obj); !ok {
-      return ok, true
+      return ok, balanced
     } else {
       if !balanced {
         switch obj.Balance {
-        case -1: obj.Balance = 0
+        case -1: obj.Balance = 0; balanced = true
         case  0: obj.Balance = 1
         case  1:
           if obj.Right.Balance == 1 {
@@ -218,11 +217,14 @@ func (obj *AvlNode) insert(i int, parent *AvlNode) (bool, bool) {
           } else {
             obj.rotateRL()
           }
+          balanced = true
         }
       }
+      return true, balanced
     }
+  default:
+    return false, true
   }
-  return true, obj.Balance == 0
 }
 
 /* -------------------------------------------------------------------------- */
@@ -317,7 +319,7 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
       obj.setLeft(r)
     }
     if !balanced {
-      balanced = obj.balance1()
+      balanced = obj.balance1(balanced)
     }
     return obj, ok, balanced
   }
@@ -327,7 +329,7 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
       obj.setRight(r)
     }
     if !balanced {
-      balanced = obj.balance2()
+      balanced = obj.balance2(balanced)
     }
     return obj, ok, balanced
   }
@@ -347,7 +349,7 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
   n_, balanced := obj.Left.deleteRec(obj)
   obj = obj.replace(n_)
   if !balanced {
-    balanced = obj.balance1()
+    balanced = obj.balance1(balanced)
   }
   return obj, true, balanced
 }
@@ -355,7 +357,7 @@ func (obj *AvlNode) delete(i int, parent *AvlNode) (*AvlNode, bool, bool) {
 func (obj *AvlNode) deleteRec(parent *AvlNode) (*AvlNode, bool) {
   if obj.Right != nil {
     if v, balanced := obj.Right.deleteRec(obj); !balanced {
-      balanced = obj.balance2()
+      balanced = obj.balance2(balanced)
       return v, balanced
     } else {
       return v, balanced
@@ -370,10 +372,10 @@ func (obj *AvlNode) deleteRec(parent *AvlNode) (*AvlNode, bool) {
   }
 }
 
-func (obj *AvlNode) balance1() bool {
+func (obj *AvlNode) balance1(balanced bool) bool {
   switch obj.Balance {
   case -1: obj.Balance = 0
-  case  0: obj.Balance = 1
+  case  0: obj.Balance = 1; balanced = true
   case  1:
     balance := obj.Right.Balance
     if balance >= 0 {
@@ -381,18 +383,19 @@ func (obj *AvlNode) balance1() bool {
       if balance == 0 {
         obj     .Balance = -1
         obj.Left.Balance =  1
+        balanced = true
       }
     } else {
       obj.rotateRL()
     }
   }
-  return obj.Balance != 0
+  return balanced
 }
 
-func (obj *AvlNode) balance2() bool {
+func (obj *AvlNode) balance2(balanced bool) bool {
   switch obj.Balance {
   case  1: obj.Balance =  0
-  case  0: obj.Balance = -1
+  case  0: obj.Balance = -1; balanced = true
   case -1:
     balance := obj.Left.Balance
     if balance <= 0 {
@@ -400,12 +403,13 @@ func (obj *AvlNode) balance2() bool {
       if balance == 0 {
         obj     .Balance =  1
         obj.Left.Balance = -1
+        balanced = true
       }
     } else {
       obj.rotateLR()
     }
   }
-  return obj.Balance != 0
+  return balanced
 }
 
 func (obj *AvlNode) replace(node *AvlNode) *AvlNode {
