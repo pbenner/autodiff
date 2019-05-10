@@ -118,7 +118,6 @@ func sagaDense(
   x Vector,
   gamma Gamma,
   epsilon Epsilon,
-  maxEpochs MaxEpochs,
   maxIterations MaxIterations,
   proxop ProximalOperatorDense,
   hook Hook,

@@ -118,7 +118,6 @@ func sagaSparse(
   x Vector,
   gamma Gamma,
   epsilon Epsilon,
-  maxEpochs MaxEpochs,
   maxIterations MaxIterations,
   proxop ProximalOperatorSparse,
   hook Hook,
