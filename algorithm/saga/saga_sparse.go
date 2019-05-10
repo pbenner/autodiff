@@ -201,9 +201,9 @@ func sagaSparse(
       if s2 != nil {
         v2 = s2.GetValue()
       }
-        if math.IsNaN(v2) {
-          return x1, fmt.Errorf("NaN value detected")
-        }
+      if math.IsNaN(v2) {
+        return x1, fmt.Errorf("NaN value detected")
+      }
       max_x = math.Max(max_x , math.Abs(v2))
       max_delta = math.Max(max_delta, math.Abs(v2 - v1))
     }
