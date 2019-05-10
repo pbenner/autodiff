@@ -216,8 +216,13 @@ func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
 func (obj *LogisticRegression) setStepSize() {
   max_squared_sum := 0.0
   for i, _ := range obj.x {
-    r := 0.0
-    for it := obj.x[i].ConstIterator(); it.Ok(); it.Next() {
+    r  := 0.0
+    it := obj.x[i].ConstIterator()
+    // skep first element (class)
+    if it.Ok() {
+      it.Next()
+    }
+    for ; it.Ok(); it.Next() {
       r += it.GetConst().GetValue()*it.GetConst().GetValue()
     }
     if r > max_squared_sum {
