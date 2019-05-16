@@ -103,7 +103,7 @@ func ProxL2Sparse(lambda float64) ProximalOperatorSparse {
   }
   return f
 }
-// Tikhonov regularization (1/2 * squared l2-norm)
+// Tikhonov regularization (1/2 * lambda * squared l2-norm)
 func ProxTiSparse(lambda float64) ProximalOperatorSparse {
   c := NewBareReal(1.0/(lambda + 1.0))
   f := func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal) {
