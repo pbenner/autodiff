@@ -32,12 +32,6 @@ type vectorSparseIndexIterator struct {
 
 /* -------------------------------------------------------------------------- */
 
-func indexNew() vectorSparseIndex {
-  return vectorSparseIndex{}
-}
-
-/* -------------------------------------------------------------------------- */
-
 func (obj *vectorSparseIndex) indexInsert(i int) {
   obj.AvlTree.Insert(i)
 }

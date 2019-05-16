@@ -66,3 +66,23 @@ func isGzip(filename string) (bool, error) {
   }
   return false, nil
 }
+
+/* -------------------------------------------------------------------------- */
+
+type sortIntFloat struct {
+  a []int
+  b []float64
+}
+
+func (obj sortIntFloat) Len() int {
+  return len(obj.a)
+}
+
+func (obj sortIntFloat) Swap(i, j int) {
+  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+}
+
+func (obj sortIntFloat) Less(i, j int) bool {
+  return obj.a[i] < obj.a[j]
+}

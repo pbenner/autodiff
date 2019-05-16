@@ -20,13 +20,14 @@ package autodiff
 
 import "fmt"
 import "bytes"
+import "sort"
 
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
 type SparseConstRealVector struct {
-  vectorSparseIndex
   values  map[int]ConstReal
+  indices []int
   n       int
 }
 
@@ -35,14 +36,18 @@ type SparseConstRealVector struct {
 
 // Allocate a new vector. Scalars are set to the given values.
 func NewSparseConstRealVector(indices []int, values []float64, n int) SparseConstRealVector {
+  if len(indices) != len(values) {
+    panic("invalid number of indices")
+  }
+  sort.Sort(sortIntFloat{indices, values})
   r := NilSparseConstRealVector(n)
+  r.indices = indices
   for i, k := range indices {
     if k >= n {
       panic("index larger than vector dimension")
     }
     if values[i] != 0.0 {
       r.values[k] = ConstReal(values[i])
-      r.indexInsert(k)
     }
   }
   return r
@@ -53,22 +58,6 @@ func NilSparseConstRealVector(n int) SparseConstRealVector {
   r.n      = n
   r.values = make(map[int]ConstReal)
   return r
-}
-
-/* -------------------------------------------------------------------------- */
-
-// Create a deep copy of the vector.
-func (obj SparseConstRealVector) Clone() SparseConstRealVector {
-  r := NilSparseConstRealVector(obj.n)
-  for i, v := range obj.values {
-    r.values[i] = v
-  }
-  r.vectorSparseIndex = obj.indexClone()
-  return r
-}
-
-func (obj SparseConstRealVector) CloneConstVector() ConstVector {
-  return obj.Clone()
 }
 
 /* const vector methods
@@ -96,13 +85,15 @@ func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
 
 func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
   r := NilSparseConstRealVector(j-i)
-  for it := obj.indexIteratorFrom(i); it.Ok(); it.Next() {
-    if it.Get() >= j {
+  for _, k := range obj.indices {
+    if k < i {
+      continue
+    }
+    if k >= j {
       break
     }
-    k := it.Get()
     r.values[k-i] = obj.values[k]
-    r.indexInsert(k-i)
+    r.indices     = append(r.indices, k-i)
   }
   return r
 }
@@ -124,7 +115,7 @@ func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJo
 }
 
 func (obj SparseConstRealVector) ITERATOR() *SparseConstRealVectorIterator {
-  r := SparseConstRealVectorIterator{obj.indexIterator(), obj}
+  r := SparseConstRealVectorIterator{0, obj}
   return &r
 }
 
@@ -215,7 +206,7 @@ func (a SparseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
  * -------------------------------------------------------------------------- */
 
 type SparseConstRealVectorIterator struct {
-  vectorSparseIndexIterator
+  i int
   v SparseConstRealVector
 }
 
@@ -224,11 +215,19 @@ func (obj *SparseConstRealVectorIterator) GetConst() ConstScalar {
 }
 
 func (obj *SparseConstRealVectorIterator) GET() ConstReal {
-  return obj.v.values[obj.vectorSparseIndexIterator.Get()]
+  return obj.v.values[obj.Index()]
+}
+
+func (obj *SparseConstRealVectorIterator) Ok() bool {
+  return obj.i < len(obj.v.indices)
 }
 
 func (obj *SparseConstRealVectorIterator) Index() int {
-  return obj.vectorSparseIndexIterator.Get()
+  return obj.v.indices[obj.i]
+}
+
+func (obj *SparseConstRealVectorIterator) Next() {
+  obj.i += 1
 }
 
 /* joint iterator

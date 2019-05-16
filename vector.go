@@ -65,7 +65,6 @@ type ConstVector interface {
   GetValues         ()                     []float64
   ConstIterator     ()                     VectorConstIterator
   ConstJointIterator(ConstVector)          VectorConstJointIterator
-  CloneConstVector  ()                     ConstVector
 }
 
 type Vector interface {
@@ -89,7 +88,6 @@ type Vector interface {
   ResetDerivatives  ()
   // basic methods
   CloneVector       ()                     Vector
-  CloneConstVector  ()                     ConstVector
   Set               (ConstVector)
   Export            (string)               error
   Permute           ([]int)                error
