@@ -52,10 +52,6 @@ type MaxIterations struct {
   Value int
 }
 
-type MaxEpochs struct {
-  Value int
-}
-
 type Seed struct {
   Value int64
 }
@@ -92,7 +88,6 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   hook          := Hook                  { nil}
   epsilon       := Epsilon               {1e-8}
   gamma         := Gamma                 {1.0/30.0}
-  maxEpochs     := MaxEpochs             {int(^uint(0) >> 1)}
   maxIterations := MaxIterations         {int(^uint(0) >> 1)}
   l1reg         := L1Regularization      { 0.0}
   l2reg         := L2Regularization      { 0.0}
@@ -111,8 +106,6 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       epsilon = a
     case Gamma:
       gamma = a
-    case MaxEpochs:
-      maxEpochs = a
     case MaxIterations:
       maxIterations = a
     case L1Regularization:
@@ -157,7 +150,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     case l2reg.Value != 0.0: f = ProxL2Dense(gamma.Value*l2reg.Value/float64(n))
     case tireg.Value != 0.0: f = ProxTiDense(gamma.Value*l2reg.Value/float64(n))
     }
-    return sagaDense (g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, seed, inSituDense)
+    return sagaDense (g, n, x, gamma, epsilon, maxIterations, f, hook, seed, inSituDense)
   case ObjectiveSparse:
     var f ProximalOperatorSparse
     switch {
@@ -166,7 +159,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     case l2reg.Value != 0.0: f = ProxL2Sparse(gamma.Value*l2reg.Value/float64(n))
     case tireg.Value != 0.0: f = ProxTiSparse(gamma.Value*l2reg.Value/float64(n))
     }
-    return sagaSparse(g, n, x, gamma, epsilon, maxEpochs, maxIterations, f, hook, seed, inSituSparse)
+    return sagaSparse(g, n, x, gamma, epsilon, maxIterations, f, hook, seed, inSituSparse)
   default:
     panic("invalid objective")
   }

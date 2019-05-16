@@ -150,7 +150,6 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   x Vector,
   gamma Gamma,
   epsilon Epsilon,
-  maxEpochs MaxEpochs,
   maxIterations MaxIterations,
   proxop PROXIMAL_OPERATOR,
   hook Hook,
