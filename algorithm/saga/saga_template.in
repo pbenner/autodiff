@@ -133,7 +133,7 @@ func PROX_L2(lambda float64) PROXIMAL_OPERATOR {
   return f
 }
 
-// Tikhonov regularization (1/2 * squared l2-norm)
+// Tikhonov regularization (1/2 * lambda * squared l2-norm)
 func PROX_TI(lambda float64) PROXIMAL_OPERATOR {
   c := NEW_SCALAR(1.0/(lambda + 1.0))
   f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
