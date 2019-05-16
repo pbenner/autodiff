@@ -35,10 +35,10 @@ import "os"
 
 /* -------------------------------------------------------------------------- */
 
-#define VECTOR_JOINT_ITERATOR_ STR_CONCAT(VECTOR_TYPE, JointIterator_)
-#define VECTOR_JOINT_ITERATOR  STR_CONCAT(VECTOR_TYPE, JointIterator)
-#define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_TYPE, ConstIterator)
-#define VECTOR_ITERATOR        STR_CONCAT(VECTOR_TYPE, Iterator)
+#define VECTOR_JOINT_ITERATOR_ STR_CONCAT(VECTOR_NAME, JointIterator_)
+#define VECTOR_JOINT_ITERATOR  STR_CONCAT(VECTOR_NAME, JointIterator)
+#define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_NAME, ConstIterator)
+#define VECTOR_ITERATOR        STR_CONCAT(VECTOR_NAME, Iterator)
 
 /* vector type declaration
  * -------------------------------------------------------------------------- */
@@ -309,7 +309,7 @@ func (v VECTOR_TYPE) Permute(pi []int) error {
 /* sorting
  * -------------------------------------------------------------------------- */
 
-#define SORT_TYPE STR_CONCAT(STR_CONCAT(sort, VECTOR_TYPE), ByValue)
+#define SORT_TYPE STR_CONCAT(STR_CONCAT(sort, VECTOR_NAME), ByValue)
 
 type SORT_TYPE VECTOR_TYPE
 

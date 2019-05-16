@@ -242,14 +242,14 @@ func (matrix MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
 }
 
 func (matrix MATRIX_TYPE) AsVector() Vector {
-  return matrix.STR_CONCAT(As, VECTOR_TYPE)()
+  return matrix.STR_CONCAT(As, VECTOR_NAME)()
 }
 
 func (matrix MATRIX_TYPE) AsConstVector() ConstVector {
   return matrix.AsVector()
 }
 
-func (matrix MATRIX_TYPE) STR_CONCAT(As, VECTOR_TYPE)() VECTOR_TYPE {
+func (matrix MATRIX_TYPE) STR_CONCAT(As, VECTOR_NAME)() VECTOR_TYPE {
   if matrix.cols < matrix.colMax - matrix.colOffset ||
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()
