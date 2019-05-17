@@ -38,25 +38,17 @@ type GradientSparse struct {
   g_const bool
 }
 func (obj GradientSparse) add(v *SparseBareRealVector) {
-  for it := v.JOINT_ITERATOR_(obj.g); it.Ok(); it.Next() {
-    s_a, s_b := it.GET()
-    if s_a == nil {
-      s_a = v.AT(it.Index())
-    }
-    if s_b != nil {
-      s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
-    }
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
   }
 }
 func (obj GradientSparse) sub(v *SparseBareRealVector) {
-  for it := v.JOINT_ITERATOR_(obj.g); it.Ok(); it.Next() {
-    s_a, s_b := it.GET()
-    if s_a == nil {
-      s_a = v.AT(it.Index())
-    }
-    if s_b != nil {
-      s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
-    }
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
   }
 }
 func (obj *GradientSparse) set(w ConstReal, g *SparseBareRealVector, g_const bool) {
@@ -75,7 +67,7 @@ func (obj *GradientSparse) set(w ConstReal, g *SparseBareRealVector, g_const boo
 /* -------------------------------------------------------------------------- */
 func ProxL1Sparse(lambda float64) ProximalOperatorSparse {
   f := func(x *SparseBareRealVector, w *SparseBareRealVector, t *BareReal) {
-    for it := x.JOINT_ITERATOR(w); it.Ok(); it.Next() {
+    for it := x.JOINT_ITERATOR_(w); it.Ok(); it.Next() {
       s1, s2 := it.GET()
       if s1 == nil {
         s1 = x.AT(it.Index())
@@ -142,8 +134,8 @@ func sagaSparse(
   t1 := inSitu.T1
   t2 := inSitu.T2
   // some constants
-  t_n := NewBareReal(float64(n))
-  t_g := NewBareReal(gamma.Value)
+  t_n := float64(n)
+  t_g := gamma.Value
   // sum of gradients
   s := NullSparseBareRealVector(d)
   dict := make([]GradientSparse, n)
@@ -170,10 +162,22 @@ func sagaSparse(
         y = y_
         g2.set(w, g, g_const)
       }
-      t1.VDIVS(s , t_n)
-      g2.add(t1)
-      g1.sub(t1)
-      t1.VMULS(t1, t_g)
+      gw1 := g1.w.GetValue()
+      gw2 := g2.w.GetValue()
+      if g1.g.IDEM(g2.g) {
+        for i := 0; i < s.Dim(); i++ {
+          s_i := s.ValueAt(i)
+          g1i := g1.g.ValueAt(i)
+          t1.AT(i).SetValue(t_g*((gw2 - gw1)*g1i + s_i/t_n))
+        }
+      } else {
+        for i := 0; i < s.Dim(); i++ {
+          s_i := s.ValueAt(i)
+          g1i := g1.g.ValueAt(i)
+          g2i := g2.g.ValueAt(i)
+          t1.AT(i).SetValue(t_g*(gw2*g2i - gw1*g1i + s_i/t_n))
+        }
+      }
       if proxop != nil {
         t1.VSUBV(x1, t1)
         proxop(x2, t1, t2)
@@ -181,7 +185,7 @@ func sagaSparse(
         x2.VSUBV(x1, t1)
       }
       x1, x2 = x2, x1
-      // update table
+      // update gradient avarage
       g1.sub(s)
       g2.add(s)
       // update dictionary
