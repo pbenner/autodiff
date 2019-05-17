@@ -152,6 +152,10 @@ func (obj VECTOR_TYPE) SET(x VECTOR_TYPE) {
   }
 }
 
+func (obj VECTOR_TYPE) IDEM(x VECTOR_TYPE) bool {
+  return obj == x
+}
+
 /* const vector methods
  * -------------------------------------------------------------------------- */
 

@@ -127,6 +127,9 @@ func (obj *SparseRealVector) SET(x *SparseRealVector) {
     }
   }
 }
+func (obj *SparseRealVector) IDEM(x *SparseRealVector) bool {
+  return obj == x
+}
 /* const vector methods
  * -------------------------------------------------------------------------- */
 func (obj *SparseRealVector) ValueAt(i int) float64 {

@@ -91,12 +91,24 @@ func (v DenseBareRealVector) Set(w ConstVector) {
   }
 }
 func (v DenseBareRealVector) SET(w DenseBareRealVector) {
+  if v.IDEM(w) {
+    return
+  }
   if v.Dim() != w.Dim() {
     panic("Set(): Vector dimensions do not match!")
   }
   for i := 0; i < w.Dim(); i++ {
     v[i].SET(w.AT(i))
   }
+}
+func (v DenseBareRealVector) IDEM(w DenseBareRealVector) bool {
+  if len(v) != len(w) {
+    return false
+  }
+  if len(v) == 0 {
+    return false
+  }
+  return &v[0] == &w[0]
 }
 /* const vector methods
  * -------------------------------------------------------------------------- */
