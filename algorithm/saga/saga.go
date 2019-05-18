@@ -128,6 +128,40 @@ func ProxTi(lambda float64) ProximalOperator {
 
 /* -------------------------------------------------------------------------- */
 
+func eval_stopping(xs, x1 DenseBareRealVector, epsilon float64) (bool, float64, error) {
+  // evaluate stopping criterion
+  max_x     := 0.0
+  max_delta := 0.0
+  delta     := 0.0
+  for it := xs.JOINT_ITERATOR_(x1); it.Ok(); it.Next() {
+    s1, s2 := it.GET()
+    v1, v2 := 0.0, 0.0
+    if s1 != nil {
+      v1 = s1.GetValue()
+    }
+    if s2 != nil {
+      v2 = s2.GetValue()
+    }
+    if math.IsNaN(v2) {
+      return true, math.NaN(), fmt.Errorf("NaN value detected")
+    }
+    max_x     = math.Max(max_x    , math.Abs(v2))
+    max_delta = math.Max(max_delta, math.Abs(v2 - v1))
+  }
+  if max_x != 0.0 {
+    delta = max_delta/max_x
+  } else {
+    delta = max_delta
+  }
+  if max_x != 0.0 && max_delta/max_x <= epsilon ||
+    (max_x == 0.0 && max_delta == 0.0) {
+    return true, delta, nil
+  }
+  return false, delta, nil
+}
+
+/* -------------------------------------------------------------------------- */
+
 func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
 
   hook          := Hook                  { nil}

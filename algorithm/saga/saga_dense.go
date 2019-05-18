@@ -19,7 +19,7 @@ package saga
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-import "fmt"
+//import   "fmt"
 import "math"
 import "math/rand"
 import . "github.com/pbenner/autodiff"
@@ -209,37 +209,13 @@ func sagaDense(
         dict[j].set(g2.g)
       }
     }
-    // evaluate stopping criterion
-    max_x := 0.0
-    max_delta := 0.0
-    delta := 0.0
-    for it := xs.JOINT_ITERATOR_(x1); it.Ok(); it.Next() {
-      s1, s2 := it.GET()
-      v1, v2 := 0.0, 0.0
-      if s1 != nil {
-        v1 = s1.GetValue()
-      }
-      if s2 != nil {
-        v2 = s2.GetValue()
-      }
-      if math.IsNaN(v2) {
-        return x1, fmt.Errorf("NaN value detected")
-      }
-      max_x = math.Max(max_x , math.Abs(v2))
-      max_delta = math.Max(max_delta, math.Abs(v2 - v1))
-    }
-    if max_x != 0.0 {
-      delta = max_delta/max_x
+    if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
+      return x1, err
     } else {
-      delta = max_delta
-    }
-    // execute hook if available
-    if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
-      break
-    }
-    if max_x != 0.0 && max_delta/max_x <= epsilon.Value*gamma.Value ||
-      (max_x == 0.0 && max_delta == 0.0) {
-      return x1, nil
+      // execute hook if available
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
+        break
+      }
     }
     xs.Set(x1)
   }
