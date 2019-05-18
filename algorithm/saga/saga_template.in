@@ -25,7 +25,6 @@ package saga
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
 import   "math/rand"
 
 import . "github.com/pbenner/autodiff"
@@ -158,7 +157,6 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
-  y := CONST_SCALAR_TYPE(math.NaN())
 
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     for i_ := 0; i_ < n; i_++ {
@@ -167,10 +165,9 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
       // get old gradient
       g1 = dict[j]
       // evaluate objective function
-      if y_, w, g, err := f(j, x1); err != nil {
+      if _, w, g, err := f(j, x1); err != nil {
         return x1, err
       } else {
-        y = y_
         g2.set(w, g)
       }
 
@@ -201,7 +198,7 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
       return x1, err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
         break
       }
     }
@@ -259,7 +256,6 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
-  y := CONST_SCALAR_TYPE(math.NaN())
 
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     for i_ := 0; i_ < n; i_++ {
@@ -268,10 +264,9 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
       // get old gradient
       g1 = dict[j]
       // evaluate objective function
-      if y_, g, err := f(j, x1); err != nil {
+      if _, g, err := f(j, x1); err != nil {
         return x1, err
       } else {
-        y = y_
         g2.set(g)
       }
 
@@ -300,7 +295,7 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
       return x1, err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
         break
       }
     }

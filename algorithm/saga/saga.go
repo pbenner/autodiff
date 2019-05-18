@@ -46,7 +46,7 @@ type TikhonovRegularization struct {
 }
 
 type Hook struct {
-  Value func(ConstVector, ConstScalar, ConstScalar, int) bool
+  Value func(ConstVector, ConstScalar, int) bool
 }
 
 type MaxIterations struct {

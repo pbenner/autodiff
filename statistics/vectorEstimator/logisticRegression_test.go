@@ -28,7 +28,7 @@ import . "github.com/pbenner/threadpool"
 
 /* -------------------------------------------------------------------------- */
 
-func hook(x ConstVector, step, y ConstScalar, i int) bool {
+func hook(x ConstVector, step ConstScalar, i int) bool {
   fmt.Printf("x: %v\n", x)
   fmt.Printf("s: %v\n", step)
   fmt.Printf("i: %d\n", i)

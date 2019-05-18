@@ -45,7 +45,7 @@ type LogisticRegression struct {
   L2Reg      float64
   TiReg      float64
   Seed       int64
-  Hook       func(x ConstVector, step, y ConstScalar, i int) bool
+  Hook       func(x ConstVector, step ConstScalar, i int) bool
 }
 
 /* -------------------------------------------------------------------------- */

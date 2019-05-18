@@ -20,7 +20,6 @@ package saga
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 //import   "fmt"
-import "math"
 import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
@@ -125,17 +124,15 @@ func saga1Dense(
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
-  y := ConstReal(math.NaN())
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     for i_ := 0; i_ < n; i_++ {
       j := g.Intn(n)
       // get old gradient
       g1 = dict[j]
       // evaluate objective function
-      if y_, w, g, err := f(j, x1); err != nil {
+      if _, w, g, err := f(j, x1); err != nil {
         return x1, err
       } else {
-        y = y_
         g2.set(w, g)
       }
       gw1 := g1.w.GetValue()
@@ -163,7 +160,7 @@ func saga1Dense(
       return x1, err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
         break
       }
     }
@@ -216,17 +213,15 @@ func saga2Dense(
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
-  y := ConstReal(math.NaN())
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     for i_ := 0; i_ < n; i_++ {
       j := g.Intn(n)
       // get old gradient
       g1 = dict[j]
       // evaluate objective function
-      if y_, g, err := f(j, x1); err != nil {
+      if _, g, err := f(j, x1); err != nil {
         return x1, err
       } else {
-        y = y_
         g2.set(g)
       }
       for i := 0; i < s.Dim(); i++ {
@@ -252,7 +247,7 @@ func saga2Dense(
       return x1, err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
         break
       }
     }
