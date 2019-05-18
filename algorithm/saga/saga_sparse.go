@@ -138,16 +138,21 @@ func saga1Sparse(
       gw1 := g1.w.GetValue()
       gw2 := g2.w.GetValue()
       c := gw2 - gw1
-      for i := 0; i < s.Dim(); i++ {
-        s_i := s.ValueAt(i)
-        g1i := g1.g.ValueAt(i)
-        t1.AT(i).SetValue(t_g*(c*g1i + s_i/t_n))
-      }
-      if proxop != nil {
-        t1.VSUBV(x1, t1)
-        proxop(x2, t1, t2)
+      if proxop == nil {
+        for i := 0; i < s.Dim(); i++ {
+          s_i := s.ValueAt(i)
+          g1i := g1.g.ValueAt(i)
+          x1i := x1.ValueAt(i)
+          x2.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
+        }
       } else {
-        x2.VSUBV(x1, t1)
+        for i := 0; i < s.Dim(); i++ {
+          s_i := s.ValueAt(i)
+          g1i := g1.g.ValueAt(i)
+          x1i := x1.ValueAt(i)
+          t1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
+        }
+        proxop(x2, t1, t2)
       }
       x1, x2 = x2, x1
       // update gradient avarage
@@ -224,17 +229,23 @@ func saga2Sparse(
       } else {
         g2.set(g)
       }
-      for i := 0; i < s.Dim(); i++ {
-        s_i := s.ValueAt(i)
-        g1i := g1.g.ValueAt(i)
-        g2i := g2.g.ValueAt(i)
-        t1.AT(i).SetValue(t_g*(g2i - g1i + s_i/t_n))
-      }
-      if proxop != nil {
-        t1.VSUBV(x1, t1)
-        proxop(x2, t1, t2)
+      if proxop == nil {
+        for i := 0; i < s.Dim(); i++ {
+          s_i := s.ValueAt(i)
+          g1i := g1.g.ValueAt(i)
+          g2i := g2.g.ValueAt(i)
+          x1i := x1.ValueAt(i)
+          x2.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
+        }
       } else {
-        x2.VSUBV(x1, t1)
+        for i := 0; i < s.Dim(); i++ {
+          s_i := s.ValueAt(i)
+          g1i := g1.g.ValueAt(i)
+          g2i := g2.g.ValueAt(i)
+          x1i := x1.ValueAt(i)
+          t1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
+        }
+        proxop(x2, t1, t2)
       }
       x1, x2 = x2, x1
       // update gradient avarage
