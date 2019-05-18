@@ -92,7 +92,6 @@ func saga1Dense(
   inSitu *InSituDense) (Vector, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
-  x2 := AsDenseBareRealVector(x)
   // length of gradient
   d := x.Dim()
   // gradient
@@ -143,7 +142,7 @@ func saga1Dense(
           s_i := s.ValueAt(i)
           g1i := g1.g.ValueAt(i)
           x1i := x1.ValueAt(i)
-          x2.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
+          x1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
         }
       } else {
         for i := 0; i < s.Dim(); i++ {
@@ -152,9 +151,8 @@ func saga1Dense(
           x1i := x1.ValueAt(i)
           t1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
         }
-        proxop(x2, t1, t2)
+        proxop(x1, t1, t2)
       }
-      x1, x2 = x2, x1
       // update gradient avarage
       g1.sub(s)
       g2.add(s)
@@ -186,7 +184,6 @@ func saga2Dense(
   inSitu *InSituDense) (Vector, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
-  x2 := AsDenseBareRealVector(x)
   // length of gradient
   d := x.Dim()
   // gradient
@@ -235,7 +232,7 @@ func saga2Dense(
           g1i := g1.g.ValueAt(i)
           g2i := g2.g.ValueAt(i)
           x1i := x1.ValueAt(i)
-          x2.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
+          x1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
         }
       } else {
         for i := 0; i < s.Dim(); i++ {
@@ -245,9 +242,8 @@ func saga2Dense(
           x1i := x1.ValueAt(i)
           t1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
         }
-        proxop(x2, t1, t2)
+        proxop(x1, t1, t2)
       }
-      x1, x2 = x2, x1
       // update gradient avarage
       g1.sub(s)
       g2.add(s)

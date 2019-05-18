@@ -122,7 +122,6 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
 
   xs := AS_VECTOR(x)
   x1 := AS_VECTOR(x)
-  x2 := AS_VECTOR(x)
 
   // length of gradient
   d := x.Dim()
@@ -179,7 +178,7 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
           s_i := s.ValueAt(i)
           g1i := g1.g.ValueAt(i)
           x1i := x1.ValueAt(i)
-          x2.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
+          x1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
         }
       } else {
         for i := 0; i < s.Dim(); i++ {
@@ -188,9 +187,8 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
           x1i := x1.ValueAt(i)
           t1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
         }
-        proxop(x2, t1, t2)
+        proxop(x1, t1, t2)
       }
-      x1, x2 = x2, x1
       // update gradient avarage
       g1.sub(s)
       g2.add(s)
@@ -225,7 +223,6 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
 
   xs := AS_VECTOR(x)
   x1 := AS_VECTOR(x)
-  x2 := AS_VECTOR(x)
 
   // length of gradient
   d := x.Dim()
@@ -280,7 +277,7 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
           g1i := g1.g.ValueAt(i)
           g2i := g2.g.ValueAt(i)
           x1i := x1.ValueAt(i)
-          x2.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
+          x1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
         }
       } else {
         for i := 0; i < s.Dim(); i++ {
@@ -290,9 +287,8 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
           x1i := x1.ValueAt(i)
           t1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
         }
-        proxop(x2, t1, t2)
+        proxop(x1, t1, t2)
       }
-      x1, x2 = x2, x1
       // update gradient avarage
       g1.sub(s)
       g2.add(s)
