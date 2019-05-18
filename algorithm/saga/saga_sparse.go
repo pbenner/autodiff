@@ -167,7 +167,7 @@ func saga1Sparse(
         break
       }
     }
-    xs.Set(x1)
+    xs.SET(x1)
   }
   return x1, nil
 }
@@ -258,7 +258,7 @@ func saga2Sparse(
         break
       }
     }
-    xs.Set(x1)
+    xs.SET(x1)
   }
   return x1, nil
 }
