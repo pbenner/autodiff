@@ -66,23 +66,23 @@ func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) err
     return fmt.Errorf("input vector has invalid dimension")
   }
   t := dist.t
-  // loop over theta
-  it := dist.Theta.ConstIterator()
   // set r to first element of theta
-  if it.Ok() {
-    r.Set(it.GetConst())
-    it.Next()
-  }
+  r.Set(dist.Theta.ConstAt(0))
+  // loop over theta
+  it := x.ConstIterator()
   if x.Dim() == dist.Dim() {
-    // dim(x) == dim(theta)-1 => substract 1 from index
+    // dim(x) == dim(theta)-1 => add 1 to index
     for ; it.Ok(); it.Next() {
-      t.Mul(it.GetConst(), x.ConstAt(it.Index()-1))
+      t.Mul(it.GetConst(), dist.Theta.ConstAt(it.Index()+1))
       r.Add(r, t)
     }
   } else {
     // dim(x) == dim(theta) => ignore first element of x
+    if it.Ok() {
+      it.Next()
+    }
     for ; it.Ok(); it.Next() {
-      t.Mul(it.GetConst(), x.ConstAt(it.Index()))
+      t.Mul(it.GetConst(), dist.Theta.ConstAt(it.Index()+0))
       r.Add(r, t)
     }
   }
