@@ -65,7 +65,7 @@ func NewLogisticRegression(index []int, theta []float64, n int) (*LogisticRegres
     }
   } else {
     r.sparse = true
-    if dist, err := vectorDistribution.NewLogisticRegression(NewSparseBareRealVector(index, theta, n)); err != nil {
+    if dist, err := vectorDistribution.NewLogisticRegression(AsDenseBareRealVector(NewSparseBareRealVector(index, theta, n))); err != nil {
       return nil, err
     } else {
       r.LogisticRegression = dist
