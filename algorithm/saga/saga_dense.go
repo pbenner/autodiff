@@ -25,104 +25,93 @@ import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-type ObjectiveDense func(int, DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error)
-type ProximalOperatorDense func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal)
+type Objective1Dense func(int, DenseBareRealVector) (ConstReal, ConstReal, DenseConstRealVector, error)
+type Objective2Dense func(int, DenseBareRealVector) (ConstReal, DenseConstRealVector, error)
 type InSituDense struct {
   T1 DenseBareRealVector
   T2 *BareReal
 }
 /* -------------------------------------------------------------------------- */
-type GradientDense struct {
-  g DenseBareRealVector
+type ConstGradientDense struct {
+  g DenseConstRealVector
   w ConstReal
-  g_const bool
 }
-func (obj GradientDense) add(v DenseBareRealVector) {
+func (obj ConstGradientDense) add(v DenseBareRealVector) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
     s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
   }
 }
-func (obj GradientDense) sub(v DenseBareRealVector) {
+func (obj ConstGradientDense) sub(v DenseBareRealVector) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
     s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
   }
 }
-func (obj *GradientDense) set(w ConstReal, g DenseBareRealVector, g_const bool) {
-  if g_const {
-    obj.g = g
-  } else {
-    if obj.g != nil {
-      obj.g.SET(g)
-    } else {
-      obj.g = g.Clone()
-    }
-  }
-  obj.g_const = g_const
+func (obj *ConstGradientDense) set(w ConstReal, g DenseConstRealVector) {
+  obj.g = g
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
-func ProxL1Dense(lambda float64) ProximalOperatorDense {
-  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    for it := x.JOINT_ITERATOR_(w); it.Ok(); it.Next() {
-      s1, s2 := it.GET()
-      if s1 == nil {
-        s1 = x.AT(it.Index())
-      }
-      if s2 == nil {
-        s1.SetValue(-1.0*math.Max(- lambda, 0.0))
-      } else {
-        if yi := s2.GetValue(); yi < 0.0 {
-          s1.SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-        } else {
-          s1.SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-        }
-      }
-    }
-  }
-  return f
+type GradientDense struct {
+  g DenseBareRealVector
 }
-func ProxL2Dense(lambda float64) ProximalOperatorDense {
-  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    t.Vnorm(w)
-    t.Div(ConstReal(lambda), t)
-    t.Sub(ConstReal(1.0), t)
-    t.Max(ConstReal(0.0), t)
-    x.VMULS(w, t)
+func (obj GradientDense) add(v DenseBareRealVector) {
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() + s_b.GetValue())
   }
-  return f
 }
-// Tikhonov regularization (1/2 * lambda * squared l2-norm)
-func ProxTiDense(lambda float64) ProximalOperatorDense {
-  c := NewBareReal(1.0/(lambda + 1.0))
-  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    x.VMULS(w, c)
+func (obj GradientDense) sub(v DenseBareRealVector) {
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() - s_b.GetValue())
   }
-  return f
+}
+func (obj *GradientDense) set(g ConstVector) {
+  if obj.g != nil {
+    obj.g.Set(g)
+  } else {
+    obj.g = AsDenseBareRealVector(g)
+  }
 }
 /* -------------------------------------------------------------------------- */
 func sagaDense(
-  f ObjectiveDense,
+  f1 Objective1Dense,
+  f2 Objective2Dense,
   n int,
   x Vector,
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
-  proxop ProximalOperatorDense,
+  proxop ProximalOperator,
+  l1reg float64,
+  l2reg float64,
+  tireg float64,
   hook Hook,
   seed Seed,
   inSitu *InSituDense) (Vector, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
   x2 := AsDenseBareRealVector(x)
+  if proxop == nil {
+    switch {
+    case l1reg != 0.0: proxop = ProxL1(gamma.Value*l1reg/float64(n))
+    case l2reg != 0.0: proxop = ProxL2(gamma.Value*l2reg/float64(n))
+    case tireg != 0.0: proxop = ProxTi(gamma.Value*tireg/float64(n))
+    }
+  }
   // length of gradient
   d := x.Dim()
   // gradient
   var g1 GradientDense
   var g2 GradientDense
+  var g1_const ConstGradientDense
+  var g2_const ConstGradientDense
   // allocate temporary memory
   if inSitu.T1 == nil {
     inSitu.T1 = NullDenseBareRealVector(d)
@@ -138,58 +127,97 @@ func sagaDense(
   t_g := gamma.Value
   // sum of gradients
   s := NullDenseBareRealVector(d)
-  dict := make([]GradientDense, n)
+  var dict [] GradientDense
+  var dict_const []ConstGradientDense
   // initialize s and d
-  for i := 0; i < n; i++ {
-    if _, w, g, g_const, err := f(i, x1); err != nil {
-      return nil, err
-    } else {
-      dict[i].set(w, g, g_const)
-      dict[i].add(s)
+  if f1 != nil {
+    dict_const = make([]ConstGradientDense, n)
+    for i := 0; i < n; i++ {
+      if _, w, g, err := f1(i, x1); err != nil {
+        return nil, err
+      } else {
+        dict_const[i].set(w, g)
+        dict_const[i].add(s)
+      }
+    }
+  } else {
+    dict := make([]GradientDense, n)
+    for i := 0; i < n; i++ {
+      if _, g, err := f2(i, x1); err != nil {
+        return nil, err
+      } else {
+        dict[i].set(g)
+        dict[i].add(s)
+      }
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
   y := ConstReal(math.NaN())
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 0; i_ < n; i_++ {
-      j := g.Intn(n)
-      // get old gradient
-      g1 = dict[j]
-      // evaluate objective function
-      if y_, w, g, g_const, err := f(j, x1); err != nil {
-        return x1, err
-      } else {
-        y = y_
-        g2.set(w, g, g_const)
-      }
-      gw1 := g1.w.GetValue()
-      gw2 := g2.w.GetValue()
-      if g1.g.IDEM(g2.g) {
+    if f1 != nil {
+      for i_ := 0; i_ < n; i_++ {
+        j := g.Intn(n)
+        // get old gradient
+        g1_const = dict_const[j]
+        // evaluate objective function
+        if y_, w, g, err := f1(j, x1); err != nil {
+          return x1, err
+        } else {
+          y = y_
+          g2_const.set(w, g)
+        }
+        gw1 := g1_const.w.GetValue()
+        gw2 := g2_const.w.GetValue()
+        c := gw2 - gw1
         for i := 0; i < s.Dim(); i++ {
           s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          t1.AT(i).SetValue(t_g*((gw2 - gw1)*g1i + s_i/t_n))
+          g1i := g1_const.g.ValueAt(i)
+          t1.AT(i).SetValue(t_g*(c*g1i + s_i/t_n))
         }
-      } else {
+        if proxop != nil {
+          t1.VSUBV(x1, t1)
+          proxop(x2, t1, t2)
+        } else {
+          x2.VSUBV(x1, t1)
+        }
+        x1, x2 = x2, x1
+        // update gradient avarage
+        g1_const.sub(s)
+        g2_const.add(s)
+        // update dictionary
+        dict_const[j].set(g2_const.w, g2_const.g)
+      }
+    } else {
+      for i_ := 0; i_ < n; i_++ {
+        j := g.Intn(n)
+        // get old gradient
+        g1 = dict[j]
+        // evaluate objective function
+        if y_, g, err := f2(j, x1); err != nil {
+          return x1, err
+        } else {
+          y = y_
+          g2.set(g)
+        }
         for i := 0; i < s.Dim(); i++ {
           s_i := s.ValueAt(i)
           g1i := g1.g.ValueAt(i)
           g2i := g2.g.ValueAt(i)
-          t1.AT(i).SetValue(t_g*(gw2*g2i - gw1*g1i + s_i/t_n))
+          t1.AT(i).SetValue(t_g*(g2i - g1i + s_i/t_n))
         }
+        if proxop != nil {
+          t1.VSUBV(x1, t1)
+          proxop(x2, t1, t2)
+        } else {
+          x2.VSUBV(x1, t1)
+        }
+        x1, x2 = x2, x1
+        // update gradient avarage
+        g1.sub(s)
+        g2.add(s)
+        // update dictionary
+        dict[j].set(g2.g)
       }
-      if proxop != nil {
-        t1.VSUBV(x1, t1)
-        proxop(x2, t1, t2)
-      } else {
-        x2.VSUBV(x1, t1)
-      }
-      x1, x2 = x2, x1
-      // update gradient avarage
-      g1.sub(s)
-      g2.add(s)
-      // update dictionary
-      dict[j].set(g2.w, g2.g, g2.g_const)
     }
     // evaluate stopping criterion
     max_x := 0.0

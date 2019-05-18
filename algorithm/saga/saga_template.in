@@ -32,21 +32,17 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-#define OBJECTIVE STR_CONCAT(Objective, SAGA_TYPE)
+#define OBJECTIVE1 STR_CONCAT(Objective1, SAGA_TYPE)
+#define OBJECTIVE2 STR_CONCAT(Objective2, SAGA_TYPE)
 
-#define GRADIENT_TYPE STR_CONCAT(Gradient, SAGA_TYPE)
-#define IN_SITU_TYPE  STR_CONCAT(InSitu,   SAGA_TYPE)
-
-#define PROXIMAL_OPERATOR STR_CONCAT(ProximalOperator, SAGA_TYPE)
-
-#define PROX_L1 STR_CONCAT(ProxL1, SAGA_TYPE)
-#define PROX_L2 STR_CONCAT(ProxL2, SAGA_TYPE)
-#define PROX_TI STR_CONCAT(ProxTi, SAGA_TYPE)
+#define       GRADIENT_TYPE STR_CONCAT(Gradient,      SAGA_TYPE)
+#define CONST_GRADIENT_TYPE STR_CONCAT(ConstGradient, SAGA_TYPE)
+#define        IN_SITU_TYPE STR_CONCAT(InSitu,        SAGA_TYPE)
 
 /* -------------------------------------------------------------------------- */
 
-type OBJECTIVE func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SCALAR_TYPE, VECTOR_TYPE, bool, error)
-type PROXIMAL_OPERATOR func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE)
+type OBJECTIVE1 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SCALAR_TYPE, CONST_SPARSE_VECTOR_TYPE, error)
+type OBJECTIVE2 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SPARSE_VECTOR_TYPE, error)
 
 type IN_SITU_TYPE struct {
   T1 VECTOR_TYPE
@@ -55,13 +51,12 @@ type IN_SITU_TYPE struct {
 
 /* -------------------------------------------------------------------------- */
 
-type GRADIENT_TYPE struct {
-  g       VECTOR_TYPE
+type CONST_GRADIENT_TYPE struct {
+  g CONST_SPARSE_VECTOR_TYPE
   w CONST_SCALAR_TYPE
-  g_const bool
 }
 
-func (obj GRADIENT_TYPE) add(v VECTOR_TYPE) {
+func (obj CONST_GRADIENT_TYPE) add(v VECTOR_TYPE) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
@@ -69,7 +64,7 @@ func (obj GRADIENT_TYPE) add(v VECTOR_TYPE) {
   }
 }
 
-func (obj GRADIENT_TYPE) sub(v VECTOR_TYPE) {
+func (obj CONST_GRADIENT_TYPE) sub(v VECTOR_TYPE) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
@@ -77,73 +72,55 @@ func (obj GRADIENT_TYPE) sub(v VECTOR_TYPE) {
   }
 }
 
-func (obj *GRADIENT_TYPE) set(w CONST_SCALAR_TYPE, g VECTOR_TYPE, g_const bool) {
-  if g_const {
-    obj.g = g
-  } else {
-    if obj.g != nil {
-      obj.g.SET(g)
-    } else {
-      obj.g = g.Clone()
-    }
-  }
-  obj.g_const = g_const
-  obj.w       = w
+func (obj *CONST_GRADIENT_TYPE) set(w CONST_SCALAR_TYPE, g CONST_SPARSE_VECTOR_TYPE) {
+  obj.g = g
+  obj.w = w
 }
 
 /* -------------------------------------------------------------------------- */
 
-func PROX_L1(lambda float64) PROXIMAL_OPERATOR {
-  f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
-    for it := x.JOINT_ITERATOR_(w); it.Ok(); it.Next() {
-      s1, s2 := it.GET()
-      if s1 == nil {
-        s1 = x.AT(it.Index())
-      }
-      if s2 == nil {
-        s1.SetValue(-1.0*math.Max(- lambda, 0.0))
-      } else {
-        if yi := s2.GetValue(); yi < 0.0 {
-          s1.SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-        } else {
-          s1.SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-        }
-      }
-    }
-  }
-  return f
+type GRADIENT_TYPE struct {
+  g VECTOR_TYPE
 }
 
-func PROX_L2(lambda float64) PROXIMAL_OPERATOR {
-  f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
-    t.Vnorm(w)
-    t.Div(CONST_SCALAR_TYPE(lambda), t)
-    t.Sub(CONST_SCALAR_TYPE(1.0), t)
-    t.Max(CONST_SCALAR_TYPE(0.0), t)
-    x.VMULS(w, t)
+func (obj GRADIENT_TYPE) add(v VECTOR_TYPE) {
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() + s_b.GetValue())
   }
-  return f
 }
 
-// Tikhonov regularization (1/2 * lambda * squared l2-norm)
-func PROX_TI(lambda float64) PROXIMAL_OPERATOR {
-  c := NEW_SCALAR(1.0/(lambda + 1.0))
-  f := func(x VECTOR_TYPE, w VECTOR_TYPE, t SCALAR_TYPE) {
-    x.VMULS(w, c)
+func (obj GRADIENT_TYPE) sub(v VECTOR_TYPE) {
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() - s_b.GetValue())
   }
-  return f
+}
+
+func (obj *GRADIENT_TYPE) set(g ConstVector) {
+  if obj.g != nil {
+    obj.g.Set(g)
+  } else {
+    obj.g = STR_CONCAT(As, VECTOR_NAME)(g)
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
 func STR_CONCAT(saga, SAGA_TYPE)(
-  f OBJECTIVE,
+  f1 OBJECTIVE1,
+  f2 OBJECTIVE2,
   n int,
   x Vector,
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
-  proxop PROXIMAL_OPERATOR,
+  proxop ProximalOperator,
+  l1reg float64,
+  l2reg float64,
+  tireg float64,
   hook Hook,
   seed Seed,
   inSitu *IN_SITU_TYPE) (Vector, error) {
@@ -152,11 +129,20 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   x1 := AS_VECTOR(x)
   x2 := AS_VECTOR(x)
 
+  if proxop == nil {
+    switch {
+    case l1reg != 0.0: proxop = ProxL1(gamma.Value*l1reg/float64(n))
+    case l2reg != 0.0: proxop = ProxL2(gamma.Value*l2reg/float64(n))
+    case tireg != 0.0: proxop = ProxTi(gamma.Value*tireg/float64(n))
+    }
+  }
   // length of gradient
   d := x.Dim()
   // gradient
   var g1 GRADIENT_TYPE
   var g2 GRADIENT_TYPE
+  var g1_const CONST_GRADIENT_TYPE
+  var g2_const CONST_GRADIENT_TYPE
 
   // allocate temporary memory
   if inSitu.T1 == nil {
@@ -173,64 +159,107 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   t_g := gamma.Value
 
   // sum of gradients
-  s    := NULL_VECTOR(d)
-  dict := make([]GRADIENT_TYPE, n)
+  s := NULL_VECTOR(d)
+  var dict       []      GRADIENT_TYPE
+  var dict_const []CONST_GRADIENT_TYPE
   // initialize s and d
-  for i := 0; i < n; i++ {
-    if _, w, g, g_const, err := f(i, x1); err != nil {
-      return nil, err
-    } else {
-      dict[i].set(w, g, g_const)
-      dict[i].add(s)
+  if f1 != nil {
+    dict_const = make([]CONST_GRADIENT_TYPE, n)
+    for i := 0; i < n; i++ {
+      if _, w, g, err := f1(i, x1); err != nil {
+        return nil, err
+      } else {
+        dict_const[i].set(w, g)
+        dict_const[i].add(s)
+      }
+    }
+  } else {
+    dict := make([]GRADIENT_TYPE, n)
+    for i := 0; i < n; i++ {
+      if _, g, err := f2(i, x1); err != nil {
+        return nil, err
+      } else {
+        dict[i].set(g)
+        dict[i].add(s)
+      }
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
   y := CONST_SCALAR_TYPE(math.NaN())
 
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 0; i_ < n; i_++ {
-      j := g.Intn(n)
+    if f1 != nil {
+      for i_ := 0; i_ < n; i_++ {
+        j := g.Intn(n)
 
-      // get old gradient
-      g1 = dict[j]
-      // evaluate objective function
-      if y_, w, g, g_const, err := f(j, x1); err != nil {
-        return x1, err
-      } else {
-        y = y_
-        g2.set(w, g, g_const)
-      }
+        // get old gradient
+        g1_const = dict_const[j]
+        // evaluate objective function
+        if y_, w, g, err := f1(j, x1); err != nil {
+          return x1, err
+        } else {
+          y = y_
+          g2_const.set(w, g)
+        }
 
-      gw1 := g1.w.GetValue()
-      gw2 := g2.w.GetValue()
-      if g1.g.IDEM(g2.g) {
+        gw1 := g1_const.w.GetValue()
+        gw2 := g2_const.w.GetValue()
+        c   := gw2 - gw1
         for i := 0; i < s.Dim(); i++ {
           s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          t1.AT(i).SetValue(t_g*((gw2 - gw1)*g1i + s_i/t_n))
+          g1i := g1_const.g.ValueAt(i)
+          t1.AT(i).SetValue(t_g*(c*g1i + s_i/t_n))
         }
-      } else {
+
+        if proxop != nil {
+          t1.VSUBV(x1, t1)
+          proxop(x2, t1, t2)
+        } else {
+          x2.VSUBV(x1, t1)
+        }
+        x1, x2 = x2, x1
+        // update gradient avarage
+        g1_const.sub(s)
+        g2_const.add(s)
+
+        // update dictionary
+        dict_const[j].set(g2_const.w, g2_const.g)
+      }
+    } else {
+      for i_ := 0; i_ < n; i_++ {
+        j := g.Intn(n)
+
+        // get old gradient
+        g1 = dict[j]
+        // evaluate objective function
+        if y_, g, err := f2(j, x1); err != nil {
+          return x1, err
+        } else {
+          y = y_
+          g2.set(g)
+        }
+
         for i := 0; i < s.Dim(); i++ {
           s_i := s.ValueAt(i)
           g1i := g1.g.ValueAt(i)
           g2i := g2.g.ValueAt(i)
-          t1.AT(i).SetValue(t_g*(gw2*g2i - gw1*g1i + s_i/t_n))
+          t1.AT(i).SetValue(t_g*(g2i - g1i + s_i/t_n))
         }
-      }
 
-      if proxop != nil {
-        t1.VSUBV(x1, t1)
-        proxop(x2, t1, t2)
-      } else {
-        x2.VSUBV(x1, t1)
-      }
-      x1, x2 = x2, x1
-      // update gradient avarage
-      g1.sub(s)
-      g2.add(s)
+        if proxop != nil {
+          t1.VSUBV(x1, t1)
+          proxop(x2, t1, t2)
+        } else {
+          x2.VSUBV(x1, t1)
+        }
+        x1, x2 = x2, x1
+        // update gradient avarage
+        g1.sub(s)
+        g2.add(s)
 
-      // update dictionary
-      dict[j].set(g2.w, g2.g, g2.g_const)
+        // update dictionary
+        dict[j].set(g2.g)
+      }
     }
     // evaluate stopping criterion
     max_x     := 0.0

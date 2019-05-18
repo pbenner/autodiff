@@ -34,8 +34,8 @@ type LogisticRegression struct {
   *vectorDistribution.LogisticRegression
   sparse     bool
   n          int
-  x_sparse []*SparseBareRealVector
-  x_dense  []  DenseBareRealVector
+  x_sparse []SparseConstRealVector
+  x_dense  [] DenseConstRealVector
   x        []ConstVector
   c        []bool
   stepSize   float64
@@ -118,10 +118,10 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       }
       t := x[i].ConstSlice(1, x[1].Dim())
       switch a := t.(type) {
-      case *SparseBareRealVector:
+      case SparseConstRealVector:
         obj.x_sparse = append(obj.x_sparse, a)
       default:
-        obj.x_sparse = append(obj.x_sparse, AsSparseBareRealVector(t))
+        obj.x_sparse = append(obj.x_sparse, AsSparseConstRealVector(t))
       }
       obj.x = append(obj.x, obj.x_sparse[i])
     }
@@ -135,10 +135,10 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       }
       t := x[i].ConstSlice(1, x[1].Dim())
       switch a := t.(type) {
-      case DenseBareRealVector:
+      case DenseConstRealVector:
         obj.x_dense = append(obj.x_dense, a)
       default:
-        obj.x_dense = append(obj.x_dense, AsDenseBareRealVector(t))
+        obj.x_dense = append(obj.x_dense, AsDenseConstRealVector(t))
       }
       obj.x = append(obj.x, obj.x_dense[i])
     }
@@ -160,38 +160,32 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   if gamma != nil {
     panic("internal error")
   }
+  proxop := saga.ProximalOperator(nil)
+  switch {
+  case obj.L1Reg != 0.0: proxop = proxWrapper(saga.ProxL1(obj.stepSize*obj.L1Reg/float64(obj.n)))
+  case obj.L2Reg != 0.0: proxop = proxWrapper(saga.ProxL2(obj.stepSize*obj.L2Reg/float64(obj.n)))
+  case obj.TiReg != 0.0: proxop = proxWrapper(saga.ProxTi(obj.stepSize*obj.TiReg/float64(obj.n)))
+  }
   if obj.sparse {
     theta := obj.LogisticRegression.GetParameters()
-    prox  := saga.ProximalOperatorSparse(nil)
-    switch {
-    case obj.L1Reg != 0.0: prox = proxWrapperSparse(saga.ProxL1Sparse(obj.stepSize*obj.L1Reg/float64(obj.n)))
-    case obj.L2Reg != 0.0: prox = proxWrapperSparse(saga.ProxL2Sparse(obj.stepSize*obj.L2Reg/float64(obj.n)))
-    case obj.TiReg != 0.0: prox = proxWrapperSparse(saga.ProxTiSparse(obj.stepSize*obj.TiReg/float64(obj.n)))
-    }
-    if r, err := saga.Run(saga.ObjectiveSparse(obj.f_sparse), len(obj.x_sparse), theta,
+    if r, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), theta,
       saga.Hook   {obj.Hook},
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
       saga.Seed   {obj.Seed},
-      prox); err != nil {
+      proxop); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
     }
   } else {
     theta := obj.LogisticRegression.GetParameters()
-    prox  := saga.ProximalOperatorDense(nil)
-    switch {
-    case obj.L1Reg != 0.0: prox = proxWrapperDense(saga.ProxL1Dense(obj.stepSize*obj.L1Reg/float64(obj.n)))
-    case obj.L2Reg != 0.0: prox = proxWrapperDense(saga.ProxL2Dense(obj.stepSize*obj.L2Reg/float64(obj.n)))
-    case obj.TiReg != 0.0: prox = proxWrapperDense(saga.ProxTiDense(obj.stepSize*obj.TiReg/float64(obj.n)))
-    }
-    if r, err := saga.Run(saga.ObjectiveDense(obj.f_dense), len(obj.x_dense), theta,
+    if r, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), theta,
       saga.Hook   {obj.Hook},
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
       saga.Seed   {obj.Seed},
-      prox); err != nil {
+      proxop); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
@@ -235,17 +229,8 @@ func (obj *LogisticRegression) setStepSize() {
 
 /* -------------------------------------------------------------------------- */
 
-func proxWrapperDense(g saga.ProximalOperatorDense) saga.ProximalOperatorDense {
+func proxWrapper(g saga.ProximalOperator) saga.ProximalOperator {
   f := func(x, w DenseBareRealVector, t *BareReal) {
-    g(x, w, t)
-    // do not regularize intercept
-    x.AT(0).SET(w.AT(0))
-  }
-  return f
-}
-
-func proxWrapperSparse(g saga.ProximalOperatorSparse) saga.ProximalOperatorSparse {
-  f := func(x, w *SparseBareRealVector, t *BareReal) {
     g(x, w, t)
     // do not regularize intercept
     x.AT(0).SET(w.AT(0))
@@ -255,22 +240,22 @@ func proxWrapperSparse(g saga.ProximalOperatorSparse) saga.ProximalOperatorSpars
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error) {
+func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseConstRealVector, error) {
   r := BareReal(0.0)
   x := obj.x_dense
   y := ConstReal(0.0)
   w := ConstReal(0.0)
   if i >= len(x) {
-    return y, w, nil, true, fmt.Errorf("index out of bounds")
+    return y, w, x[i], fmt.Errorf("index out of bounds")
   }
   if err := obj.LogisticRegression.SetParameters(theta); err != nil {
-    return y, w, nil, true, err
+    return y, w, x[i], err
   }
   if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
-    return y, w, nil, true, err
+    return y, w, x[i], err
   }
   if math.IsNaN(r.GetValue()) {
-    return y, w, nil, true, fmt.Errorf("NaN value detected")
+    return y, w, x[i], fmt.Errorf("NaN value detected")
   }
   y = ConstReal(r.GetValue())
   if obj.c[i] {
@@ -278,25 +263,25 @@ func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstR
   } else {
     w = ConstReal(math.Exp(r.GetValue()))
   }
-  return y, w, x[i], true, nil
+  return y, w, x[i], nil
 }
 
-func (obj *LogisticRegression) f_sparse(i int, theta *SparseBareRealVector) (ConstReal, ConstReal, *SparseBareRealVector, bool, error) {
+func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error) {
   r := BareReal(0.0)
   x := obj.x_sparse
   y := ConstReal(0.0)
   w := ConstReal(0.0)
   if i >= len(x) {
-    return y, w, nil, true, fmt.Errorf("index out of bounds")
+    return y, w, x[i], fmt.Errorf("index out of bounds")
   }
   if err := obj.LogisticRegression.SetParameters(theta); err != nil {
-    return y, w, nil, true, err
+    return y, w, x[i], err
   }
   if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
-    return y, w, nil, true, err
+    return y, w, x[i], err
   }
   if math.IsNaN(r.GetValue()) {
-    return y, w, nil, true, fmt.Errorf("NaN value detected")
+    return y, w, x[i], fmt.Errorf("NaN value detected")
   }
   y = ConstReal(r.GetValue())
   if obj.c[i] {
@@ -304,5 +289,5 @@ func (obj *LogisticRegression) f_sparse(i int, theta *SparseBareRealVector) (Con
   } else {
     w = ConstReal(math.Exp(r.GetValue()))
   }
-  return y, w, x[i], true, nil
+  return y, w, x[i], nil
 }

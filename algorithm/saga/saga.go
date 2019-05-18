@@ -19,6 +19,7 @@ package saga
 /* -------------------------------------------------------------------------- */
 
 import   "fmt"
+import   "math"
 
 import . "github.com/pbenner/autodiff"
 
@@ -58,27 +59,71 @@ type Seed struct {
 
 /* -------------------------------------------------------------------------- */
 
-func WrapperDense(f func(int, Vector, Scalar) error) ObjectiveDense {
+func WrapperDense(f func(int, Vector, Scalar) error) Objective1Dense {
   x := NullDenseRealVector(0)
   y := NullReal()
   w := ConstReal(1.0)
-  g := DenseBareRealVector{}
-  f_ := func(i int, x_ DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error) {
+  f_ := func(i int, x_ DenseBareRealVector) (ConstReal, ConstReal, DenseConstRealVector, error) {
     if x.Dim() == 0 {
       x = NullDenseRealVector(x_.Dim())
-    }
-    if g.Dim() == 0 {
-      g = NullDenseBareRealVector(x_.Dim())
     }
     x.Set(x_)
     x.Variables(1)
     if err := f(i, x, y); err != nil {
-      return ConstReal(0.0), ConstReal(0.0), nil, false, err
+      return ConstReal(0.0), ConstReal(0.0), nil, err
     }
-    g.Set(DenseGradient{y})
-    return ConstReal(y.GetValue()), w, g, false, nil
+    g := make([]float64, x.Dim())
+    for i := 0; i < x.Dim(); i++ {
+      g[i] = y.GetDerivative(i)
+    }
+    return ConstReal(y.GetValue()), w, DenseConstRealVector(g), nil
   }
   return f_
+}
+
+/* -------------------------------------------------------------------------- */
+
+type ProximalOperator func(x, w DenseBareRealVector, t *BareReal)
+
+func ProxL1(lambda float64) ProximalOperator {
+  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+    for it := x.JOINT_ITERATOR_(w); it.Ok(); it.Next() {
+      s1, s2 := it.GET()
+      if s1 == nil {
+        s1 = x.AT(it.Index())
+      }
+      if s2 == nil {
+        s1.SetValue(-1.0*math.Max(- lambda, 0.0))
+      } else {
+        if yi := s2.GetValue(); yi < 0.0 {
+          s1.SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+        } else {
+          s1.SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
+        }
+      }
+    }
+  }
+  return f
+}
+
+func ProxL2(lambda float64) ProximalOperator {
+  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+    t.Vnorm(w)
+    t.Div(ConstReal(lambda), t)
+    t.Sub(ConstReal(1.0), t)
+    t.Max(ConstReal(0.0), t)
+    x.VMULS(w, t)
+  }
+  return f
+}
+
+// Tikhonov regularization (1/2 * lambda * squared l2-norm)
+func ProxTi(lambda float64) ProximalOperator {
+  c := NewBareReal(1.0/(lambda + 1.0))
+  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+    x.VMULS(w, c)
+  }
+  return f
 }
 
 /* -------------------------------------------------------------------------- */
@@ -92,8 +137,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   l1reg         := L1Regularization      { 0.0}
   l2reg         := L2Regularization      { 0.0}
   tireg         := TikhonovRegularization{ 0.0}
-  proxDense     := ProximalOperatorDense (nil)
-  proxSparse    := ProximalOperatorSparse(nil)
+  proxop        := ProximalOperator      (nil)
   seed          := Seed                  {0}
   inSituDense   := &InSituDense          {}
   inSituSparse  := &InSituSparse         {}
@@ -114,10 +158,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       l2reg = a
     case TikhonovRegularization:
       tireg = a
-    case ProximalOperatorDense:
-      proxDense = a
-    case ProximalOperatorSparse:
-      proxSparse = a
+    case ProximalOperator:
+      proxop = a
     case Seed:
       seed = a
     case *InSituDense:
@@ -142,24 +184,14 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     return x, fmt.Errorf("invalid l2-regularization constant")
   }
   switch g := f.(type) {
-  case ObjectiveDense:
-    var f ProximalOperatorDense
-    switch {
-    case proxDense   != nil: f = proxDense
-    case l1reg.Value != 0.0: f = ProxL1Dense(gamma.Value*l1reg.Value/float64(n))
-    case l2reg.Value != 0.0: f = ProxL2Dense(gamma.Value*l2reg.Value/float64(n))
-    case tireg.Value != 0.0: f = ProxTiDense(gamma.Value*l2reg.Value/float64(n))
-    }
-    return sagaDense (g, n, x, gamma, epsilon, maxIterations, f, hook, seed, inSituDense)
-  case ObjectiveSparse:
-    var f ProximalOperatorSparse
-    switch {
-    case proxSparse  != nil: f = proxSparse
-    case l1reg.Value != 0.0: f = ProxL1Sparse(gamma.Value*l1reg.Value/float64(n))
-    case l2reg.Value != 0.0: f = ProxL2Sparse(gamma.Value*l2reg.Value/float64(n))
-    case tireg.Value != 0.0: f = ProxTiSparse(gamma.Value*l2reg.Value/float64(n))
-    }
-    return sagaSparse(g, n, x, gamma, epsilon, maxIterations, f, hook, seed, inSituSparse)
+  case Objective1Dense:
+    return sagaDense (g, nil, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituDense)
+  case Objective2Dense:
+    return sagaDense (nil, g, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituDense)
+  case Objective1Sparse:
+    return sagaSparse(g, nil, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituSparse)
+  case Objective2Sparse:
+    return sagaSparse(nil, g, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituSparse)
   default:
     panic("invalid objective")
   }

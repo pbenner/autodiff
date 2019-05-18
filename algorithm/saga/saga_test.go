@@ -129,38 +129,38 @@ func Test2(test *testing.T) {
   class := []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
   // x
-  x := make([]DenseBareRealVector, len(cellSize))
+  x := make([]DenseConstRealVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i], cellShape[i]})
+    x[i] = DenseConstRealVector([]float64{1.0, cellSize[i], cellShape[i]})
   }
 
   theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseBareRealVector, bool, error) {
+  f := func(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseConstRealVector, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
-      return y, w, nil, true, fmt.Errorf("index out of bounds")
+      return y, w, nil, fmt.Errorf("index out of bounds")
     }
     if err := lr.SetParameters(theta); err != nil {
-      return y, w, nil, true, err
+      return y, w, nil, err
     }
     if err := lr.LogPdf(r, x[i]); err != nil {
-      return y, w, nil, true, err
+      return y, w, nil, err
     }
     if math.IsNaN(r.GetValue()) {
-      return y, w, nil, true, fmt.Errorf("NaN value detected")
+      return y, w, nil, fmt.Errorf("NaN value detected")
     }
     y = ConstReal(r.GetValue())
     w = ConstReal(math.Exp(r.GetValue()) - class[i])
-    return y, w, x[i], true, nil
+    return y, w, x[i], nil
   }
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(ObjectiveDense(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, err := Run(Objective1Dense(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
@@ -179,38 +179,38 @@ func Test3(test *testing.T) {
   class := []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
   // x
-  x := make([]*SparseBareRealVector, len(cellSize))
+  x := make([]SparseConstRealVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewSparseBareRealVector([]int{0, 1, 2}, []float64{1.0, cellSize[i], cellShape[i]}, 3)
+    x[i] = NewSparseConstRealVector([]int{0, 1, 2}, []float64{1.0, cellSize[i], cellShape[i]}, 3)
   }
 
   theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta *SparseBareRealVector) (ConstReal, ConstReal, *SparseBareRealVector, bool, error) {
+  f := func(i int, theta DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
-      return y, w, nil, true, fmt.Errorf("index out of bounds")
+      return y, w, x[i], fmt.Errorf("index out of bounds")
     }
     if err := lr.SetParameters(theta); err != nil {
-      return y, w, nil, true, err
+      return y, w, x[i], err
     }
     if err := lr.LogPdf(r, x[i]); err != nil {
-      return y, w, nil, true, err
+      return y, w, x[i], err
     }
     if math.IsNaN(r.GetValue()) {
-      return y, w, nil, true, fmt.Errorf("NaN value detected")
+      return y, w, x[i], fmt.Errorf("NaN value detected")
     }
     y = ConstReal(r.GetValue())
     w = ConstReal(math.Exp(r.GetValue()) - class[i])
-    return y, w, x[i], true, nil
+    return y, w, x[i], nil
   }
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(ObjectiveSparse(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, err := Run(Objective1Sparse(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
@@ -229,38 +229,38 @@ func Test4(test *testing.T) {
   class := []float64{
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
   // x
-  x := make([]*SparseBareRealVector, len(cellSize))
+  x := make([]SparseConstRealVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewSparseBareRealVector([]int{0, 1, 2}, []float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 3)
+    x[i] = NewSparseConstRealVector([]int{0, 1, 2}, []float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 3)
   }
 
   theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
   lr, _   := NewLogisticRegression(theta_0)
   r       := NewBareReal(0.0)
 
-  f := func(i int, theta *SparseBareRealVector) (ConstReal, ConstReal, *SparseBareRealVector, bool, error) {
+  f := func(i int, theta DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error) {
     y := ConstReal(0.0)
     w := ConstReal(0.0)
     if i >= len(cellSize) {
-      return y, w, nil, true, fmt.Errorf("index out of bounds")
+      return y, w, x[i], fmt.Errorf("index out of bounds")
     }
     if err := lr.SetParameters(theta); err != nil {
-      return y, w, nil, true, err
+      return y, w, x[i], err
     }
     if err := lr.LogPdf(r, x[i]); err != nil {
-      return y, w, nil, true, err
+      return y, w, x[i], err
     }
     if math.IsNaN(r.GetValue()) {
-      return y, w, nil, true, fmt.Errorf("NaN value detected")
+      return y, w, x[i], fmt.Errorf("NaN value detected")
     }
     y = ConstReal(r.GetValue())
     w = ConstReal(math.Exp(r.GetValue()) - class[i])
-    return y, w, x[i], true, nil
+    return y, w, x[i], nil
   }
   z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
   t := NullReal()
 
-  if r, err := Run(ObjectiveSparse(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, err := Run(Objective1Sparse(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {

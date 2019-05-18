@@ -60,6 +60,22 @@ func NilSparseConstRealVector(n int) SparseConstRealVector {
   return r
 }
 
+// Convert vector type.
+func AsSparseConstRealVector(v ConstVector) SparseConstRealVector {
+  switch v_ := v.(type) {
+  case SparseConstRealVector:
+    return v_
+  }
+  indices := []int{}
+  values  := []float64{}
+  n       := v.Dim()
+  for it := v.ConstIterator(); it.Ok(); it.Next() {
+    indices = append(indices, it.Index())
+    values  = append(values,  it.GetConst().GetValue())
+  }
+  return NewSparseConstRealVector(indices, values, n)
+}
+
 /* const vector methods
  * -------------------------------------------------------------------------- */
 

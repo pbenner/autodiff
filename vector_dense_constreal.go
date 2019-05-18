@@ -36,16 +36,17 @@ func NullDenseConstRealVector(n int) DenseConstRealVector {
   return DenseConstRealVector(make([]float64, n))
 }
 
-/* -------------------------------------------------------------------------- */
-
-func (v DenseConstRealVector) Clone() DenseConstRealVector {
-  w := make(DenseConstRealVector, len(v))
-  copy(w, v)
-  return w
-}
-
-func (v DenseConstRealVector) CloneConstVector() ConstVector {
-  return v.Clone()
+// Convert vector type.
+func AsDenseConstRealVector(v ConstVector) DenseConstRealVector {
+  switch v_ := v.(type) {
+  case DenseConstRealVector:
+    return v_
+  }
+  values := make([]float64, v.Dim())
+  for it := v.ConstIterator(); it.Ok(); it.Next() {
+    values[it.Index()] = it.GetConst().GetValue()
+  }
+  return NewDenseConstRealVector(values)
 }
 
 /* -------------------------------------------------------------------------- */
