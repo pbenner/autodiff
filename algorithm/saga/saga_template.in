@@ -109,9 +109,109 @@ func (obj *GRADIENT_TYPE) set(g ConstVector) {
 
 /* -------------------------------------------------------------------------- */
 
-func STR_CONCAT(saga, SAGA_TYPE)(
-  f1 OBJECTIVE1,
-  f2 OBJECTIVE2,
+func STR_CONCAT(saga1, SAGA_TYPE)(
+  f OBJECTIVE1,
+  n int,
+  x Vector,
+  gamma Gamma,
+  epsilon Epsilon,
+  maxIterations MaxIterations,
+  proxop ProximalOperator,
+  hook Hook,
+  seed Seed,
+  inSitu *IN_SITU_TYPE) (Vector, error) {
+
+  xs := AS_VECTOR(x)
+  x1 := AS_VECTOR(x)
+  x2 := AS_VECTOR(x)
+
+  // length of gradient
+  d := x.Dim()
+  // gradient
+  var g1 CONST_GRADIENT_TYPE
+  var g2 CONST_GRADIENT_TYPE
+
+  // allocate temporary memory
+  if inSitu.T1 == nil {
+    inSitu.T1 = NULL_VECTOR(d)
+  }
+  if inSitu.T2 == nil {
+    inSitu.T2 = NULL_SCALAR()
+  }
+  // temporary variables
+  t1 := inSitu.T1
+  t2 := inSitu.T2
+  // some constants
+  t_n := float64(n)
+  t_g := gamma.Value
+
+  // sum of gradients
+  s := NULL_VECTOR(d)
+  // initialize s and d
+  dict := make([]CONST_GRADIENT_TYPE, n)
+  for i := 0; i < n; i++ {
+    if _, w, g, err := f(i, x1); err != nil {
+      return nil, err
+    } else {
+      dict[i].set(w, g)
+      dict[i].add(s)
+    }
+  }
+  g := rand.New(rand.NewSource(seed.Value))
+  y := CONST_SCALAR_TYPE(math.NaN())
+
+  for epoch := 0; epoch < maxIterations.Value; epoch++ {
+    for i_ := 0; i_ < n; i_++ {
+      j := g.Intn(n)
+
+      // get old gradient
+      g1 = dict[j]
+      // evaluate objective function
+      if y_, w, g, err := f(j, x1); err != nil {
+        return x1, err
+      } else {
+        y = y_
+        g2.set(w, g)
+      }
+
+      gw1 := g1.w.GetValue()
+      gw2 := g2.w.GetValue()
+      c   := gw2 - gw1
+      for i := 0; i < s.Dim(); i++ {
+        s_i := s.ValueAt(i)
+        g1i := g1.g.ValueAt(i)
+        t1.AT(i).SetValue(t_g*(c*g1i + s_i/t_n))
+      }
+
+      if proxop != nil {
+        t1.VSUBV(x1, t1)
+        proxop(x2, t1, t2)
+      } else {
+        x2.VSUBV(x1, t1)
+      }
+      x1, x2 = x2, x1
+      // update gradient avarage
+      g1.sub(s)
+      g2.add(s)
+
+      // update dictionary
+      dict[j].set(g2.w, g2.g)
+    }
+    if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
+      return x1, err
+    } else {
+      // execute hook if available
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), y, epoch) {
+        break
+      }
+    }
+    xs.Set(x1)
+  }
+  return x1, nil
+}
+
+func STR_CONCAT(saga2, SAGA_TYPE)(
+  f OBJECTIVE2,
   n int,
   x Vector,
   gamma Gamma,
@@ -131,8 +231,6 @@ func STR_CONCAT(saga, SAGA_TYPE)(
   // gradient
   var g1 GRADIENT_TYPE
   var g2 GRADIENT_TYPE
-  var g1_const CONST_GRADIENT_TYPE
-  var g2_const CONST_GRADIENT_TYPE
 
   // allocate temporary memory
   if inSitu.T1 == nil {
@@ -150,106 +248,53 @@ func STR_CONCAT(saga, SAGA_TYPE)(
 
   // sum of gradients
   s := NULL_VECTOR(d)
-  var dict       []      GRADIENT_TYPE
-  var dict_const []CONST_GRADIENT_TYPE
   // initialize s and d
-  if f1 != nil {
-    dict_const = make([]CONST_GRADIENT_TYPE, n)
-    for i := 0; i < n; i++ {
-      if _, w, g, err := f1(i, x1); err != nil {
-        return nil, err
-      } else {
-        dict_const[i].set(w, g)
-        dict_const[i].add(s)
-      }
-    }
-  } else {
-    dict := make([]GRADIENT_TYPE, n)
-    for i := 0; i < n; i++ {
-      if _, g, err := f2(i, x1); err != nil {
-        return nil, err
-      } else {
-        dict[i].set(g)
-        dict[i].add(s)
-      }
+  dict := make([]GRADIENT_TYPE, n)
+  for i := 0; i < n; i++ {
+    if _, g, err := f(i, x1); err != nil {
+      return nil, err
+    } else {
+      dict[i].set(g)
+      dict[i].add(s)
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
   y := CONST_SCALAR_TYPE(math.NaN())
 
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    if f1 != nil {
-      for i_ := 0; i_ < n; i_++ {
-        j := g.Intn(n)
+    for i_ := 0; i_ < n; i_++ {
+      j := g.Intn(n)
 
-        // get old gradient
-        g1_const = dict_const[j]
-        // evaluate objective function
-        if y_, w, g, err := f1(j, x1); err != nil {
-          return x1, err
-        } else {
-          y = y_
-          g2_const.set(w, g)
-        }
-
-        gw1 := g1_const.w.GetValue()
-        gw2 := g2_const.w.GetValue()
-        c   := gw2 - gw1
-        for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1_const.g.ValueAt(i)
-          t1.AT(i).SetValue(t_g*(c*g1i + s_i/t_n))
-        }
-
-        if proxop != nil {
-          t1.VSUBV(x1, t1)
-          proxop(x2, t1, t2)
-        } else {
-          x2.VSUBV(x1, t1)
-        }
-        x1, x2 = x2, x1
-        // update gradient avarage
-        g1_const.sub(s)
-        g2_const.add(s)
-
-        // update dictionary
-        dict_const[j].set(g2_const.w, g2_const.g)
+      // get old gradient
+      g1 = dict[j]
+      // evaluate objective function
+      if y_, g, err := f(j, x1); err != nil {
+        return x1, err
+      } else {
+        y = y_
+        g2.set(g)
       }
-    } else {
-      for i_ := 0; i_ < n; i_++ {
-        j := g.Intn(n)
 
-        // get old gradient
-        g1 = dict[j]
-        // evaluate objective function
-        if y_, g, err := f2(j, x1); err != nil {
-          return x1, err
-        } else {
-          y = y_
-          g2.set(g)
-        }
-
-        for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          g2i := g2.g.ValueAt(i)
-          t1.AT(i).SetValue(t_g*(g2i - g1i + s_i/t_n))
-        }
-
-        if proxop != nil {
-          t1.VSUBV(x1, t1)
-          proxop(x2, t1, t2)
-        } else {
-          x2.VSUBV(x1, t1)
-        }
-        x1, x2 = x2, x1
-        // update gradient avarage
-        g1.sub(s)
-        g2.add(s)
-
-        // update dictionary
-        dict[j].set(g2.g)
+      for i := 0; i < s.Dim(); i++ {
+        s_i := s.ValueAt(i)
+        g1i := g1.g.ValueAt(i)
+        g2i := g2.g.ValueAt(i)
+        t1.AT(i).SetValue(t_g*(g2i - g1i + s_i/t_n))
       }
+
+      if proxop != nil {
+        t1.VSUBV(x1, t1)
+        proxop(x2, t1, t2)
+      } else {
+        x2.VSUBV(x1, t1)
+      }
+      x1, x2 = x2, x1
+      // update gradient avarage
+      g1.sub(s)
+      g2.add(s)
+
+      // update dictionary
+      dict[j].set(g2.g)
     }
     if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
       return x1, err

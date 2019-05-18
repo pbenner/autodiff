@@ -234,13 +234,13 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   }
   switch g := f.(type) {
   case Objective1Dense:
-    return sagaDense (g, nil, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
+    return saga1Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
   case Objective2Dense:
-    return sagaDense (nil, g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
+    return saga2Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
   case Objective1Sparse:
-    return sagaSparse(g, nil, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
+    return saga1Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
   case Objective2Sparse:
-    return sagaSparse(nil, g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
+    return saga2Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
   default:
     panic("invalid objective")
   }
