@@ -174,8 +174,13 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       panic("invalid optional argument")
     }
   }
-  if l1reg.Value != 0.0 && l2reg.Value != 0.0 {
-    return x, fmt.Errorf("using l1- and l2-regularizations is not supported")
+  { m := 0
+    if l1reg.Value != 0.0 { m++ }
+    if l2reg.Value != 0.0 { m++ }
+    if tireg.Value != 0.0 { m++ }
+    if m > 1 {
+      return x, fmt.Errorf("multiple regularizations are not supported")
+    }
   }
   if l1reg.Value < 0.0 {
     return x, fmt.Errorf("invalid l1-regularization constant")
@@ -183,15 +188,25 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   if l2reg.Value < 0.0 {
     return x, fmt.Errorf("invalid l2-regularization constant")
   }
+  if tireg.Value < 0.0 {
+    return x, fmt.Errorf("invalid l2-regularization constant")
+  }
+  if proxop == nil {
+    switch {
+    case l1reg.Value != 0.0: proxop = ProxL1(gamma.Value*l1reg.Value/float64(n))
+    case l2reg.Value != 0.0: proxop = ProxL2(gamma.Value*l2reg.Value/float64(n))
+    case tireg.Value != 0.0: proxop = ProxTi(gamma.Value*tireg.Value/float64(n))
+    }
+  }
   switch g := f.(type) {
   case Objective1Dense:
-    return sagaDense (g, nil, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituDense)
+    return sagaDense (g, nil, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
   case Objective2Dense:
-    return sagaDense (nil, g, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituDense)
+    return sagaDense (nil, g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
   case Objective1Sparse:
-    return sagaSparse(g, nil, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituSparse)
+    return sagaSparse(g, nil, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
   case Objective2Sparse:
-    return sagaSparse(nil, g, n, x, gamma, epsilon, maxIterations, proxop, l1reg.Value, l2reg.Value, tireg.Value, hook, seed, inSituSparse)
+    return sagaSparse(nil, g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
   default:
     panic("invalid objective")
   }

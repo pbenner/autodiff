@@ -89,22 +89,12 @@ func sagaSparse(
   epsilon Epsilon,
   maxIterations MaxIterations,
   proxop ProximalOperator,
-  l1reg float64,
-  l2reg float64,
-  tireg float64,
   hook Hook,
   seed Seed,
   inSitu *InSituSparse) (Vector, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
   x2 := AsDenseBareRealVector(x)
-  if proxop == nil {
-    switch {
-    case l1reg != 0.0: proxop = ProxL1(gamma.Value*l1reg/float64(n))
-    case l2reg != 0.0: proxop = ProxL2(gamma.Value*l2reg/float64(n))
-    case tireg != 0.0: proxop = ProxTi(gamma.Value*tireg/float64(n))
-    }
-  }
   // length of gradient
   d := x.Dim()
   // gradient
