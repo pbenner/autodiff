@@ -75,6 +75,106 @@ func (obj *GradientDense) set(g ConstVector) {
   }
 }
 /* -------------------------------------------------------------------------- */
+func saga0Dense(
+  f Objective1Dense,
+  n int,
+  x Vector,
+  gamma Gamma,
+  epsilon Epsilon,
+  maxIterations MaxIterations,
+  proxop ProximalOperatorJit,
+  hook Hook,
+  seed Seed,
+  inSitu *InSitu) (Vector, error) {
+  xs := AsDenseBareRealVector(x)
+  x1 := AsDenseBareRealVector(x)
+  xk := make([]int, x.Dim())
+  // length of gradient
+  d := x.Dim()
+  // gradient
+  var g1 ConstGradientDense
+  var g2 ConstGradientDense
+  // allocate temporary memory
+  if inSitu.T1 == nil {
+    inSitu.T1 = NullDenseBareRealVector(d)
+  }
+  if inSitu.T2 == nil {
+    inSitu.T2 = NullBareReal()
+  }
+  // temporary variables
+  t1 := BareReal(0.0)
+  t2 := inSitu.T2
+  // some constants
+  t_n := float64(n)
+  t_g := gamma.Value
+  // sum of gradients
+  s := NullDenseBareRealVector(d)
+  // initialize s and d
+  dict := make([]ConstGradientDense, n)
+  for i := 0; i < n; i++ {
+    if _, w, g, err := f(i, x1); err != nil {
+      return nil, err
+    } else {
+      dict[i].set(w, g)
+      dict[i].add(s)
+    }
+  }
+  g := rand.New(rand.NewSource(seed.Value))
+  for epoch := 0; epoch < maxIterations.Value; epoch++ {
+    for i_ := 1; i_ < n+1; i_++ {
+      j := g.Intn(n)
+      // get old gradient
+      g1 = dict[j]
+      // evaluate objective function
+      if _, w, g, err := f(j, x1); err != nil {
+        return x1, err
+      } else {
+        g2.set(w, g)
+      }
+      gw1 := g1.w.GetValue()
+      gw2 := g2.w.GetValue()
+      c := gw2 - gw1
+      for it := g1.g.ITERATOR(); it.Ok(); it.Next() {
+        i := it.Index()
+        // this variable was last updated at step xk[i]
+        m := i_ - xk[i]
+        s_i := s .ValueAt(i)
+        g1i := g1.g.ValueAt(i)
+        x1i := x1 .ValueAt(i)
+        t1.SetValue(x1i - t_g*(c*g1i + float64(m)*s_i/t_n))
+        proxop(x1[i], &t1, m, t2)
+        xk[i] = i_
+      }
+      // update gradient avarage
+      g1.sub(s)
+      g2.add(s)
+      // update dictionary
+      dict[j].set(g2.w, g2.g)
+    }
+    // compute missing updates of x1
+    for i := 0; i < x1.Dim(); i++ {
+      m := n - xk[i]
+      if m > 0 {
+        s_i := s .ValueAt(i)
+        x1i := x1.ValueAt(i)
+        t1.SetValue(x1i - t_g*float64(m)*s_i/t_n)
+        proxop(x1[i], &t1, m, t2)
+      }
+      // reset xk
+      xk[i] = 0
+    }
+    if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
+      return x1, err
+    } else {
+      // execute hook if available
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
+        break
+      }
+    }
+    xs.SET(x1)
+  }
+  return x1, nil
+}
 func saga1Dense(
   f Objective1Dense,
   n int,

@@ -94,9 +94,9 @@ func ProxL1(lambda float64) ProximalOperator {
   f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
     for i := 0; i < x.Dim(); i++ {
       if wi := w[i].GetValue(); wi < 0.0 {
-        x[i].SetValue(-1.0*math.Max(math.Abs(wi) - lambda, 0.0))
+        x[i].SetValue(-math.Max(-wi - lambda, 0.0))
       } else {
-        x[i].SetValue( 1.0*math.Max(math.Abs(wi) - lambda, 0.0))
+        x[i].SetValue( math.Max( wi - lambda, 0.0))
       }
     }
   }
@@ -119,6 +119,21 @@ func ProxTi(lambda float64) ProximalOperator {
   c := NewBareReal(1.0/(lambda + 1.0))
   f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
     x.VMULS(w, c)
+  }
+  return f
+}
+
+/* -------------------------------------------------------------------------- */
+
+type ProximalOperatorJit func(x, w *BareReal, n int, t *BareReal)
+
+func ProxL1Jit(lambda float64) ProximalOperatorJit {
+  f := func(x *BareReal, w *BareReal, n int, t *BareReal) {
+    if wi := w.GetValue(); wi < 0.0 {
+      x.SetValue(-math.Max(-wi - float64(n)*lambda, 0.0))
+    } else {
+      x.SetValue( math.Max( wi - float64(n)*lambda, 0.0))
+    }
   }
   return f
 }
@@ -169,6 +184,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   l2reg         := L2Regularization      { 0.0}
   tireg         := TikhonovRegularization{ 0.0}
   proxop        := ProximalOperator      (nil)
+  proxopjit     := ProximalOperatorJit   (nil)
   seed          := Seed                  {0}
   inSitu        := &InSitu               {}
 
@@ -190,6 +206,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       tireg = a
     case ProximalOperator:
       proxop = a
+    case ProximalOperatorJit:
+      proxopjit = a
     case Seed:
       seed = a
     case *InSitu:
@@ -215,7 +233,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     return x, fmt.Errorf("invalid l2-regularization constant")
   }
   if tireg.Value < 0.0 {
-    return x, fmt.Errorf("invalid l2-regularization constant")
+    return x, fmt.Errorf("invalid ti-regularization constant")
   }
   if proxop == nil {
     switch {
@@ -224,16 +242,30 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     case tireg.Value != 0.0: proxop = ProxTi(gamma.Value*tireg.Value/float64(n))
     }
   }
-  switch g := f.(type) {
-  case Objective1Dense:
-    return saga1Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
-  case Objective2Dense:
-    return saga2Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
-  case Objective1Sparse:
-    return saga1Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
-  case Objective2Sparse:
-    return saga2Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
-  default:
-    panic("invalid objective")
+  if proxop != nil && proxopjit != nil {
+    return x, fmt.Errorf("invalid arguments")
+  }
+  if proxopjit != nil {
+    switch g := f.(type) {
+    case Objective1Dense:
+      return saga0Dense (g, n, x, gamma, epsilon, maxIterations, proxopjit, hook, seed, inSitu)
+    case Objective1Sparse:
+      return saga0Sparse(g, n, x, gamma, epsilon, maxIterations, proxopjit, hook, seed, inSitu)
+    default:
+      panic("invalid objective")
+    }
+  } else {
+    switch g := f.(type) {
+    case Objective1Dense:
+      return saga1Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+    case Objective2Dense:
+      return saga2Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+    case Objective1Sparse:
+      return saga1Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+    case Objective2Sparse:
+      return saga2Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+    default:
+      panic("invalid objective")
+    }
   }
 }
