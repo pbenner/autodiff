@@ -87,19 +87,11 @@ type ProximalOperator func(x, w DenseBareRealVector, t *BareReal)
 
 func ProxL1(lambda float64) ProximalOperator {
   f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    for it := x.JOINT_ITERATOR_(w); it.Ok(); it.Next() {
-      s1, s2 := it.GET()
-      if s1 == nil {
-        s1 = x.AT(it.Index())
-      }
-      if s2 == nil {
-        s1.SetValue(-1.0*math.Max(- lambda, 0.0))
+    for i := 0; i < x.Dim(); i++ {
+      if wi := w[i].GetValue(); wi < 0.0 {
+        x[i].SetValue(-1.0*math.Max(math.Abs(wi) - lambda, 0.0))
       } else {
-        if yi := s2.GetValue(); yi < 0.0 {
-          s1.SetValue(-1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-        } else {
-          s1.SetValue( 1.0*math.Max(math.Abs(yi) - lambda, 0.0))
-        }
+        x[i].SetValue( 1.0*math.Max(math.Abs(wi) - lambda, 0.0))
       }
     }
   }
