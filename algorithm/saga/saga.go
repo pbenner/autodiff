@@ -57,6 +57,11 @@ type Seed struct {
   Value int64
 }
 
+type InSitu struct {
+  T1  DenseBareRealVector
+  T2 *BareReal
+}
+
 /* -------------------------------------------------------------------------- */
 
 func WrapperDense(f func(int, Vector, Scalar) error) Objective1Dense {
@@ -165,8 +170,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   tireg         := TikhonovRegularization{ 0.0}
   proxop        := ProximalOperator      (nil)
   seed          := Seed                  {0}
-  inSituDense   := &InSituDense          {}
-  inSituSparse  := &InSituSparse         {}
+  inSitu        := &InSitu               {}
 
   for _, arg := range args {
     switch a := arg.(type) {
@@ -188,13 +192,9 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       proxop = a
     case Seed:
       seed = a
-    case *InSituDense:
-      inSituDense = a
-    case *InSituSparse:
-      inSituSparse = a
-    case InSituDense:
-      panic("InSitu must be passed by reference")
-    case InSituSparse:
+    case *InSitu:
+      inSitu = a
+    case InSitu:
       panic("InSitu must be passed by reference")
     default:
       panic("invalid optional argument")
@@ -226,13 +226,13 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   }
   switch g := f.(type) {
   case Objective1Dense:
-    return saga1Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
+    return saga1Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
   case Objective2Dense:
-    return saga2Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituDense)
+    return saga2Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
   case Objective1Sparse:
-    return saga1Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
+    return saga1Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
   case Objective2Sparse:
-    return saga2Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSituSparse)
+    return saga2Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
   default:
     panic("invalid objective")
   }

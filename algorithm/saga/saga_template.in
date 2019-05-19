@@ -36,17 +36,11 @@ import . "github.com/pbenner/autodiff"
 
 #define       GRADIENT_TYPE STR_CONCAT(Gradient,      SAGA_TYPE)
 #define CONST_GRADIENT_TYPE STR_CONCAT(ConstGradient, SAGA_TYPE)
-#define        IN_SITU_TYPE STR_CONCAT(InSitu,        SAGA_TYPE)
 
 /* -------------------------------------------------------------------------- */
 
 type OBJECTIVE1 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SCALAR_TYPE, CONST_SPARSE_VECTOR_TYPE, error)
 type OBJECTIVE2 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SPARSE_VECTOR_TYPE, error)
-
-type IN_SITU_TYPE struct {
-  T1 VECTOR_TYPE
-  T2 SCALAR_TYPE
-}
 
 /* -------------------------------------------------------------------------- */
 
@@ -118,7 +112,7 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
   proxop ProximalOperator,
   hook Hook,
   seed Seed,
-  inSitu *IN_SITU_TYPE) (Vector, error) {
+  inSitu *InSitu) (Vector, error) {
 
   xs := AS_VECTOR(x)
   x1 := AS_VECTOR(x)
@@ -219,7 +213,7 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
   proxop ProximalOperator,
   hook Hook,
   seed Seed,
-  inSitu *IN_SITU_TYPE) (Vector, error) {
+  inSitu *InSitu) (Vector, error) {
 
   xs := AS_VECTOR(x)
   x1 := AS_VECTOR(x)

@@ -26,10 +26,6 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 type Objective1Sparse func(int, DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error)
 type Objective2Sparse func(int, DenseBareRealVector) (ConstReal, SparseConstRealVector, error)
-type InSituSparse struct {
-  T1 DenseBareRealVector
-  T2 *BareReal
-}
 /* -------------------------------------------------------------------------- */
 type ConstGradientSparse struct {
   g SparseConstRealVector
@@ -89,7 +85,7 @@ func saga1Sparse(
   proxop ProximalOperator,
   hook Hook,
   seed Seed,
-  inSitu *InSituSparse) (Vector, error) {
+  inSitu *InSitu) (Vector, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
   // length of gradient
@@ -181,7 +177,7 @@ func saga2Sparse(
   proxop ProximalOperator,
   hook Hook,
   seed Seed,
-  inSitu *InSituSparse) (Vector, error) {
+  inSitu *InSitu) (Vector, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
   // length of gradient
