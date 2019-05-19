@@ -39,13 +39,13 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type OBJECTIVE1 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SCALAR_TYPE, CONST_SPARSE_VECTOR_TYPE, error)
-type OBJECTIVE2 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SPARSE_VECTOR_TYPE, error)
+type OBJECTIVE1 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, CONST_SCALAR_TYPE, DATA_VECTOR_TYPE, error)
+type OBJECTIVE2 func(int, VECTOR_TYPE) (CONST_SCALAR_TYPE, DATA_VECTOR_TYPE, error)
 
 /* -------------------------------------------------------------------------- */
 
 type CONST_GRADIENT_TYPE struct {
-  g CONST_SPARSE_VECTOR_TYPE
+  g DATA_VECTOR_TYPE
   w CONST_SCALAR_TYPE
 }
 
@@ -65,7 +65,7 @@ func (obj CONST_GRADIENT_TYPE) sub(v VECTOR_TYPE) {
   }
 }
 
-func (obj *CONST_GRADIENT_TYPE) set(w CONST_SCALAR_TYPE, g CONST_SPARSE_VECTOR_TYPE) {
+func (obj *CONST_GRADIENT_TYPE) set(w CONST_SCALAR_TYPE, g DATA_VECTOR_TYPE) {
   obj.g = g
   obj.w = w
 }
