@@ -125,6 +125,16 @@ func saga0Sparse(
       j := g.Intn(n)
       // get old gradient
       g1 = dict[j]
+      // perform jit updates for all x_i where g_i != 0
+      for it := g1.g.ITERATOR(); it.Ok(); it.Next() {
+        i := it.Index()
+        if m := i_ - xk[i]; m > 1 {
+          x1i := x1.ValueAt(i)
+          s_i := s .ValueAt(i)
+          t1.SetValue(x1i - float64(m-1)*t_g*s_i/t_n)
+          proxop.Eval(x1[i], &t1, j, m-1, t2)
+        }
+      }
       // evaluate objective function
       if _, w, g, err := f(j, x1); err != nil {
         return x1, err
@@ -139,10 +149,6 @@ func saga0Sparse(
         x1i := x1 .ValueAt(i)
         s_i := s .ValueAt(i)
         g1i := g1.g.ValueAt(i)
-        if m := i_ - xk[i]; m > 1 {
-          t1.SetValue(x1i - float64(m-1)*t_g*s_i/t_n)
-          proxop.Eval(x1[i], &t1, j, m-1, t2)
-        }
         t1.SetValue(x1i - t_g*(c*g1i + s_i/t_n))
         proxop.Eval(x1[i], &t1, i, 1, t2)
         xk[i] = i_
