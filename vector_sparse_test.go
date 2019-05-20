@@ -40,9 +40,9 @@ func TestSparseVector1(test *testing.T) {
 
 func TestSparseVector1Const(test *testing.T) {
 
-  v := NewSparseRealVector([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
+  v := NewSparseRealVector     ([]int{1,100,210,310,30,10192}, []float64{1,2,3, 4,-5, 6}, 20000)
   w := NewSparseConstRealVector([]int{1,    210,310,30,10192}, []float64{1,  3, 4,-5, 6}, 20000)
-  r := NewSparseRealVector([]int{1,    210,310,30,10192}, []float64{1,  9,16,25,36}, 20000)
+  r := NewSparseRealVector     ([]int{1,    210,310,30,10192}, []float64{1,  9,16,25,36}, 20000)
   t := NullReal()
 
   v.VmulV(v, w)

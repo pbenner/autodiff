@@ -26,8 +26,9 @@ import "sort"
  * -------------------------------------------------------------------------- */
 
 type SparseConstRealVector struct {
-  values  map[int]ConstReal
+  values  []ConstReal
   indices []int
+  idxmap  map[int]int
   n       int
 }
 
@@ -46,8 +47,9 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
       panic("index larger than vector dimension")
     }
     if values[i] != 0.0 {
-      r.values[k] = ConstReal(values[i])
-      r.indices   = append(r.indices, indices[i])
+      r.idxmap[k] = len(r.values)
+      r.values    = append(r.values,  ConstReal(values[i]))
+      r.indices   = append(r.indices, k)
     }
   }
   return r
@@ -56,7 +58,7 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
 func NilSparseConstRealVector(n int) SparseConstRealVector {
   r := SparseConstRealVector{}
   r.n      = n
-  r.values = make(map[int]ConstReal)
+  r.idxmap = make(map[int]int)
   return r
 }
 
@@ -84,16 +86,16 @@ func (obj SparseConstRealVector) Dim() int {
 }
 
 func (obj SparseConstRealVector) ValueAt(i int) float64 {
-  if v, ok := obj.values[i]; ok {
-    return v.GetValue()
+  if k, ok := obj.idxmap[i]; ok {
+    return obj.values[k].GetValue()
   } else {
     return 0.0
   }
 }
 
 func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
-  if v, ok := obj.values[i]; ok {
-    return v
+  if k, ok := obj.idxmap[i]; ok {
+    return obj.values[k]
   } else {
     return ConstReal(0.0)
   }
@@ -101,15 +103,16 @@ func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
 
 func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
   r := NilSparseConstRealVector(j-i)
-  for _, k := range obj.indices {
-    if k < i {
+  for k1, k2 := range obj.indices {
+    if k2 < i {
       continue
     }
-    if k >= j {
+    if k2 >= j {
       break
     }
-    r.values[k-i] = obj.values[k]
-    r.indices     = append(r.indices, k-i)
+    r.idxmap[k2-i] = len(r.values)
+    r.values       = append(r.values , obj.values[k1])
+    r.indices      = append(r.indices, k2-i)
   }
   return r
 }
@@ -117,7 +120,7 @@ func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
 func (obj SparseConstRealVector) GetValues() []float64 {
   r := make([]float64, obj.Dim())
   for i, v := range obj.values {
-    r[i] = v.GetValue()
+    r[obj.indices[i]] = v.GetValue()
   }
   return r
 }
@@ -191,7 +194,7 @@ func (obj SparseConstRealVector) Table() string {
     }
     buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
-  if _, ok := obj.values[obj.n-1]; !ok {
+  if _, ok := obj.idxmap[obj.n-1]; !ok {
     i := obj.n-1
     if i != 0 {
       buffer.WriteString(" ")
@@ -231,7 +234,7 @@ func (obj *SparseConstRealVectorIterator) GetConst() ConstScalar {
 }
 
 func (obj *SparseConstRealVectorIterator) GET() ConstReal {
-  return obj.v.values[obj.Index()]
+  return obj.v.values[obj.i]
 }
 
 func (obj *SparseConstRealVectorIterator) Ok() bool {
