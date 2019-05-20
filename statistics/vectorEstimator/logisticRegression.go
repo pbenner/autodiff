@@ -160,11 +160,12 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   if gamma != nil {
     panic("internal error")
   }
-  var proxop saga.ProximalOperatorType
+  var proxop    saga.ProximalOperatorType
+  var proxopjit saga.ProximalOperatorJitType
   switch {
-  case obj.L1Reg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorL1{obj.L1Reg}}
-  case obj.L2Reg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorL2{obj.L2Reg}}
-  case obj.TiReg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorTi{obj.TiReg}}
+  case obj.L1Reg != 0.0: proxopjit = proximalWrapperJit{&saga.ProximalOperatorL1Jit{obj.L1Reg}}
+  case obj.L2Reg != 0.0: proxop    = proximalWrapper   {&saga.ProximalOperatorL2   {obj.L2Reg}}
+  case obj.TiReg != 0.0: proxop    = proximalWrapper   {&saga.ProximalOperatorTi   {obj.TiReg}}
   }
   if obj.sparse {
     theta := obj.LogisticRegression.GetParameters()
@@ -173,7 +174,8 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
       saga.Seed   {obj.Seed},
-      saga.ProximalOperator{proxop}); err != nil {
+      saga.ProximalOperator   {proxop},
+      saga.ProximalOperatorJit{proxopjit}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
@@ -185,7 +187,8 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
       saga.Seed   {obj.Seed},
-      saga.ProximalOperator{proxop}); err != nil {
+      saga.ProximalOperator   {proxop},
+      saga.ProximalOperatorJit{proxopjit}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
@@ -237,6 +240,21 @@ func (obj proximalWrapper) Eval(x DenseBareRealVector, w DenseBareRealVector, t 
   obj.ProximalOperatorType.Eval(x, w, t)
   // do not regularize intercept
   x.AT(0).SET(w.AT(0))
+}
+
+/* -------------------------------------------------------------------------- */
+
+type proximalWrapperJit struct {
+  saga.ProximalOperatorJitType
+}
+
+func (obj proximalWrapperJit) Eval(x *BareReal, w *BareReal, i, n int, t *BareReal) {
+  // do not regularize intercept
+  if i != 0 {
+    obj.ProximalOperatorJitType.Eval(x, w, i, n, t)
+  } else {
+    x.SET(w)
+  }
 }
 
 /* -------------------------------------------------------------------------- */
