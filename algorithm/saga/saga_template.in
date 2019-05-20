@@ -169,14 +169,16 @@ func STR_CONCAT(saga0, SAGA_TYPE)(
       gw2 := g2.w.GetValue()
       c   := gw2 - gw1
       for it := g1.g.ITERATOR(); it.Ok(); it.Next() {
-        i := it.Index()
-        // this variable was last updated at step xk[i]
-        m := i_ - xk[i]
+        i   := it.Index()
+        x1i := x1  .ValueAt(i)
         s_i := s   .ValueAt(i)
         g1i := g1.g.ValueAt(i)
-        x1i := x1  .ValueAt(i)
-        t1.SetValue(x1i - t_g*(c*g1i + float64(m)*s_i/t_n))
-        proxop.Eval(x1[i], &t1, j, m, t2)
+        if m := i_ - xk[i]; m > 1 {
+          t1.SetValue(x1i - float64(m-1)*s_i/t_n)
+          proxop.Eval(x1[i], &t1, j, m-1, t2)
+        }
+        t1.SetValue(x1i - t_g*(c*g1i + s_i/t_n))
+        proxop.Eval(x1[i], &t1, i, 1, t2)
         xk[i] = i_
       }
       // update gradient avarage
