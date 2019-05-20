@@ -329,15 +329,46 @@ func Test6(test *testing.T) {
   }
 
   theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
-  z := DenseConstRealVector([]float64{-2.76467776, 0.17584927, 0.48174453})
-  t := NullReal()
-  p := proximalWrapperJit{&ProximalOperatorL1Jit{1.0/2.5}}
+  z  := DenseConstRealVector([]float64{-2.76467776, 0.17584927, 0.48174453})
+  t1 := NullReal()
+  t2 := NullDenseBareRealVector(theta_0.Dim())
+  p1 := proximalWrapper   {&ProximalOperatorL1   {1.0/2.5}}
+  p2 := proximalWrapperJit{&ProximalOperatorL1Jit{1.0/2.5}}
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperatorJit{p}); err != nil {
+  trace1 := []ConstVector{}
+  trace2 := []ConstVector{}
+  hook1 := func(x ConstVector, step ConstScalar, i int) bool {
+    // clone vector!
+    trace1 = append(trace1, AsDenseBareRealVector(x))
+    return false
+  }
+  hook2 := func(x ConstVector, step ConstScalar, i int) bool {
+    // clone vector!
+    trace2 = append(trace2, AsDenseBareRealVector(x))
+    return false
+  }
+
+  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook1}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator   {p1}); err != nil {
     test.Error(err)
   } else {
-    if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+    if t1.Vnorm(t2.VsubV(r, z)); t1.GetValue() > 1e-4 {
       test.Error("test failed")
+    }
+  }
+  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook2}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperatorJit{p2}); err != nil {
+    test.Error(err)
+  } else {
+    if t1.Vnorm(t2.VsubV(r, z)); t1.GetValue() > 1e-4 {
+      test.Error("test failed")
+    }
+  }
+  if len(trace1) == 0 || len(trace1) != len(trace2) {
+    test.Error("test failed")
+  } else {
+    for i := 0; i < len(trace1); i++ {
+      if t1.Vnorm(t2.VsubV(trace1[i], trace2[i])); t1.GetValue() > 1e-4 {
+        test.Error("test failed")
+      }
     }
   }
 }
