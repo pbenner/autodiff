@@ -160,11 +160,11 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   if gamma != nil {
     panic("internal error")
   }
-  proxop := saga.ProximalOperator(nil)
+  var proxop saga.ProximalOperatorType
   switch {
-  case obj.L1Reg != 0.0: proxop = proxWrapper(saga.ProxL1(obj.stepSize*obj.L1Reg/float64(obj.n)))
-  case obj.L2Reg != 0.0: proxop = proxWrapper(saga.ProxL2(obj.stepSize*obj.L2Reg/float64(obj.n)))
-  case obj.TiReg != 0.0: proxop = proxWrapper(saga.ProxTi(obj.stepSize*obj.TiReg/float64(obj.n)))
+  case obj.L1Reg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorL1{obj.L1Reg}}
+  case obj.L2Reg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorL2{obj.L2Reg}}
+  case obj.TiReg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorTi{obj.TiReg}}
   }
   if obj.sparse {
     theta := obj.LogisticRegression.GetParameters()
@@ -173,7 +173,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
       saga.Seed   {obj.Seed},
-      proxop); err != nil {
+      saga.ProximalOperator{proxop}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
@@ -185,7 +185,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
       saga.Seed   {obj.Seed},
-      proxop); err != nil {
+      saga.ProximalOperator{proxop}); err != nil {
       return err
     } else {
       obj.LogisticRegression.SetParameters(r)
@@ -229,13 +229,14 @@ func (obj *LogisticRegression) setStepSize() {
 
 /* -------------------------------------------------------------------------- */
 
-func proxWrapper(g saga.ProximalOperator) saga.ProximalOperator {
-  f := func(x, w DenseBareRealVector, t *BareReal) {
-    g(x, w, t)
-    // do not regularize intercept
-    x.AT(0).SET(w.AT(0))
-  }
-  return f
+type proximalWrapper struct {
+  saga.ProximalOperatorType
+}
+
+func (obj proximalWrapper) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+  obj.ProximalOperatorType.Eval(x, w, t)
+  // do not regularize intercept
+  x.AT(0).SET(w.AT(0))
 }
 
 /* -------------------------------------------------------------------------- */

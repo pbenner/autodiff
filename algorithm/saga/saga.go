@@ -45,6 +45,14 @@ type TikhonovRegularization struct {
   Value float64
 }
 
+type ProximalOperator struct {
+  Value ProximalOperatorType
+}
+
+type ProximalOperatorJit struct {
+  Value ProximalOperatorJitType
+}
+
 type Hook struct {
   Value func(ConstVector, ConstScalar, int) bool
 }
@@ -88,54 +96,103 @@ func WrapperDense(f func(int, Vector, Scalar) error) Objective1Dense {
 
 /* -------------------------------------------------------------------------- */
 
-type ProximalOperator func(x, w DenseBareRealVector, t *BareReal)
-
-func ProxL1(lambda float64) ProximalOperator {
-  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    for i := 0; i < x.Dim(); i++ {
-      if wi := w[i].GetValue(); wi < 0.0 {
-        x[i].SetValue(-math.Max(-wi - lambda, 0.0))
-      } else {
-        x[i].SetValue( math.Max( wi - lambda, 0.0))
-      }
-    }
-  }
-  return f
+type ProximalOperatorType interface {
+  GetLambda(       ) float64
+  SetLambda(float64)
+  Eval     (x, w DenseBareRealVector, t *BareReal)
 }
 
-func ProxL2(lambda float64) ProximalOperator {
-  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    t.Vnorm(w)
-    t.Div(ConstReal(lambda), t)
-    t.Sub(ConstReal(1.0), t)
-    t.Max(ConstReal(0.0), t)
-    x.VMULS(w, t)
-  }
-  return f
-}
-
-// Tikhonov regularization (1/2 * lambda * squared l2-norm)
-func ProxTi(lambda float64) ProximalOperator {
-  c := NewBareReal(1.0/(lambda + 1.0))
-  f := func(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-    x.VMULS(w, c)
-  }
-  return f
+type ProximalOperatorJitType interface {
+  GetLambda(       ) float64
+  SetLambda(float64)
+  Eval     (x *BareReal, w *BareReal, n int, t *BareReal)
 }
 
 /* -------------------------------------------------------------------------- */
 
-type ProximalOperatorJit func(x, w *BareReal, n int, t *BareReal)
+type ProximalOperatorL1 struct {
+  Lambda float64
+}
 
-func ProxL1Jit(lambda float64) ProximalOperatorJit {
-  f := func(x *BareReal, w *BareReal, n int, t *BareReal) {
-    if wi := w.GetValue(); wi < 0.0 {
-      x.SetValue(-math.Max(-wi - float64(n)*lambda, 0.0))
+func (obj *ProximalOperatorL1) GetLambda() float64 {
+  return obj.Lambda
+}
+
+func (obj *ProximalOperatorL1) SetLambda(lambda float64) {
+  obj.Lambda = lambda
+}
+
+func (obj *ProximalOperatorL1) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+  for i := 0; i < x.Dim(); i++ {
+    if wi := w[i].GetValue(); wi < 0.0 {
+      x[i].SetValue(-math.Max(-wi - obj.Lambda, 0.0))
     } else {
-      x.SetValue( math.Max( wi - float64(n)*lambda, 0.0))
+      x[i].SetValue( math.Max( wi - obj.Lambda, 0.0))
     }
   }
-  return f
+}
+
+/* -------------------------------------------------------------------------- */
+
+type ProximalOperatorL2 struct {
+  Lambda float64
+}
+
+func (obj *ProximalOperatorL2) GetLambda() float64 {
+  return obj.Lambda
+}
+
+func (obj *ProximalOperatorL2) SetLambda(lambda float64) {
+  obj.Lambda = lambda
+}
+
+func (obj *ProximalOperatorL2) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+  t.Vnorm(w)
+  t.Div(ConstReal(obj.Lambda), t)
+  t.Sub(ConstReal(1.0), t)
+  t.Max(ConstReal(0.0), t)
+  x.VMULS(w, t)
+}
+
+/* -------------------------------------------------------------------------- */
+
+type ProximalOperatorTi struct {
+  Lambda float64
+}
+
+func (obj *ProximalOperatorTi) GetLambda() float64 {
+  return obj.Lambda
+}
+
+func (obj *ProximalOperatorTi) SetLambda(lambda float64) {
+  obj.Lambda = lambda
+}
+
+func (obj *ProximalOperatorTi) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+  c := BareReal(1.0/(obj.Lambda + 1.0))
+  x.VMULS(w, &c)
+}
+
+/* -------------------------------------------------------------------------- */
+
+type ProximalOperatorL1Jit struct {
+  Lambda float64
+}
+
+func (obj *ProximalOperatorL1Jit) GetLambda() float64 {
+  return obj.Lambda
+}
+
+func (obj *ProximalOperatorL1Jit) SetLambda(lambda float64) {
+  obj.Lambda = lambda
+}
+
+func (obj *ProximalOperatorL1Jit) Eval(x *BareReal, w *BareReal, n int, t *BareReal) {
+  if wi := w.GetValue(); wi < 0.0 {
+    x.SetValue(-math.Max(-wi - float64(n)*obj.Lambda, 0.0))
+  } else {
+    x.SetValue( math.Max( wi - float64(n)*obj.Lambda, 0.0))
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,8 +240,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   l1reg         := L1Regularization      { 0.0}
   l2reg         := L2Regularization      { 0.0}
   tireg         := TikhonovRegularization{ 0.0}
-  proxop        := ProximalOperator      (nil)
-  proxopjit     := ProximalOperatorJit   (nil)
+  proxop        := ProximalOperator      {}
+  proxopjit     := ProximalOperatorJit   {}
   seed          := Seed                  {0}
   inSitu        := &InSitu               {}
 
@@ -235,35 +292,44 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   if tireg.Value < 0.0 {
     return x, fmt.Errorf("invalid ti-regularization constant")
   }
-  if proxop == nil {
+  // initialize proximal operator
+  if proxop.Value == nil {
     switch {
-    case l1reg.Value != 0.0: proxop = ProxL1(gamma.Value*l1reg.Value/float64(n))
-    case l2reg.Value != 0.0: proxop = ProxL2(gamma.Value*l2reg.Value/float64(n))
-    case tireg.Value != 0.0: proxop = ProxTi(gamma.Value*tireg.Value/float64(n))
+    case l1reg.Value != 0.0: proxop.Value = &ProximalOperatorL1{l1reg.Value}
+    case l2reg.Value != 0.0: proxop.Value = &ProximalOperatorL2{l2reg.Value}
+    case tireg.Value != 0.0: proxop.Value = &ProximalOperatorTi{tireg.Value}
     }
   }
-  if proxop != nil && proxopjit != nil {
+  // check arguments
+  if proxop.Value != nil && proxopjit.Value != nil {
     return x, fmt.Errorf("invalid arguments")
   }
-  if proxopjit != nil {
+  // rescale lambda
+  if proxop.Value != nil {
+    proxop.Value.SetLambda(gamma.Value*proxop.Value.GetLambda()/float64(n))
+  }
+  if proxopjit.Value != nil {
+    proxopjit.Value.SetLambda(gamma.Value*proxopjit.Value.GetLambda()/float64(n))
+  }
+  if proxopjit.Value != nil {
     switch g := f.(type) {
     case Objective1Dense:
-      return saga0Dense (g, n, x, gamma, epsilon, maxIterations, proxopjit, hook, seed, inSitu)
+      return saga0Dense (g, n, x, gamma, epsilon, maxIterations, proxopjit.Value, hook, seed, inSitu)
     case Objective1Sparse:
-      return saga0Sparse(g, n, x, gamma, epsilon, maxIterations, proxopjit, hook, seed, inSitu)
+      return saga0Sparse(g, n, x, gamma, epsilon, maxIterations, proxopjit.Value, hook, seed, inSitu)
     default:
       panic("invalid objective")
     }
   } else {
     switch g := f.(type) {
     case Objective1Dense:
-      return saga1Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+      return saga1Dense (g, n, x, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     case Objective2Dense:
-      return saga2Dense (g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+      return saga2Dense (g, n, x, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     case Objective1Sparse:
-      return saga1Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+      return saga1Sparse(g, n, x, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     case Objective2Sparse:
-      return saga2Sparse(g, n, x, gamma, epsilon, maxIterations, proxop, hook, seed, inSitu)
+      return saga2Sparse(g, n, x, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     default:
       panic("invalid objective")
     }

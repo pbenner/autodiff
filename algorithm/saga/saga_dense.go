@@ -82,7 +82,7 @@ func saga0Dense(
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
-  proxop ProximalOperatorJit,
+  proxop ProximalOperatorJitType,
   hook Hook,
   seed Seed,
   inSitu *InSitu) (Vector, error) {
@@ -142,7 +142,7 @@ func saga0Dense(
         g1i := g1.g.ValueAt(i)
         x1i := x1 .ValueAt(i)
         t1.SetValue(x1i - t_g*(c*g1i + float64(m)*s_i/t_n))
-        proxop(x1[i], &t1, m, t2)
+        proxop.Eval(x1[i], &t1, m, t2)
         xk[i] = i_
       }
       // update gradient avarage
@@ -158,7 +158,7 @@ func saga0Dense(
         s_i := s .ValueAt(i)
         x1i := x1.ValueAt(i)
         t1.SetValue(x1i - t_g*float64(m)*s_i/t_n)
-        proxop(x1[i], &t1, m, t2)
+        proxop.Eval(x1[i], &t1, m, t2)
       }
       // reset xk
       xk[i] = 0
@@ -182,7 +182,7 @@ func saga1Dense(
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
-  proxop ProximalOperator,
+  proxop ProximalOperatorType,
   hook Hook,
   seed Seed,
   inSitu *InSitu) (Vector, error) {
@@ -247,7 +247,7 @@ func saga1Dense(
           x1i := x1.ValueAt(i)
           t1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
         }
-        proxop(x1, t1, t2)
+        proxop.Eval(x1, t1, t2)
       }
       // update gradient avarage
       g1.sub(s)
@@ -274,7 +274,7 @@ func saga2Dense(
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
-  proxop ProximalOperator,
+  proxop ProximalOperatorType,
   hook Hook,
   seed Seed,
   inSitu *InSitu) (Vector, error) {
@@ -338,7 +338,7 @@ func saga2Dense(
           x1i := x1.ValueAt(i)
           t1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
         }
-        proxop(x1, t1, t2)
+        proxop.Eval(x1, t1, t2)
       }
       // update gradient avarage
       g1.sub(s)
