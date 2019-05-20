@@ -49,6 +49,19 @@ func (obj proximalWrapper) Eval(x DenseBareRealVector, w DenseBareRealVector, t 
 
 /* -------------------------------------------------------------------------- */
 
+type proximalWrapperJit struct {
+  ProximalOperatorJitType
+}
+
+func (obj proximalWrapperJit) Eval(x *BareReal, w *BareReal, i, n int, t *BareReal) {
+  // do not regularize intercept
+  if i != 0 {
+    obj.ProximalOperatorJitType.Eval(x, w, i, n, t)
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 func f_dense(class []float64, x []DenseConstRealVector) Objective1Dense {
   theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
   lr, _   := NewLogisticRegression(theta_0)

@@ -142,7 +142,7 @@ func saga0Sparse(
         g1i := g1.g.ValueAt(i)
         x1i := x1 .ValueAt(i)
         t1.SetValue(x1i - t_g*(c*g1i + float64(m)*s_i/t_n))
-        proxop.Eval(x1[i], &t1, m, t2)
+        proxop.Eval(x1[i], &t1, j, m, t2)
         xk[i] = i_
       }
       // update gradient avarage
@@ -158,7 +158,7 @@ func saga0Sparse(
         s_i := s .ValueAt(i)
         x1i := x1.ValueAt(i)
         t1.SetValue(x1i - t_g*float64(m)*s_i/t_n)
-        proxop.Eval(x1[i], &t1, m, t2)
+        proxop.Eval(x1[i], &t1, i, m, t2)
       }
       // reset xk
       xk[i] = 0

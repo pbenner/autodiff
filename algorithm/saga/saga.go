@@ -105,7 +105,7 @@ type ProximalOperatorType interface {
 type ProximalOperatorJitType interface {
   GetLambda(       ) float64
   SetLambda(float64)
-  Eval     (x *BareReal, w *BareReal, n int, t *BareReal)
+  Eval     (x *BareReal, w *BareReal, i, n int, t *BareReal)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -187,7 +187,7 @@ func (obj *ProximalOperatorL1Jit) SetLambda(lambda float64) {
   obj.Lambda = lambda
 }
 
-func (obj *ProximalOperatorL1Jit) Eval(x *BareReal, w *BareReal, n int, t *BareReal) {
+func (obj *ProximalOperatorL1Jit) Eval(x *BareReal, w *BareReal, i, n int, t *BareReal) {
   if wi := w.GetValue(); wi < 0.0 {
     x.SetValue(-math.Max(-wi - float64(n)*obj.Lambda, 0.0))
   } else {
@@ -293,12 +293,10 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     return x, fmt.Errorf("invalid ti-regularization constant")
   }
   // initialize proximal operator
-  if proxop.Value == nil {
-    switch {
-    case l1reg.Value != 0.0: proxop.Value = &ProximalOperatorL1{l1reg.Value}
-    case l2reg.Value != 0.0: proxop.Value = &ProximalOperatorL2{l2reg.Value}
-    case tireg.Value != 0.0: proxop.Value = &ProximalOperatorTi{tireg.Value}
-    }
+  switch {
+  case l1reg.Value != 0.0: proxop.Value = &ProximalOperatorL1{l1reg.Value}
+  case l2reg.Value != 0.0: proxop.Value = &ProximalOperatorL2{l2reg.Value}
+  case tireg.Value != 0.0: proxop.Value = &ProximalOperatorTi{tireg.Value}
   }
   // check arguments
   if proxop.Value != nil && proxopjit.Value != nil {
