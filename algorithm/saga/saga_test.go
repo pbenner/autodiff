@@ -333,7 +333,7 @@ func Test6(test *testing.T) {
   t := NullReal()
   p := proximalWrapperJit{&ProximalOperatorL1Jit{1.0/2.5}}
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperatorJit{p}); err != nil {
+  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperatorJit{p}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
