@@ -148,7 +148,7 @@ func saga0Dense(
         i := it.Index()
         x1i := x1 .ValueAt(i)
         s_i := s .ValueAt(i)
-        g1i := g1.g.ValueAt(i)
+        g1i := it.GET().GetValue()
         t1.SetValue(x1i - t_g*(c*g1i + s_i/t_n))
         proxop.Eval(x1[i], &t1, i, 1, t2)
         xk[i] = i_
