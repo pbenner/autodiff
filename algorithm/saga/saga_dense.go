@@ -31,18 +31,19 @@ type ConstGradientDense struct {
   g DenseConstRealVector
   w ConstReal
 }
+func (obj ConstGradientDense) update(g2 ConstGradientDense, v DenseBareRealVector) {
+  c := g2.w.GetValue() - obj.w.GetValue()
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() + c*s_b.GetValue())
+  }
+}
 func (obj ConstGradientDense) add(v DenseBareRealVector) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
     s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
-  }
-}
-func (obj ConstGradientDense) sub(v DenseBareRealVector) {
-  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
-    s_a := v.AT(it.Index())
-    s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
   }
 }
 func (obj *ConstGradientDense) set(w ConstReal, g DenseConstRealVector) {
@@ -154,8 +155,7 @@ func saga0Dense(
         xk[i] = i_
       }
       // update gradient avarage
-      g1.sub(s)
-      g2.add(s)
+      g1.update(g2, s)
       // update dictionary
       dict[j].set(g2.w, g2.g)
     }
@@ -258,8 +258,7 @@ func saga1Dense(
         proxop.Eval(x1, t1, t2)
       }
       // update gradient avarage
-      g1.sub(s)
-      g2.add(s)
+      g1.update(g2, s)
       // update dictionary
       dict[j].set(g2.w, g2.g)
     }

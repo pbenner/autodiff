@@ -72,24 +72,23 @@ type InSitu struct {
 
 /* -------------------------------------------------------------------------- */
 
-func WrapperDense(f func(int, Vector, Scalar) error) Objective1Dense {
+func WrapperDense(f func(int, Vector, Scalar) error) Objective2Dense {
   x := NullDenseRealVector(0)
   y := NullReal()
-  w := ConstReal(1.0)
-  f_ := func(i int, x_ DenseBareRealVector) (ConstReal, ConstReal, DenseConstRealVector, error) {
+  f_ := func(i int, x_ DenseBareRealVector) (ConstReal, DenseConstRealVector, error) {
     if x.Dim() == 0 {
       x = NullDenseRealVector(x_.Dim())
     }
     x.Set(x_)
     x.Variables(1)
     if err := f(i, x, y); err != nil {
-      return ConstReal(0.0), ConstReal(0.0), nil, err
+      return ConstReal(0.0), nil, err
     }
     g := make([]float64, x.Dim())
     for i := 0; i < x.Dim(); i++ {
       g[i] = y.GetDerivative(i)
     }
-    return ConstReal(y.GetValue()), w, DenseConstRealVector(g), nil
+    return ConstReal(y.GetValue()), DenseConstRealVector(g), nil
   }
   return f_
 }

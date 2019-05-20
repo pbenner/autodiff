@@ -49,19 +49,20 @@ type CONST_GRADIENT_TYPE struct {
   w CONST_SCALAR_TYPE
 }
 
+func (obj CONST_GRADIENT_TYPE) update(g2 CONST_GRADIENT_TYPE, v VECTOR_TYPE) {
+  c := g2.w.GetValue() - obj.w.GetValue()
+  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+    s_a := v.AT(it.Index())
+    s_b := it.GET()
+    s_a.SetValue(s_a.GetValue() + c*s_b.GetValue())
+  }
+}
+
 func (obj CONST_GRADIENT_TYPE) add(v VECTOR_TYPE) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
     s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
-  }
-}
-
-func (obj CONST_GRADIENT_TYPE) sub(v VECTOR_TYPE) {
-  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
-    s_a := v.AT(it.Index())
-    s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() - obj.w.GetValue()*s_b.GetValue())
   }
 }
 
@@ -188,8 +189,7 @@ func STR_CONCAT(saga0, SAGA_TYPE)(
         xk[i] = i_
       }
       // update gradient avarage
-      g1.sub(s)
-      g2.add(s)
+      g1.update(g2, s)
 
       // update dictionary
       dict[j].set(g2.w, g2.g)
@@ -301,8 +301,7 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
         proxop.Eval(x1, t1, t2)
       }
       // update gradient avarage
-      g1.sub(s)
-      g2.add(s)
+      g1.update(g2, s)
 
       // update dictionary
       dict[j].set(g2.w, g2.g)
