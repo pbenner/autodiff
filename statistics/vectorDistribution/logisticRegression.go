@@ -97,6 +97,45 @@ func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) err
   return nil
 }
 
+func (dist *LogisticRegression) ClassLogPdf_(r *BareReal, x SparseConstRealVector, y bool) error {
+  theta := dist.Theta.(DenseBareRealVector)
+  if x.Dim() != dist.Dim() && x.Dim() != dist.Dim()+1 {
+    return fmt.Errorf("input vector has invalid dimension")
+  }
+  t := BareReal(0.0)
+  // set r to first element of theta
+  r.Set(theta.ConstAt(0))
+  // loop over theta
+  it := x.ITERATOR()
+  if x.Dim() == dist.Dim() {
+    // dim(x) == dim(theta)-1 => add 1 to index
+    for ; it.Ok(); it.Next() {
+      y := BareReal(it.GET())
+      t.MUL(&y, theta.AT(it.Index()+1))
+      r.ADD( r, &t)
+    }
+  } else {
+    // dim(x) == dim(theta) => ignore first element of x
+    if it.Ok() {
+      it.Next()
+    }
+    for ; it.Ok(); it.Next() {
+      y := BareReal(it.GET())
+      t.MUL(&y, theta.AT(it.Index()+0))
+      r.ADD( r, &t)
+    }
+  }
+  if y {
+    r.NEG(r)
+    r.LogAdd(ConstReal(0.0), r, &t)
+    r.Neg(r)
+  } else {
+    r.LogAdd(ConstReal(0.0), r, &t)
+    r.NEG(r)
+  }
+  return nil
+}
+
 func (dist *LogisticRegression) LogPdf(r Scalar, x ConstVector) error {
   return dist.ClassLogPdf(r, x, true)
 }

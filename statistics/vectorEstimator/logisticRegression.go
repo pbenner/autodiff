@@ -296,7 +296,7 @@ func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (Const
   if err := obj.LogisticRegression.SetParameters(theta); err != nil {
     return y, w, x[i], err
   }
-  if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
+  if err := obj.LogisticRegression.ClassLogPdf_(&r, x[i], true); err != nil {
     return y, w, x[i], err
   }
   if math.IsNaN(r.GetValue()) {
