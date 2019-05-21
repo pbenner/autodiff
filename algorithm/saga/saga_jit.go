@@ -84,7 +84,7 @@ func sagaJit(
       for _, k := range g1.g.GetSparseIndices() {
         if m := i_ - xk[k]; m > 1 {
           t1 = x1[k] - BareReal(m-1)*t_g*s[k]/t_n
-          proxop.Eval(&x1[k], &t1, j, m-1, &t2)
+          proxop.Eval(&x1[k], &t1, k, m-1, &t2)
         }
       }
       // evaluate objective function
