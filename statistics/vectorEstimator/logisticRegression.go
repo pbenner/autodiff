@@ -21,17 +21,59 @@ package vectorEstimator
 import   "fmt"
 import   "math"
 
+import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/saga"
 import . "github.com/pbenner/autodiff/statistics"
 import   "github.com/pbenner/autodiff/statistics/vectorDistribution"
+import . "github.com/pbenner/autodiff/logarithmetic"
 
-import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/threadpool"
+
+
+/* -------------------------------------------------------------------------- */
+
+type logisticRegression struct {
+  Theta DenseBareRealVector
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (obj logisticRegression) Dim() int {
+  return len(obj.Theta)-1
+}
+
+func (obj logisticRegression) LogPdfDense(x DenseConstRealVector) float64 {
+  // set r to first element of theta
+  r := float64(obj.Theta[0])
+  n := x.Dim()
+  for i := 1; i < n; i++ {
+    r += float64(x[i])*float64(obj.Theta[i])
+  }
+  return -LogAdd(0.0, -r)
+}
+
+func (obj logisticRegression) LogPdfSparse(v SparseConstRealVector) float64 {
+  x     := v.GetSparseValues ()
+  index := v.GetSparseIndices()
+  // set r to first element of theta
+  r := float64(obj.Theta[0])
+  // loop over x
+  i := 0
+  n := len(index)
+  // skip first element
+  if index[i] == 0 {
+    i++
+  }
+  for ; i < n; i++ {
+    r += float64(x[i])*float64(obj.Theta[index[i]])
+  }
+  return -LogAdd(0.0, -r)
+}
 
 /* -------------------------------------------------------------------------- */
 
 type LogisticRegression struct {
-  *vectorDistribution.LogisticRegression
+  logisticRegression
   sparse     bool
   n          int
   x_sparse []SparseConstRealVector
@@ -58,18 +100,10 @@ func NewLogisticRegression(index []int, theta []float64, n int) (*LogisticRegres
       return nil, fmt.Errorf("theta has invalid dimension")
     }
     r.sparse = false
-    if dist, err := vectorDistribution.NewLogisticRegression(NewDenseBareRealVector(theta)); err != nil {
-      return nil, err
-    } else {
-      r.LogisticRegression = dist
-    }
+    r.logisticRegression.Theta = NewDenseBareRealVector(theta)
   } else {
     r.sparse = true
-    if dist, err := vectorDistribution.NewLogisticRegression(AsDenseBareRealVector(NewSparseBareRealVector(index, theta, n))); err != nil {
-      return nil, err
-    } else {
-      r.LogisticRegression = dist
-    }
+    r.logisticRegression.Theta = AsDenseBareRealVector(NewSparseBareRealVector(index, theta, n))
   }
   return &r, nil
 }
@@ -80,12 +114,27 @@ func (obj *LogisticRegression) Clone() *LogisticRegression {
   r := LogisticRegression{}
   // copy data and optional arguments
   r  = *obj
-  r.LogisticRegression = obj.LogisticRegression.Clone()
+  r.logisticRegression.Theta = obj.logisticRegression.Theta.Clone()
   return &r
 }
 
 func (obj *LogisticRegression) CloneVectorEstimator() VectorEstimator {
   return obj.Clone()
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (obj *LogisticRegression) ScalarType() ScalarType {
+  return BareRealType
+}
+
+func (obj *LogisticRegression) GetParameters() Vector {
+  return obj.Theta
+}
+
+func (obj *LogisticRegression) SetParameters(x Vector) error {
+  obj.Theta = AsDenseBareRealVector(x)
+  return nil
 }
 
 /* -------------------------------------------------------------------------- */
@@ -105,7 +154,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   if len(x) == 0 {
     return nil
   }
-  if k := obj.LogisticRegression.Dim()+2; x[0].Dim() != k {
+  if k := obj.logisticRegression.Dim()+2; x[0].Dim() != k {
     return fmt.Errorf("LogisticRegression: data has invalid dimension: got data of dimension `%d' but expected dimension `%d'", x[0].Dim(), k)
   }
   if obj.sparse {
@@ -173,8 +222,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   case obj.TiReg != 0.0: proxop    = proximalWrapper   {&saga.ProximalOperatorTi   {obj.TiReg}}
   }
   if obj.sparse {
-    theta := obj.LogisticRegression.GetParameters()
-    if r, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), theta,
+    if r, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.Hook   {obj.Hook},
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
@@ -183,11 +231,10 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.ProximalOperatorJit{proxopjit}); err != nil {
       return err
     } else {
-      obj.LogisticRegression.SetParameters(r)
+      obj.SetParameters(r)
     }
   } else {
-    theta := obj.LogisticRegression.GetParameters()
-    if r, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), theta,
+    if r, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), obj.Theta,
       saga.Hook   {obj.Hook},
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
@@ -196,7 +243,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.ProximalOperatorJit{proxopjit}); err != nil {
       return err
     } else {
-      obj.LogisticRegression.SetParameters(r)
+      obj.SetParameters(r)
     }
   }
   return nil
@@ -210,7 +257,7 @@ func (obj *LogisticRegression) EstimateOnData(x []ConstVector, gamma ConstVector
 }
 
 func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
-  return obj.LogisticRegression, nil
+  return vectorDistribution.NewLogisticRegression(obj.Theta)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -265,53 +312,47 @@ func (obj proximalWrapperJit) Eval(x *BareReal, w *BareReal, i, n int, t *BareRe
 /* -------------------------------------------------------------------------- */
 
 func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseConstRealVector, error) {
-  r := BareReal(0.0)
   x := obj.x_dense
   y := ConstReal(0.0)
   w := ConstReal(0.0)
   if i >= len(x) {
     return y, w, x[i], fmt.Errorf("index out of bounds")
   }
-  if err := obj.LogisticRegression.SetParameters(theta); err != nil {
-    return y, w, x[i], err
-  }
-  if err := obj.LogisticRegression.LogPdf(&r, x[i]); err != nil {
-    return y, w, x[i], err
-  }
-  if math.IsNaN(r.GetValue()) {
+  obj.logisticRegression.Theta = theta
+
+  r := obj.logisticRegression.LogPdfDense(x[i])
+
+  if math.IsNaN(r) {
     return y, w, x[i], fmt.Errorf("NaN value detected")
   }
-  y = ConstReal(r.GetValue())
+  y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(math.Exp(r.GetValue()) - 1.0)
+    w = ConstReal(math.Exp(r) - 1.0)
   } else {
-    w = ConstReal(math.Exp(r.GetValue()))
+    w = ConstReal(math.Exp(r))
   }
   return y, w, x[i], nil
 }
 
 func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error) {
-  r := BareReal(0.0)
   x := obj.x_sparse
   y := ConstReal(0.0)
   w := ConstReal(0.0)
   if i >= len(x) {
     return y, w, x[i], fmt.Errorf("index out of bounds")
   }
-  if err := obj.LogisticRegression.SetParameters(theta); err != nil {
-    return y, w, x[i], err
-  }
-  if err := obj.LogisticRegression.ClassLogPdf_(&r, x[i], true); err != nil {
-    return y, w, x[i], err
-  }
-  if math.IsNaN(r.GetValue()) {
+  obj.logisticRegression.Theta = theta
+
+  r := obj.logisticRegression.LogPdfSparse(x[i])
+
+  if math.IsNaN(r) {
     return y, w, x[i], fmt.Errorf("NaN value detected")
   }
-  y = ConstReal(r.GetValue())
+  y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(math.Exp(r.GetValue()) - 1.0)
+    w = ConstReal(math.Exp(r) - 1.0)
   } else {
-    w = ConstReal(math.Exp(r.GetValue()))
+    w = ConstReal(math.Exp(r))
   }
   return y, w, x[i], nil
 }

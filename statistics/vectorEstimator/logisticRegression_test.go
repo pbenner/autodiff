@@ -125,7 +125,7 @@ func TestLogistic1(test *testing.T) {
     test.Error(err); return
   }
   // result and target
-  r := estimator.LogisticRegression.GetParameters()
+  r := estimator.GetParameters()
   z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
   t := NullReal()
 
@@ -160,7 +160,7 @@ func TestLogistic2(test *testing.T) {
     test.Error(err); return
   }
   // result and target
-  r := estimator.LogisticRegression.GetParameters()
+  r := estimator.GetParameters()
   z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
   t := NullReal()
 
@@ -198,7 +198,7 @@ func TestLogistic3(test *testing.T) {
     test.Error(err); return
   }
   // result and target
-  r_saga := estimator.LogisticRegression.GetParameters()
+  r_saga := estimator.GetParameters()
 
   objective := func(r Vector) (Scalar, error) {
     return eval_l2_solution(x, r, C), nil
@@ -247,7 +247,7 @@ func TestLogistic4(test *testing.T) {
     test.Error(err); return
   }
   // result and target
-  r_saga := estimator.LogisticRegression.GetParameters()
+  r_saga := estimator.GetParameters()
 
   objective := func(r Vector) (Scalar, error) {
     return eval_l1_solution(x, r, C), nil
@@ -296,7 +296,7 @@ func TestLogistic5(test *testing.T) {
     test.Error(err); return
   }
   // result and target
-  r_saga := estimator.LogisticRegression.GetParameters()
+  r_saga := estimator.GetParameters()
 
   objective := func(r Vector) (Scalar, error) {
     return eval_l2_solution(x, r, C), nil
@@ -345,7 +345,7 @@ func TestLogistic6(test *testing.T) {
     test.Error(err); return
   }
   // result and target
-  r_saga := estimator.LogisticRegression.GetParameters()
+  r_saga := estimator.GetParameters()
 
   objective := func(r Vector) (Scalar, error) {
     return eval_l1_solution(x, r, C), nil
