@@ -76,7 +76,7 @@ func NULL_VECTOR(length int) VECTOR_TYPE {
       v[i] =  NEW_SCALAR(0.0)
 #else
       v[i] = *NEW_SCALAR(0.0)
-#endif      
+#endif
     }
   }
   return v
@@ -111,7 +111,7 @@ func (v VECTOR_TYPE) Clone() VECTOR_TYPE {
     result[i] = v[i].Clone()
 #else
     result[i] = *v[i].Clone()
-#endif    
+#endif
   }
   return result
 }
