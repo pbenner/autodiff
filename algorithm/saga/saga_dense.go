@@ -155,7 +155,7 @@ func saga1Dense(
       // update dictionary
       dict[j].set(g2.w, g2.g)
     }
-    if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
+    if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
       return x1, err
     } else {
       // execute hook if available
@@ -246,7 +246,7 @@ func saga2Dense(
       // update dictionary
       dict[j].set(g2.g)
     }
-    if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
+    if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
       return x1, err
     } else {
       // execute hook if available

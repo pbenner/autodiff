@@ -364,3 +364,52 @@ func TestLogistic6(test *testing.T) {
     test.Error("test failed")
   }
 }
+
+func TestLogistic7(test *testing.T) {
+
+  C := 1.0
+
+  // data
+  cellSize  := []float64{
+    1, 4, 1, 8, 1, 10, 1, 1, 1, 2, 1, 1, 3, 1, 7, 4, 1, 1, 7, 1}
+  cellShape := []float64{
+    1, 4, 1, 8, 1, 10, 1, 2, 1, 1, 1, 1, 3, 1, 5, 6, 1, 1, 7, 1}
+  class := []float64{
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
+  // x
+  x := make([]ConstVector, len(cellSize))
+  for i := 0; i < len(cellSize); i++ {
+    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+  }
+
+  estimator, err := NewLogisticRegression([]int{1}, []float64{-1}, 3)
+  if err != nil {
+    test.Error(err); return
+  }
+  //estimator.Hook  = hook
+  estimator.L1Reg = 1.0/C
+
+  err = estimator.EstimateOnData(x, nil, ThreadPool{})
+  if err != nil {
+    test.Error(err); return
+  }
+  // result and target
+  r_saga := estimator.GetParameters()
+
+  objective := func(r Vector) (Scalar, error) {
+    return eval_l1_solution(x, r, C), nil
+  }
+  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+    panic(err)
+  }
+  r_sklearn := DenseConstRealVector([]float64{-2.63837871, 0.16460826, 0.44788412})
+
+  t := NullReal()
+  s := NullDenseBareRealVector(r_saga.Dim())
+  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+    test.Error("test failed")
+  }
+  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetValue() > 1e-4 {
+    test.Error("test failed")
+  }
+}

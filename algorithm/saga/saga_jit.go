@@ -28,28 +28,28 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type GradientJit struct {
-  g SparseConstRealVector
-  w ConstReal
+  G SparseConstRealVector
+  W ConstReal
 }
 
-func (obj GradientJit) update(g2 GradientJit, v DenseBareRealVector) {
-  g := obj.g.GetSparseValues()
-  c := g2.w - obj.w
-  for i, k := range obj.g.GetSparseIndices() {
+func (obj GradientJit) Update(g2 GradientJit, v DenseBareRealVector) {
+  g := obj.G.GetSparseValues()
+  c := g2.W - obj.W
+  for i, k := range obj.G.GetSparseIndices() {
     v[k] = v[k] + BareReal(c*g[i])
   }
 }
 
-func (obj GradientJit) add(v DenseBareRealVector) {
-  g := obj.g.GetSparseValues()
-  for i, k := range obj.g.GetSparseIndices() {
-    v[k] = v[k] + BareReal(obj.w*g[i])
+func (obj GradientJit) Add(v DenseBareRealVector) {
+  g := obj.G.GetSparseValues()
+  for i, k := range obj.G.GetSparseIndices() {
+    v[k] = v[k] + BareReal(obj.W*g[i])
   }
 }
 
-func (obj *GradientJit) set(w ConstReal, g SparseConstRealVector) {
-  obj.g = g
-  obj.w = w
+func (obj *GradientJit) Set(w ConstReal, g SparseConstRealVector) {
+  obj.G = g
+  obj.W = w
 }
 
 /* -------------------------------------------------------------------------- */
@@ -76,10 +76,6 @@ func sagaJit(
   var g1 GradientJit
   var g2 GradientJit
 
-  // allocate temporary memory
-  if inSitu.T1 == nil {
-    inSitu.T1 = NullDenseBareRealVector(d)
-  }
   // temporary variables
   t1 := BareReal(0.0)
   t2 := BareReal(0.0)
@@ -95,8 +91,8 @@ func sagaJit(
     if _, w, g, err := f(i, x1); err != nil {
       return nil, err
     } else {
-      dict[i].set(w, g)
-      dict[i].add(s)
+      dict[i].Set(w, g)
+      dict[i].Add(s)
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
@@ -108,7 +104,7 @@ func sagaJit(
       // get old gradient
       g1 = dict[j]
       // perform jit updates for all x_i where g_i != 0
-      for _, k := range g1.g.GetSparseIndices() {
+      for _, k := range g1.G.GetSparseIndices() {
         if m := i_ - xk[k]; m > 1 {
           t1 = x1[k] - BareReal(m-1)*t_g*s[k]/t_n
           proxop.Eval(&x1[k], &t1, k, m-1, &t2)
@@ -118,20 +114,20 @@ func sagaJit(
       if _, w, g, err := f(j, x1); err != nil {
         return x1, err
       } else {
-        g2.set(w, g)
+        g2.Set(w, g)
       }
-      c := BareReal(g2.w - g1.w)
-      v := g1.g.GetSparseValues()
-      for i, k := range g1.g.GetSparseIndices() {
+      c := BareReal(g2.W - g1.W)
+      v := g1.G.GetSparseValues()
+      for i, k := range g1.G.GetSparseIndices() {
         t1 = x1[k] - t_g*(c*BareReal(v[i]) + s[k]/t_n)
         proxop.Eval(&x1[k], &t1, k, 1, &t2)
         xk[k] = i_
       }
       // update gradient avarage
-      g1.update(g2, s)
+      g1.Update(g2, s)
 
       // update dictionary
-      dict[j].set(g2.w, g2.g)
+      dict[j].Set(g2.W, g2.G)
     }
     // compute missing updates of x1
     for k := 0; k < x1.Dim(); k++ {
@@ -142,7 +138,7 @@ func sagaJit(
       // reset xk
       xk[k] = 0
     }
-    if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
+    if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
       return x1, err
     } else {
       // execute hook if available

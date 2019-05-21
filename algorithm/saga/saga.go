@@ -214,7 +214,7 @@ func (obj *ProximalOperatorL1Jit) Eval(x *BareReal, w *BareReal, i, n int, t *Ba
 
 /* -------------------------------------------------------------------------- */
 
-func eval_stopping(xs, x1 DenseBareRealVector, epsilon float64) (bool, float64, error) {
+func EvalStopping(xs, x1 DenseBareRealVector, epsilon float64) (bool, float64, error) {
   // evaluate stopping criterion
   max_x     := 0.0
   max_delta := 0.0

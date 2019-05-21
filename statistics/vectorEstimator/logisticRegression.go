@@ -20,6 +20,7 @@ package vectorEstimator
 
 import   "fmt"
 import   "math"
+import   "math/rand"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/saga"
@@ -214,6 +215,18 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   switch {
   case obj.L1Reg != 0.0:
     if obj.sparse {
+      if r, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
+        saga.L1Regularization{obj.L1Reg},
+        saga.Gamma           {obj.stepSize},
+        saga.Epsilon         {obj.Epsilon},
+        saga.MaxIterations   {int(^uint(0) >> 1)},
+        saga.Hook            {obj.Hook},
+        saga.Seed            {obj.Seed}); err != nil {
+        return err
+      } else {
+        obj.SetParameters(r)
+        return nil
+      }
       proxopjit = proximalWrapperJit{&saga.ProximalOperatorL1Jit{obj.L1Reg}}
     } else {
       proxop    = proximalWrapper   {&saga.ProximalOperatorL1   {obj.L1Reg}}
@@ -226,9 +239,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.Hook   {obj.Hook},
       saga.Gamma  {obj.stepSize},
       saga.Epsilon{obj.Epsilon},
-      saga.Seed   {obj.Seed},
-      saga.ProximalOperator   {proxop},
-      saga.ProximalOperatorJit{proxopjit}); err != nil {
+      saga.Seed   {obj.Seed}); err != nil {
       return err
     } else {
       obj.SetParameters(r)
@@ -355,4 +366,122 @@ func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (Const
     w = ConstReal(math.Exp(r))
   }
   return y, w, x[i], nil
+}
+
+/* -------------------------------------------------------------------------- */
+
+func sagaProxopL1(w, lambda BareReal, i int, n BareReal) BareReal {
+  if i == 0 {
+    return w
+  }
+  // sign(wi)*max{|wi| - n*lambda}
+  if w < 0.0 {
+    if l := n*lambda; -w < l {
+      return BareReal(0.0)
+    } else {
+      return w + l
+    }
+  } else {
+    if l := n*lambda;  w < l {
+      return BareReal(0.0)
+    } else {
+      return w - l
+    }
+  }
+}
+
+func sagaLogisticRegressionL1(
+  f saga.Objective1Sparse,
+  n int,
+  x DenseBareRealVector,
+  l1reg saga.L1Regularization,
+  gamma saga.Gamma,
+  epsilon saga.Epsilon,
+  maxIterations saga.MaxIterations,
+  hook saga.Hook,
+  seed saga.Seed) (DenseBareRealVector, error) {
+
+  xs := AsDenseBareRealVector(x)
+  x1 := AsDenseBareRealVector(x)
+  xk := make([]int, x.Dim())
+
+  // length of gradient
+  d := x.Dim()
+  // gradient
+  var g1 saga.GradientJit
+  var g2 saga.GradientJit
+
+  // temporary variables
+  t1 := BareReal(0.0)
+  // some constants
+  t_n := BareReal(n)
+  t_g := BareReal(gamma.Value)
+  t_l := BareReal(l1reg.Value)*t_g/t_n
+
+  // sum of gradients
+  s := NullDenseBareRealVector(d)
+  // initialize s and d
+  dict := make([]saga.GradientJit, n)
+  for i := 0; i < n; i++ {
+    if _, w, g, err := f(i, x1); err != nil {
+      return nil, err
+    } else {
+      dict[i].Set(w, g)
+      dict[i].Add(s)
+    }
+  }
+  g := rand.New(rand.NewSource(seed.Value))
+
+  for epoch := 0; epoch < maxIterations.Value; epoch++ {
+    for i_ := 1; i_ < n+1; i_++ {
+      j := g.Intn(n)
+
+      // get old gradient
+      g1 = dict[j]
+      // perform jit updates for all x_i where g_i != 0
+      for _, k := range g1.G.GetSparseIndices() {
+        if m := i_ - xk[k]; m > 1 {
+          t1 = x1[k] - BareReal(m-1)*t_g*s[k]/t_n
+          x1[k] = sagaProxopL1(t1, t_l, k, BareReal(m-1))
+        }
+      }
+      // evaluate objective function
+      if _, w, g, err := f(j, x1); err != nil {
+        return x1, err
+      } else {
+        g2.Set(w, g)
+      }
+      c := BareReal(g2.W - g1.W)
+      v := g1.G.GetSparseValues()
+      for i, k := range g1.G.GetSparseIndices() {
+        t1 = x1[k] - t_g*(c*BareReal(v[i]) + s[k]/t_n)
+        x1[k] = sagaProxopL1(t1, t_l, k, BareReal(1))
+        xk[k] = i_
+      }
+      // update gradient avarage
+      g1.Update(g2, s)
+
+      // update dictionary
+      dict[j].Set(g2.W, g2.G)
+    }
+    // compute missing updates of x1
+    for k := 0; k < x1.Dim(); k++ {
+      if m := n - xk[k]; m > 0 {
+        t1 = x1[k] - BareReal(m)*t_g*s[k]/t_n
+        x1[k] = sagaProxopL1(t1, t_l, k, BareReal(m))
+      }
+      // reset xk
+      xk[k] = 0
+    }
+    if stop, delta, err := saga.EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
+      return x1, err
+    } else {
+      // execute hook if available
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
+        break
+      }
+    }
+    xs.SET(x1)
+  }
+  return x1, nil
 }
