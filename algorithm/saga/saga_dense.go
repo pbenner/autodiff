@@ -76,7 +76,7 @@ func (obj *GradientDense) set(g ConstVector) {
   }
 }
 /* -------------------------------------------------------------------------- */
-func saga0Dense(
+func sagaJitDense(
   f Objective1Dense,
   n int,
   x Vector,

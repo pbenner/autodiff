@@ -103,7 +103,7 @@ func (obj *GRADIENT_TYPE) set(g ConstVector) {
 
 /* -------------------------------------------------------------------------- */
 
-func STR_CONCAT(saga0, SAGA_TYPE)(
+func STR_CONCAT(sagaJit, SAGA_TYPE)(
   f OBJECTIVE1,
   n int,
   x Vector,

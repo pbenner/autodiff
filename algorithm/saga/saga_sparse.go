@@ -76,7 +76,7 @@ func (obj *GradientSparse) set(g ConstVector) {
   }
 }
 /* -------------------------------------------------------------------------- */
-func saga0Sparse(
+func sagaJitSparse(
   f Objective1Sparse,
   n int,
   x Vector,
