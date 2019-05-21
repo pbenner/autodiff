@@ -163,7 +163,12 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   var proxop    saga.ProximalOperatorType
   var proxopjit saga.ProximalOperatorJitType
   switch {
-  case obj.L1Reg != 0.0: proxopjit = proximalWrapperJit{&saga.ProximalOperatorL1Jit{obj.L1Reg}}
+  case obj.L1Reg != 0.0:
+    if obj.sparse {
+      proxopjit = proximalWrapperJit{&saga.ProximalOperatorL1Jit{obj.L1Reg}}
+    } else {
+      proxop    = proximalWrapper   {&saga.ProximalOperatorL1   {obj.L1Reg}}
+    }
   case obj.L2Reg != 0.0: proxop    = proximalWrapper   {&saga.ProximalOperatorL2   {obj.L2Reg}}
   case obj.TiReg != 0.0: proxop    = proximalWrapper   {&saga.ProximalOperatorTi   {obj.TiReg}}
   }
