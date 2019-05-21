@@ -123,10 +123,19 @@ func (obj *ProximalOperatorL1) SetLambda(lambda float64) {
 
 func (obj *ProximalOperatorL1) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
   for i := 0; i < x.Dim(); i++ {
+    // sign(wi)*max{|wi| - n*lambda}
     if wi := w[i].GetValue(); wi < 0.0 {
-      x[i].SetValue(-math.Max(-wi - obj.Lambda, 0.0))
+      if -wi < obj.Lambda {
+        x[i].SetValue(0.0)
+      } else {
+        x[i].SetValue(wi + obj.Lambda)
+      }
     } else {
-      x[i].SetValue( math.Max( wi - obj.Lambda, 0.0))
+      if  wi < obj.Lambda {
+        x[i].SetValue(0.0)
+      } else {
+        x[i].SetValue(wi - obj.Lambda)
+      }
     }
   }
 }
@@ -187,10 +196,19 @@ func (obj *ProximalOperatorL1Jit) SetLambda(lambda float64) {
 }
 
 func (obj *ProximalOperatorL1Jit) Eval(x *BareReal, w *BareReal, i, n int, t *BareReal) {
+  // sign(wi)*max{|wi| - n*lambda}
   if wi := w.GetValue(); wi < 0.0 {
-    x.SetValue(-math.Max(-wi - float64(n)*obj.Lambda, 0.0))
+    if l := float64(n)*obj.Lambda; -wi < l {
+      x.SetValue(0.0)
+    } else {
+      x.SetValue(wi + l)
+    }
   } else {
-    x.SetValue( math.Max( wi - float64(n)*obj.Lambda, 0.0))
+    if l := float64(n)*obj.Lambda;  wi < l {
+      x.SetValue(0.0)
+    } else {
+      x.SetValue(wi - l)
+    }
   }
 }
 
