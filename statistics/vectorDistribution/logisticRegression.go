@@ -89,11 +89,10 @@ func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) err
   if y {
     r.Neg(r)
     r.LogAdd(ConstReal(0.0), r, t)
-    r.Neg(r)
   } else {
     r.LogAdd(ConstReal(0.0), r, t)
-    r.Neg(r)
   }
+  r.Neg(r)
   return nil
 }
 
