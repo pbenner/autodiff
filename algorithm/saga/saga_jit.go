@@ -107,16 +107,13 @@ func sagaJit(
       dict[j].set(g2.w, g2.g)
     }
     // compute missing updates of x1
-    for i := 0; i < x1.Dim(); i++ {
-      m := n - xk[i]
-      if m > 0 {
-        s_i := s .ValueAt(i)
-        x1i := x1.ValueAt(i)
-        t1.SetValue(float64(BareReal(x1i) - BareReal(m)*t_g*BareReal(s_i)/t_n))
-        proxop.Eval(&x1[i], &t1, i, m, &t2)
+    for k := 0; k < x1.Dim(); k++ {
+      if m := n - xk[k]; m > 0 {
+        t1 = x1[k] - BareReal(m)*t_g*s[k]/t_n
+        proxop.Eval(&x1[k], &t1, k, m, &t2)
       }
       // reset xk
-      xk[i] = 0
+      xk[k] = 0
     }
     if stop, delta, err := eval_stopping(xs, x1, epsilon.Value*gamma.Value); stop {
       return x1, err
