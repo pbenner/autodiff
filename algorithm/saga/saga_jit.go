@@ -27,6 +27,33 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
+type GradientJit struct {
+  g SparseConstRealVector
+  w ConstReal
+}
+
+func (obj GradientJit) update(g2 GradientJit, v DenseBareRealVector) {
+  g := obj.g.GetSparseValues()
+  c := g2.w - obj.w
+  for i, k := range obj.g.GetSparseIndices() {
+    v[k] = v[k] + BareReal(c*g[i])
+  }
+}
+
+func (obj GradientJit) add(v DenseBareRealVector) {
+  g := obj.g.GetSparseValues()
+  for i, k := range obj.g.GetSparseIndices() {
+    v[k] = v[k] + BareReal(obj.w*g[i])
+  }
+}
+
+func (obj *GradientJit) set(w ConstReal, g SparseConstRealVector) {
+  obj.g = g
+  obj.w = w
+}
+
+/* -------------------------------------------------------------------------- */
+
 func sagaJit(
   f Objective1Sparse,
   n int,
@@ -46,8 +73,8 @@ func sagaJit(
   // length of gradient
   d := x.Dim()
   // gradient
-  var g1 ConstGradientSparse
-  var g2 ConstGradientSparse
+  var g1 GradientJit
+  var g2 GradientJit
 
   // allocate temporary memory
   if inSitu.T1 == nil {
@@ -63,7 +90,7 @@ func sagaJit(
   // sum of gradients
   s := NullDenseBareRealVector(d)
   // initialize s and d
-  dict := make([]ConstGradientSparse, n)
+  dict := make([]GradientJit, n)
   for i := 0; i < n; i++ {
     if _, w, g, err := f(i, x1); err != nil {
       return nil, err
