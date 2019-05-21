@@ -128,11 +128,10 @@ func (dist *LogisticRegression) ClassLogPdf_(r *BareReal, x SparseConstRealVecto
   if y {
     r.NEG(r)
     r.LogAdd(ConstReal(0.0), r, &t)
-    r.Neg(r)
   } else {
     r.LogAdd(ConstReal(0.0), r, &t)
-    r.NEG(r)
   }
+  r.NEG(r)
   return nil
 }
 
