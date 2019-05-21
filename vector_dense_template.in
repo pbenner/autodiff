@@ -40,10 +40,16 @@ import "os"
 #define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_NAME, ConstIterator)
 #define VECTOR_ITERATOR        STR_CONCAT(VECTOR_NAME, Iterator)
 
+#ifdef STORE_PTR
+# define STORED_SCALAR_TYPE *SCALAR_NAME
+#else
+# define STORED_SCALAR_TYPE  SCALAR_NAME
+#endif
+
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 
-type VECTOR_NAME []SCALAR_TYPE
+type VECTOR_NAME []STORED_SCALAR_TYPE
 
 /* constructors
  * -------------------------------------------------------------------------- */
@@ -52,7 +58,11 @@ type VECTOR_NAME []SCALAR_TYPE
 func NEW_VECTOR(values []float64) VECTOR_TYPE {
   v := NIL_VECTOR(len(values))
   for i, _ := range values {
-    v[i] = NEW_SCALAR(values[i])
+#ifdef STORE_PTR
+    v[i] =  NEW_SCALAR(values[i])
+#else
+    v[i] = *NEW_SCALAR(values[i])
+#endif
   }
   return v
 }
@@ -62,7 +72,11 @@ func NULL_VECTOR(length int) VECTOR_TYPE {
   v := NIL_VECTOR(length)
   if length > 0 {
     for i := 0; i < length; i++ {
-      v[i] = NEW_SCALAR(0.0)
+#ifdef STORE_PTR
+      v[i] =  NEW_SCALAR(0.0)
+#else
+      v[i] = *NEW_SCALAR(0.0)
+#endif      
     }
   }
   return v
@@ -93,7 +107,11 @@ func (v VECTOR_TYPE) Clone() VECTOR_TYPE {
   result := make(VECTOR_NAME, len(v))
 
   for i, _ := range v {
+#ifdef STORE_PTR
     result[i] = v[i].Clone()
+#else
+    result[i] = *v[i].Clone()
+#endif    
   }
   return result
 }
@@ -143,7 +161,11 @@ func (v VECTOR_TYPE) ValueAt(i int) float64 {
 }
 
 func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
-  return v[i]
+#ifdef STORE_PTR
+  return  v[i]
+#else
+  return &v[i]
+#endif
 }
 
 func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
@@ -202,11 +224,15 @@ func (v VECTOR_TYPE) Dim() int {
 }
 
 func (v VECTOR_TYPE) At(i int) Scalar {
-  return v[i]
+  return v.AT(i)
 }
 
 func (v VECTOR_TYPE) AT(i int) SCALAR_TYPE {
+#ifdef STORE_PTR
   return v[i]
+#else
+  return &v[i]
+#endif
 }
 
 func (v VECTOR_TYPE) Reset() {
@@ -240,9 +266,17 @@ func (v VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
   for _, scalar := range scalars {
     switch s := scalar.(type) {
     case SCALAR_TYPE:
-      v = append(v, s)
+#ifdef STORE_PTR
+      v = append(v,  s)
+#else
+      v = append(v, *s)
+#endif
     default:
-      v = append(v, s.ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
+#ifdef STORE_PTR
+      v = append(v,  s.ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
+#else
+      v = append(v, *s.ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
+#endif
     }
   }
   return v
@@ -254,7 +288,11 @@ func (v VECTOR_TYPE) AppendVector(w_ Vector) Vector {
     return append(v, w...)
   default:
     for i := 0; i < w.Dim(); i++ {
-      v = append(v, w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
+#ifdef STORE_PTR
+      v = append(v,  w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
+#else
+      v = append(v, *w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
+#endif
     }
     return v
   }
@@ -269,19 +307,23 @@ func (v VECTOR_TYPE) Swap(i, j int) {
 
 func (v VECTOR_TYPE) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
-    f(v[i])
+#ifdef STORE_PTR
+    f( v[i])
+#else
+    f(&v[i])
+#endif
   }
 }
 
-func (v VECTOR_TYPE) MapSet(f func(Scalar) Scalar) {
+func (v VECTOR_TYPE) MapSet(f func(ConstScalar) Scalar) {
   for i := 0; i < len(v); i++ {
-    v[i].Set(f(v[i]))
+    v[i].Set(f(v.ConstAt(i)))
   }
 }
 
 func (v VECTOR_TYPE) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
-    r = f(r, v[i])
+    r = f(r, v.ConstAt(i))
   }
   return r
 }
@@ -444,7 +486,11 @@ func (v *VECTOR_TYPE) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-      *v = append(*v, NEW_SCALAR(value))
+#ifdef STORE_PTR
+      *v = append(*v,  NEW_SCALAR(value))
+#else
+      *v = append(*v, *NEW_SCALAR(value))
+#endif
     }
   }
   return nil
@@ -454,13 +500,13 @@ func (v *VECTOR_TYPE) Import(filename string) error {
  * -------------------------------------------------------------------------- */
 
 func (obj VECTOR_TYPE) MarshalJSON() ([]byte, error) {
-  r := []SCALAR_TYPE{}
+  r := []STORED_SCALAR_TYPE{}
   r  = obj
   return json.MarshalIndent(r, "", "  ")
 }
 
 func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
-  r := []SCALAR_TYPE{}
+  r := []STORED_SCALAR_TYPE{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
@@ -480,15 +526,19 @@ type VECTOR_ITERATOR struct {
 }
 
 func (obj *VECTOR_ITERATOR) Get() Scalar {
-  return obj.v[obj.i]
+  return obj.GET()
 }
 
 func (obj *VECTOR_ITERATOR) GetConst() ConstScalar {
-  return obj.v[obj.i]
+  return obj.GET()
 }
 
 func (obj *VECTOR_ITERATOR) GET() SCALAR_TYPE {
-  return obj.v[obj.i]
+#ifdef STORE_PTR
+  return  obj.v[obj.i]
+#else
+  return &obj.v[obj.i]
+#endif
 }
 
 func (obj *VECTOR_ITERATOR) Ok() bool {

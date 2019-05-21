@@ -78,7 +78,7 @@ func (a *BareReal) ConvertType(t ScalarType) Scalar {
 /* type conversion
  * -------------------------------------------------------------------------- */
 
-func (a *BareReal) String() string {
+func (a  BareReal) String() string {
   return fmt.Sprintf("%e", a.GetValue())
 }
 
@@ -120,9 +120,6 @@ func (a *BareReal) GetN() int {
   return 0
 }
 
-func (a *BareReal) SetN(n int) {
-}
-
 /* write access
  * -------------------------------------------------------------------------- */
 
@@ -157,6 +154,9 @@ func (a *BareReal) SetHessian(i, j int, v float64) {
 
 func (a *BareReal) SetVariable(i, n, order int) error {
   return fmt.Errorf("BareReal cannot be used as a variable")
+}
+
+func (a *BareReal) SetN(n int) {
 }
 
 /* json

@@ -23,11 +23,11 @@ import "bufio"
 import "compress/gzip"
 import "encoding/json"
 import "fmt"
-import "reflect"
 import "strconv"
 import "strings"
 import "os"
 import "unsafe"
+/* -------------------------------------------------------------------------- */
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 type DenseRealMatrix struct {
@@ -304,7 +304,7 @@ func (matrix *DenseRealMatrix) GetValues() []float64 {
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseRealMatrix) At(i, j int) Scalar {
-  return matrix.values[matrix.index(i, j)]
+  return matrix.AT(i, j)
 }
 func (matrix *DenseRealMatrix) AT(i, j int) *Real {
   return matrix.values[matrix.index(i, j)]
@@ -371,11 +371,11 @@ func (matrix *DenseRealMatrix) Map(f func(Scalar)) {
     }
   }
 }
-func (matrix *DenseRealMatrix) MapSet(f func(Scalar) Scalar) {
+func (matrix *DenseRealMatrix) MapSet(f func(ConstScalar) Scalar) {
   n, m := matrix.Dims()
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      matrix.At(i,j).Set(f(matrix.At(i, j)))
+      matrix.At(i,j).Set(f(matrix.ConstAt(i, j)))
     }
   }
 }
@@ -389,10 +389,7 @@ func (matrix *DenseRealMatrix) Reduce(f func(Scalar, ConstScalar) Scalar, r Scal
   return r
 }
 func (matrix *DenseRealMatrix) ElementType() ScalarType {
-  if matrix.rows > 0 && matrix.cols > 0 {
-    return reflect.TypeOf(matrix.values[0])
-  }
-  return nil
+  return RealType
 }
 func (matrix *DenseRealMatrix) Variables(order int) error {
   for i, _ := range matrix.values {

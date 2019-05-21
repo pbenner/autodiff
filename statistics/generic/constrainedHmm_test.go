@@ -75,7 +75,7 @@ func TestChmm2(t *testing.T) {
                 5/l2,             6/l2, 19/(1*l1 + 2*l2), 19/(1*l1 + 2*l2),
                    0, 19/(1*l1 + 2*l2),             1/l1,             2/l1,
     19/(1*l1 + 2*l2), 19/(1*l1 + 2*l2),             5/l2,             6/l2 })
-  sr.MapSet(Log)
+  sr.Map(func(a Scalar) { a.Log(a) })
 
   c1, _ := NewEqualityConstraint([]int{
     0, 3,

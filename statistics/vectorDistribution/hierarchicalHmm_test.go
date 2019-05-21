@@ -48,7 +48,7 @@ func TestHhmm1(t *testing.T) {
     1.767677e-01, 2.121212e-01, 3.055556e-01, 3.055556e-01,
     2.300000e-01, 2.300000e-01, 2.582609e-01, 2.817391e-01,
     2.300000e-01, 2.300000e-01, 2.612903e-01, 2.787097e-01})
-  sr.MapSet(Log)
+  sr.Map(func(a Scalar) { a.Log(a) })
 
   c1, _ := scalarDistribution.NewCategoricalDistribution(
     NewVector(RealType, []float64{0.1, 0.9}))
@@ -92,7 +92,7 @@ func TestHhmm2(t *testing.T) {
     1.818605e-01, 1.818605e-01, 2.066017e-01, 2.203751e-01, 1.046512e-01, 1.046512e-01,
     1.551724e-01, 1.551724e-01, 1.551724e-01, 1.551724e-01, 1.826309e-01, 1.966794e-01,
     1.551724e-01, 1.551724e-01, 1.551724e-01, 1.551724e-01, 1.847922e-01, 1.945181e-01 })
-  sr.MapSet(Log)
+  sr.Map(func(a Scalar) { a.Log(a) })
 
   c1, _ := scalarDistribution.NewCategoricalDistribution(
     NewVector(RealType, []float64{0.1, 0.9}))
@@ -140,7 +140,7 @@ func TestHhmm3(t *testing.T) {
     1.767677e-01, 2.121212e-01, 3.055556e-01, 3.055556e-01,
     2.300000e-01, 2.300000e-01, 2.582609e-01, 2.817391e-01,
     2.300000e-01, 2.300000e-01, 2.612903e-01, 2.787097e-01})
-  sr.MapSet(Log)
+  sr.Map(func(a Scalar) { a.Log(a) })
 
   c1, _ := scalarDistribution.NewCategoricalDistribution(
     NewVector(RealType, []float64{0.1, 0.9}))

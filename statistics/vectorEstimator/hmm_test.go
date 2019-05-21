@@ -399,8 +399,8 @@ func TestHmm5(t *testing.T) {
     6.592349e-01, 3.407651e-01,
     0.000000e+00, 1.000000e+00 })
 
-  pi = hmm.Pi; pi.MapSet(Exp)
-  tr = hmm.Tr; tr.MapSet(Exp)
+  pi = hmm.Pi; pi.Map(func(a Scalar) { a.Exp(a) })
+  tr = hmm.Tr; tr.Map(func(a Scalar) { a.Exp(a) })
 
   if Vnorm(VsubV(pi, qi)).GetValue() > 1e-3 {
     t.Error("Hmm test failed!")

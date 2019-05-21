@@ -27,11 +27,18 @@ import "bufio"
 import "compress/gzip"
 import "encoding/json"
 import "fmt"
-import "reflect"
 import "strconv"
 import "strings"
 import "os"
 import "unsafe"
+
+/* -------------------------------------------------------------------------- */
+
+#ifdef STORE_PTR
+# define STORED_SCALAR_TYPE *SCALAR_NAME
+#else
+# define STORED_SCALAR_TYPE  SCALAR_NAME
+#endif
 
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
@@ -57,11 +64,19 @@ func NEW_MATRIX(rows, cols int, values []float64) MATRIX_TYPE {
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
-      v[i] = NEW_SCALAR(values[0])
+#ifdef STORE_PTR
+      v[i] =  NEW_SCALAR(values[0])
+#else
+      v[i] = *NEW_SCALAR(values[0])
+#endif
     }
   } else if len(values) == rows*cols {
     for i := 0; i < rows*cols; i++ {
-      v[i] = NEW_SCALAR(values[i])
+#ifdef STORE_PTR
+      v[i] =  NEW_SCALAR(values[i])
+#else
+      v[i] = *NEW_SCALAR(values[i])
+#endif
     }
   } else {
     panic("NewMatrix(): Matrix dimension does not fit input values!")
@@ -256,7 +271,11 @@ func (matrix MATRIX_TYPE) STR_CONCAT(As, VECTOR_NAME)() VECTOR_TYPE {
     v := NIL_VECTOR(n*m)
     for i := 0; i < n; i++ {
       for j := 0; j < m; j++ {
-        v[i*matrix.cols + j] = matrix.AT(i, j)
+#ifdef STORE_PTR
+        v[i*matrix.cols + j] =  matrix.AT(i, j)
+#else
+        v[i*matrix.cols + j] = *matrix.AT(i, j)
+#endif
       }
     }
     return v
@@ -317,7 +336,11 @@ func (matrix MATRIX_TYPE) ValueAt(i, j int) float64 {
 }
 
 func (matrix MATRIX_TYPE) ConstAt(i, j int) ConstScalar {
-  return matrix.values[matrix.index(i, j)]
+#ifdef STORE_PTR
+  return  matrix.values[matrix.index(i, j)]
+#else
+  return &matrix.values[matrix.index(i, j)]
+#endif
 }
 
 func (matrix MATRIX_TYPE) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
@@ -350,11 +373,15 @@ func (matrix MATRIX_TYPE) GetValues() []float64 {
 /* -------------------------------------------------------------------------- */
 
 func (matrix MATRIX_TYPE) At(i, j int) Scalar {
-  return matrix.values[matrix.index(i, j)]
+  return matrix.AT(i, j)
 }
 
 func (matrix MATRIX_TYPE) AT(i, j int) SCALAR_TYPE {
+#ifdef STORE_PTR
   return matrix.values[matrix.index(i, j)]
+#else
+  return &matrix.values[matrix.index(i, j)]
+#endif
 }
 
 func (matrix MATRIX_TYPE) Reset() {
@@ -427,11 +454,11 @@ func (matrix MATRIX_TYPE) Map(f func(Scalar)) {
   }
 }
 
-func (matrix MATRIX_TYPE) MapSet(f func(Scalar) Scalar) {
+func (matrix MATRIX_TYPE) MapSet(f func(ConstScalar) Scalar) {
   n, m := matrix.Dims()
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      matrix.At(i,j).Set(f(matrix.At(i, j)))
+      matrix.At(i,j).Set(f(matrix.ConstAt(i, j)))
     }
   }
 }
@@ -447,10 +474,7 @@ func (matrix MATRIX_TYPE) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) S
 }
 
 func (matrix MATRIX_TYPE) ElementType() ScalarType {
-  if matrix.rows > 0 && matrix.cols > 0 {
-    return reflect.TypeOf(matrix.values[0])
-  }
-  return nil
+  return SCALAR_REFLECT_TYPE
 }
 
 func (matrix MATRIX_TYPE) Variables(order int) error {
@@ -672,7 +696,7 @@ func (obj MATRIX_TYPE) MarshalJSON() ([]byte, error) {
 }
 
 func (obj MATRIX_TYPE) UnmarshalJSON(data []byte) error {
-  r := struct{Values []SCALAR_TYPE; Rows int; Cols int}{}
+  r := struct{Values []STORED_SCALAR_TYPE; Rows int; Cols int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

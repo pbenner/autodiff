@@ -1,3 +1,4 @@
+//#define STORE_PTR 1
 /* -*- mode: go; -*-
  *
  * Copyright (C) 2015-2017 Philipp Benner

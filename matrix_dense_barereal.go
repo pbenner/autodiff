@@ -1,3 +1,4 @@
+//#define STORE_PTR 1
 /* -*- mode: go; -*-
  *
  * Copyright (C) 2015-2017 Philipp Benner
@@ -23,11 +24,11 @@ import "bufio"
 import "compress/gzip"
 import "encoding/json"
 import "fmt"
-import "reflect"
 import "strconv"
 import "strings"
 import "os"
 import "unsafe"
+/* -------------------------------------------------------------------------- */
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 type DenseBareRealMatrix struct {
@@ -49,11 +50,11 @@ func NewDenseBareRealMatrix(rows, cols int, values []float64) *DenseBareRealMatr
   v := m.values
   if len(values) == 1 {
     for i := 0; i < rows*cols; i++ {
-      v[i] = NewBareReal(values[0])
+      v[i] = *NewBareReal(values[0])
     }
   } else if len(values) == rows*cols {
     for i := 0; i < rows*cols; i++ {
-      v[i] = NewBareReal(values[i])
+      v[i] = *NewBareReal(values[i])
     }
   } else {
     panic("NewMatrix(): Matrix dimension does not fit input values!")
@@ -225,7 +226,7 @@ func (matrix *DenseBareRealMatrix) AsDenseBareRealVector() DenseBareRealVector {
     v := nilDenseBareRealVector(n*m)
     for i := 0; i < n; i++ {
       for j := 0; j < m; j++ {
-        v[i*matrix.cols + j] = matrix.AT(i, j)
+        v[i*matrix.cols + j] = *matrix.AT(i, j)
       }
     }
     return v
@@ -278,7 +279,7 @@ func (matrix *DenseBareRealMatrix) ValueAt(i, j int) float64 {
   return matrix.values[matrix.index(i, j)].GetValue()
 }
 func (matrix *DenseBareRealMatrix) ConstAt(i, j int) ConstScalar {
-  return matrix.values[matrix.index(i, j)]
+  return &matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseBareRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
   return matrix.Slice(rfrom, rto, cfrom, cto)
@@ -304,10 +305,10 @@ func (matrix *DenseBareRealMatrix) GetValues() []float64 {
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *DenseBareRealMatrix) At(i, j int) Scalar {
-  return matrix.values[matrix.index(i, j)]
+  return matrix.AT(i, j)
 }
 func (matrix *DenseBareRealMatrix) AT(i, j int) *BareReal {
-  return matrix.values[matrix.index(i, j)]
+  return &matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseBareRealMatrix) Reset() {
   for i := 0; i < len(matrix.values); i++ {
@@ -371,11 +372,11 @@ func (matrix *DenseBareRealMatrix) Map(f func(Scalar)) {
     }
   }
 }
-func (matrix *DenseBareRealMatrix) MapSet(f func(Scalar) Scalar) {
+func (matrix *DenseBareRealMatrix) MapSet(f func(ConstScalar) Scalar) {
   n, m := matrix.Dims()
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      matrix.At(i,j).Set(f(matrix.At(i, j)))
+      matrix.At(i,j).Set(f(matrix.ConstAt(i, j)))
     }
   }
 }
@@ -389,10 +390,7 @@ func (matrix *DenseBareRealMatrix) Reduce(f func(Scalar, ConstScalar) Scalar, r 
   return r
 }
 func (matrix *DenseBareRealMatrix) ElementType() ScalarType {
-  if matrix.rows > 0 && matrix.cols > 0 {
-    return reflect.TypeOf(matrix.values[0])
-  }
-  return nil
+  return BareRealType
 }
 func (matrix *DenseBareRealMatrix) Variables(order int) error {
   for i, _ := range matrix.values {
@@ -589,7 +587,7 @@ func (obj *DenseBareRealMatrix) MarshalJSON() ([]byte, error) {
   return json.MarshalIndent(r, "", "  ")
 }
 func (obj *DenseBareRealMatrix) UnmarshalJSON(data []byte) error {
-  r := struct{Values []*BareReal; Rows int; Cols int}{}
+  r := struct{Values []BareReal; Rows int; Cols int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }

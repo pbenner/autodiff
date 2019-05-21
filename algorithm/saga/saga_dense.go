@@ -133,7 +133,7 @@ func sagaJitDense(
           x1i := x1.ValueAt(i)
           s_i := s .ValueAt(i)
           t1.SetValue(x1i - float64(m-1)*t_g*s_i/t_n)
-          proxop.Eval(x1[i], &t1, j, m-1, t2)
+          proxop.Eval(&x1[i], &t1, j, m-1, t2)
         }
       }
       // evaluate objective function
@@ -151,7 +151,7 @@ func sagaJitDense(
         s_i := s .ValueAt(i)
         g1i := it.GET().GetValue()
         t1.SetValue(x1i - t_g*(c*g1i + s_i/t_n))
-        proxop.Eval(x1[i], &t1, i, 1, t2)
+        proxop.Eval(&x1[i], &t1, i, 1, t2)
         xk[i] = i_
       }
       // update gradient avarage
@@ -166,7 +166,7 @@ func sagaJitDense(
         s_i := s .ValueAt(i)
         x1i := x1.ValueAt(i)
         t1.SetValue(x1i - float64(m)*t_g*s_i/t_n)
-        proxop.Eval(x1[i], &t1, i, m, t2)
+        proxop.Eval(&x1[i], &t1, i, m, t2)
       }
       // reset xk
       xk[i] = 0

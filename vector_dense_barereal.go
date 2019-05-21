@@ -1,3 +1,4 @@
+//#define STORE_PTR 1
 /* -*- mode: go; -*-
  *
  * Copyright (C) 2015-2017 Philipp Benner
@@ -31,14 +32,14 @@ import "os"
 /* -------------------------------------------------------------------------- */
 /* vector type declaration
  * -------------------------------------------------------------------------- */
-type DenseBareRealVector []*BareReal
+type DenseBareRealVector []BareReal
 /* constructors
  * -------------------------------------------------------------------------- */
 // Allocate a new vector. Scalars are set to the given values.
 func NewDenseBareRealVector(values []float64) DenseBareRealVector {
   v := nilDenseBareRealVector(len(values))
   for i, _ := range values {
-    v[i] = NewBareReal(values[i])
+    v[i] = *NewBareReal(values[i])
   }
   return v
 }
@@ -47,7 +48,7 @@ func NullDenseBareRealVector(length int) DenseBareRealVector {
   v := nilDenseBareRealVector(length)
   if length > 0 {
     for i := 0; i < length; i++ {
-      v[i] = NewBareReal(0.0)
+      v[i] = *NewBareReal(0.0)
     }
   }
   return v
@@ -73,7 +74,7 @@ func AsDenseBareRealVector(v ConstVector) DenseBareRealVector {
 func (v DenseBareRealVector) Clone() DenseBareRealVector {
   result := make(DenseBareRealVector, len(v))
   for i, _ := range v {
-    result[i] = v[i].Clone()
+    result[i] = *v[i].Clone()
   }
   return result
 }
@@ -116,7 +117,7 @@ func (v DenseBareRealVector) ValueAt(i int) float64 {
   return v[i].GetValue()
 }
 func (v DenseBareRealVector) ConstAt(i int) ConstScalar {
-  return v[i]
+  return &v[i]
 }
 func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
@@ -162,10 +163,10 @@ func (v DenseBareRealVector) Dim() int {
   return len(v)
 }
 func (v DenseBareRealVector) At(i int) Scalar {
-  return v[i]
+  return v.AT(i)
 }
 func (v DenseBareRealVector) AT(i int) *BareReal {
-  return v[i]
+  return &v[i]
 }
 func (v DenseBareRealVector) Reset() {
   for i := 0; i < len(v); i++ {
@@ -193,9 +194,9 @@ func (v DenseBareRealVector) AppendScalar(scalars ...Scalar) Vector {
   for _, scalar := range scalars {
     switch s := scalar.(type) {
     case *BareReal:
-      v = append(v, s)
+      v = append(v, *s)
     default:
-      v = append(v, s.ConvertType(BareRealType).(*BareReal))
+      v = append(v, *s.ConvertType(BareRealType).(*BareReal))
     }
   }
   return v
@@ -206,7 +207,7 @@ func (v DenseBareRealVector) AppendVector(w_ Vector) Vector {
     return append(v, w...)
   default:
     for i := 0; i < w.Dim(); i++ {
-      v = append(v, w.At(i).ConvertType(BareRealType).(*BareReal))
+      v = append(v, *w.At(i).ConvertType(BareRealType).(*BareReal))
     }
     return v
   }
@@ -218,17 +219,17 @@ func (v DenseBareRealVector) Swap(i, j int) {
  * -------------------------------------------------------------------------- */
 func (v DenseBareRealVector) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
-    f(v[i])
+    f(&v[i])
   }
 }
-func (v DenseBareRealVector) MapSet(f func(Scalar) Scalar) {
+func (v DenseBareRealVector) MapSet(f func(ConstScalar) Scalar) {
   for i := 0; i < len(v); i++ {
-    v[i].Set(f(v[i]))
+    v[i].Set(f(v.ConstAt(i)))
   }
 }
 func (v DenseBareRealVector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
-    r = f(r, v[i])
+    r = f(r, v.ConstAt(i))
   }
   return r
 }
@@ -367,7 +368,7 @@ func (v *DenseBareRealVector) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-      *v = append(*v, NewBareReal(value))
+      *v = append(*v, *NewBareReal(value))
     }
   }
   return nil
@@ -375,12 +376,12 @@ func (v *DenseBareRealVector) Import(filename string) error {
 /* json
  * -------------------------------------------------------------------------- */
 func (obj DenseBareRealVector) MarshalJSON() ([]byte, error) {
-  r := []*BareReal{}
+  r := []BareReal{}
   r = obj
   return json.MarshalIndent(r, "", "  ")
 }
 func (obj *DenseBareRealVector) UnmarshalJSON(data []byte) error {
-  r := []*BareReal{}
+  r := []BareReal{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
@@ -397,13 +398,13 @@ type DenseBareRealVectorIterator struct {
   i int
 }
 func (obj *DenseBareRealVectorIterator) Get() Scalar {
-  return obj.v[obj.i]
+  return obj.GET()
 }
 func (obj *DenseBareRealVectorIterator) GetConst() ConstScalar {
-  return obj.v[obj.i]
+  return obj.GET()
 }
 func (obj *DenseBareRealVectorIterator) GET() *BareReal {
-  return obj.v[obj.i]
+  return &obj.v[obj.i]
 }
 func (obj *DenseBareRealVectorIterator) Ok() bool {
   return obj.i < len(obj.v)

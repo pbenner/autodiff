@@ -357,7 +357,7 @@ func (obj VECTOR_TYPE) Map(f func(Scalar)) {
   }
 }
 
-func (obj VECTOR_TYPE) MapSet(f func(Scalar) Scalar) {
+func (obj VECTOR_TYPE) MapSet(f func(ConstScalar) Scalar) {
   for _, v := range obj.values {
     v.Set(f(v))
   }
@@ -482,12 +482,8 @@ func (obj VECTOR_TYPE) STR_CONCAT(To, MATRIX_NAME)(n, m int) MATRIX_TYPE {
     panic("Matrix dimension does not fit input vector!")
   }
   v := STR_CONCAT(Null, DENSE_VECTOR_TYPE)(obj.n)
-  for i := 0; i < obj.n; i++ {
-    if s, ok := obj.values[i]; ok {
-      v[i] = s
-    } else {
-      v[i] = NULL_SCALAR()
-    }
+  for it := obj.ITERATOR(); it.Ok(); it.Next() {
+    v.At(it.Index()).Set(it.GET())
   }
   matrix := MATRIX_NAME{}
   matrix.values    = v

@@ -162,7 +162,7 @@ func (v DenseRealVector) Dim() int {
   return len(v)
 }
 func (v DenseRealVector) At(i int) Scalar {
-  return v[i]
+  return v.AT(i)
 }
 func (v DenseRealVector) AT(i int) *Real {
   return v[i]
@@ -218,17 +218,17 @@ func (v DenseRealVector) Swap(i, j int) {
  * -------------------------------------------------------------------------- */
 func (v DenseRealVector) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
-    f(v[i])
+    f( v[i])
   }
 }
-func (v DenseRealVector) MapSet(f func(Scalar) Scalar) {
+func (v DenseRealVector) MapSet(f func(ConstScalar) Scalar) {
   for i := 0; i < len(v); i++ {
-    v[i].Set(f(v[i]))
+    v[i].Set(f(v.ConstAt(i)))
   }
 }
 func (v DenseRealVector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
   for i := 0; i < len(v); i++ {
-    r = f(r, v[i])
+    r = f(r, v.ConstAt(i))
   }
   return r
 }
@@ -397,10 +397,10 @@ type DenseRealVectorIterator struct {
   i int
 }
 func (obj *DenseRealVectorIterator) Get() Scalar {
-  return obj.v[obj.i]
+  return obj.GET()
 }
 func (obj *DenseRealVectorIterator) GetConst() ConstScalar {
-  return obj.v[obj.i]
+  return obj.GET()
 }
 func (obj *DenseRealVectorIterator) GET() *Real {
   return obj.v[obj.i]

@@ -1,4 +1,6 @@
 
+//#define STORE_PTR 1
+
 #define SCALAR_NAME BareReal
 #define MATRIX_NAME DenseBareRealMatrix
 #define VECTOR_NAME DenseBareRealVector

@@ -302,7 +302,7 @@ func (obj *SparseRealVector) Map(f func(Scalar)) {
     f(v)
   }
 }
-func (obj *SparseRealVector) MapSet(f func(Scalar) Scalar) {
+func (obj *SparseRealVector) MapSet(f func(ConstScalar) Scalar) {
   for _, v := range obj.values {
     v.Set(f(v))
   }
@@ -413,12 +413,8 @@ func (obj *SparseRealVector) ToDenseRealMatrix(n, m int) *DenseRealMatrix {
     panic("Matrix dimension does not fit input vector!")
   }
   v := NullDenseRealVector(obj.n)
-  for i := 0; i < obj.n; i++ {
-    if s, ok := obj.values[i]; ok {
-      v[i] = s
-    } else {
-      v[i] = NullReal()
-    }
+  for it := obj.ITERATOR(); it.Ok(); it.Next() {
+    v.At(it.Index()).Set(it.GET())
   }
   matrix := DenseRealMatrix{}
   matrix.values = v

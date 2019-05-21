@@ -1,4 +1,6 @@
 
+#define STORE_PTR 1
+
 #define SCALAR_NAME Real
 #define MATRIX_NAME DenseRealMatrix
 #define VECTOR_NAME DenseRealVector

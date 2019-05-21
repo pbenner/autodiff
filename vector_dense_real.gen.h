@@ -1,4 +1,6 @@
 
+#define STORE_PTR 1
+
 #define CONST_SCALAR_NAME ConstReal
 #define       SCALAR_NAME Real
 #define       MATRIX_NAME DenseRealMatrix
