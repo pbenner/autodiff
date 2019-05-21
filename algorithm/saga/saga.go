@@ -328,10 +328,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   }
   if proxopjit.Value != nil {
     switch g := f.(type) {
-    case Objective1Dense:
-      return sagaJitDense (g, n, x, gamma, epsilon, maxIterations, proxopjit.Value, hook, seed, inSitu)
     case Objective1Sparse:
-      return sagaJitSparse(g, n, x, gamma, epsilon, maxIterations, proxopjit.Value, hook, seed, inSitu)
+      return sagaJit(g, n, x, gamma, epsilon, maxIterations, proxopjit.Value, hook, seed, inSitu)
     default:
       panic("invalid objective")
     }
