@@ -78,6 +78,18 @@ func AsSparseConstRealVector(v ConstVector) SparseConstRealVector {
   return NewSparseConstRealVector(indices, values, n)
 }
 
+
+/* methods specific to this type
+ * -------------------------------------------------------------------------- */
+
+func (obj SparseConstRealVector) GetSparseIndices() []int {
+  return obj.indices
+}
+
+func (obj SparseConstRealVector) GetSparseValues() []ConstReal {
+  return obj.values
+}
+
 /* const vector methods
  * -------------------------------------------------------------------------- */
 

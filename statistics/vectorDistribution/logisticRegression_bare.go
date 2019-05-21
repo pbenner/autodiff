@@ -20,6 +20,7 @@ package vectorDistribution
 
 //import   "fmt"
 
+import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/logarithmetic"
 
 /* -------------------------------------------------------------------------- */
@@ -34,7 +35,9 @@ func (obj LogisticRegressionBare) Dim() int {
   return len(obj.Theta)-1
 }
 
-func (obj LogisticRegressionBare) LogPdf(x []float64, index []int) float64 {
+func (obj LogisticRegressionBare) LogPdf(v SparseConstRealVector) float64 {
+  x     := v.GetSparseValues ()
+  index := v.GetSparseIndices()
   // set r to first element of theta
   r := obj.Theta[0]
   // loop over x
@@ -45,7 +48,7 @@ func (obj LogisticRegressionBare) LogPdf(x []float64, index []int) float64 {
     i++
   }
   for ; i < n; i++ {
-    r += x[i]*obj.Theta[index[i]]
+    r += float64(x[i])*obj.Theta[index[i]]
   }
   return -LogAdd(0.0, -r)
 }
