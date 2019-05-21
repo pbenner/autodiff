@@ -372,3 +372,32 @@ func Test6(test *testing.T) {
     }
   }
 }
+
+func Test7(test *testing.T) {
+
+  // data
+  cellSize  := []float64{
+    1, 4, 1, 8, 1, 10, 1, 1, 1, 2, 1, 1, 3, 1, 7, 4, 1, 1, 7, 1}
+  cellShape := []float64{
+    1, 4, 1, 8, 1, 10, 1, 2, 1, 1, 1, 1, 3, 1, 5, 6, 1, 1, 7, 1}
+  class := []float64{
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
+  // x
+  x := make([]SparseConstRealVector, len(cellSize))
+  for i := 0; i < len(cellSize); i++ {
+    x[i] = NewSparseConstRealVector([]int{0, 1, 2}, []float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 3)
+  }
+
+  theta_0 := NewVector(RealType, []float64{-1, 0.0, 0.0})
+  z := DenseConstRealVector([]float64{-2.81978662, 0.22409962, 0.45325202})
+  t := NullReal()
+  p := proximalWrapper{&ProximalOperatorTi{1.0/2.5}}
+
+  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p}); err != nil {
+    test.Error(err)
+  } else {
+    if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+      test.Error("test failed")
+    }
+  }
+}
