@@ -55,7 +55,7 @@ func sagaJit(
   }
   // temporary variables
   t1 := BareReal(0.0)
-  t2 := inSitu.T2
+  t2 := BareReal(0.0)
   // some constants
   t_n := BareReal(n)
   t_g := BareReal(gamma.Value)
@@ -84,7 +84,7 @@ func sagaJit(
       for _, k := range g1.g.GetSparseIndices() {
         if m := i_ - xk[k]; m > 1 {
           t1 = x1[k] - BareReal(m-1)*t_g*s[k]/t_n
-          proxop.Eval(&x1[k], &t1, j, m-1, t2)
+          proxop.Eval(&x1[k], &t1, j, m-1, &t2)
         }
       }
       // evaluate objective function
@@ -93,25 +93,13 @@ func sagaJit(
       } else {
         g2.set(w, g)
       }
-      gw1 := g1.w.GetValue()
-      gw2 := g2.w.GetValue()
-      c := gw2 - gw1
-      for it := g1.g.ITERATOR(); it.Ok(); it.Next() {
-        i := it.Index()
-        x1i := x1 .ValueAt(i)
-        s_i := s .ValueAt(i)
-        g1i := it.GET().GetValue()
-        t1.SetValue(x1i - float64(t_g)*(c*g1i + s_i/float64(t_n)))
-        proxop.Eval(&x1[i], &t1, i, 1, t2)
-        xk[i] = i_
+      c := BareReal(g2.w - g1.w)
+      v := g1.g.GetSparseValues()
+      for i, k := range g1.g.GetSparseIndices() {
+        t1 = x1[k] - t_g*(c*BareReal(v[i]) + s[k]/t_n)
+        proxop.Eval(&x1[k], &t1, k, 1, &t2)
+        xk[k] = i_
       }
-      // c := BareReal(g2.w - g1.w)
-      // v := g1.g.GetSparseValues()
-      // for i, k := range g1.g.GetSparseIndices() {
-      //   t1 = x1[k] - t_g*(c*BareReal(v[i]) + s[k]/t_n)
-      //   proxop.Eval(&x1[k], &t1, j, 1, t2)
-      //   xk[k] = i_
-      // }
       // update gradient avarage
       g1.update(g2, s)
 
@@ -125,7 +113,7 @@ func sagaJit(
         s_i := s .ValueAt(i)
         x1i := x1.ValueAt(i)
         t1.SetValue(float64(BareReal(x1i) - BareReal(m)*t_g*BareReal(s_i)/t_n))
-        proxop.Eval(&x1[i], &t1, i, m, t2)
+        proxop.Eval(&x1[i], &t1, i, m, &t2)
       }
       // reset xk
       xk[i] = 0
