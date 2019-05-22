@@ -210,11 +210,20 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   if gamma != nil {
     panic("internal error")
   }
+  { m := 0
+    if obj.L1Reg != 0.0 { m++ }
+    if obj.L2Reg != 0.0 { m++ }
+    if obj.TiReg != 0.0 { m++ }
+    if m > 1 {
+      return fmt.Errorf("multiple regularizations are not supported")
+    }
+  }
   var proxop    saga.ProximalOperatorType
   var proxopjit saga.ProximalOperatorJitType
   switch {
   case obj.L1Reg != 0.0:
     if obj.sparse {
+      // use specialized saga implementation
       if r, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
         saga.L1Regularization{obj.L1Reg},
         saga.Gamma           {obj.stepSize},
@@ -227,12 +236,11 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
         obj.SetParameters(r)
         return nil
       }
-      proxopjit = proximalWrapperJit{&saga.ProximalOperatorL1Jit{obj.L1Reg}}
     } else {
-      proxop    = proximalWrapper   {&saga.ProximalOperatorL1   {obj.L1Reg}}
+      proxop = proximalWrapper{&saga.ProximalOperatorL1{obj.L1Reg}}
     }
-  case obj.L2Reg != 0.0: proxop    = proximalWrapper   {&saga.ProximalOperatorL2   {obj.L2Reg}}
-  case obj.TiReg != 0.0: proxop    = proximalWrapper   {&saga.ProximalOperatorTi   {obj.TiReg}}
+  case obj.L2Reg != 0.0: proxop = proximalWrapper   {&saga.ProximalOperatorL2   {obj.L2Reg}}
+  case obj.TiReg != 0.0: proxop = proximalWrapper   {&saga.ProximalOperatorTi   {obj.TiReg}}
   }
   if obj.sparse {
     if r, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
