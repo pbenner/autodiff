@@ -117,7 +117,7 @@ func (v DenseBareRealVector) ValueAt(i int) float64 {
   return v[i].GetValue()
 }
 func (v DenseBareRealVector) ConstAt(i int) ConstScalar {
-  return &v[i]
+  return v[i]
 }
 func (v DenseBareRealVector) ConstSlice(i, j int) ConstVector {
   return v[i:j]

@@ -336,11 +336,7 @@ func (matrix MATRIX_TYPE) ValueAt(i, j int) float64 {
 }
 
 func (matrix MATRIX_TYPE) ConstAt(i, j int) ConstScalar {
-#ifdef STORE_PTR
-  return  matrix.values[matrix.index(i, j)]
-#else
-  return &matrix.values[matrix.index(i, j)]
-#endif
+  return matrix.values[matrix.index(i, j)]
 }
 
 func (matrix MATRIX_TYPE) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {

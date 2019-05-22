@@ -279,7 +279,7 @@ func (matrix *DenseBareRealMatrix) ValueAt(i, j int) float64 {
   return matrix.values[matrix.index(i, j)].GetValue()
 }
 func (matrix *DenseBareRealMatrix) ConstAt(i, j int) ConstScalar {
-  return &matrix.values[matrix.index(i, j)]
+  return matrix.values[matrix.index(i, j)]
 }
 func (matrix *DenseBareRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
   return matrix.Slice(rfrom, rto, cfrom, cto)

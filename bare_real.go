@@ -96,27 +96,27 @@ func (c *BareReal) AllocForTwo(a, b ConstScalar) {
 /* read access
  * -------------------------------------------------------------------------- */
 
-func (a *BareReal) GetOrder() int {
+func (a  BareReal) GetOrder() int {
   return 0
 }
 
-func (a *BareReal) GetValue() float64 {
-  return float64(*a)
+func (a  BareReal) GetValue() float64 {
+  return float64(a)
 }
 
-func (a *BareReal) GetLogValue() float64 {
+func (a  BareReal) GetLogValue() float64 {
   return math.Log(a.GetValue())
 }
 
-func (a *BareReal) GetDerivative(i int) float64 {
+func (a  BareReal) GetDerivative(i int) float64 {
   return 0.0
 }
 
-func (a *BareReal) GetHessian(i, j int) float64 {
+func (a  BareReal) GetHessian(i, j int) float64 {
   return 0.0
 }
 
-func (a *BareReal) GetN() int {
+func (a  BareReal) GetN() int {
   return 0
 }
 

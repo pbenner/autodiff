@@ -161,11 +161,7 @@ func (v VECTOR_TYPE) ValueAt(i int) float64 {
 }
 
 func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
-#ifdef STORE_PTR
-  return  v[i]
-#else
-  return &v[i]
-#endif
+  return v[i]
 }
 
 func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {

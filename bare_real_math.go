@@ -38,20 +38,32 @@ func checkBare(b ConstScalar) {
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) Equals(b ConstScalar, epsilon float64) bool {
+func (a  BareReal) Equals(b ConstScalar, epsilon float64) bool {
   return math.Abs(a.GetValue() - b.GetValue()) < epsilon
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) Greater(b ConstScalar) bool {
+func (a  BareReal) Greater(b ConstScalar) bool {
   return a.GetValue() > b.GetValue()
 }
 
 /* -------------------------------------------------------------------------- */
 
-func (a *BareReal) Smaller(b ConstScalar) bool {
+func (a  BareReal) Smaller(b ConstScalar) bool {
   return a.GetValue() < b.GetValue()
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (a  BareReal) Sign() int {
+  if a.GetValue() < 0.0 {
+    return -1
+  }
+  if a.GetValue() > 0.0 {
+    return  1
+  }
+  return 0
 }
 
 /* -------------------------------------------------------------------------- */
@@ -74,18 +86,6 @@ func (r *BareReal) Max(a, b ConstScalar) Scalar {
     r.Set(b)
   }
   return r
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (a *BareReal) Sign() int {
-  if a.GetValue() < 0.0 {
-    return -1
-  }
-  if a.GetValue() > 0.0 {
-    return  1
-  }
-  return 0
 }
 
 /* -------------------------------------------------------------------------- */
