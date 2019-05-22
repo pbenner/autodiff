@@ -114,7 +114,7 @@ func TestLogistic1(test *testing.T) {
     x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
-  estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
+  estimator, err := NewLogisticRegression(3, false)
   if err != nil {
     test.Error(err); return
   }
@@ -149,7 +149,7 @@ func TestLogistic2(test *testing.T) {
     x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 4)
   }
 
-  estimator, err := NewLogisticRegression([]int{0, 1, 2}, []float64{-1, 0.0, 0.0}, 3)
+  estimator, err := NewLogisticRegression(3, true)
   if err != nil {
     test.Error(err); return
   }
@@ -186,7 +186,7 @@ func TestLogistic3(test *testing.T) {
     x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
-  estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
+  estimator, err := NewLogisticRegression(3, false)
   if err != nil {
     test.Error(err); return
   }
@@ -235,7 +235,7 @@ func TestLogistic4(test *testing.T) {
     x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
-  estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
+  estimator, err := NewLogisticRegression(3, false)
   if err != nil {
     test.Error(err); return
   }
@@ -284,7 +284,7 @@ func TestLogistic5(test *testing.T) {
     x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
-  estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
+  estimator, err := NewLogisticRegression(3, false)
   if err != nil {
     test.Error(err); return
   }
@@ -333,7 +333,7 @@ func TestLogistic6(test *testing.T) {
     x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
-  estimator, err := NewLogisticRegression(nil, []float64{-1, 0.0, 0.0}, 3)
+  estimator, err := NewLogisticRegression(3, false)
   if err != nil {
     test.Error(err); return
   }
@@ -382,7 +382,7 @@ func TestLogistic7(test *testing.T) {
     x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
   }
 
-  estimator, err := NewLogisticRegression([]int{1}, []float64{-1}, 3)
+  estimator, err := NewLogisticRegression(3, true)
   if err != nil {
     test.Error(err); return
   }
