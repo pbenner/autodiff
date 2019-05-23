@@ -83,12 +83,13 @@ type LogisticRegression struct {
   c        []bool
   stepSize   float64
   // optional parameters
-  Epsilon    float64
-  L1Reg      float64
-  L2Reg      float64
-  TiReg      float64
-  Seed       int64
-  Hook       func(x ConstVector, step ConstScalar, i int) bool
+  Epsilon       float64
+  L1Reg         float64
+  L2Reg         float64
+  TiReg         float64
+  MaxIterations int
+  Seed          int64
+  Hook          func(x ConstVector, step ConstScalar, i int) bool
 }
 
 /* -------------------------------------------------------------------------- */
@@ -96,8 +97,9 @@ type LogisticRegression struct {
 func NewLogisticRegression(n int, sparse bool) (*LogisticRegression, error) {
   r := LogisticRegression{}
   r.logisticRegression.Theta = NullDenseBareRealVector(n)
-  r.Epsilon = 1e-8
-  r.sparse  = sparse
+  r.Epsilon       = 1e-5
+  r.MaxIterations = int(^uint(0) >> 1)
+  r.sparse        = sparse
   return &r, nil
 }
 
@@ -220,7 +222,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
         saga.L1Regularization{obj.L1Reg},
         saga.Gamma           {obj.stepSize},
         saga.Epsilon         {obj.Epsilon},
-        saga.MaxIterations   {int(^uint(0) >> 1)},
+        saga.MaxIterations   {obj.MaxIterations},
         saga.Hook            {obj.Hook},
         saga.Seed            {obj.Seed}); err != nil {
         return err
@@ -236,20 +238,24 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   }
   if obj.sparse {
     if r, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
-      saga.Hook   {obj.Hook},
-      saga.Gamma  {obj.stepSize},
-      saga.Epsilon{obj.Epsilon},
-      saga.Seed   {obj.Seed}); err != nil {
+      saga.Hook               {obj.Hook},
+      saga.Gamma              {obj.stepSize},
+      saga.Epsilon            {obj.Epsilon},
+      saga.MaxIterations      {obj.MaxIterations},
+      saga.Seed               {obj.Seed},
+      saga.ProximalOperator   {proxop},
+      saga.ProximalOperatorJit{proxopjit}); err != nil {
       return err
     } else {
       obj.SetParameters(r)
     }
   } else {
     if r, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), obj.Theta,
-      saga.Hook   {obj.Hook},
-      saga.Gamma  {obj.stepSize},
-      saga.Epsilon{obj.Epsilon},
-      saga.Seed   {obj.Seed},
+      saga.Hook               {obj.Hook},
+      saga.Gamma              {obj.stepSize},
+      saga.Epsilon            {obj.Epsilon},
+      saga.MaxIterations      {obj.MaxIterations},
+      saga.Seed               {obj.Seed},
       saga.ProximalOperator   {proxop},
       saga.ProximalOperatorJit{proxopjit}); err != nil {
       return err
@@ -349,6 +355,9 @@ func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (Const
   x := obj.x_sparse
   y := ConstReal(0.0)
   w := ConstReal(0.0)
+  if len(theta) == 0 {
+    return y, w, x[i], nil
+  }
   if i >= len(x) {
     return y, w, x[i], fmt.Errorf("index out of bounds")
   }
@@ -401,9 +410,12 @@ func sagaLogisticRegressionL1(
   hook saga.Hook,
   seed saga.Seed) (DenseBareRealVector, error) {
 
-  xs := AsDenseBareRealVector(x)
+  x0 := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
-  xk := make([]int, x.Dim())
+  xk := make([]int,  x.Dim())
+  xs := make([]bool, n)
+  ns := 0
+  cumulative_sums := NullDenseBareRealVector(n)
 
   // length of gradient
   d := x.Dim()
@@ -414,35 +426,48 @@ func sagaLogisticRegressionL1(
   // temporary variables
   t1 := BareReal(0.0)
   // some constants
-  t_n := BareReal(n)
+  t_n := BareReal(0.0)
   t_g := BareReal(gamma.Value)
-  t_l := BareReal(l1reg.Value)*t_g/t_n
+  t_l := BareReal(l1reg.Value)*t_g/BareReal(n)
 
   // sum of gradients
   s := NullDenseBareRealVector(d)
   // initialize s and d
   dict := make([]saga.GradientJit, n)
   for i := 0; i < n; i++ {
-    if _, w, g, err := f(i, x1); err != nil {
+    if _, w, g, err := f(i, nil); err != nil {
       return nil, err
     } else {
       dict[i].Set(w, g)
-      dict[i].Add(s)
     }
   }
   g := rand.New(rand.NewSource(seed.Value))
 
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 1; i_ < n+1; i_++ {
+    for i_ := 0; i_ < n; i_++ {
       j := g.Intn(n)
-
+      j = i_
+      if !xs[j] {
+        ns   += 1
+        t_n   = BareReal(ns)
+      }
+      if i_ == 0 {
+        cumulative_sums[0 ] = t_g/t_n
+      } else {
+        cumulative_sums[i_] = cumulative_sums[i_-1] + t_g/t_n
+      }
       // get old gradient
       g1 = dict[j]
       // perform jit updates for all x_i where g_i != 0
       for _, k := range g1.G.GetSparseIndices() {
-        if m := i_ - xk[k]; m > 1 {
-          t1 = x1[k] - BareReal(m-1)*t_g*s[k]/t_n
-          x1[k] = sagaProxopL1(t1, t_l, k, BareReal(m-1))
+        cum_sum := BareReal(1.0)
+        if k != 0 {
+          cum_sum = cumulative_sums[i_-1]
+          if xk[k] != 0 {
+            cum_sum -= cumulative_sums[xk[k]-1]
+          }
+          t1 = x1[k] - cum_sum*s[k]
+          x1[k] = sagaProxopL1(t1, t_l, k, BareReal(i_-xk[k]))
         }
       }
       // evaluate objective function
@@ -454,26 +479,41 @@ func sagaLogisticRegressionL1(
       c := BareReal(g2.W - g1.W)
       v := g1.G.GetSparseValues()
       for i, k := range g1.G.GetSparseIndices() {
-        t1 = x1[k] - t_g*(c*BareReal(v[i]) + s[k]/t_n)
-        x1[k] = sagaProxopL1(t1, t_l, k, BareReal(1))
-        xk[k] = i_
+        if k == 0 {
+          s[k] += c*BareReal(g1.G.ValueAt(k))
+          x1[k] = x1[k] - t_g*(1.0 - 1.0/t_n)*c*BareReal(v[i]) - t_g*s[k]/t_n
+          xk[k] = i_
+          s[k] -= c*BareReal(g1.G.ValueAt(k))
+        } else {
+          x1[k] = x1[k] - t_g*(1.0 - 1.0/t_n)*c*BareReal(v[i])
+          xk[k] = i_
+        }
       }
-      // update gradient avarage
-      g1.Update(g2, s)
-
+      if !xs[j] {
+        xs[j] = true
+        g2.Add(s)
+      } else {
+        // update gradient avarage
+        g1.Update(g2, s)
+      }
       // update dictionary
       dict[j].Set(g2.W, g2.G)
     }
     // compute missing updates of x1
     for k := 0; k < x1.Dim(); k++ {
-      if m := n - xk[k]; m > 0 {
-        t1 = x1[k] - BareReal(m)*t_g*s[k]/t_n
-        x1[k] = sagaProxopL1(t1, t_l, k, BareReal(m))
+      cum_sum := BareReal(1.0)
+      if k != 0 {
+        cum_sum = cumulative_sums[n-1]
+        if xk[k] != 0 {
+          cum_sum -= cumulative_sums[xk[k]-1]
+        }
+        t1    = x1[k] - cum_sum*s[k]
+        x1[k] = sagaProxopL1(t1, t_l, k, BareReal(n-xk[k]))
       }
       // reset xk
       xk[k] = 0
     }
-    if stop, delta, err := saga.EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
+    if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value); stop {
       return x1, err
     } else {
       // execute hook if available
@@ -481,7 +521,7 @@ func sagaLogisticRegressionL1(
         break
       }
     }
-    xs.SET(x1)
+    x0.SET(x1)
   }
   return x1, nil
 }

@@ -413,3 +413,64 @@ func TestLogistic7(test *testing.T) {
     test.Error("test failed")
   }
 }
+
+func TestLogistic8(test *testing.T) {
+
+  C := 0.2
+
+  // data
+  cellSize  := []float64{
+    1, 4, 1, 8, 1, 10, 1, 1, 1, 2, 1, 1, 3, 1, 7, 4, 1, 1, 7, 1}
+  cellShape := []float64{
+    1, 4, 1, 8, 1, 10, 1, 2, 1, 1, 1, 1, 3, 1, 5, 6, 1, 1, 7, 1}
+  class := []float64{
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0}
+  // x
+  x := make([]ConstVector, len(cellSize))
+  for i := 0; i < len(cellSize); i++ {
+    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+  }
+
+  trace1 := []ConstVector{}
+  // result from sklearn
+  trace2 := NewDenseBareRealMatrix(10, 3, []float64{
+    -1.256408e-01, 9.954558e-02, 9.593972e-02,
+    -1.934557e-01, 1.477667e-02, 1.413514e-02,
+    -2.460742e-01, 4.372881e-02, 4.466694e-02,
+    -2.991661e-01, 4.925637e-02, 5.015465e-02,
+    -3.511188e-01, 4.649273e-02, 4.803197e-02,
+    -3.999599e-01, 5.303732e-02, 5.527188e-02,
+    -4.472289e-01, 5.652367e-02, 5.935496e-02,
+    -4.927265e-01, 5.958593e-02, 6.312238e-02,
+    -5.364093e-01, 6.328764e-02, 6.755692e-02,
+    -5.784920e-01, 6.652149e-02, 7.154798e-02 })
+  hook_record := func(x ConstVector, step ConstScalar, i int) bool {
+    // clone vector!
+    trace1 = append(trace1, AsDenseBareRealVector(x))
+    return false
+  }
+  estimator, err := NewLogisticRegression(3, true)
+  if err != nil {
+    test.Error(err); return
+  }
+  estimator.Hook          = hook_record
+  estimator.L1Reg         = 1.0/C
+  estimator.MaxIterations = 10
+
+  err = estimator.EstimateOnData(x, nil, ThreadPool{})
+  if err != nil {
+    test.Error(err); return
+  }
+
+  if nr, _ := trace2.Dims(); len(trace1) == 0 || len(trace1) != nr {
+    test.Error("test failed")
+  } else {
+    t1 := NullReal()
+    t2 := NullDenseBareRealVector(3)
+    for i := 0; i < len(trace1); i++ {
+      if t1.Vnorm(t2.VsubV(trace1[i], trace2.Row(i))); t1.GetValue() > 1e-4 {
+        test.Error("test failed")
+      }
+    }
+  }
+}
