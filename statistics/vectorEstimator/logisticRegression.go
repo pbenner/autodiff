@@ -445,8 +445,10 @@ func sagaLogisticRegressionL1(
 
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     for i_ := 0; i_ < n; i_++ {
-      j := g.Intn(n)
-      j = i_
+      j := i_
+      if seed.Value != -1 {
+        j = g.Intn(n)
+      }
       if !xs[j] {
         ns   += 1
         t_n   = BareReal(ns)
@@ -460,11 +462,13 @@ func sagaLogisticRegressionL1(
       g1 = dict[j]
       // perform jit updates for all x_i where g_i != 0
       for _, k := range g1.G.GetSparseIndices() {
-        cum_sum := BareReal(1.0)
         if k != 0 {
-          cum_sum = cumulative_sums[i_-1]
-          if xk[k] != 0 {
-            cum_sum -= cumulative_sums[xk[k]-1]
+          cum_sum := BareReal(1.0)
+          if i_ != 0 {
+            cum_sum = cumulative_sums[i_-1]
+            if xk[k] != 0 {
+              cum_sum -= cumulative_sums[xk[k]-1]
+            }
           }
           t1 = x1[k] - cum_sum*s[k]
           x1[k] = sagaProxopL1(t1, t_l, k, BareReal(i_-xk[k]))

@@ -456,6 +456,7 @@ func TestLogistic8(test *testing.T) {
   estimator.Hook          = hook_record
   estimator.L1Reg         = 1.0/C
   estimator.MaxIterations = 10
+  estimator.Seed          = -1
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {
