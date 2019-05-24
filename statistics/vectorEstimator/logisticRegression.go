@@ -462,7 +462,7 @@ func sagaLogisticRegressionL1(
       g1 = dict[j]
       // perform jit updates for all x_i where g_i != 0
       for _, k := range g1.G.GetSparseIndices() {
-        if k != 0 {
+        if m := i_-xk[k]; m > 0 && k != 0 {
           cum_sum := BareReal(1.0)
           if i_ != 0 {
             cum_sum = cumulative_sums[i_-1]
@@ -471,7 +471,7 @@ func sagaLogisticRegressionL1(
             }
           }
           t1 = x1[k] - cum_sum*s[k]
-          x1[k] = sagaProxopL1(t1, t_l, k, BareReal(i_-xk[k]))
+          x1[k] = sagaProxopL1(t1, t_l, k, BareReal(m))
         }
       }
       // evaluate objective function
