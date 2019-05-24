@@ -386,8 +386,8 @@ func TestLogistic7(test *testing.T) {
   if err != nil {
     test.Error(err); return
   }
-  //estimator.Hook  = hook
-  estimator.L1Reg = 1.0/C
+  //estimator.Hook    = hook
+  estimator.L1Reg   = 1.0/C
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
   if err != nil {

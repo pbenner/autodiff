@@ -517,7 +517,7 @@ func sagaLogisticRegressionL1(
       // reset xk
       xk[k] = 0
     }
-    if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value); stop {
+    if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value*gamma.Value); stop {
       return x1, err
     } else {
       // execute hook if available
