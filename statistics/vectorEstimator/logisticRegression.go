@@ -450,8 +450,8 @@ func sagaLogisticRegressionL1(
         j = g.Intn(n)
       }
       if !xs[j] {
-        ns   += 1
-        t_n   = BareReal(ns)
+        ns += 1
+        t_n = BareReal(ns)
       }
       if i_ == 0 {
         cumulative_sums[0 ] = t_g/t_n
