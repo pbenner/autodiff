@@ -213,9 +213,9 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     }
   }
   var proxop    saga.ProximalOperatorType
-  var proxopjit saga.ProximalOperatorJitType
+  var jitUpdate saga.JitUpdateType
   switch {
-  case obj.L1Reg != 0.0:
+  case obj.L1Reg != 0.0 || (obj.L2Reg == 0.0 && obj.TiReg == 0.0):
     if obj.sparse {
       // use specialized saga implementation
       if r, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
@@ -233,31 +233,31 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     } else {
       proxop = proximalWrapper{&saga.ProximalOperatorL1{obj.L1Reg}}
     }
-  case obj.L2Reg != 0.0: proxop = proximalWrapper   {&saga.ProximalOperatorL2   {obj.L2Reg}}
-  case obj.TiReg != 0.0: proxop = proximalWrapper   {&saga.ProximalOperatorTi   {obj.TiReg}}
+  case obj.L2Reg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorL2{obj.L2Reg}}
+  case obj.TiReg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorTi{obj.TiReg}}
   }
   if obj.sparse {
     if r, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
-      saga.Hook               {obj.Hook},
-      saga.Gamma              {obj.stepSize},
-      saga.Epsilon            {obj.Epsilon},
-      saga.MaxIterations      {obj.MaxIterations},
-      saga.Seed               {obj.Seed},
-      saga.ProximalOperator   {proxop},
-      saga.ProximalOperatorJit{proxopjit}); err != nil {
+      saga.Hook            {obj.Hook},
+      saga.Gamma           {obj.stepSize},
+      saga.Epsilon         {obj.Epsilon},
+      saga.MaxIterations   {obj.MaxIterations},
+      saga.Seed            {obj.Seed},
+      saga.ProximalOperator{proxop},
+      saga.JitUpdate       {jitUpdate}); err != nil {
       return err
     } else {
       obj.SetParameters(r)
     }
   } else {
     if r, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), obj.Theta,
-      saga.Hook               {obj.Hook},
-      saga.Gamma              {obj.stepSize},
-      saga.Epsilon            {obj.Epsilon},
-      saga.MaxIterations      {obj.MaxIterations},
-      saga.Seed               {obj.Seed},
-      saga.ProximalOperator   {proxop},
-      saga.ProximalOperatorJit{proxopjit}); err != nil {
+      saga.Hook            {obj.Hook},
+      saga.Gamma           {obj.stepSize},
+      saga.Epsilon         {obj.Epsilon},
+      saga.MaxIterations   {obj.MaxIterations},
+      saga.Seed            {obj.Seed},
+      saga.ProximalOperator{proxop},
+      saga.JitUpdate       {jitUpdate}); err != nil {
       return err
     } else {
       obj.SetParameters(r)
@@ -313,16 +313,16 @@ func (obj proximalWrapper) Eval(x DenseBareRealVector, w DenseBareRealVector, t 
 
 /* -------------------------------------------------------------------------- */
 
-type proximalWrapperJit struct {
-  saga.ProximalOperatorJitType
+type jitUpdateWrapper struct {
+  saga.JitUpdateType
 }
 
-func (obj proximalWrapperJit) Eval(x *BareReal, w *BareReal, i, n int, t *BareReal) {
+func (obj jitUpdateWrapper) Update(x, y BareReal, k, m int) BareReal {
   // do not regularize intercept
-  if i != 0 {
-    obj.ProximalOperatorJitType.Eval(x, w, i, n, t)
+  if k == 0 {
+    return x - y
   } else {
-    x.SET(w)
+    return obj.JitUpdateType.Update(x, y, k, m)
   }
 }
 
