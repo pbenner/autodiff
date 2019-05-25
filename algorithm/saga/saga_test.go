@@ -49,16 +49,16 @@ func (obj proximalWrapper) Eval(x DenseBareRealVector, w DenseBareRealVector, t 
 
 /* -------------------------------------------------------------------------- */
 
-type proximalWrapperJit struct {
-  ProximalOperatorJitType
+type jitUpdateWrapper struct {
+  JitUpdateType
 }
 
-func (obj proximalWrapperJit) Eval(x *BareReal, w *BareReal, i, n int, t *BareReal) {
+func (obj jitUpdateWrapper) Update(x, y BareReal, k, m int) BareReal {
   // do not regularize intercept
-  if i != 0 {
-    obj.ProximalOperatorJitType.Eval(x, w, i, n, t)
+  if k == 0 {
+    return x - y
   } else {
-    x.SET(w)
+    return obj.JitUpdateType.Update(x, y, k, m)
   }
 }
 
@@ -332,8 +332,8 @@ func Test6(test *testing.T) {
   z  := DenseConstRealVector([]float64{-2.76467776, 0.17584927, 0.48174453})
   t1 := NullReal()
   t2 := NullDenseBareRealVector(theta_0.Dim())
-  p1 := proximalWrapper   {&ProximalOperatorL1   {1.0/2.5}}
-  p2 := proximalWrapperJit{&ProximalOperatorL1Jit{1.0/2.5}}
+  p1 :=  proximalWrapper{&ProximalOperatorL1{1.0/2.5}}
+  p2 := jitUpdateWrapper{&       JitUpdateL1{1.0/2.5}}
 
   trace1 := []ConstVector{}
   trace2 := []ConstVector{}
@@ -348,14 +348,14 @@ func Test6(test *testing.T) {
     return false
   }
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook1}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator   {p1}); err != nil {
+  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook1}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p1}); err != nil {
     test.Error(err)
   } else {
     if t1.Vnorm(t2.VsubV(r, z)); t1.GetValue() > 1e-4 {
       test.Error("test failed")
     }
   }
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook2}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperatorJit{p2}); err != nil {
+  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook2}, Gamma{1.0/20}, Epsilon{1e-12}, JitUpdate{p2}); err != nil {
     test.Error(err)
   } else {
     if t1.Vnorm(t2.VsubV(r, z)); t1.GetValue() > 1e-4 {

@@ -49,8 +49,8 @@ type ProximalOperator struct {
   Value ProximalOperatorType
 }
 
-type ProximalOperatorJit struct {
-  Value ProximalOperatorJitType
+type JitUpdate struct {
+  Value JitUpdateType
 }
 
 type Hook struct {
@@ -101,10 +101,10 @@ type ProximalOperatorType interface {
   Eval     (x, w DenseBareRealVector, t *BareReal)
 }
 
-type ProximalOperatorJitType interface {
+type JitUpdateType interface {
   GetLambda(       ) float64
   SetLambda(float64)
-  Eval     (x *BareReal, w *BareReal, i, n int, t *BareReal)
+  Update   (x, y BareReal, k, n int) BareReal
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,33 +183,46 @@ func (obj *ProximalOperatorTi) Eval(x DenseBareRealVector, w DenseBareRealVector
 
 /* -------------------------------------------------------------------------- */
 
-type ProximalOperatorL1Jit struct {
-  Lambda float64
+type JitUpdateL1 struct {
+  Lambda BareReal
 }
 
-func (obj *ProximalOperatorL1Jit) GetLambda() float64 {
-  return obj.Lambda
+func (obj *JitUpdateL1) GetLambda() float64 {
+  return float64(obj.Lambda)
 }
 
-func (obj *ProximalOperatorL1Jit) SetLambda(lambda float64) {
-  obj.Lambda = lambda
+func (obj *JitUpdateL1) SetLambda(lambda float64) {
+  obj.Lambda = BareReal(lambda)
 }
 
-func (obj *ProximalOperatorL1Jit) Eval(x *BareReal, w *BareReal, i, n int, t *BareReal) {
-  // sign(wi)*max{|wi| - n*lambda}
-  if wi := w.GetValue(); wi < 0.0 {
-    if l := float64(n)*obj.Lambda; -wi < l {
-      x.SetValue(0.0)
+func (obj *JitUpdateL1) update(w BareReal, k, n int) BareReal {
+  // sign(w)*max{|w| - n*lambda}
+  if w < 0.0 {
+    if l := BareReal(n)*obj.Lambda; -w < l {
+      return 0.0
     } else {
-      x.SetValue(wi + l)
+      return w + l
     }
   } else {
-    if l := float64(n)*obj.Lambda;  wi < l {
-      x.SetValue(0.0)
+    if l := BareReal(n)*obj.Lambda;  w < l {
+      return 0.0
     } else {
-      x.SetValue(wi - l)
+      return w - l
     }
   }
+}
+
+func (obj *JitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
+   if float64(y) < obj.GetLambda() {
+    w := x - BareReal(m)*y
+    x  = obj.update(w, k, m)
+  } else {
+    for j := 0; j < m; j++ {
+      w := x - y
+      x  = obj.update(w, k, 1)
+    }
+  }
+  return x
 }
 
 /* -------------------------------------------------------------------------- */
@@ -258,7 +271,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   l2reg         := L2Regularization      { 0.0}
   tireg         := TikhonovRegularization{ 0.0}
   proxop        := ProximalOperator      {}
-  proxopjit     := ProximalOperatorJit   {}
+  jitUpdate     := JitUpdate             {}
   seed          := Seed                  {0}
   inSitu        := &InSitu               {}
 
@@ -280,8 +293,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
       tireg = a
     case ProximalOperator:
       proxop = a
-    case ProximalOperatorJit:
-      proxopjit = a
+    case JitUpdate:
+      jitUpdate = a
     case Seed:
       seed = a
     case *InSitu:
@@ -316,20 +329,20 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   case tireg.Value != 0.0: proxop.Value = &ProximalOperatorTi{tireg.Value}
   }
   // check arguments
-  if proxop.Value != nil && proxopjit.Value != nil {
+  if proxop.Value != nil && jitUpdate.Value != nil {
     return x, fmt.Errorf("invalid arguments")
   }
   // rescale lambda
   if proxop.Value != nil {
     proxop.Value.SetLambda(gamma.Value*proxop.Value.GetLambda()/float64(n))
   }
-  if proxopjit.Value != nil {
-    proxopjit.Value.SetLambda(gamma.Value*proxopjit.Value.GetLambda()/float64(n))
+  if jitUpdate.Value != nil {
+    jitUpdate.Value.SetLambda(gamma.Value*jitUpdate.Value.GetLambda()/float64(n))
   }
-  if proxopjit.Value != nil {
+  if jitUpdate.Value != nil {
     switch g := f.(type) {
     case Objective1Sparse:
-      return sagaJit(g, n, x, gamma, epsilon, maxIterations, proxopjit.Value, hook, seed, inSitu)
+      return sagaJit(g, n, x, gamma, epsilon, maxIterations, jitUpdate.Value, hook, seed, inSitu)
     default:
       panic("invalid objective")
     }

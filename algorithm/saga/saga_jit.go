@@ -61,7 +61,7 @@ func sagaJit(
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
-  proxop ProximalOperatorJitType,
+  jitUpdate JitUpdateType,
   hook Hook,
   seed Seed,
   inSitu *InSitu) (Vector, error) {
@@ -76,9 +76,6 @@ func sagaJit(
   var g1 GradientJit
   var g2 GradientJit
 
-  // temporary variables
-  t1 := BareReal(0.0)
-  t2 := BareReal(0.0)
   // some constants
   t_n := BareReal(n)
   t_g := BareReal(gamma.Value)
@@ -100,14 +97,18 @@ func sagaJit(
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     for i_ := 1; i_ < n+1; i_++ {
       j := g.Intn(n)
-
       // get old gradient
       g1 = dict[j]
       // perform jit updates for all x_i where g_i != 0
       for _, k := range g1.G.GetSparseIndices() {
-        if m := i_ - xk[k]; m > 1 {
-          t1 = x1[k] - BareReal(m-1)*t_g*s[k]/t_n
-          proxop.Eval(&x1[k], &t1, k, m-1, &t2)
+        if m := i_ - xk[k]; m > 0 {
+          if xk[k] == 0 {
+            if m > 1 {
+              x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m-1)
+            }
+          } else {
+            x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
+          }
         }
       }
       // evaluate objective function
@@ -119,8 +120,7 @@ func sagaJit(
       c := BareReal(g2.W - g1.W)
       v := g1.G.GetSparseValues()
       for i, k := range g1.G.GetSparseIndices() {
-        t1 = x1[k] - t_g*(c*BareReal(v[i]) + s[k]/t_n)
-        proxop.Eval(&x1[k], &t1, k, 1, &t2)
+        x1[k] = x1[k] - t_g*(1.0 - 1.0/t_n)*c*BareReal(v[i])
         xk[k] = i_
       }
       // update gradient avarage
@@ -131,9 +131,8 @@ func sagaJit(
     }
     // compute missing updates of x1
     for k := 0; k < x1.Dim(); k++ {
-      if m := n - xk[k]; m > 0 {
-        t1 = x1[k] - BareReal(m)*t_g*s[k]/t_n
-        proxop.Eval(&x1[k], &t1, k, m, &t2)
+      if m := n - xk[k] + 1; m > 0 {
+        x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
       }
       // reset xk
       xk[k] = 0
