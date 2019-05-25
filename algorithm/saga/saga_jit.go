@@ -104,6 +104,8 @@ func sagaJit(
         m := i_ - xk[k]
         switch {
         case xk[k] == 0 && m > 1:
+          // first update of this epoch, only m-1 updates are
+          // required
           x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m-1)
         case xk[k] != 0:
           x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
