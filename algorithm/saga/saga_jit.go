@@ -95,19 +95,13 @@ func sagaJit(
   g := rand.New(rand.NewSource(seed.Value))
 
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 1; i_ < n+1; i_++ {
+    for i_ := 0; i_ < n; i_++ {
       j := g.Intn(n)
       // get old gradient
       g1 = dict[j]
       // perform jit updates for all x_i where g_i != 0
       for _, k := range g1.G.GetSparseIndices() {
-        m := i_ - xk[k]
-        switch {
-        case xk[k] == 0 && m > 1:
-          // first update of this epoch, only m-1 updates are
-          // required
-          x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m-1)
-        case xk[k] != 0:
+        if m := i_ - xk[k]; m > 0 {
           x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
         }
       }
@@ -131,7 +125,7 @@ func sagaJit(
     }
     // compute missing updates of x1
     for k := 0; k < x1.Dim(); k++ {
-      if m := n - xk[k] + 1; m > 0 {
+      if m := n - xk[k]; m > 0 {
         x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
       }
       // reset xk
