@@ -101,14 +101,12 @@ func sagaJit(
       g1 = dict[j]
       // perform jit updates for all x_i where g_i != 0
       for _, k := range g1.G.GetSparseIndices() {
-        if m := i_ - xk[k]; m > 0 {
-          if xk[k] == 0 {
-            if m > 1 {
-              x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m-1)
-            }
-          } else {
-            x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
-          }
+        m := i_ - xk[k]
+        switch {
+        case xk[k] == 0 && m > 1:
+          x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m-1)
+        case xk[k] != 0:
+          x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
         }
       }
       // evaluate objective function
