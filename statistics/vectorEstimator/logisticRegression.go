@@ -320,7 +320,7 @@ type jitUpdateWrapper struct {
 func (obj jitUpdateWrapper) Update(x, y BareReal, k, m int) BareReal {
   // do not regularize intercept
   if k == 0 {
-    return x - y
+    return x - BareReal(m)*y
   } else {
     return obj.JitUpdateType.Update(x, y, k, m)
   }
