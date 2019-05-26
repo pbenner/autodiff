@@ -61,7 +61,7 @@ func sagaJit(
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
-  jitUpdate JitUpdateType,
+  jit JitUpdateType,
   hook Hook,
   seed Seed,
   inSitu *InSitu) (Vector, error) {
@@ -102,7 +102,7 @@ func sagaJit(
       // perform jit updates for all x_i where g_i != 0
       for _, k := range g1.G.GetSparseIndices() {
         if m := i_ - xk[k]; m > 0 {
-          x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
+          x1[k] = jit.Update(x1[k], t_g*s[k]/t_n, k, m)
         }
       }
       // evaluate objective function
@@ -126,7 +126,7 @@ func sagaJit(
     // compute missing updates of x1
     for k := 0; k < x1.Dim(); k++ {
       if m := n - xk[k]; m > 0 {
-        x1[k] = jitUpdate.Update(x1[k], t_g*s[k]/t_n, k, m)
+        x1[k] = jit.Update(x1[k], t_g*s[k]/t_n, k, m)
       }
       // reset xk
       xk[k] = 0
