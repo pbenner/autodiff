@@ -213,7 +213,7 @@ func (obj *JitUpdateL1) update(w BareReal, k, n int) BareReal {
 }
 
 func (obj *JitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
-   if float64(y) < obj.GetLambda() {
+  if float64(y) < obj.GetLambda() {
     w := x - BareReal(m)*y
     x  = obj.update(w, k, m)
   } else {

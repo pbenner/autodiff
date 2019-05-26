@@ -399,6 +399,19 @@ func sagaProxopL1(w, lambda BareReal, i int, n BareReal) BareReal {
   }
 }
 
+type sagaJitUpdateL1 struct {
+  saga.JitUpdateL1
+}
+
+func (obj sagaJitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
+  // do not regularize intercept
+  if k == 0 {
+    return x - BareReal(m)*y
+  } else {
+    return obj.JitUpdateL1.Update(x, y, k, m)
+  }
+}
+
 func sagaLogisticRegressionL1(
   f saga.Objective1Sparse,
   n int,
@@ -423,12 +436,14 @@ func sagaLogisticRegressionL1(
   var g1 saga.GradientJit
   var g2 saga.GradientJit
 
-  // temporary variables
-  t1 := BareReal(0.0)
   // some constants
   t_n := BareReal(0.0)
   t_g := BareReal(gamma.Value)
   t_l := BareReal(l1reg.Value)*t_g/BareReal(n)
+
+  // jit update function
+  jit := sagaJitUpdateL1{}
+  jit.SetLambda(float64(t_l))
 
   // sum of gradients
   s := NullDenseBareRealVector(d)
@@ -467,8 +482,7 @@ func sagaLogisticRegressionL1(
           if xk[k] != 0 {
             cum_sum -= cumulative_sums[xk[k]-1]
           }
-          t1 = x1[k] - cum_sum*s[k]
-          x1[k] = sagaProxopL1(t1, t_l, k, BareReal(m))
+          x1[k] = jit.Update(x1[k], cum_sum*s[k]/BareReal(m), k, m)
         }
       }
       // evaluate objective function
@@ -500,8 +514,7 @@ func sagaLogisticRegressionL1(
         if xk[k] != 0 {
           cum_sum -= cumulative_sums[xk[k]-1]
         }
-        t1    = x1[k] - cum_sum*s[k]
-        x1[k] = sagaProxopL1(t1, t_l, k, BareReal(m))
+        x1[k] = jit.Update(x1[k], cum_sum*s[k]/BareReal(m), k, m)
       }
       // reset xk
       xk[k] = 0
