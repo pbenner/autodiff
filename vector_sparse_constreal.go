@@ -47,7 +47,6 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
       panic("index larger than vector dimension")
     }
     if values[i] != 0.0 {
-      r.idxmap[k] = len(r.values)
       r.values    = append(r.values,  ConstReal(values[i]))
       r.indices   = append(r.indices, k)
     }
@@ -98,6 +97,9 @@ func (obj SparseConstRealVector) Dim() int {
 }
 
 func (obj SparseConstRealVector) ValueAt(i int) float64 {
+  if len(obj.idxmap) == 0 {
+    obj.createIndex()
+  }
   if k, ok := obj.idxmap[i]; ok {
     return obj.values[k].GetValue()
   } else {
@@ -106,6 +108,9 @@ func (obj SparseConstRealVector) ValueAt(i int) float64 {
 }
 
 func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
+  if len(obj.idxmap) == 0 {
+    obj.createIndex()
+  }
   if k, ok := obj.idxmap[i]; ok {
     return obj.values[k]
   } else {
@@ -114,17 +119,13 @@ func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
 }
 
 func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
+  k1 := sort.SearchInts(obj.indices, i)
+  k2 := sort.SearchInts(obj.indices, j)
   r := NilSparseConstRealVector(j-i)
-  for k1, k2 := range obj.indices {
-    if k2 < i {
-      continue
-    }
-    if k2 >= j {
-      break
-    }
-    r.idxmap[k2-i] = len(r.values)
-    r.values       = append(r.values , obj.values[k1])
-    r.indices      = append(r.indices, k2-i)
+  r.values  = obj.values[k1:k2]
+  r.indices = make([]int, k2-k1)
+  for k := k1; k < k2; k++ {
+    r.indices[k-k1] = obj.indices[k] - i
   }
   return r
 }
@@ -206,14 +207,11 @@ func (obj SparseConstRealVector) Table() string {
     }
     buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
   }
-  if _, ok := obj.idxmap[obj.n-1]; !ok {
-    i := obj.n-1
-    if i != 0 {
-      buffer.WriteString(" ")
+  if len(obj.indices) > 0 {
+    if i := obj.indices[len(obj.indices)-1]; i != obj.n-1 {
+      buffer.WriteString(fmt.Sprintf(" %d:%s", i, ConstReal(0.0)))
     }
-    buffer.WriteString(fmt.Sprintf("%d:%s", i, ConstReal(0.0)))
   }
-
   return buffer.String()
 }
 
@@ -231,6 +229,14 @@ func (a SparseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
     }
   }
   return true
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (obj SparseConstRealVector) createIndex() {
+  for i, k := range obj.indices {
+    obj.idxmap[k] = i
+  }
 }
 
 /* const iterator
