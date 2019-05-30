@@ -56,7 +56,7 @@ func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
     panic(err)
   } else {
     for i, _ := range x {
-      if err := r.ClassLogPdf(t, x[i].ConstSlice(1,4), x[i].ConstAt(0).GetValue() == 1.0); err != nil {
+      if err := r.ClassLogPdf(t, x[i].ConstSlice(0,x[i].Dim()-1), x[i].ValueAt(x[i].Dim()-1) == 1.0); err != nil {
         panic(err)
       }
       s.Add(s, t)
@@ -82,7 +82,7 @@ func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
     panic(err)
   } else {
     for i, _ := range x {
-      if err := r.ClassLogPdf(t, x[i].ConstSlice(1,4), x[i].ConstAt(0).GetValue() == 1.0); err != nil {
+      if err := r.ClassLogPdf(t, x[i].ConstSlice(0,x[i].Dim()-1), x[i].ValueAt(x[i].Dim()-1) == 1.0); err != nil {
         panic(err)
       }
       s.Add(s, t)
@@ -111,7 +111,7 @@ func TestLogistic1(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -146,7 +146,7 @@ func TestLogistic2(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0}, 4)
+    x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]}, 4)
   }
 
   estimator, err := NewLogisticRegression(3, true)
@@ -183,7 +183,7 @@ func TestLogistic3(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -232,7 +232,7 @@ func TestLogistic4(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -281,7 +281,7 @@ func TestLogistic5(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -330,7 +330,7 @@ func TestLogistic6(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -379,7 +379,7 @@ func TestLogistic7(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, true)
@@ -428,7 +428,7 @@ func TestLogistic8(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   trace1 := []ConstVector{}
@@ -490,7 +490,7 @@ func TestLogistic9(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{class[i], 1.0, cellSize[i]-1.0, cellShape[i]-1.0})
+    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   trace1 := []ConstVector{}

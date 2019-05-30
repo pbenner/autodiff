@@ -119,15 +119,24 @@ func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
 }
 
 func (obj SparseConstRealVector) ConstSlice(i, j int) ConstVector {
-  k1 := sort.SearchInts(obj.indices, i)
-  k2 := sort.SearchInts(obj.indices, j)
-  r := NilSparseConstRealVector(j-i)
-  r.values  = obj.values[k1:k2]
-  r.indices = make([]int, k2-k1)
-  for k := k1; k < k2; k++ {
-    r.indices[k-k1] = obj.indices[k] - i
+  if i == 0 {
+    k1 := 0
+    k2 := sort.SearchInts(obj.indices, j)
+    r  := NilSparseConstRealVector(j)
+    r.values  = obj.values [k1:k2]
+    r.indices = obj.indices[k1:k2]
+    return r
+  } else {
+    k1 := sort.SearchInts(obj.indices, i)
+    k2 := sort.SearchInts(obj.indices, j)
+    r  := NilSparseConstRealVector(j-i)
+    r.values  = obj.values[k1:k2]
+    r.indices = make([]int, k2-k1)
+    for k := k1; k < k2; k++ {
+      r.indices[k-k1] = obj.indices[k] - i
+    }
+    return r
   }
-  return r
 }
 
 func (obj SparseConstRealVector) GetValues() []float64 {

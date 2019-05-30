@@ -138,7 +138,7 @@ func (obj *LogisticRegression) GetData() ([]ConstVector, int) {
   return obj.x, obj.n
 }
 
-// x_i = (class_label, 1.0, x_i1, x_i2, ..., x_im)
+// x_i = (1.0, x_i1, x_i2, ..., x_im, class_label)
 func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   obj.n = n
   // reset data
@@ -157,42 +157,42 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
       }
-      if x[i].ValueAt(1) != 1.0 {
-        return fmt.Errorf("second element of data vector must be set to one")
+      if x[i].ValueAt(0) != 1.0 {
+        return fmt.Errorf("first element of data vector must be set to one")
       }
-      t := x[i].ConstSlice(1, x[1].Dim())
+      t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
       case SparseConstRealVector:
         obj.x_sparse = append(obj.x_sparse, a)
       default:
         obj.x_sparse = append(obj.x_sparse, AsSparseConstRealVector(t))
       }
-      obj.x = append(obj.x, obj.x_sparse[i])
     }
   } else {
     for i, _ := range x {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
       }
-      if x[i].ValueAt(1) != 1.0 {
-        return fmt.Errorf("second element of data vector must be set to one")
+      if x[i].ValueAt(0) != 1.0 {
+        return fmt.Errorf("first element of data vector must be set to one")
       }
-      t := x[i].ConstSlice(1, x[1].Dim())
+      t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
       case DenseConstRealVector:
         obj.x_dense = append(obj.x_dense, a)
       default:
         obj.x_dense = append(obj.x_dense, AsDenseConstRealVector(t))
       }
-      obj.x = append(obj.x, obj.x_dense[i])
     }
   }
   for i, _ := range x {
-    switch x[i].ConstAt(0).GetValue() {
+    v := x[i].ValueAt(x[i].Dim()-1)
+    switch v {
     case 1.0: obj.c = append(obj.c, true )
     case 0.0: obj.c = append(obj.c, false)
-    default : return fmt.Errorf("invalid class label `%v'", x[i].ConstAt(0))
+    default : return fmt.Errorf("invalid class label `%f'", v)
     }
+    obj.x = append(obj.x, x[i])
   }
   obj.setStepSize()
   return nil
@@ -284,11 +284,15 @@ func (obj *LogisticRegression) setStepSize() {
   for i, _ := range obj.x {
     r  := 0.0
     it := obj.x[i].ConstIterator()
-    // skep first element (class)
+    // skip first element
     if it.Ok() {
       it.Next()
     }
     for ; it.Ok(); it.Next() {
+      // skip last element
+      if it.Index() == obj.x[i].Dim()-1 {
+        break
+      }
       r += it.GetConst().GetValue()*it.GetConst().GetValue()
     }
     if r > max_squared_sum {
