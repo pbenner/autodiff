@@ -89,6 +89,14 @@ func (config ConfigDistribution) ExportJson(filename string) error {
 
 /* -------------------------------------------------------------------------- */
 
+func (config ConfigDistribution) getBool(a interface{}) (bool, bool) {
+  switch reflect.TypeOf(a).Kind() {
+  case reflect.Bool:
+    return bool(reflect.ValueOf(a).Bool()), true
+  }
+  return false, false
+}
+
 func (config ConfigDistribution) getFloat(a interface{}) (float64, bool) {
   switch reflect.TypeOf(a).Kind() {
   case reflect.Float64:
@@ -234,6 +242,13 @@ func (config ConfigDistribution) GetNamedParameterAsScalar(name string, t Scalar
   }
 }
 
+func (config ConfigDistribution) GetNamedParameterAsBool(name string) (bool, bool) {
+  if p, ok := config.GetNamedParameter(name); ok {
+    return config.getBool(p)
+  }
+  return false, false
+}
+
 func (config ConfigDistribution) GetNamedParameterAsFloat(name string) (float64, bool) {
   if p, ok := config.GetNamedParameter(name); ok {
     return config.getFloat(p)
@@ -246,6 +261,13 @@ func (config ConfigDistribution) GetNamedParameterAsInt(name string) (int, bool)
     return config.getInt(p)
   }
   return 0, false
+}
+
+func (config ConfigDistribution) GetNamedParameterAsString(name string) (string, bool) {
+  if p, ok := config.GetNamedParameter(name); ok {
+    return config.getString(p)
+  }
+  return "", false
 }
 
 func (config ConfigDistribution) GetNamedParametersAsVector(name string, t ScalarType) (Vector, bool) {
