@@ -84,6 +84,7 @@ func (config ConfigDistribution) ExportJson(filename string) error {
   if err != nil {
     return err
   }
+  defer f.Close()
   return config.WriteJson(f)
 }
 
