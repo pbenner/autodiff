@@ -83,13 +83,14 @@ type LogisticRegression struct {
   c        []bool
   stepSize   float64
   // optional parameters
-  Epsilon       float64
-  L1Reg         float64
-  L2Reg         float64
-  TiReg         float64
-  MaxIterations int
-  Seed          int64
-  Hook          func(x ConstVector, step ConstScalar, i int) bool
+  Epsilon         float64
+  L1Reg           float64
+  L2Reg           float64
+  TiReg           float64
+  MaxIterations   int
+  ClassWeights [2]float64
+  Seed            int64
+  Hook            func(x ConstVector, step ConstScalar, i int) bool
 }
 
 /* -------------------------------------------------------------------------- */
@@ -97,9 +98,11 @@ type LogisticRegression struct {
 func NewLogisticRegression(n int, sparse bool) (*LogisticRegression, error) {
   r := LogisticRegression{}
   r.logisticRegression.Theta = NullDenseBareRealVector(n)
-  r.Epsilon       = 1e-5
-  r.MaxIterations = int(^uint(0) >> 1)
-  r.sparse        = sparse
+  r.Epsilon         = 1e-5
+  r.MaxIterations   = int(^uint(0) >> 1)
+  r.ClassWeights[0] = 1.0
+  r.ClassWeights[1] = 1.0
+  r.sparse          = sparse
   return &r, nil
 }
 
@@ -348,9 +351,9 @@ func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstR
   }
   y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(math.Exp(r) - 1.0)
+    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
   } else {
-    w = ConstReal(math.Exp(r))
+    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
   }
   return y, w, x[i], nil
 }
@@ -374,9 +377,9 @@ func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (Const
   }
   y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(math.Exp(r) - 1.0)
+    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
   } else {
-    w = ConstReal(math.Exp(r))
+    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
   }
   return y, w, x[i], nil
 }
