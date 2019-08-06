@@ -83,6 +83,7 @@ type LogisticRegression struct {
   c        []bool
   stepSize   float64
   // optional parameters
+  Balance         bool
   Epsilon         float64
   L1Reg           float64
   L2Reg           float64
@@ -196,6 +197,18 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     default : return fmt.Errorf("invalid class label `%f'", v)
     }
     obj.x = append(obj.x, x[i])
+  }
+  if obj.Balance {
+    n1 := 0
+    n0 := 0
+    for i := 0; i < len(obj.c); i++ {
+      switch obj.c[i] {
+      case true : n1++
+      case false: n0++
+      }
+    }
+    obj.ClassWeights[1] = 1.0/float64(n1)
+    obj.ClassWeights[0] = 1.0/float64(n0)
   }
   obj.setStepSize()
   return nil
