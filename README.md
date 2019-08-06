@@ -90,7 +90,6 @@ The algorithms package contains more complex linear algebra and optimization rou
 | gaussJordan         | Gauss-Jordan algorithm                                  |
 | gradientDescent     | Vanilla gradient desent algorithm                       |
 | gramSchmidt         | Gram-Schmidt algorithm                                  |
-| svd                 | Singular Value Decomposition (SVD)                      |
 | hessenbergReduction | Matrix Hessenberg reduction                             |
 | lineSearch          | Line-search (satisfying the Wolfe conditions)           |
 | matrixInverse       | Matrix inverse                                          |
@@ -99,6 +98,8 @@ The algorithms package contains more complex linear algebra and optimization rou
 | newton              | Newton's method (root finding and optimization)         |
 | qrAlgorithm         | QR-Algorithm for computing Schur decompositions         |
 | rprop               | Resilient backpropagation                               |
+| svd                 | Singular Value Decomposition (SVD)                      |
+| saga                | SAGA stochastic average gradient descent method         |
 
 ## Basic usage
 
