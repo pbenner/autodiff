@@ -254,7 +254,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   case obj.TiReg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorTi{obj.TiReg}}
   }
   if obj.sparse {
-    if r, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
+    if r, s, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.Hook            {obj.Hook},
       saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
@@ -264,10 +264,11 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.JitUpdate       {jitUpdate}); err != nil {
       return err
     } else {
+      obj.Seed = s
       obj.SetParameters(r)
     }
   } else {
-    if r, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), obj.Theta,
+    if r, s, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), obj.Theta,
       saga.Hook            {obj.Hook},
       saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
@@ -277,6 +278,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.JitUpdate       {jitUpdate}); err != nil {
       return err
     } else {
+      obj.Seed = s
       obj.SetParameters(r)
     }
   }

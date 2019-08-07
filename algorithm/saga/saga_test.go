@@ -191,7 +191,7 @@ func Test1(test *testing.T) {
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(WrapperDense(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, _, err := Run(WrapperDense(f), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
@@ -219,7 +219,7 @@ func Test2(test *testing.T) {
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(Objective1Dense(f_dense(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, _, err := Run(Objective1Dense(f_dense(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
@@ -247,7 +247,7 @@ func Test3(test *testing.T) {
   z := DenseConstRealVector([]float64{-3.549076e+00, 1.840901e-01, 5.067003e-01})
   t := NullReal()
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, _, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
@@ -275,7 +275,7 @@ func Test4(test *testing.T) {
   z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
   t := NullReal()
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
+  if r, _, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-8}, L1Regularization{0.0}, L2Regularization{0.0}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
@@ -304,7 +304,7 @@ func Test5(test *testing.T) {
   t := NullReal()
   p := proximalWrapper{&ProximalOperatorL1{1.0/2.5}}
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p}); err != nil {
+  if r, _, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
@@ -348,14 +348,14 @@ func Test6(test *testing.T) {
     return false
   }
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook1}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p1}); err != nil {
+  if r, _, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook1}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p1}); err != nil {
     test.Error(err)
   } else {
     if t1.Vnorm(t2.VsubV(r, z)); t1.GetValue() > 1e-4 {
       test.Error("test failed")
     }
   }
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook2}, Gamma{1.0/20}, Epsilon{1e-12}, JitUpdate{p2}); err != nil {
+  if r, _, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{hook2}, Gamma{1.0/20}, Epsilon{1e-12}, JitUpdate{p2}); err != nil {
     test.Error(err)
   } else {
     if t1.Vnorm(t2.VsubV(r, z)); t1.GetValue() > 1e-4 {
@@ -393,7 +393,7 @@ func Test7(test *testing.T) {
   t := NullReal()
   p := proximalWrapper{&ProximalOperatorTi{1.0/2.5}}
 
-  if r, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p}); err != nil {
+  if r, _, err := Run(Objective1Sparse(f_sparse(class, x)), len(cellSize), theta_0, Hook{}, Gamma{1.0/20}, Epsilon{1e-12}, ProximalOperator{p}); err != nil {
     test.Error(err)
   } else {
     if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {

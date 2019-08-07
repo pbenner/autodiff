@@ -261,7 +261,7 @@ func EvalStopping(xs, x1 DenseBareRealVector, epsilon float64) (bool, float64, e
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
+func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, int64, error) {
 
   hook          := Hook                  { nil}
   epsilon       := Epsilon               {1e-8}
@@ -310,17 +310,17 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
     if l2reg.Value != 0.0 { m++ }
     if tireg.Value != 0.0 { m++ }
     if m > 1 {
-      return x, fmt.Errorf("multiple regularizations are not supported")
+      return x, seed.Value, fmt.Errorf("multiple regularizations are not supported")
     }
   }
   if l1reg.Value < 0.0 {
-    return x, fmt.Errorf("invalid l1-regularization constant")
+    return x, seed.Value, fmt.Errorf("invalid l1-regularization constant")
   }
   if l2reg.Value < 0.0 {
-    return x, fmt.Errorf("invalid l2-regularization constant")
+    return x, seed.Value, fmt.Errorf("invalid l2-regularization constant")
   }
   if tireg.Value < 0.0 {
-    return x, fmt.Errorf("invalid ti-regularization constant")
+    return x, seed.Value, fmt.Errorf("invalid ti-regularization constant")
   }
   // initialize proximal operator
   switch {
@@ -330,7 +330,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, error) {
   }
   // check arguments
   if proxop.Value != nil && jitUpdate.Value != nil {
-    return x, fmt.Errorf("invalid arguments")
+    return x, seed.Value, fmt.Errorf("invalid arguments")
   }
   // rescale lambda
   if proxop.Value != nil {

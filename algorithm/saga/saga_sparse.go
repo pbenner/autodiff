@@ -86,7 +86,7 @@ func saga1Sparse(
   proxop ProximalOperatorType,
   hook Hook,
   seed Seed,
-  inSitu *InSitu) (Vector, error) {
+  inSitu *InSitu) (Vector, int64, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
   // length of gradient
@@ -112,10 +112,10 @@ func saga1Sparse(
   // initialize s and d
   dict := make([]ConstGradientSparse, n)
   for i := 0; i < n; i++ {
-    if _, w, g, err := f(i, x1); err != nil {
-      return nil, err
+    if _, w, gt, err := f(i, x1); err != nil {
+      return nil, seed.Value, err
     } else {
-      dict[i].set(w, g)
+      dict[i].set(w, gt)
       dict[i].add(s)
     }
   }
@@ -126,10 +126,10 @@ func saga1Sparse(
       // get old gradient
       g1 = dict[j]
       // evaluate objective function
-      if _, w, g, err := f(j, x1); err != nil {
-        return x1, err
+      if _, w, gt, err := f(j, x1); err != nil {
+        return x1, g.Int63(), err
       } else {
-        g2.set(w, g)
+        g2.set(w, gt)
       }
       gw1 := g1.w.GetValue()
       gw2 := g2.w.GetValue()
@@ -156,7 +156,7 @@ func saga1Sparse(
       dict[j].set(g2.w, g2.g)
     }
     if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
-      return x1, err
+      return x1, g.Int63(), err
     } else {
       // execute hook if available
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
@@ -165,7 +165,7 @@ func saga1Sparse(
     }
     xs.SET(x1)
   }
-  return x1, nil
+  return x1, g.Int63(), nil
 }
 func saga2Sparse(
   f Objective2Sparse,
@@ -177,7 +177,7 @@ func saga2Sparse(
   proxop ProximalOperatorType,
   hook Hook,
   seed Seed,
-  inSitu *InSitu) (Vector, error) {
+  inSitu *InSitu) (Vector, int64, error) {
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
   // length of gradient
@@ -203,10 +203,10 @@ func saga2Sparse(
   // initialize s and d
   dict := make([]GradientSparse, n)
   for i := 0; i < n; i++ {
-    if _, g, err := f(i, x1); err != nil {
-      return nil, err
+    if _, gt, err := f(i, x1); err != nil {
+      return nil, seed.Value, err
     } else {
-      dict[i].set(g)
+      dict[i].set(gt)
       dict[i].add(s)
     }
   }
@@ -217,10 +217,10 @@ func saga2Sparse(
       // get old gradient
       g1 = dict[j]
       // evaluate objective function
-      if _, g, err := f(j, x1); err != nil {
-        return x1, err
+      if _, gt, err := f(j, x1); err != nil {
+        return x1, g.Int63(), err
       } else {
-        g2.set(g)
+        g2.set(gt)
       }
       if proxop == nil {
         for i := 0; i < s.Dim(); i++ {
@@ -247,7 +247,7 @@ func saga2Sparse(
       dict[j].set(g2.g)
     }
     if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
-      return x1, err
+      return x1, g.Int63(), err
     } else {
       // execute hook if available
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
@@ -256,5 +256,5 @@ func saga2Sparse(
     }
     xs.SET(x1)
   }
-  return x1, nil
+  return x1, g.Int63(), nil
 }

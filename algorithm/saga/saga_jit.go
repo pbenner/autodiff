@@ -64,7 +64,7 @@ func sagaJit(
   jit JitUpdateType,
   hook Hook,
   seed Seed,
-  inSitu *InSitu) (Vector, error) {
+  inSitu *InSitu) (Vector, int64, error) {
 
   xs := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
@@ -85,10 +85,10 @@ func sagaJit(
   // initialize s and d
   dict := make([]GradientJit, n)
   for i := 0; i < n; i++ {
-    if _, w, g, err := f(i, x1); err != nil {
-      return nil, err
+    if _, w, gt, err := f(i, x1); err != nil {
+      return nil, seed.Value, err
     } else {
-      dict[i].Set(w, g)
+      dict[i].Set(w, gt)
       dict[i].Add(s)
     }
   }
@@ -106,10 +106,10 @@ func sagaJit(
         }
       }
       // evaluate objective function
-      if _, w, g, err := f(j, x1); err != nil {
-        return x1, err
+      if _, w, gt, err := f(j, x1); err != nil {
+        return x1, g.Int63(), err
       } else {
-        g2.Set(w, g)
+        g2.Set(w, gt)
       }
       c := BareReal(g2.W - g1.W)
       v := g1.G.GetSparseValues()
@@ -132,7 +132,7 @@ func sagaJit(
       xk[k] = 0
     }
     if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
-      return x1, err
+      return x1, g.Int63(), err
     } else {
       // execute hook if available
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
@@ -141,5 +141,5 @@ func sagaJit(
     }
     xs.SET(x1)
   }
-  return x1, nil
+  return x1, g.Int63(), nil
 }
