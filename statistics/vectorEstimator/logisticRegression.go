@@ -234,7 +234,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   case obj.L1Reg != 0.0 || (obj.L2Reg == 0.0 && obj.TiReg == 0.0):
     if obj.sparse {
       // use specialized saga implementation
-      if r, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
+      if r, s, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
         saga.L1Regularization{obj.L1Reg},
         saga.Gamma           {obj.stepSize},
         saga.Epsilon         {obj.Epsilon},
@@ -243,6 +243,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
         saga.Seed            {obj.Seed}); err != nil {
         return err
       } else {
+        obj.Seed = s
         obj.SetParameters(r)
         return nil
       }
@@ -441,7 +442,7 @@ func sagaLogisticRegressionL1(
   epsilon saga.Epsilon,
   maxIterations saga.MaxIterations,
   hook saga.Hook,
-  seed saga.Seed) (DenseBareRealVector, error) {
+  seed saga.Seed) (DenseBareRealVector, int64, error) {
 
   x0 := AsDenseBareRealVector(x)
   x1 := AsDenseBareRealVector(x)
@@ -471,7 +472,7 @@ func sagaLogisticRegressionL1(
   dict := make([]saga.GradientJit, n)
   for i := 0; i < n; i++ {
     if _, w, g, err := f(i, nil); err != nil {
-      return nil, err
+      return nil, seed.Value, err
     } else {
       dict[i].Set(w, g)
     }
@@ -506,10 +507,10 @@ func sagaLogisticRegressionL1(
         }
       }
       // evaluate objective function
-      if _, w, g, err := f(j, x1); err != nil {
-        return x1, err
+      if _, w, gt, err := f(j, x1); err != nil {
+        return x1, g.Int63(), err
       } else {
-        g2.Set(w, g)
+        g2.Set(w, gt)
       }
       c := BareReal(g2.W - g1.W)
       v := g1.G.GetSparseValues()
@@ -540,7 +541,7 @@ func sagaLogisticRegressionL1(
       xk[k] = 0
     }
     if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value*gamma.Value); stop {
-      return x1, err
+      return x1, g.Int63(), err
     } else {
       // execute hook if available
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
@@ -549,5 +550,5 @@ func sagaLogisticRegressionL1(
     }
     x0.SET(x1)
   }
-  return x1, nil
+  return x1, g.Int63(), nil
 }
