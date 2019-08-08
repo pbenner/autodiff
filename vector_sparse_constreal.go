@@ -42,6 +42,8 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
   }
   sort.Sort(sortIntFloat{indices, values})
   r := NilSparseConstRealVector(n)
+  r.indices = indices[0:0]
+  r.values  = make([]ConstReal, 0, len(values))
   for i, k := range indices {
     if k >= n {
       panic("index larger than vector dimension")
@@ -87,6 +89,14 @@ func (obj SparseConstRealVector) GetSparseIndices() []int {
 
 func (obj SparseConstRealVector) GetSparseValues() []ConstReal {
   return obj.values
+}
+
+func (obj SparseConstRealVector) SetSparseIndices(indices []int) {
+  obj.indices = indices
+}
+
+func (obj SparseConstRealVector) SetSparseValues(values []ConstReal) {
+  obj.values = values
 }
 
 /* const vector methods
