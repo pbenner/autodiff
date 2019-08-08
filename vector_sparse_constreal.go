@@ -91,11 +91,11 @@ func (obj SparseConstRealVector) GetSparseValues() []ConstReal {
   return obj.values
 }
 
-func (obj SparseConstRealVector) SetSparseIndices(indices []int) {
+func (obj *SparseConstRealVector) SetSparseIndices(indices []int) {
   obj.indices = indices
 }
 
-func (obj SparseConstRealVector) SetSparseValues(values []ConstReal) {
+func (obj *SparseConstRealVector) SetSparseValues(values []ConstReal) {
   obj.values = values
 }
 
