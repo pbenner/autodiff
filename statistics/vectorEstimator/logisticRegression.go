@@ -189,14 +189,32 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       }
     }
   }
+  obj.c = make([]bool       , len(x))
+  obj.x = make([]ConstVector, len(x))
   for i, _ := range x {
-    v := x[i].ValueAt(x[i].Dim()-1)
-    switch v {
-    case 1.0: obj.c = append(obj.c, true )
-    case 0.0: obj.c = append(obj.c, false)
-    default : return fmt.Errorf("invalid class label `%f'", v)
+    switch a := x[i].(type) {
+    case SparseConstRealVector:
+      // do not use ValueAt to prevent that an index
+      // for the sparse vector is constructed
+      j := a.GetSparseIndices()
+      v := a.GetSparseValues ()
+      if j[len(j)-1] != a.Dim()-1 {
+        panic("internal error")
+      }
+      switch v[len(v)-1] {
+      case 1.0: obj.c[i] = true
+      case 0.0: obj.c[i] = false
+        default : return fmt.Errorf("invalid class label `%f'", v)
+      }
+    default:
+      v := x[i].ValueAt(x[i].Dim()-1)
+      switch v {
+      case 1.0: obj.c[i] = true
+      case 0.0: obj.c[i] = false
+        default : return fmt.Errorf("invalid class label `%f'", v)
+      }
     }
-    obj.x = append(obj.x, x[i])
+    obj.x[i] = x[i]
   }
   if obj.Balance {
     n1 := 0
