@@ -226,8 +226,6 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.ClassWeights[1] = float64(n0+n1)/float64(2*n1)
     obj.ClassWeights[0] = float64(n0+n1)/float64(2*n0)
-    fmt.Println("obj.ClassWeights[1]:",obj.ClassWeights[1])
-    fmt.Println("obj.ClassWeights[0]:",obj.ClassWeights[0])
   }
   obj.setStepSize()
   return nil
