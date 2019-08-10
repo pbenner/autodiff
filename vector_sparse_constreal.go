@@ -35,6 +35,13 @@ type SparseConstRealVector struct {
 /* constructors
  * -------------------------------------------------------------------------- */
 
+func UnsafeSparseConstRealVector(indices []int, values []ConstReal, n int) SparseConstRealVector {
+  r := NilSparseConstRealVector(n)
+  r.indices = indices
+  r.values  = values
+  return r
+}
+
 // Allocate a new vector. Scalars are set to the given values.
 func NewSparseConstRealVector(indices []int, values []float64, n int) SparseConstRealVector {
   if len(indices) != len(values) {
@@ -91,12 +98,13 @@ func (obj SparseConstRealVector) GetSparseValues() []ConstReal {
   return obj.values
 }
 
-func (obj *SparseConstRealVector) SetSparseIndices(indices []int) {
-  obj.indices = indices
+func (obj SparseConstRealVector) First() (int, ConstReal) {
+  return obj.indices[0], obj.values[0]
 }
 
-func (obj *SparseConstRealVector) SetSparseValues(values []ConstReal) {
-  obj.values = values
+func (obj SparseConstRealVector) Last() (int, ConstReal) {
+  i := len(obj.indices) - 1
+  return obj.indices[i], obj.values[i]
 }
 
 /* const vector methods

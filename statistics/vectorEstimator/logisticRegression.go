@@ -161,9 +161,6 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
       }
-      if x[i].ValueAt(0) != 1.0 {
-        return fmt.Errorf("first element of data vector must be set to one")
-      }
       t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
       case SparseConstRealVector:
@@ -176,9 +173,6 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     for i, _ := range x {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
-      }
-      if x[i].ValueAt(0) != 1.0 {
-        return fmt.Errorf("first element of data vector must be set to one")
       }
       t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
@@ -196,22 +190,27 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     case SparseConstRealVector:
       // do not use ValueAt to prevent that an index
       // for the sparse vector is constructed
-      j := a.GetSparseIndices()
-      v := a.GetSparseValues ()
-      if j[len(j)-1] != a.Dim()-1 {
-        panic("internal error")
+      if j, v := a.First(); j != 0 || v != 1.0 {
+        return fmt.Errorf("first element of data vector must be set to one")
       }
-      switch v[len(v)-1] {
-      case 1.0: obj.c[i] = true
-      case 0.0: obj.c[i] = false
+      if j, v := a.Last (); j != a.Dim()-1 {
+        panic("internal error")
+      } else {
+        switch v {
+        case 1.0: obj.c[i] = true
+        case 0.0: obj.c[i] = false
         default : return fmt.Errorf("invalid class label `%f'", v)
+        }
       }
     default:
+      if x[i].ValueAt(0) != 1.0 {
+        return fmt.Errorf("first element of data vector must be set to one")
+      }
       v := x[i].ValueAt(x[i].Dim()-1)
       switch v {
       case 1.0: obj.c[i] = true
       case 0.0: obj.c[i] = false
-        default : return fmt.Errorf("invalid class label `%f'", v)
+      default : return fmt.Errorf("invalid class label `%f'", v)
       }
     }
     obj.x[i] = x[i]
@@ -227,6 +226,8 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.ClassWeights[1] = float64(n0+n1)/float64(2*n1)
     obj.ClassWeights[0] = float64(n0+n1)/float64(2*n0)
+    fmt.Println("obj.ClassWeights[1]:",obj.ClassWeights[1])
+    fmt.Println("obj.ClassWeights[0]:",obj.ClassWeights[0])
   }
   obj.setStepSize()
   return nil
