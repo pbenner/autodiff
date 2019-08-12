@@ -196,7 +196,9 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
         return fmt.Errorf("first element of data vector must be set to one")
       }
       if j, v := a.Last (); j != a.Dim()-1 {
-        panic("internal error")
+        // last entry is not the class label =>
+        // class is zero
+        obj.c[i] = false
       } else {
         switch v {
         case 1.0: obj.c[i] = true
