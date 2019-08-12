@@ -337,7 +337,8 @@ func (obj *LogisticRegression) setStepSize() {
       max_squared_sum = r
     }
   }
-  L  := (0.25*(max_squared_sum + 1.0) + obj.L2Reg/float64(obj.n))
+  L := (0.25*(max_squared_sum + 1.0) + obj.L2Reg/float64(obj.n))
+  L *= math.Max(obj.ClassWeights[0], obj.ClassWeights[1])
   obj.stepSize  = 1.0/(2.0*L + math.Min(2.0*obj.L2Reg, L))
   obj.stepSize *= obj.StepSizeFactor
 }
