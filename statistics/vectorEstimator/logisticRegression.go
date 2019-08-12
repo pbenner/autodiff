@@ -88,6 +88,7 @@ type LogisticRegression struct {
   L1Reg           float64
   L2Reg           float64
   TiReg           float64
+  StepSizeFactor  float64
   MaxIterations   int
   ClassWeights [2]float64
   Seed            int64
@@ -103,6 +104,7 @@ func NewLogisticRegression(n int, sparse bool) (*LogisticRegression, error) {
   r.MaxIterations   = int(^uint(0) >> 1)
   r.ClassWeights[0] = 1.0
   r.ClassWeights[1] = 1.0
+  r.StepSizeFactor  = 1.0
   r.sparse          = sparse
   return &r, nil
 }
@@ -336,7 +338,8 @@ func (obj *LogisticRegression) setStepSize() {
     }
   }
   L  := (0.25*(max_squared_sum + 1.0) + obj.L2Reg/float64(obj.n))
-  obj.stepSize = 1.0/(2.0*L + math.Min(2.0*obj.L2Reg, L))
+  obj.stepSize  = 1.0/(2.0*L + math.Min(2.0*obj.L2Reg, L))
+  obj.stepSize *= obj.StepSizeFactor
 }
 
 /* -------------------------------------------------------------------------- */
