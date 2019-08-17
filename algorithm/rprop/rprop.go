@@ -35,11 +35,11 @@ type MaxIterations struct {
 }
 
 type Hook struct {
-  Value func([]float64, []float64, Vector, Scalar) bool
+  Value func([]float64, []float64, ConstVector, Scalar) bool
 }
 
 type Constraints struct {
-  Value func(x Vector) bool
+  Value func(x ConstVector) bool
 }
 
 /* -------------------------------------------------------------------------- */
@@ -49,7 +49,7 @@ type Constraints struct {
  * Proceedings of the International Symposium on Computer and Information Science VII, 1992
  */
 
-func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []float64,
+func rprop(f func(Vector) (Scalar, error), x0 ConstVector, step_init float64 , eta []float64,
   epsilon Epsilon,
   maxIterations MaxIterations,
   hook Hook,
@@ -58,8 +58,8 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
   n := x0.Dim()
   t := x0.ElementType()
   // copy variables
-  x1 := x0.CloneVector()
-  x2 := x0.CloneVector()
+  x1 := AsDenseRealVector(x0)
+  x2 := AsDenseRealVector(x0)
   // step size for each variable
   step := make([]float64, n)
   // gradients
@@ -158,7 +158,7 @@ func rprop(f func(Vector) (Scalar, error), x0 Vector, step_init float64 , eta []
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f func(Vector) (Scalar, error), x0 Vector, step_init float64, eta []float64, args ...interface{}) (Vector, error) {
+func Run(f interface{}, x0 ConstVector, step_init float64, eta []float64, args ...interface{}) (ConstVector, error) {
 
   hook          := Hook       { nil}
   epsilon       := Epsilon    {1e-8}
@@ -183,5 +183,12 @@ func Run(f func(Vector) (Scalar, error), x0 Vector, step_init float64, eta []flo
       panic("Rprop(): Invalid optional argument!")
     }
   }
-  return rprop(f, x0, step_init, eta, epsilon, maxIterations, hook, constraints)
+  switch a := f.(type) {
+  case func(Vector) (Scalar, error):
+    return rprop(a, x0, step_init, eta, epsilon, maxIterations, hook, constraints)
+  case DenseGradientF:
+    return rprop_dense_with_gradient(a, x0.(DenseConstRealVector), step_init, eta, epsilon, maxIterations, hook, constraints)
+  default:
+    panic("invalid objective function")
+  }
 }

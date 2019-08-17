@@ -51,6 +51,14 @@ func AsDenseConstRealVector(v ConstVector) DenseConstRealVector {
 
 /* -------------------------------------------------------------------------- */
 
+func (v DenseConstRealVector) Clone() DenseConstRealVector {
+  r := make([]float64, v.Dim())
+  copy(r, v)
+  return r
+}
+
+/* -------------------------------------------------------------------------- */
+
 func (v DenseConstRealVector) Dim() int {
   return len(v)
 }

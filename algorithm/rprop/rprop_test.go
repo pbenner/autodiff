@@ -72,7 +72,7 @@ func TestRPropRosenbrock(t *testing.T) {
     t := Mul(b, Pow(Sub(x.At(1), Mul(x.At(0), x.At(0))), NewReal(2.0)))
     return Add(s, t), nil
   }
-  hook := func(gradient []float64, step []float64, x Vector, value Scalar) bool {
+  hook := func(gradient []float64, step []float64, x ConstVector, value Scalar) bool {
     fmt.Fprintf(fp, "%s\n", x.Table())
     return false
   }
@@ -83,7 +83,7 @@ func TestRPropRosenbrock(t *testing.T) {
     Hook{hook},
     Epsilon{1e-10})
 
-  if Vnorm(VsubV(xn, xr)).GetValue() > 1e-8 {
+  if Vnorm(xr.VsubV(xr, xn)).GetValue() > 1e-8 {
     t.Error("Rosenbrock test failed!")
   }
 }
