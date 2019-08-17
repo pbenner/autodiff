@@ -39,6 +39,10 @@ type Hook struct {
 }
 
 type Constraints struct {
+  Value func(x Vector) bool
+}
+
+type ConstConstraints struct {
   Value func(x ConstVector) bool
 }
 
@@ -158,17 +162,16 @@ func rprop(f func(Vector) (Scalar, error), x0 ConstVector, step_init float64 , e
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f interface{}, x0 ConstVector, step_init float64, eta []float64, args ...interface{}) (ConstVector, error) {
+func Run(f interface{}, x0 Vector, step_init float64, eta []float64, args ...interface{}) (Vector, error) {
 
-  hook          := Hook       { nil}
-  epsilon       := Epsilon    {1e-8}
-  constraints   := Constraints{ nil}
-  maxIterations := MaxIterations      {int(^uint(0) >> 1)}
+  hook          := Hook         { nil}
+  epsilon       := Epsilon      {1e-8}
+  constraints   := Constraints  { nil}
+  maxIterations := MaxIterations{int(^uint(0) >> 1)}
 
   if len(eta) != 2 {
     panic("Rprop(): Argument eta must have length two!")
   }
-
   for _, arg := range args {
     switch a := arg.(type) {
     case Hook:
@@ -186,6 +189,36 @@ func Run(f interface{}, x0 ConstVector, step_init float64, eta []float64, args .
   switch a := f.(type) {
   case func(Vector) (Scalar, error):
     return rprop(a, x0, step_init, eta, epsilon, maxIterations, hook, constraints)
+  default:
+    panic("invalid objective function")
+  }
+}
+
+func RunGradient(f interface{}, x0 ConstVector, step_init float64, eta []float64, args ...interface{}) (ConstVector, error) {
+
+  hook          := Hook            { nil}
+  epsilon       := Epsilon         {1e-8}
+  constraints   := ConstConstraints{ nil}
+  maxIterations := MaxIterations   {int(^uint(0) >> 1)}
+
+  if len(eta) != 2 {
+    panic("Rprop(): Argument eta must have length two!")
+  }
+  for _, arg := range args {
+    switch a := arg.(type) {
+    case Hook:
+      hook = a
+    case Epsilon:
+      epsilon = a
+    case ConstConstraints:
+      constraints = a
+    case MaxIterations:
+      maxIterations = a
+    default:
+      panic("Rprop(): Invalid optional argument!")
+    }
+  }
+  switch a := f.(type) {
   case DenseGradientF:
     return rprop_dense_with_gradient(a, x0.(DenseConstRealVector), step_init, eta, epsilon, maxIterations, hook, constraints)
   default:

@@ -40,7 +40,7 @@ import . "github.com/pbenner/autodiff/simple"
 /* gradient based optimization
  * -------------------------------------------------------------------------- */
 
-func hook_g(gradient, step []float64, px Vector, s Scalar) bool {
+func hook_g(gradient, step []float64, px ConstVector, s Scalar) bool {
   fmt.Println("px: ", px)
   return false
 }

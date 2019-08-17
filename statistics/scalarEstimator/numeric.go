@@ -158,7 +158,7 @@ func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   theta_0 := obj.ScalarPdf.GetParameters()
   theta_0  = AsVector(RealType, theta_0)
 
-  var theta_n Vector
+  var theta_n ConstVector
   var err error
 
   switch obj.Method {

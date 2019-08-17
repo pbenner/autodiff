@@ -60,7 +60,7 @@ func main() {
     t := Mul(b, Pow(Sub(x.At(1), Mul(x.At(0), x.At(0))), NewReal(2.0)))
     return Add(s, t), nil
   }
-  hook_rprop := func(gradient, step []float64, x Vector, y Scalar) bool {
+  hook_rprop := func(gradient, step []float64, x ConstVector, y Scalar) bool {
     fmt.Fprintf(fp1, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)

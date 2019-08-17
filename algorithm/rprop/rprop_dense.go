@@ -34,7 +34,7 @@ func rprop_dense_with_gradient(evalGradient DenseGradientF, x0 DenseConstRealVec
   epsilon Epsilon,
   maxIterations MaxIterations,
   hook Hook,
-  constraints Constraints) (DenseConstRealVector, error) {
+  constraints ConstConstraints) (DenseConstRealVector, error) {
 
   n := x0.Dim()
   // copy variables

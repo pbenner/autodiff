@@ -81,7 +81,7 @@ func norm(v []float64) float64 {
   return math.Sqrt(sum)
 }
 
-func hook(err *[]float64, gradient []float64, px Vector, s Scalar) bool {
+func hook(err *[]float64, gradient []float64, px ConstVector, s Scalar) bool {
   *err = append(*err, norm(gradient))
   return false
 }
@@ -102,7 +102,7 @@ func main() {
     gradientDescent.Epsilon{1e-8})
   // resilient backpropagation
   xn2, _ := rprop.Run(f, x0, 0.0001, []float64{1.2, 0.8},
-    rprop.Hook{func(gradient, step []float64, px Vector, s Scalar) bool { return hook(&err2, gradient, px, s) }},
+    rprop.Hook{func(gradient, step []float64, px ConstVector, s Scalar) bool { return hook(&err2, gradient, px, s) }},
     rprop.Epsilon{1e-8})
 
   fmt.Println(xn1)
