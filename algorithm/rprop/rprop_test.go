@@ -87,3 +87,36 @@ func TestRPropRosenbrock(t *testing.T) {
     t.Error("Rosenbrock test failed!")
   }
 }
+
+/* -------------------------------------------------------------------------- */
+
+func TestRPropRosenbrockGradient(t *testing.T) {
+
+  f := func(x, gradient DenseConstRealVector) error {
+    // f(x1, x2) = (a - x1)^2 + b(x2 - x1^2)^2
+    // a = 1
+    // b = 100
+    // minimum: (x1,x2) = (a, a^2)
+    a :=   1.0
+    b := 100.0
+    x1 := x[0]
+    x2 := x[1]
+    gradient[0] = -2*(a - x1) - 2*b*(x2 - x1*x1)*2*x1
+    gradient[1] = 2*b*(x2 - x1*x1)
+    return nil
+  }
+  // hook := func(gradient []float64, step []float64, x ConstVector, value Scalar) bool {
+  //   fmt.Printf("%s\n", x.Table())
+  //   return false
+  // }
+
+  x0 := DenseConstRealVector([]float64{-10,10})
+  xr := NewVector(RealType, []float64{  1, 1})
+  xn, _ := RunGradient(DenseGradientF(f), x0, 0.01, []float64{1.2, 0.8},
+    //Hook{hook},
+    Epsilon{1e-10})
+
+  if Vnorm(xr.VsubV(xr, xn)).GetValue() > 1e-8 {
+    t.Error("Rosenbrock test failed!")
+  }
+}
