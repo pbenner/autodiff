@@ -86,7 +86,7 @@ type LogisticRegression struct {
   Balance         bool
   Epsilon         float64
   L1Reg           float64
-  L1Auto          int
+  AutoReg         int
   L2Reg           float64
   TiReg           float64
   StepSizeFactor  float64
@@ -258,7 +258,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       // use specialized saga implementation
       if r, s, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
         saga.L1Regularization{obj.L1Reg},
-        saga.L1Auto          {obj.L1Auto},
+        saga.AutoReg         {obj.AutoReg},
         saga.Gamma           {obj.stepSize},
         saga.Epsilon         {obj.Epsilon},
         saga.MaxIterations   {obj.MaxIterations},
@@ -465,7 +465,7 @@ func sagaLogisticRegressionL1(
   n int,
   x DenseBareRealVector,
   l1reg  saga.L1Regularization,
-  l1auto saga.L1Auto,
+  autoReg saga.AutoReg,
   gamma saga.Gamma,
   epsilon saga.Epsilon,
   maxIterations saga.MaxIterations,
@@ -490,7 +490,7 @@ func sagaLogisticRegressionL1(
   t_g := BareReal(gamma.Value)
 
   // prevent that in auto-lambda mode the step size is initialized to zero
-  if l1auto.Value > 0 && l1reg.Value == 0.0 {
+  if autoReg.Value > 0 && l1reg.Value == 0.0 {
     l1reg.Value = 1.0
   }
   // jit update function
@@ -586,7 +586,7 @@ func sagaLogisticRegressionL1(
       }
     }
     // update lambda
-    if l1auto.Value > 0 {
+    if autoReg.Value > 0 {
       n_x_new = 0
       // count number of non-zero entries
       for k := 1; k < x1.Dim(); k++ {
@@ -595,17 +595,17 @@ func sagaLogisticRegressionL1(
         }
       }
       switch {
-      case n_x_old < l1auto.Value && n_x_new < l1auto.Value:
+      case n_x_old < autoReg.Value && n_x_new < autoReg.Value:
         l1_step = 1.2*l1_step
-      case n_x_old > l1auto.Value && n_x_new > l1auto.Value:
+      case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
         l1_step = 1.2*l1_step
       default:
         l1_step = 0.8*l1_step
       }
-      if n_x_new < l1auto.Value {
+      if n_x_new < autoReg.Value {
         jit.SetLambda(jit.GetLambda() - l1_step)
       } else
-      if n_x_new > l1auto.Value {
+      if n_x_new > autoReg.Value {
         jit.SetLambda(jit.GetLambda() + l1_step)
       }
       if jit.GetLambda() < 0.0 {

@@ -45,7 +45,7 @@ type TikhonovRegularization struct {
   Value float64
 }
 
-type L1Auto struct {
+type AutoReg struct {
   Value int
 }
 
@@ -272,7 +272,7 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, int64, er
   gamma         := Gamma                 {1.0/30.0}
   maxIterations := MaxIterations         {int(^uint(0) >> 1)}
   l1reg         := L1Regularization      { 0.0}
-  l1auto        := L1Auto                {   0}
+  autoReg       := AutoReg               {   0}
   l2reg         := L2Regularization      { 0.0}
   tireg         := TikhonovRegularization{ 0.0}
   proxop        := ProximalOperator      {}
@@ -292,8 +292,8 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, int64, er
       maxIterations = a
     case L1Regularization:
       l1reg = a
-    case L1Auto:
-      l1auto = a
+    case AutoReg:
+      autoReg = a
     case L2Regularization:
       l2reg = a
     case TikhonovRegularization:
@@ -349,20 +349,20 @@ func Run(f interface{}, n int, x Vector, args ...interface{}) (Vector, int64, er
   if jitUpdate.Value != nil {
     switch g := f.(type) {
     case Objective1Sparse:
-      return sagaJit(g, n, x, l1auto, gamma, epsilon, maxIterations, jitUpdate.Value, hook, seed, inSitu)
+      return sagaJit(g, n, x, autoReg, gamma, epsilon, maxIterations, jitUpdate.Value, hook, seed, inSitu)
     default:
       panic("invalid objective")
     }
   } else {
     switch g := f.(type) {
     case Objective1Dense:
-      return saga1Dense (g, n, x, l1auto, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
+      return saga1Dense (g, n, x, autoReg, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     case Objective2Dense:
-      return saga2Dense (g, n, x, l1auto, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
+      return saga2Dense (g, n, x, autoReg, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     case Objective1Sparse:
-      return saga1Sparse(g, n, x, l1auto, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
+      return saga1Sparse(g, n, x, autoReg, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     case Objective2Sparse:
-      return saga2Sparse(g, n, x, l1auto, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
+      return saga2Sparse(g, n, x, autoReg, gamma, epsilon, maxIterations, proxop.Value, hook, seed, inSitu)
     default:
       panic("invalid objective")
     }

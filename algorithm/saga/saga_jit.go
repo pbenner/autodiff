@@ -58,7 +58,7 @@ func sagaJit(
   f Objective1Sparse,
   n int,
   x Vector,
-  l1auto L1Auto,
+  autoReg AutoReg,
   gamma Gamma,
   epsilon Epsilon,
   maxIterations MaxIterations,
@@ -151,7 +151,7 @@ func sagaJit(
       }
     }
     // update lambda
-    if l1auto.Value > 0 {
+    if autoReg.Value > 0 {
       n_x_new = 0
       // count number of non-zero entries
       for k := 1; k < x1.Dim(); k++ {
@@ -160,17 +160,17 @@ func sagaJit(
         }
       }
       switch {
-      case n_x_old < l1auto.Value && n_x_new < l1auto.Value:
+      case n_x_old < autoReg.Value && n_x_new < autoReg.Value:
         l1_step = 1.2*l1_step
-      case n_x_old > l1auto.Value && n_x_new > l1auto.Value:
+      case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
         l1_step = 1.2*l1_step
       default:
         l1_step = 0.8*l1_step
       }
-      if n_x_new < l1auto.Value {
+      if n_x_new < autoReg.Value {
         jit.SetLambda(jit.GetLambda() - l1_step)
       } else
-      if n_x_new > l1auto.Value {
+      if n_x_new > autoReg.Value {
         jit.SetLambda(jit.GetLambda() + l1_step)
       }
       if jit.GetLambda() < 0.0 {
