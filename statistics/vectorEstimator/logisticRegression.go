@@ -595,8 +595,7 @@ func sagaLogisticRegressionL1(
         }
       }
       switch {
-      case n_x_old < autoReg.Value && n_x_new < autoReg.Value:
-        l1_step = 1.2*l1_step
+      case n_x_old < autoReg.Value && n_x_new < autoReg.Value: fallthrough
       case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
         l1_step = 1.2*l1_step
       default:
