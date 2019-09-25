@@ -45,6 +45,10 @@ type TikhonovRegularization struct {
   Value float64
 }
 
+type L1Auto struct {
+  Value int
+}
+
 type ProximalOperator struct {
   Value ProximalOperatorType
 }
