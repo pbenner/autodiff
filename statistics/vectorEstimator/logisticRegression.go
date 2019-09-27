@@ -147,12 +147,6 @@ func (obj *LogisticRegression) GetData() ([]ConstVector, int) {
 
 // x_i = (1.0, x_i1, x_i2, ..., x_im, class_label)
 func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
-  obj.n = n
-  // reset data
-  obj.x_sparse = nil
-  obj.x_dense  = nil
-  obj.x        = nil
-  obj.c        = nil
   if len(x) == 0 {
     return nil
   }
@@ -160,6 +154,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     return fmt.Errorf("LogisticRegression: data has invalid dimension: got data of dimension `%d' but expected dimension `%d'", x[0].Dim(), k)
   }
   if obj.sparse {
+    x_sparse := make([]ConstVector, len(x))
     for i, _ := range x {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
@@ -167,12 +162,15 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
       case SparseConstRealVector:
-        obj.x_sparse = append(obj.x_sparse, a)
+        x_sparse[i] = a
       default:
-        obj.x_sparse = append(obj.x_sparse, AsSparseConstRealVector(t))
+        x_sparse[i] = AsSparseConstRealVector(t)
       }
     }
+    obj.SetSparseData(x_sparse, n)
+    obj.setStepSize()
   } else {
+    x_dense := make([]ConstVector, len(x))
     for i, _ := range x {
       if x[i].Dim() != x[0].Dim() {
         return fmt.Errorf("data has inconsistent dimensions")
@@ -180,11 +178,13 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
       case DenseConstRealVector:
-        obj.x_dense = append(obj.x_dense, a)
+        x_dense[i] = a
       default:
-        obj.x_dense = append(obj.x_dense, AsDenseConstRealVector(t))
+        x_dense[i] = AsDenseConstRealVector(t)
       }
     }
+    obj.SetDenseData(x_dense, n)
+    obj.setStepSize()
   }
   obj.c = make([]bool       , len(x))
   obj.x = make([]ConstVector, len(x))
@@ -220,6 +220,12 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.x[i] = x[i]
   }
+  obj.SetLabels(obj.c)
+  return nil
+}
+
+func (obj *LogisticRegression) SetLabels(c []bool) error {
+  obj.c = c
   if obj.Balance {
     n1 := 0
     n0 := 0
@@ -231,6 +237,41 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.ClassWeights[1] = float64(n0+n1)/float64(2*n1)
     obj.ClassWeights[0] = float64(n0+n1)/float64(2*n0)
+  }
+  return nil
+}
+
+func (obj *LogisticRegression) SetSparseData(x []ConstVector, n int) error {
+  obj.n        = n
+  obj.x        = nil
+  obj.x_sparse = make([]SparseConstRealVector, len(x))
+  obj.x_dense  = nil
+  obj.sparse   = true
+  for i, _ := range x {
+    switch a := x[i].(type) {
+    case SparseConstRealVector:
+      obj.x_sparse[i] = a
+    default:
+      return fmt.Errorf("data is not of type SparseConstRealVector")
+    }
+  }
+  obj.setStepSize()
+  return nil
+}
+
+func (obj *LogisticRegression) SetDenseData(x []ConstVector, n int) error {
+  obj.n        = n
+  obj.x        = nil
+  obj.x_sparse = nil
+  obj.x_dense  = make([]DenseConstRealVector, len(x))
+  obj.sparse   = false
+  for i, _ := range x {
+    switch a := x[i].(type) {
+    case DenseConstRealVector:
+      obj.x_dense[i] = a
+    default:
+      return fmt.Errorf("data is not of type DenseConstRealVector")
+    }
   }
   obj.setStepSize()
   return nil
@@ -253,26 +294,23 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   var proxop    saga.ProximalOperatorType
   var jitUpdate saga.JitUpdateType
   switch {
-  case obj.L1Reg != 0.0 || (obj.L2Reg == 0.0 && obj.TiReg == 0.0):
-    if obj.sparse {
-      // use specialized saga implementation
-      if r, s, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
-        saga.L1Regularization{obj.L1Reg},
-        saga.AutoReg         {obj.AutoReg},
-        saga.Gamma           {obj.stepSize},
-        saga.Epsilon         {obj.Epsilon},
-        saga.MaxIterations   {obj.MaxIterations},
-        saga.Hook            {obj.Hook},
-        saga.Seed            {obj.Seed}); err != nil {
-        return err
-      } else {
-        obj.Seed = s
-        obj.SetParameters(r)
-        return nil
-      }
+  case obj.sparse && obj.L2Reg == 0.0 && obj.TiReg == 0.0:
+    // use specialized saga implementation
+    if r, s, err := sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
+      saga.L1Regularization{obj.L1Reg},
+      saga.AutoReg         {obj.AutoReg},
+      saga.Gamma           {obj.stepSize},
+      saga.Epsilon         {obj.Epsilon},
+      saga.MaxIterations   {obj.MaxIterations},
+      saga.Hook            {obj.Hook},
+      saga.Seed            {obj.Seed}); err != nil {
+      return err
     } else {
-      proxop = proximalWrapper{&saga.ProximalOperatorL1{obj.L1Reg}}
+      obj.Seed = s
+      obj.SetParameters(r)
+      return nil
     }
+  case obj.L1Reg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorL1{obj.L1Reg}}
   case obj.L2Reg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorL2{obj.L2Reg}}
   case obj.TiReg != 0.0: proxop = proximalWrapper{&saga.ProximalOperatorTi{obj.TiReg}}
   }
@@ -323,22 +361,35 @@ func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
 
 func (obj *LogisticRegression) setStepSize() {
   max_squared_sum := 0.0
-  for i, _ := range obj.x {
-    r  := 0.0
-    it := obj.x[i].ConstIterator()
-    // skip first element
-    if it.Ok() {
-      it.Next()
-    }
-    for ; it.Ok(); it.Next() {
-      // skip last element
-      if it.Index() == obj.x[i].Dim()-1 {
-        break
+  if obj.sparse {
+    for _, x := range obj.x_sparse {
+      r  := 0.0
+      it := x.ConstIterator()
+      // skip first element
+      if it.Ok() {
+        it.Next()
       }
-      r += it.GetConst().GetValue()*it.GetConst().GetValue()
+      for ; it.Ok(); it.Next() {
+        r += it.GetConst().GetValue()*it.GetConst().GetValue()
+      }
+      if r > max_squared_sum {
+        max_squared_sum = r
+      }
     }
-    if r > max_squared_sum {
-      max_squared_sum = r
+  } else {
+    for _, x := range obj.x_dense {
+      r  := 0.0
+      it := x.ConstIterator()
+      // skip first element
+      if it.Ok() {
+        it.Next()
+      }
+      for ; it.Ok(); it.Next() {
+        r += it.GetConst().GetValue()*it.GetConst().GetValue()
+      }
+      if r > max_squared_sum {
+        max_squared_sum = r
+      }
     }
   }
   L := (0.25*(max_squared_sum + 1.0) + obj.L2Reg/float64(obj.n))
