@@ -167,7 +167,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
         x_sparse[i] = AsSparseConstRealVector(t)
       }
     }
-    obj.SetSparseData(x_sparse, n)
+    obj.SetSparseData(x_sparse, nil, n)
     obj.setStepSize()
   } else {
     x_dense := make([]ConstVector, len(x))
@@ -183,7 +183,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
         x_dense[i] = AsDenseConstRealVector(t)
       }
     }
-    obj.SetDenseData(x_dense, n)
+    obj.SetDenseData(x_dense, nil, n)
     obj.setStepSize()
   }
   obj.c = make([]bool       , len(x))
@@ -220,11 +220,11 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.x[i] = x[i]
   }
-  obj.SetLabels(obj.c)
+  obj.setLabels(obj.c)
   return nil
 }
 
-func (obj *LogisticRegression) SetLabels(c []bool) error {
+func (obj *LogisticRegression) setLabels(c []bool) {
   obj.c = c
   if obj.Balance {
     n1 := 0
@@ -238,10 +238,9 @@ func (obj *LogisticRegression) SetLabels(c []bool) error {
     obj.ClassWeights[1] = float64(n0+n1)/float64(2*n1)
     obj.ClassWeights[0] = float64(n0+n1)/float64(2*n0)
   }
-  return nil
 }
 
-func (obj *LogisticRegression) SetSparseData(x []ConstVector, n int) error {
+func (obj *LogisticRegression) SetSparseData(x []ConstVector, c []bool, n int) error {
   obj.n        = n
   obj.x        = nil
   obj.x_sparse = make([]SparseConstRealVector, len(x))
@@ -256,10 +255,11 @@ func (obj *LogisticRegression) SetSparseData(x []ConstVector, n int) error {
     }
   }
   obj.setStepSize()
+  obj.setLabels(c)
   return nil
 }
 
-func (obj *LogisticRegression) SetDenseData(x []ConstVector, n int) error {
+func (obj *LogisticRegression) SetDenseData(x []ConstVector, c []bool, n int) error {
   obj.n        = n
   obj.x        = nil
   obj.x_sparse = nil
@@ -274,6 +274,7 @@ func (obj *LogisticRegression) SetDenseData(x []ConstVector, n int) error {
     }
   }
   obj.setStepSize()
+  obj.setLabels(c)
   return nil
 }
 
