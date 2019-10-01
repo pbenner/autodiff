@@ -87,6 +87,7 @@ type LogisticRegression struct {
   Epsilon         float64
   L1Reg           float64
   AutoReg         int
+  Eta          [2]float64
   L2Reg           float64
   TiReg           float64
   StepSizeFactor  float64
@@ -106,6 +107,8 @@ func NewLogisticRegression(n int, sparse bool) (*LogisticRegression, error) {
   r.MaxIterations   = int(^uint(0) >> 1)
   r.ClassWeights[0] = 1.0
   r.ClassWeights[1] = 1.0
+  r.Eta[0]          = 1.1
+  r.Eta[1]          = 0.9
   r.StepSizeFactor  = 1.0
   r.sparse          = sparse
   return &r, nil
@@ -303,6 +306,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
+      saga.Eta             {obj.Eta},
       saga.MaxIterations   {obj.MaxIterations},
       saga.Hook            {obj.Hook},
       saga.Seed            {obj.Seed}); err != nil {
@@ -319,8 +323,10 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   if obj.sparse {
     if r, s, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.Hook            {obj.Hook},
+      saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
+      saga.Eta             {obj.Eta},
       saga.MaxIterations   {obj.MaxIterations},
       saga.Seed            {obj.Seed},
       saga.ProximalOperator{proxop},
@@ -333,7 +339,9 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   } else {
     if r, s, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), obj.Theta,
       saga.Hook            {obj.Hook},
+      saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
+      saga.Eta             {obj.Eta},
       saga.Epsilon         {obj.Epsilon},
       saga.MaxIterations   {obj.MaxIterations},
       saga.Seed            {obj.Seed},
@@ -515,7 +523,7 @@ type sagaLogisticRegressionL1state struct {
   jit             sagaJitUpdateL1
 }
 
-func (obj *LogisticRegression) sagaLogisticRegressionL1(
+func (obj *sagaLogisticRegressionL1state) sagaLogisticRegressionL1(
   f saga.Objective1Sparse,
   n int,
   x DenseBareRealVector,
@@ -523,6 +531,7 @@ func (obj *LogisticRegression) sagaLogisticRegressionL1(
   autoReg saga.AutoReg,
   gamma saga.Gamma,
   epsilon saga.Epsilon,
+  eta saga.Eta,
   maxIterations saga.MaxIterations,
   hook saga.Hook,
   seed saga.Seed) (DenseBareRealVector, int64, error) {
@@ -649,9 +658,9 @@ func (obj *LogisticRegression) sagaLogisticRegressionL1(
       switch {
       case obj.n_x_old < autoReg.Value && obj.n_x_new < autoReg.Value: fallthrough
       case obj.n_x_old > autoReg.Value && obj.n_x_new > autoReg.Value:
-        obj.l1_step = 1.2*obj.l1_step
+        obj.l1_step = eta.Value[0]*obj.l1_step
       default:
-        obj.l1_step = 0.8*obj.l1_step
+        obj.l1_step = eta.Value[1]*obj.l1_step
       }
       if obj.n_x_new < autoReg.Value {
         obj.jit.SetLambda(obj.jit.GetLambda() - obj.l1_step)

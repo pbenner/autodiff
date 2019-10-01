@@ -83,6 +83,7 @@ func saga1Sparse(
   autoReg AutoReg,
   gamma Gamma,
   epsilon Epsilon,
+  eta Eta,
   maxIterations MaxIterations,
   proxop ProximalOperatorType,
   hook Hook,
@@ -115,9 +116,9 @@ func saga1Sparse(
   l1_step := 0.0
   if proxop != nil {
     if l1_step == 0.0 {
-      l1_step = 0.1*gamma.Value/float64(n)
+      l1_step = 0.01*gamma.Value/float64(n)
     } else {
-      l1_step = 0.1*proxop.GetLambda()
+      l1_step = 0.01*proxop.GetLambda()
     }
   }
   // sum of gradients
@@ -188,9 +189,9 @@ func saga1Sparse(
       switch {
       case n_x_old < autoReg.Value && n_x_new < autoReg.Value: fallthrough
       case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
-        l1_step = 1.2*l1_step
+        l1_step = eta.Value[0]*l1_step
       default:
-        l1_step = 0.8*l1_step
+        l1_step = eta.Value[1]*l1_step
       }
       if n_x_new < autoReg.Value {
         proxop.SetLambda(proxop.GetLambda() - l1_step)
@@ -215,6 +216,7 @@ func saga2Sparse(
   autoReg AutoReg,
   gamma Gamma,
   epsilon Epsilon,
+  eta Eta,
   maxIterations MaxIterations,
   proxop ProximalOperatorType,
   hook Hook,
@@ -247,9 +249,9 @@ func saga2Sparse(
   l1_step := 0.0
   if proxop != nil {
     if l1_step == 0.0 {
-      l1_step = 0.1*gamma.Value/float64(n)
+      l1_step = 0.01*gamma.Value/float64(n)
     } else {
-      l1_step = 0.1*proxop.GetLambda()
+      l1_step = 0.01*proxop.GetLambda()
     }
   }
   // sum of gradients
@@ -320,9 +322,9 @@ func saga2Sparse(
       switch {
       case n_x_old < autoReg.Value && n_x_new < autoReg.Value: fallthrough
       case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
-        l1_step = 1.2*l1_step
+        l1_step = eta.Value[0]*l1_step
       default:
-        l1_step = 0.8*l1_step
+        l1_step = eta.Value[1]*l1_step
       }
       if n_x_new < autoReg.Value {
         proxop.SetLambda(proxop.GetLambda() - l1_step)

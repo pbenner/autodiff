@@ -61,6 +61,7 @@ func sagaJit(
   autoReg AutoReg,
   gamma Gamma,
   epsilon Epsilon,
+  eta Eta,
   maxIterations MaxIterations,
   jit JitUpdateType,
   hook Hook,
@@ -88,7 +89,7 @@ func sagaJit(
   l1_step := 0.1*jit.GetLambda()
 
   if l1_step == 0.0 {
-    l1_step = 0.1*gamma.Value/float64(n)
+    l1_step = 0.01*gamma.Value/float64(n)
   }
 
   // sum of gradients
@@ -162,9 +163,9 @@ func sagaJit(
       switch {
       case n_x_old < autoReg.Value && n_x_new < autoReg.Value: fallthrough
       case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
-        l1_step = 1.2*l1_step
+        l1_step = eta.Value[0]*l1_step
       default:
-        l1_step = 0.8*l1_step
+        l1_step = eta.Value[1]*l1_step
       }
       if n_x_new < autoReg.Value {
         jit.SetLambda(jit.GetLambda() - l1_step)
