@@ -552,7 +552,7 @@ func (obj *LogisticRegression) sagaLogisticRegressionL1(
     obj.n_x_old = 0
     obj.n_x_new = 0
     // step size for auto-lambda mode
-    obj.l1_step = 0.05*obj.jit.GetLambda()
+    obj.l1_step = 0.01*obj.jit.GetLambda()
 
     // sum of gradients
     obj.s = NullDenseBareRealVector(obj.d)
