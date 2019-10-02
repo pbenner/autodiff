@@ -318,6 +318,37 @@ func (config ConfigDistribution) GetNamedParametersAsNestedInts(name string) (in
   return 0, false
 }
 
+func (config ConfigDistribution) GetNamedParametersAsIntPairs(name string) ([][2]int, bool) {
+  if r, ok := config.GetNamedParametersAsNestedInts(name); ok {
+    if a, ok := r.([]interface{}); !ok {
+      return nil, false
+    } else {
+      pairs := make([][2]int, len(a))
+      for i, ai := range a {
+        if b, ok := ai.([]interface{}); !ok {
+          return nil, false
+        } else {
+          if len(b) != 2 {
+            return nil, false
+          }
+          if v, ok := b[0].(int); !ok {
+            return nil, false
+          } else {
+            pairs[i][0] = v
+          }
+          if v, ok := b[1].(int); !ok {
+            return nil, false
+          } else {
+            pairs[i][1] = v
+          }
+        }
+      }
+      return pairs, true
+    }
+  }
+  return nil, false
+}
+
 /* -------------------------------------------------------------------------- */
 
 func ExportDistribution(filename string, distribution BasicDistribution) error {
