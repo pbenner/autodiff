@@ -251,6 +251,9 @@ func (obj *LogisticRegression) SetSparseData(x []ConstVector, c []bool, n int) e
   obj.x_dense  = nil
   obj.sparse   = true
   for i, _ := range x {
+    if k := obj.logisticRegression.Dim()+1; x[i].Dim() != k {
+      return fmt.Errorf("LogisticRegression.SetSparseData: data has invalid dimension: got data of dimension `%d' but expected dimension `%d'", x[i].Dim(), k)
+    }
     switch a := x[i].(type) {
     case SparseConstRealVector:
       obj.x_sparse[i] = a
