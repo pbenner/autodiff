@@ -28,7 +28,7 @@ import . "github.com/pbenner/threadpool"
 
 /* -------------------------------------------------------------------------- */
 
-func hook(x ConstVector, step ConstScalar, i int) bool {
+func hook(x ConstVector, step, lambda ConstScalar, i int) bool {
   fmt.Printf("x: %v\n", x)
   fmt.Printf("s: %v\n", step)
   fmt.Printf("i: %d\n", i)
@@ -36,7 +36,7 @@ func hook(x ConstVector, step ConstScalar, i int) bool {
   return false
 }
 
-func rprop_hook(gradient []float64, step []float64, x Vector, value Scalar) bool {
+func rprop_hook(gradient []float64, step, lambda []float64, x Vector, value Scalar) bool {
   fmt.Printf("y: %v\n", value)
   fmt.Printf("x: %v\n", x)
   fmt.Printf("g: %v\n", gradient)
@@ -444,7 +444,7 @@ func TestLogistic8(test *testing.T) {
     -4.927265e-01, 5.958593e-02, 6.312238e-02,
     -5.364093e-01, 6.328764e-02, 6.755692e-02,
     -5.784920e-01, 6.652149e-02, 7.154798e-02 })
-  hook_record := func(x ConstVector, step ConstScalar, i int) bool {
+  hook_record := func(x ConstVector, step, lambda ConstScalar, i int) bool {
     // clone vector!
     trace1 = append(trace1, AsDenseBareRealVector(x))
     return false
@@ -596,7 +596,7 @@ func TestLogistic9(test *testing.T) {
     -1.843573e+00, 1.323689e-01, 2.281278e-01,
     -1.847517e+00, 1.323090e-01, 2.289377e-01,
     -1.851317e+00, 1.322393e-01, 2.297577e-01 })
-  hook_record := func(x ConstVector, step ConstScalar, i int) bool {
+  hook_record := func(x ConstVector, step, lambda ConstScalar, i int) bool {
     // clone vector!
     trace1 = append(trace1, AsDenseBareRealVector(x))
     return false

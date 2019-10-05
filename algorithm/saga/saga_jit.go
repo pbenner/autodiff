@@ -147,7 +147,7 @@ func sagaJit(
       return x1, g.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*jit.GetLambda()/gamma.Value), epoch) {
         break
       }
     }

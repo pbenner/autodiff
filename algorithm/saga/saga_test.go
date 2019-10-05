@@ -27,7 +27,7 @@ import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 
 /* -------------------------------------------------------------------------- */
 
-func hook(x ConstVector, step ConstScalar, i int) bool {
+func hook(x ConstVector, step, lambda ConstScalar, i int) bool {
   fmt.Printf("x: %v\n", x)
   fmt.Printf("s: %v\n", step)
   fmt.Printf("d: %v\n", i)
@@ -337,12 +337,12 @@ func Test6(test *testing.T) {
 
   trace1 := []ConstVector{}
   trace2 := []ConstVector{}
-  hook1 := func(x ConstVector, step ConstScalar, i int) bool {
+  hook1 := func(x ConstVector, step, lambda ConstScalar, i int) bool {
     // clone vector!
     trace1 = append(trace1, AsDenseBareRealVector(x))
     return false
   }
-  hook2 := func(x ConstVector, step ConstScalar, i int) bool {
+  hook2 := func(x ConstVector, step, lambda ConstScalar, i int) bool {
     // clone vector!
     trace2 = append(trace2, AsDenseBareRealVector(x))
     return false

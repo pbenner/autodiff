@@ -94,7 +94,7 @@ type LogisticRegression struct {
   MaxIterations   int
   ClassWeights [2]float64
   Seed            int64
-  Hook            func(x ConstVector, step ConstScalar, i int) bool
+  Hook            func(x ConstVector, step, lambda ConstScalar, i int) bool
   sagaLogisticRegressionL1state
 }
 
@@ -645,7 +645,7 @@ func (obj *sagaLogisticRegressionL1state) sagaLogisticRegressionL1(
       return obj.x1, g.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(obj.x1, ConstReal(delta), epoch) {
+      if hook.Value != nil && hook.Value(obj.x1, ConstReal(delta), ConstReal(float64(n)*obj.jit.GetLambda()/gamma.Value), epoch) {
         break
       }
     }

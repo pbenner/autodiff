@@ -210,7 +210,7 @@ func STR_CONCAT(saga1, SAGA_TYPE)(
       return x1, g.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
         break
       }
     }
@@ -354,7 +354,7 @@ func STR_CONCAT(saga2, SAGA_TYPE)(
       return x1, g.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
         break
       }
     }
