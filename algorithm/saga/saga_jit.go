@@ -36,14 +36,14 @@ func (obj GradientJit) Update(g2 GradientJit, v DenseBareRealVector) {
   g := obj.G.GetSparseValues()
   c := g2.W - obj.W
   for i, k := range obj.G.GetSparseIndices() {
-    v[k] = v[k] + BareReal(c*g[i])
+    v[k] = v[k] + BareReal(c.GetValue()*g[i])
   }
 }
 
 func (obj GradientJit) Add(v DenseBareRealVector) {
   g := obj.G.GetSparseValues()
   for i, k := range obj.G.GetSparseIndices() {
-    v[k] = v[k] + BareReal(obj.W*g[i])
+    v[k] = v[k] + BareReal(obj.W.GetValue()*g[i])
   }
 }
 

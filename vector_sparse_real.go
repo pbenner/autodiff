@@ -546,7 +546,7 @@ func (obj *SparseRealVector) MarshalJSON() ([]byte, error) {
     Length int}{}
   for it := obj.ConstIterator(); it.Ok(); it.Next() {
     k = append(k, it.Index())
-    v = append(v, it.GetConst().GetValue())
+    v = append(v, it.GetValue())
   }
   r.Index = k
   r.Value = v
@@ -597,21 +597,32 @@ type SparseRealVectorIterator struct {
   v *SparseRealVector
 }
 func (obj *SparseRealVectorIterator) Get() Scalar {
-  if v := obj.GET(); v == nil {
+  if v := obj.GET(); v == (*Real)(nil) {
     return nil
   } else {
     return v
   }
 }
 func (obj *SparseRealVectorIterator) GetConst() ConstScalar {
-  if v := obj.GET(); v == nil {
-    return nil
-  } else {
+  if v, ok := obj.v.values[obj.Index()]; ok {
     return v
+  } else {
+    return nil
+  }
+}
+func (obj *SparseRealVectorIterator) GetValue() float64 {
+  if v, ok := obj.v.values[obj.Index()]; ok {
+    return v.GetValue()
+  } else {
+    return 0.0
   }
 }
 func (obj *SparseRealVectorIterator) GET() *Real {
-  return obj.v.values[obj.Index()]
+  if v, ok := obj.v.values[obj.Index()]; ok {
+    return v
+  } else {
+    return nil
+  }
 }
 func (obj *SparseRealVectorIterator) Next() {
   obj.vectorSparseIndexIterator.Next()
@@ -677,7 +688,22 @@ func (obj *SparseRealVectorJointIterator) Get() (Scalar, ConstScalar) {
   }
 }
 func (obj *SparseRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
-  return obj.s1, obj.s2
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+func (obj *SparseRealVectorJointIterator) GetValue() (float64, float64) {
+  v1 := 0.0
+  v2 := 0.0
+  if obj.s1 != nil {
+    v1 = obj.s1.GetValue()
+  }
+  if obj.s2 != nil {
+    v2 = obj.s2.GetValue()
+  }
+  return v1, v2
 }
 func (obj *SparseRealVectorJointIterator) GET() (*Real, ConstScalar) {
   return obj.s1, obj.s2

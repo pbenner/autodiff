@@ -143,6 +143,10 @@ func (obj *DenseGradientIterator) GetConst() ConstScalar {
   return obj.v.ConstAt(obj.i)
 }
 
+func (obj *DenseGradientIterator) GetValue() float64 {
+  return obj.v.ValueAt(obj.i)
+}
+
 func (obj *DenseGradientIterator) GET() ConstReal {
   return obj.v.AT(obj.i)
 }
@@ -192,15 +196,19 @@ func (obj *DenseGradientJointIterator) Next() {
     case obj.idx >  obj.it2.Index() || !ok1:
       obj.idx = obj.it2.Index()
       obj.s1  = 0.0
-      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+      obj.s2  = ConstReal(obj.it2.GetValue())
     case obj.idx == obj.it2.Index():
-      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+      obj.s2  = ConstReal(obj.it2.GetValue())
     }
   }
 }
 
 func (obj *DenseGradientJointIterator) GetConst() (ConstScalar, ConstScalar) {
   return obj.s1, obj.s2
+}
+
+func (obj *DenseGradientJointIterator) GetValue() (float64, float64) {
+  return obj.s1.GetValue(), obj.s2.GetValue()
 }
 
 func (obj *DenseGradientJointIterator) GET() (ConstReal, ConstScalar) {

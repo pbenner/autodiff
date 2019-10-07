@@ -383,7 +383,7 @@ func (obj *LogisticRegression) setStepSize() {
         it.Next()
       }
       for ; it.Ok(); it.Next() {
-        r += it.GetConst().GetValue()*it.GetConst().GetValue()
+        r += it.GetValue()*it.GetValue()
       }
       if r > max_squared_sum {
         max_squared_sum = r
@@ -398,7 +398,7 @@ func (obj *LogisticRegression) setStepSize() {
         it.Next()
       }
       for ; it.Ok(); it.Next() {
-        r += it.GetConst().GetValue()*it.GetConst().GetValue()
+        r += it.GetValue()*it.GetValue()
       }
       if r > max_squared_sum {
         max_squared_sum = r

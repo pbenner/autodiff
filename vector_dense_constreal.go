@@ -44,7 +44,7 @@ func AsDenseConstRealVector(v ConstVector) DenseConstRealVector {
   }
   values := make([]float64, v.Dim())
   for it := v.ConstIterator(); it.Ok(); it.Next() {
-    values[it.Index()] = it.GetConst().GetValue()
+    values[it.Index()] = it.GetValue()
   }
   return NewDenseConstRealVector(values)
 }
@@ -169,6 +169,10 @@ func (obj *DenseConstRealVectorIterator) GetConst() ConstScalar {
   return ConstReal(obj.v[obj.i])
 }
 
+func (obj *DenseConstRealVectorIterator) GetValue() float64 {
+  return obj.v[obj.i]
+}
+
 func (obj *DenseConstRealVectorIterator) GET() ConstReal {
   return ConstReal(obj.v[obj.i])
 }
@@ -218,15 +222,19 @@ func (obj *DenseConstRealVectorJointIterator) Next() {
     case obj.idx >  obj.it2.Index() || !ok1:
       obj.idx = obj.it2.Index()
       obj.s1  = 0.0
-      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+      obj.s2  = ConstReal(obj.it2.GetValue())
     case obj.idx == obj.it2.Index():
-      obj.s2  = ConstReal(obj.it2.GetConst().GetValue())
+      obj.s2  = ConstReal(obj.it2.GetValue())
     }
   }
 }
 
 func (obj *DenseConstRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
   return obj.s1, obj.s2
+}
+
+func (obj *DenseConstRealVectorJointIterator) GetValue() (float64, float64) {
+  return obj.s1.GetValue(), obj.s2.GetValue()
 }
 
 func (obj *DenseConstRealVectorJointIterator) GET() (ConstReal, ConstScalar) {

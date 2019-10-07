@@ -529,6 +529,10 @@ func (obj *VECTOR_ITERATOR) GetConst() ConstScalar {
   return obj.GET()
 }
 
+func (obj *VECTOR_ITERATOR) GetValue() float64 {
+  return obj.GET().GetValue()
+}
+
 func (obj *VECTOR_ITERATOR) GET() SCALAR_TYPE {
 #ifdef STORE_PTR
   return  obj.v[obj.i]
@@ -556,7 +560,7 @@ type VECTOR_JOINT_ITERATOR struct {
   it1 *VECTOR_ITERATOR
   it2  VectorConstIterator
   idx  int
-  s1  SCALAR_TYPE
+  s1   SCALAR_TYPE
   s2   ConstScalar
 }
 
@@ -599,23 +603,24 @@ func (obj *VECTOR_JOINT_ITERATOR) Next() {
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {
-  if obj.s1 == nil {
-    return nil, obj.s2
-  } else {
-    return obj.s1, obj.s2
-  }
+  return obj.GET()
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
+  return obj.GET()
+}
+
+func (obj *VECTOR_JOINT_ITERATOR) GetValue() (float64, float64) {
+  a, b := obj.GET()
+  return a.GetValue(), b.GetValue()
+}
+
+func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
   if obj.s1 == nil {
     return nil, obj.s2
   } else {
     return obj.s1, obj.s2
   }
-}
-
-func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
-  return obj.s1, obj.s2
 }
 
 /* joint iterator

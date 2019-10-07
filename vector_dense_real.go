@@ -402,6 +402,9 @@ func (obj *DenseRealVectorIterator) Get() Scalar {
 func (obj *DenseRealVectorIterator) GetConst() ConstScalar {
   return obj.GET()
 }
+func (obj *DenseRealVectorIterator) GetValue() float64 {
+  return obj.GET().GetValue()
+}
 func (obj *DenseRealVectorIterator) GET() *Real {
   return obj.v[obj.i]
 }
@@ -459,21 +462,21 @@ func (obj *DenseRealVectorJointIterator) Next() {
   }
 }
 func (obj *DenseRealVectorJointIterator) Get() (Scalar, ConstScalar) {
-  if obj.s1 == nil {
-    return nil, obj.s2
-  } else {
-    return obj.s1, obj.s2
-  }
+  return obj.GET()
 }
 func (obj *DenseRealVectorJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  return obj.GET()
+}
+func (obj *DenseRealVectorJointIterator) GetValue() (float64, float64) {
+  a, b := obj.GET()
+  return a.GetValue(), b.GetValue()
+}
+func (obj *DenseRealVectorJointIterator) GET() (*Real, ConstScalar) {
   if obj.s1 == nil {
     return nil, obj.s2
   } else {
     return obj.s1, obj.s2
   }
-}
-func (obj *DenseRealVectorJointIterator) GET() (*Real, ConstScalar) {
-  return obj.s1, obj.s2
 }
 /* joint iterator
  * -------------------------------------------------------------------------- */

@@ -23,6 +23,7 @@ import "encoding/json"
 /* -------------------------------------------------------------------------- */
 
 type VectorConstIterator interface {
+  GetValue() float64
   GetConst() ConstScalar
   Ok      () bool
   Next    ()
@@ -30,6 +31,7 @@ type VectorConstIterator interface {
 }
 
 type VectorConstJointIterator interface {
+  GetValue() (float64, float64)
   GetConst() (ConstScalar, ConstScalar)
   Ok      () bool
   Next    ()
@@ -37,18 +39,21 @@ type VectorConstJointIterator interface {
 }
 
 type VectorIterator interface {
-  Get     () Scalar
   GetConst() ConstScalar
+  GetValue() float64
+  Get     () Scalar
   Ok      () bool
   Next    ()
   Index   () int
 }
 
 type VectorJointIterator interface {
-  Get  () (Scalar, ConstScalar)
-  Ok   () bool
-  Next ()
-  Index() int
+  GetConst() (ConstScalar, ConstScalar)
+  GetValue() (float64, float64)
+  Get     () (Scalar, ConstScalar)
+  Ok      () bool
+  Next    ()
+  Index   () int
 }
 
 /* matrix type declaration
