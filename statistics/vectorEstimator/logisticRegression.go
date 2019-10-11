@@ -304,15 +304,18 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   switch {
   case obj.sparse && obj.L2Reg == 0.0 && obj.TiReg == 0.0:
     // use specialized saga implementation
-    if r, s, err := obj.sagaLogisticRegressionL1(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
+    if err := obj.sagaLogisticRegressionL1state.Initialize(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.L1Regularization{obj.L1Reg},
       saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
+      saga.Seed            {obj.Seed}); err != nil {
+      return err
+    }
+    if r, s, err := obj.sagaLogisticRegressionL1state.Execute(
       saga.Epsilon         {obj.Epsilon},
       saga.Eta             {obj.Eta},
       saga.MaxIterations   {obj.MaxIterations},
-      saga.Hook            {obj.Hook},
-      saga.Seed            {obj.Seed}); err != nil {
+      saga.Hook            {obj.Hook}); err != nil {
       return err
     } else {
       obj.Seed = s
@@ -507,6 +510,7 @@ func (obj sagaJitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
 /* -------------------------------------------------------------------------- */
 
 type sagaLogisticRegressionL1state struct {
+  f               saga.Objective1Sparse
   x0              DenseBareRealVector
   x1              DenseBareRealVector
   xk            []int
@@ -524,133 +528,154 @@ type sagaLogisticRegressionL1state struct {
   t_n             BareReal
   t_g             BareReal
   jit             sagaJitUpdateL1
+  autoReg         saga.AutoReg
+  rand           *rand.Rand
 }
 
-func (obj *sagaLogisticRegressionL1state) sagaLogisticRegressionL1(
+func (obj *sagaLogisticRegressionL1state) Initialize(
   f saga.Objective1Sparse,
   n int,
   x DenseBareRealVector,
   l1reg  saga.L1Regularization,
   autoReg saga.AutoReg,
   gamma saga.Gamma,
-  epsilon saga.Epsilon,
-  eta saga.Eta,
-  maxIterations saga.MaxIterations,
-  hook saga.Hook,
-  seed saga.Seed) (DenseBareRealVector, int64, error) {
+  seed saga.Seed) error {
 
-  if len(obj.dict) == 0 || obj.d != x.Dim() {
-    obj.x0 = AsDenseBareRealVector(x)
-    obj.x1 = AsDenseBareRealVector(x)
-    obj.xk = make([]int,  x.Dim())
-    obj.xs = make([]bool, n)
-    obj.ns = 0
-    obj.cumulative_sums = NullDenseBareRealVector(n)
+  obj.f  = f
+  obj.x0 = AsDenseBareRealVector(x)
+  obj.x1 = AsDenseBareRealVector(x)
+  obj.xk = make([]int,  x.Dim())
+  obj.xs = make([]bool, n)
+  obj.ns = 0
+  obj.cumulative_sums = NullDenseBareRealVector(n)
 
-    // length of gradient
-    obj.d = x.Dim()
+  // length of gradient
+  obj.d = x.Dim()
 
-    // some constants
-    obj.t_n = BareReal(0.0)
-    obj.t_g = BareReal(gamma.Value)
+  // some constants
+  obj.t_n = BareReal(0.0)
+  obj.t_g = BareReal(gamma.Value)
 
-    // prevent that in auto-lambda mode the step size is initialized to zero
-    if autoReg.Value > 0 && l1reg.Value == 0.0 {
-      l1reg.Value = 1.0
-    }
-    obj.jit.SetLambda(l1reg.Value*gamma.Value/float64(n))
+  obj.autoReg = autoReg
+  // prevent that in auto-lambda mode the step size is initialized to zero
+  if autoReg.Value > 0 && l1reg.Value == 0.0 {
+    l1reg.Value = 1.0
+  }
+  obj.jit.SetLambda(l1reg.Value*gamma.Value/float64(n))
 
-    // number of non-zero parameters used for auto-lambda mode
-    obj.n_x_old = 0
-    obj.n_x_new = 0
-    // step size for auto-lambda mode
-    obj.l1_step = 0.01*obj.jit.GetLambda()
+  // number of non-zero parameters used for auto-lambda mode
+  obj.n_x_old = 0
+  obj.n_x_new = 0
+  // step size for auto-lambda mode
+  obj.l1_step = 0.01*obj.jit.GetLambda()
 
-    // sum of gradients
-    obj.s = NullDenseBareRealVector(obj.d)
-    // initialize s and d
-    obj.dict = make([]saga.GradientJit, n)
-    for i := 0; i < n; i++ {
-      if _, w, g, err := f(i, nil); err != nil {
-        return nil, seed.Value, err
-      } else {
-        obj.dict[i].Set(w, g)
-      }
+  // sum of gradients
+  obj.s = NullDenseBareRealVector(obj.d)
+  // initialize s and d
+  obj.dict = make([]saga.GradientJit, n)
+  for i := 0; i < n; i++ {
+    if _, w, g, err := f(i, nil); err != nil {
+      return err
+    } else {
+      obj.dict[i].Set(w, g)
     }
   }
-  g := rand.New(rand.NewSource(seed.Value))
+  if seed.Value != -1 {
+    obj.rand = rand.New(rand.NewSource(seed.Value))
+  }
+  return nil
+}
 
-  for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 0; i_ < n; i_++ {
-      j := i_
-      if seed.Value != -1 {
-        j = g.Intn(n)
-      }
-      if !obj.xs[j] {
-        obj.ns += 1
-        obj.t_n = BareReal(obj.ns)
-      }
-      if i_ == 0 {
-        obj.cumulative_sums[0 ] = obj.t_g/obj.t_n
-      } else {
-        obj.cumulative_sums[i_] = obj.cumulative_sums[i_-1] + obj.t_g/obj.t_n
-      }
-      // get old gradient
-      obj.g1 = obj.dict[j]
-      // perform jit updates for all x_i where g_i != 0
-      for _, k := range obj.g1.G.GetSparseIndices() {
-        if m := i_-obj.xk[k]; m > 0 {
-          cum_sum := obj.cumulative_sums[i_-1]
-          if obj.xk[k] != 0 {
-            cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
-          }
-          obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
-        }
-      }
-      // evaluate objective function
-      if _, w, gt, err := f(j, obj.x1); err != nil {
-        return obj.x1, g.Int63(), err
-      } else {
-        obj.g2.Set(w, gt)
-      }
-      c := BareReal(obj.g2.W - obj.g1.W)
-      v := obj.g1.G.GetSparseValues()
-      for i, k := range obj.g1.G.GetSparseIndices() {
-        obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v[i])
-        obj.xk[k] = i_
-      }
-      if !obj.xs[j] {
-        obj.xs[j] = true
-        obj.g2.Add(obj.s)
-      } else {
-        // update gradient avarage
-        obj.g1.Update(obj.g2, obj.s)
-      }
-      // update dictionary
-      obj.dict[j].Set(obj.g2.W, obj.g2.G)
+func (obj *sagaLogisticRegressionL1state) Iterate(epoch int) error {
+  n := len(obj.xs)
+  for i_ := 0; i_ < n; i_++ {
+    j := i_
+    if obj.rand != nil {
+      j = obj.rand.Intn(n)
     }
-    // compute missing updates of x1
-    for k := 0; k < obj.x1.Dim(); k++ {
-      if m := n-obj.xk[k]; m > 0 {
-        cum_sum := obj.cumulative_sums[n-1]
+    if !obj.xs[j] {
+      obj.ns += 1
+      obj.t_n = BareReal(obj.ns)
+    }
+    if i_ == 0 {
+      obj.cumulative_sums[0 ] = obj.t_g/obj.t_n
+    } else {
+      obj.cumulative_sums[i_] = obj.cumulative_sums[i_-1] + obj.t_g/obj.t_n
+    }
+    // get old gradient
+    obj.g1 = obj.dict[j]
+    // perform jit updates for all x_i where g_i != 0
+    for _, k := range obj.g1.G.GetSparseIndices() {
+      if m := i_-obj.xk[k]; m > 0 {
+        cum_sum := obj.cumulative_sums[i_-1]
         if obj.xk[k] != 0 {
           cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
         }
         obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
       }
-      // reset xk
-      obj.xk[k] = 0
     }
-    if stop, delta, err := saga.EvalStopping(obj.x0, obj.x1, epsilon.Value*gamma.Value); stop {
-      return obj.x1, g.Int63(), err
+    // evaluate objective function
+    if _, w, gt, err := obj.f(j, obj.x1); err != nil {
+      return err
+    } else {
+      obj.g2.Set(w, gt)
+    }
+    c := BareReal(obj.g2.W - obj.g1.W)
+    v := obj.g1.G.GetSparseValues()
+    for i, k := range obj.g1.G.GetSparseIndices() {
+      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v[i])
+      obj.xk[k] = i_
+    }
+    if !obj.xs[j] {
+      obj.xs[j] = true
+      obj.g2.Add(obj.s)
+    } else {
+      // update gradient avarage
+      obj.g1.Update(obj.g2, obj.s)
+    }
+    // update dictionary
+    obj.dict[j].Set(obj.g2.W, obj.g2.G)
+  }
+  // compute missing updates of x1
+  for k := 0; k < obj.x1.Dim(); k++ {
+    if m := n-obj.xk[k]; m > 0 {
+      cum_sum := obj.cumulative_sums[n-1]
+      if obj.xk[k] != 0 {
+        cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
+      }
+      obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
+    }
+    // reset xk
+    obj.xk[k] = 0
+  }
+  return nil
+}
+
+func (obj *sagaLogisticRegressionL1state) Execute(
+  epsilon saga.Epsilon,
+  eta saga.Eta,
+  maxIterations saga.MaxIterations,
+  hook saga.Hook) (DenseBareRealVector, int64, error) {
+  n := len(obj.xs)
+  for epoch := 0; epoch < maxIterations.Value; epoch++ {
+    if err := obj.Iterate(epoch); err != nil {
+      seed := int64(-1)
+      if obj.rand != nil {
+        seed = obj.rand.Int63()
+      }
+      return obj.x1, seed, err
+    }
+    // check convergence
+    if stop, delta, err := saga.EvalStopping(obj.x0, obj.x1, epsilon.Value*obj.t_g.GetValue()); stop {
+      return obj.x1, obj.rand.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(obj.x1, ConstReal(delta), ConstReal(float64(n)*obj.jit.GetLambda()/gamma.Value), epoch) {
+      if hook.Value != nil && hook.Value(obj.x1, ConstReal(delta), ConstReal(float64(n)*obj.jit.GetLambda()/obj.t_g.GetValue()), epoch) {
         break
       }
     }
     // update lambda
-    if autoReg.Value > 0 {
+    if obj.autoReg.Value > 0 {
       obj.n_x_new = 0
       // count number of non-zero entries
       for k := 1; k < obj.x1.Dim(); k++ {
@@ -659,16 +684,16 @@ func (obj *sagaLogisticRegressionL1state) sagaLogisticRegressionL1(
         }
       }
       switch {
-      case obj.n_x_old < autoReg.Value && obj.n_x_new < autoReg.Value: fallthrough
-      case obj.n_x_old > autoReg.Value && obj.n_x_new > autoReg.Value:
+      case obj.n_x_old < obj.autoReg.Value && obj.n_x_new < obj.autoReg.Value: fallthrough
+      case obj.n_x_old > obj.autoReg.Value && obj.n_x_new > obj.autoReg.Value:
         obj.l1_step = eta.Value[0]*obj.l1_step
       default:
         obj.l1_step = eta.Value[1]*obj.l1_step
       }
-      if obj.n_x_new < autoReg.Value {
+      if obj.n_x_new < obj.autoReg.Value {
         obj.jit.SetLambda(obj.jit.GetLambda() - obj.l1_step)
       } else
-      if obj.n_x_new > autoReg.Value {
+      if obj.n_x_new > obj.autoReg.Value {
         obj.jit.SetLambda(obj.jit.GetLambda() + obj.l1_step)
       }
       if obj.jit.GetLambda() < 0.0 {
@@ -679,5 +704,9 @@ func (obj *sagaLogisticRegressionL1state) sagaLogisticRegressionL1(
     }
     obj.x0.SET(obj.x1)
   }
-  return obj.x1, g.Int63(), nil
+  seed := int64(-1)
+  if obj.rand != nil {
+    seed = obj.rand.Int63()
+  }
+  return obj.x1, seed, nil
 }
