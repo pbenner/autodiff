@@ -755,6 +755,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
       return err
     }
   }
+  obj.Pool = pool
   return nil
 }
 
@@ -763,7 +764,6 @@ func (obj *sagaLogisticRegressionL1) Execute(
   eta saga.Eta,
   maxIterations saga.MaxIterations,
   hook saga.Hook) (DenseBareRealVector, int64, error) {
-  //n := len(obj.xs)
 
   x0 := obj.Workers[0].x0
   x1 := obj.Workers[0].x1
