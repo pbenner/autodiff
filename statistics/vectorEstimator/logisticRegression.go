@@ -665,8 +665,9 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
       j = obj.rand.Intn(n)
     }
     if !obj.xs[j] {
-      obj.ns += 1
-      obj.t_n = BareReal(obj.ns)
+      obj.xs[j] = true
+      obj.ns   += 1
+      obj.t_n   = BareReal(obj.ns)
     }
     if i_ == 0 {
       obj.cumulative_sums[0 ] = obj.t_g/obj.t_n
@@ -685,8 +686,8 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     } else {
       g2.Set(w, gt)
     }
+    // perform actual gradient step
     obj.gradientUpdates(i_, j, g1, g2)
-    obj.xs[j] = true
     // update gradient avarage
     g1.Update(g2, obj.s)
     // update dictionary
