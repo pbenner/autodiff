@@ -529,11 +529,17 @@ func (obj *gradientJit) Set(w ConstReal, g SparseConstRealVector) {
 func (g1 gradientJit) Update(g2 gradientJit, v DenseBareRealVector) {
   v1 := g1.G.GetSparseValues()
   v2 := g2.G.GetSparseValues()
-  for i, k := range g1.G.GetSparseIndices() {
-    v[k] -= g1.W*ConstReal(v1[i])
-  }
-  for i, k := range g2.G.GetSparseIndices() {
-    v[k] += g2.W*ConstReal(v2[i])
+  if v1 != nil && &v1[0] == &v2[0] {
+    for i, k := range g1.G.GetSparseIndices() {
+      v[k] += (g2.W - g1.W)*ConstReal(v1[i])
+    }
+  } else {
+    for i, k := range g1.G.GetSparseIndices() {
+      v[k] -= g1.W*ConstReal(v1[i])
+    }
+    for i, k := range g2.G.GetSparseIndices() {
+      v[k] += g2.W*ConstReal(v2[i])
+    }
   }
 }
 
@@ -657,13 +663,9 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
         }
       }
     }
-    if !obj.xs[j] {
-      obj.xs[j] = true
-      g2.Add(obj.s)
-    } else {
-      // update gradient avarage
-      g1.Update(g2, obj.s)
-    }
+    obj.xs[j] = true
+    // update gradient avarage
+    g1.Update(g2, obj.s)
     // update dictionary
     obj.dict[j].Set(g2.W, g2.G)
   }
