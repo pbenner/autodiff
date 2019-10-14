@@ -601,6 +601,60 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   return nil
 }
 
+func (obj *sagaLogisticRegressionL1worker) jitUpdates(i_, j int) error {
+  if _, _, gt, err := obj.f(obj.indices[j], nil); err != nil {
+    return err
+  } else {
+    for _, k := range gt.GetSparseIndices() {
+      if m := i_-obj.xk[k]; m > 0 {
+        cum_sum := obj.cumulative_sums[i_-1]
+        if obj.xk[k] != 0 {
+          cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
+        }
+        obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
+      }
+    }
+  }
+  return nil
+}
+
+func (obj *sagaLogisticRegressionL1worker) jitUpdatesMissing(n int) {
+  for k := 0; k < obj.x1.Dim(); k++ {
+    if m := n-obj.xk[k]; m > 0 {
+      cum_sum := obj.cumulative_sums[n-1]
+      if obj.xk[k] != 0 {
+        cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
+      }
+      obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
+    }
+    // reset xk
+    obj.xk[k] = 0
+  }
+}
+
+func (obj *sagaLogisticRegressionL1worker) gradientUpdates(i_, j int, g1, g2 gradientJit) {
+  v1 := g1.G.GetSparseValues()
+  v2 := g2.G.GetSparseValues()
+  if v1 == nil || &v1[0] != &v2[0] {
+    // data vectors are different
+    for i, k := range g1.G.GetSparseIndices() {
+      obj.x1[k] = obj.x1[k] + obj.t_g*(1.0 - 1.0/obj.t_n)*g1.W*BareReal(v1[i])
+      obj.xk[k] = i_
+    }
+    for i, k := range g2.G.GetSparseIndices() {
+      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*g2.W*BareReal(v2[i])
+      obj.xk[k] = i_
+    }
+  } else {
+    // data vectors are identical
+    c := BareReal(g2.W - g1.W)
+    for i, k := range g2.G.GetSparseIndices() {
+      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v2[i])
+      obj.xk[k] = i_
+    }
+  }
+}
+
 func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
   n := len(obj.xs)
   var g1 gradientJit
@@ -622,18 +676,8 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     // get old gradient
     g1 = obj.dict[j]
     // perform jit updates for all x_i where g_i != 0
-    if _, _, gt, err := obj.f(obj.indices[j], nil); err != nil {
-      return err
-    } else {
-      for _, k := range gt.GetSparseIndices() {
-        if m := i_-obj.xk[k]; m > 0 {
-          cum_sum := obj.cumulative_sums[i_-1]
-          if obj.xk[k] != 0 {
-            cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
-          }
-          obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
-        }
-      }
+    if err := obj.jitUpdates(i_, j); err != nil {
+      return nil
     }
     // evaluate objective function
     if _, w, gt, err := obj.f(obj.indices[j], obj.x1); err != nil {
@@ -641,28 +685,7 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     } else {
       g2.Set(w, gt)
     }
-    { // perform gradient step
-      v1 := g1.G.GetSparseValues()
-      v2 := g2.G.GetSparseValues()
-      if v1 == nil || &v1[0] != &v2[0] {
-        // data vectors are different
-        for i, k := range g1.G.GetSparseIndices() {
-          obj.x1[k] = obj.x1[k] + obj.t_g*(1.0 - 1.0/obj.t_n)*g1.W*BareReal(v1[i])
-          obj.xk[k] = i_
-        }
-        for i, k := range g2.G.GetSparseIndices() {
-          obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*g2.W*BareReal(v2[i])
-          obj.xk[k] = i_
-        }
-      } else {
-        // data vectors are identical
-        c := BareReal(g2.W - g1.W)
-        for i, k := range g2.G.GetSparseIndices() {
-          obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v2[i])
-          obj.xk[k] = i_
-        }
-      }
-    }
+    obj.gradientUpdates(i_, j, g1, g2)
     obj.xs[j] = true
     // update gradient avarage
     g1.Update(g2, obj.s)
@@ -670,17 +693,7 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     obj.dict[j].Set(g2.W, g2.G)
   }
   // compute missing updates of x1
-  for k := 0; k < obj.x1.Dim(); k++ {
-    if m := n-obj.xk[k]; m > 0 {
-      cum_sum := obj.cumulative_sums[n-1]
-      if obj.xk[k] != 0 {
-        cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
-      }
-      obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
-    }
-    // reset xk
-    obj.xk[k] = 0
-  }
+  obj.jitUpdatesMissing(n)
   return nil
 }
 
