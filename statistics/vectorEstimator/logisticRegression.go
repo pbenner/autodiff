@@ -548,8 +548,6 @@ type sagaLogisticRegressionL1worker struct {
   xk            []int
   d               int
   ns              int
-  g1              gradientJit
-  g2              gradientJit
   dict          []gradientJit
   s               DenseBareRealVector
   cumulative_sums DenseBareRealVector
@@ -599,6 +597,8 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
 
 func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
   n := len(obj.xs)
+  var g1 gradientJit
+  var g2 gradientJit
   for i_ := 0; i_ < n; i_++ {
     j := i_
     if obj.rand != nil {
@@ -614,7 +614,7 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
       obj.cumulative_sums[i_] = obj.cumulative_sums[i_-1] + obj.t_g/obj.t_n
     }
     // get old gradient
-    obj.g1 = obj.dict[j]
+    g1 = obj.dict[j]
     // perform jit updates for all x_i where g_i != 0
     if _, _, gt, err := obj.f(obj.indices[j], nil); err != nil {
       return err
@@ -633,25 +633,25 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     if _, w, gt, err := obj.f(obj.indices[j], obj.x1); err != nil {
       return err
     } else {
-      obj.g2.Set(w, gt)
+      g2.Set(w, gt)
     }
     { // perform gradient step
-      v1 := obj.g1.G.GetSparseValues()
-      v2 := obj.g2.G.GetSparseValues()
+      v1 := g1.G.GetSparseValues()
+      v2 := g2.G.GetSparseValues()
       if v1 == nil || &v1[0] != &v2[0] {
         // data vectors are different
-        for i, k := range obj.g1.G.GetSparseIndices() {
-          obj.x1[k] = obj.x1[k] + obj.t_g*(1.0 - 1.0/obj.t_n)*obj.g1.W*BareReal(v1[i])
+        for i, k := range g1.G.GetSparseIndices() {
+          obj.x1[k] = obj.x1[k] + obj.t_g*(1.0 - 1.0/obj.t_n)*g1.W*BareReal(v1[i])
           obj.xk[k] = i_
         }
-        for i, k := range obj.g2.G.GetSparseIndices() {
-          obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*obj.g2.W*BareReal(v2[i])
+        for i, k := range g2.G.GetSparseIndices() {
+          obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*g2.W*BareReal(v2[i])
           obj.xk[k] = i_
         }
       } else {
         // data vectors are identical
-        c := BareReal(obj.g2.W - obj.g1.W)
-        for i, k := range obj.g2.G.GetSparseIndices() {
+        c := BareReal(g2.W - g1.W)
+        for i, k := range g2.G.GetSparseIndices() {
           obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v2[i])
           obj.xk[k] = i_
         }
@@ -659,13 +659,13 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     }
     if !obj.xs[j] {
       obj.xs[j] = true
-      obj.g2.Add(obj.s)
+      g2.Add(obj.s)
     } else {
       // update gradient avarage
-      obj.g1.Update(obj.g2, obj.s)
+      g1.Update(g2, obj.s)
     }
     // update dictionary
-    obj.dict[j].Set(obj.g2.W, obj.g2.G)
+    obj.dict[j].Set(g2.W, g2.G)
   }
   // compute missing updates of x1
   for k := 0; k < obj.x1.Dim(); k++ {
