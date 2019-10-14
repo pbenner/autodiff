@@ -95,7 +95,7 @@ type LogisticRegression struct {
   ClassWeights [2]float64
   Seed            int64
   Hook            func(x ConstVector, step, lambda ConstScalar, i int) bool
-  sagaLogisticRegressionL1state
+  sagaLogisticRegressionL1
 }
 
 /* -------------------------------------------------------------------------- */
@@ -304,14 +304,14 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   switch {
   case obj.sparse && obj.L2Reg == 0.0 && obj.TiReg == 0.0:
     // use specialized saga implementation
-    if err := obj.sagaLogisticRegressionL1state.Initialize(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
+    if err := obj.sagaLogisticRegressionL1.Initialize(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.L1Regularization{obj.L1Reg},
       saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
-      saga.Seed            {obj.Seed}); err != nil {
+      saga.Seed            {obj.Seed}, p); err != nil {
       return err
     }
-    if r, s, err := obj.sagaLogisticRegressionL1state.Execute(
+    if r, s, err := obj.sagaLogisticRegressionL1.Execute(
       saga.Epsilon         {obj.Epsilon},
       saga.Eta             {obj.Eta},
       saga.MaxIterations   {obj.MaxIterations},
@@ -509,37 +509,65 @@ func (obj sagaJitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
 
 /* -------------------------------------------------------------------------- */
 
-type sagaLogisticRegressionL1state struct {
+type gradientJit struct {
+  G SparseConstRealVector
+  W ConstReal
+}
+
+func (obj gradientJit) Add(v DenseBareRealVector) {
+  g := obj.G.GetSparseValues()
+  for i, k := range obj.G.GetSparseIndices() {
+    v[k] = v[k] + BareReal(obj.W.GetValue()*g[i])
+  }
+}
+
+func (obj *gradientJit) Set(w ConstReal, g SparseConstRealVector) {
+  obj.G = g
+  obj.W = w
+}
+
+func (g1 gradientJit) Update(g2 gradientJit, v DenseBareRealVector) {
+  v1 := g1.G.GetSparseValues()
+  v2 := g2.G.GetSparseValues()
+  for i, k := range g1.G.GetSparseIndices() {
+    v[k] -= g1.W*ConstReal(v1[i])
+  }
+  for i, k := range g2.G.GetSparseIndices() {
+    v[k] += g2.W*ConstReal(v2[i])
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sagaLogisticRegressionL1worker struct {
+  indices       []int
   f               saga.Objective1Sparse
   x0              DenseBareRealVector
   x1              DenseBareRealVector
-  xk            []int
-  g1              saga.GradientJit
-  g2              saga.GradientJit
-  d               int
-  n_x_old         int
-  n_x_new         int
-  l1_step         float64
-  dict          []saga.GradientJit
-  s               DenseBareRealVector
   xs            []bool
+  xk            []int
+  d               int
   ns              int
+  g1              gradientJit
+  g2              gradientJit
+  dict          []gradientJit
+  s               DenseBareRealVector
   cumulative_sums DenseBareRealVector
   t_n             BareReal
   t_g             BareReal
   jit             sagaJitUpdateL1
-  autoReg         saga.AutoReg
   rand           *rand.Rand
 }
 
-func (obj *sagaLogisticRegressionL1state) Initialize(
+func (obj *sagaLogisticRegressionL1worker) Initialize(
   f saga.Objective1Sparse,
-  n int,
+  indices []int,
   x DenseBareRealVector,
   l1reg  saga.L1Regularization,
-  autoReg saga.AutoReg,
   gamma saga.Gamma,
   seed saga.Seed) error {
+
+  n := len(indices)
 
   obj.f  = f
   obj.x0 = AsDenseBareRealVector(x)
@@ -548,6 +576,7 @@ func (obj *sagaLogisticRegressionL1state) Initialize(
   obj.xs = make([]bool, n)
   obj.ns = 0
   obj.cumulative_sums = NullDenseBareRealVector(n)
+  obj.indices         = indices
 
   // length of gradient
   obj.d = x.Dim()
@@ -556,37 +585,19 @@ func (obj *sagaLogisticRegressionL1state) Initialize(
   obj.t_n = BareReal(0.0)
   obj.t_g = BareReal(gamma.Value)
 
-  obj.autoReg = autoReg
-  // prevent that in auto-lambda mode the step size is initialized to zero
-  if autoReg.Value > 0 && l1reg.Value == 0.0 {
-    l1reg.Value = 1.0
-  }
   obj.jit.SetLambda(l1reg.Value*gamma.Value/float64(n))
-
-  // number of non-zero parameters used for auto-lambda mode
-  obj.n_x_old = 0
-  obj.n_x_new = 0
-  // step size for auto-lambda mode
-  obj.l1_step = 0.01*obj.jit.GetLambda()
 
   // sum of gradients
   obj.s = NullDenseBareRealVector(obj.d)
   // initialize s and d
-  obj.dict = make([]saga.GradientJit, n)
-  for i := 0; i < n; i++ {
-    if _, w, g, err := f(i, nil); err != nil {
-      return err
-    } else {
-      obj.dict[i].Set(w, g)
-    }
-  }
+  obj.dict = make([]gradientJit, n)
   if seed.Value != -1 {
     obj.rand = rand.New(rand.NewSource(seed.Value))
   }
   return nil
 }
 
-func (obj *sagaLogisticRegressionL1state) Iterate(epoch int) error {
+func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
   n := len(obj.xs)
   for i_ := 0; i_ < n; i_++ {
     j := i_
@@ -605,26 +616,46 @@ func (obj *sagaLogisticRegressionL1state) Iterate(epoch int) error {
     // get old gradient
     obj.g1 = obj.dict[j]
     // perform jit updates for all x_i where g_i != 0
-    for _, k := range obj.g1.G.GetSparseIndices() {
-      if m := i_-obj.xk[k]; m > 0 {
-        cum_sum := obj.cumulative_sums[i_-1]
-        if obj.xk[k] != 0 {
-          cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
+    if _, _, gt, err := obj.f(obj.indices[j], nil); err != nil {
+      return err
+    } else {
+      for _, k := range gt.GetSparseIndices() {
+        if m := i_-obj.xk[k]; m > 0 {
+          cum_sum := obj.cumulative_sums[i_-1]
+          if obj.xk[k] != 0 {
+            cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
+          }
+          obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
         }
-        obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
       }
     }
     // evaluate objective function
-    if _, w, gt, err := obj.f(j, obj.x1); err != nil {
+    if _, w, gt, err := obj.f(obj.indices[j], obj.x1); err != nil {
       return err
     } else {
       obj.g2.Set(w, gt)
     }
-    c := BareReal(obj.g2.W - obj.g1.W)
-    v := obj.g1.G.GetSparseValues()
-    for i, k := range obj.g1.G.GetSparseIndices() {
-      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v[i])
-      obj.xk[k] = i_
+    { // perform gradient step
+      v1 := obj.g1.G.GetSparseValues()
+      v2 := obj.g2.G.GetSparseValues()
+      if v1 == nil || &v1[0] != &v2[0] {
+        // data vectors are different
+        for i, k := range obj.g1.G.GetSparseIndices() {
+          obj.x1[k] = obj.x1[k] + obj.t_g*(1.0 - 1.0/obj.t_n)*obj.g1.W*BareReal(v1[i])
+          obj.xk[k] = i_
+        }
+        for i, k := range obj.g2.G.GetSparseIndices() {
+          obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*obj.g2.W*BareReal(v2[i])
+          obj.xk[k] = i_
+        }
+      } else {
+        // data vectors are identical
+        c := BareReal(obj.g2.W - obj.g1.W)
+        for i, k := range obj.g2.G.GetSparseIndices() {
+          obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v2[i])
+          obj.xk[k] = i_
+        }
+      }
     }
     if !obj.xs[j] {
       obj.xs[j] = true
@@ -651,26 +682,103 @@ func (obj *sagaLogisticRegressionL1state) Iterate(epoch int) error {
   return nil
 }
 
-func (obj *sagaLogisticRegressionL1state) Execute(
+func (obj *sagaLogisticRegressionL1worker) ComputeLambda() float64 {
+  return float64(len(obj.indices))*obj.jit.GetLambda()/obj.t_g.GetValue()
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sagaLogisticRegressionL1 struct {
+  Workers []sagaLogisticRegressionL1worker
+  Indices []int
+  Pool      ThreadPool
+  autoReg   saga.AutoReg
+  n_x_old   int
+  n_x_new   int
+  l1_step   float64
+}
+
+func (obj *sagaLogisticRegressionL1) Initialize(
+  f saga.Objective1Sparse,
+  n int,
+  x DenseBareRealVector,
+  l1reg  saga.L1Regularization,
+  autoReg saga.AutoReg,
+  gamma saga.Gamma,
+  seed saga.Seed,
+  pool ThreadPool) error {
+
+  obj.autoReg = autoReg
+  // prevent that in auto-lambda mode the step size is initialized to zero
+  if autoReg.Value > 0 && l1reg.Value == 0.0 {
+    l1reg.Value = 1.0
+  }
+  // number of non-zero parameters used for auto-lambda mode
+  obj.n_x_old = 0
+  obj.n_x_new = 0
+  // step size for auto-lambda mode
+  obj.l1_step = 0.01*l1reg.Value*gamma.Value/float64(n)
+  // slice of data indices
+  obj.Indices = make([]int, n)
+  for i := 0; i < n; i++ {
+    obj.Indices[i] = i
+  }
+  m := n/pool.NumberOfThreads()
+  // create a slice for every worker
+  indices := make([][]int, pool.NumberOfThreads())
+  for i, k := 0, 0; i < pool.NumberOfThreads(); i++ {
+    if i+1 == pool.NumberOfThreads() {
+      indices[i] = obj.Indices[k:n]
+    } else {
+      indices[i] = obj.Indices[k:k+m]; k += m
+    }
+  }
+  obj.Workers = make([]sagaLogisticRegressionL1worker, pool.NumberOfThreads())
+  for i := 0; i < pool.NumberOfThreads(); i++ {
+    if err := obj.Workers[i].Initialize(f, indices[i], x, l1reg, gamma, seed); err != nil {
+      return err
+    }
+  }
+  return nil
+}
+
+func (obj *sagaLogisticRegressionL1) Execute(
   epsilon saga.Epsilon,
   eta saga.Eta,
   maxIterations saga.MaxIterations,
   hook saga.Hook) (DenseBareRealVector, int64, error) {
-  n := len(obj.xs)
+  //n := len(obj.xs)
+
+  x0 := obj.Workers[0].x0
+  x1 := obj.Workers[0].x1
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    if err := obj.Iterate(epoch); err != nil {
+    // copy initial value
+    for i := 1; i < len(obj.Workers); i++ {
+      obj.Workers[i].x0.SET(x0)
+    }
+    if err := obj.Pool.RangeJob(0, len(obj.Workers), func(i int, pool ThreadPool, erf func() error) error {
+      return obj.Workers[i].Iterate(epoch)
+    }); err != nil {
       seed := int64(-1)
-      if obj.rand != nil {
-        seed = obj.rand.Int63()
+      if obj.Workers[0].rand != nil {
+        seed = obj.Workers[0].rand.Int63()
       }
-      return obj.x1, seed, err
+      return x1, seed, err
+    }
+    // compute mean
+    if len(obj.Workers) > 1 {
+      for i := 1; i < len(obj.Workers); i++ {
+        x1.VADDV(x1, obj.Workers[i].x1)
+      }
+      t := ConstReal(len(obj.Workers))
+      x1.VDIVS(x1, &t)
     }
     // check convergence
-    if stop, delta, err := saga.EvalStopping(obj.x0, obj.x1, epsilon.Value*obj.t_g.GetValue()); stop {
-      return obj.x1, obj.rand.Int63(), err
+    if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value*obj.Workers[0].t_g.GetValue()); stop {
+      return x1, obj.Workers[0].rand.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(obj.x1, ConstReal(delta), ConstReal(float64(n)*obj.jit.GetLambda()/obj.t_g.GetValue()), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(obj.Workers[0].ComputeLambda()), epoch) {
         break
       }
     }
@@ -678,8 +786,8 @@ func (obj *sagaLogisticRegressionL1state) Execute(
     if obj.autoReg.Value > 0 {
       obj.n_x_new = 0
       // count number of non-zero entries
-      for k := 1; k < obj.x1.Dim(); k++ {
-        if obj.x1[k] != 0.0 {
+      for k := 1; k < x1.Dim(); k++ {
+        if x1[k] != 0.0 {
           obj.n_x_new += 1
         }
       }
@@ -690,23 +798,31 @@ func (obj *sagaLogisticRegressionL1state) Execute(
       default:
         obj.l1_step = eta.Value[1]*obj.l1_step
       }
-      if obj.n_x_new < obj.autoReg.Value {
-        obj.jit.SetLambda(obj.jit.GetLambda() - obj.l1_step)
-      } else
-      if obj.n_x_new > obj.autoReg.Value {
-        obj.jit.SetLambda(obj.jit.GetLambda() + obj.l1_step)
-      }
-      if obj.jit.GetLambda() < 0.0 {
-        obj.jit.SetLambda(0.0)
+      for _, worker := range obj.Workers {
+        if obj.n_x_new < obj.autoReg.Value {
+          worker.jit.SetLambda(worker.jit.GetLambda() - obj.l1_step)
+        } else
+        if obj.n_x_new > obj.autoReg.Value {
+          worker.jit.SetLambda(worker.jit.GetLambda() + obj.l1_step)
+        }
+        if worker.jit.GetLambda() < 0.0 {
+          worker.jit.SetLambda(0.0)
+        }
       }
       // swap old and new counts
       obj.n_x_old, obj.n_x_new = obj.n_x_new, obj.n_x_old
     }
-    obj.x0.SET(obj.x1)
+    // shuffle all indices
+    if len(obj.Workers) > 1 && obj.Workers[0].rand != nil {
+      obj.Workers[0].rand.Shuffle(len(obj.Indices), func(i, j int) {
+        obj.Indices[i], obj.Indices[j] = obj.Indices[j], obj.Indices[i]
+      })
+    }
+    x0.SET(x1)
   }
   seed := int64(-1)
-  if obj.rand != nil {
-    seed = obj.rand.Int63()
+  if obj.Workers[0].rand != nil {
+    seed = obj.Workers[0].rand.Int63()
   }
-  return obj.x1, seed, nil
+  return x1, seed, nil
 }
