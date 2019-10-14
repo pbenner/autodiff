@@ -733,7 +733,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   obj.n_x_old = 0
   obj.n_x_new = 0
   // step size for auto-lambda mode
-  obj.l1_step = 0.01*l1reg.Value*gamma.Value/float64(n)
+  obj.l1_step = 0.5*l1reg.Value*gamma.Value/float64(n)
   // slice of data indices
   obj.Indices = make([]int, n)
   for i := 0; i < n; i++ {
@@ -814,15 +814,15 @@ func (obj *sagaLogisticRegressionL1) Execute(
       default:
         obj.l1_step = eta.Value[1]*obj.l1_step
       }
-      for _, worker := range obj.Workers {
+      for i, _ := range obj.Workers {
         if obj.n_x_new < obj.autoReg.Value {
-          worker.jit.SetLambda(worker.jit.GetLambda() - obj.l1_step)
+          obj.Workers[i].jit.SetLambda(obj.Workers[i].jit.GetLambda() - obj.l1_step)
         } else
         if obj.n_x_new > obj.autoReg.Value {
-          worker.jit.SetLambda(worker.jit.GetLambda() + obj.l1_step)
+          obj.Workers[i].jit.SetLambda(obj.Workers[i].jit.GetLambda() + obj.l1_step)
         }
-        if worker.jit.GetLambda() < 0.0 {
-          worker.jit.SetLambda(0.0)
+        if obj.Workers[i].jit.GetLambda() < 0.0 {
+          obj.Workers[i].jit.SetLambda(0.0)
         }
       }
       // swap old and new counts
