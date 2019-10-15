@@ -551,7 +551,6 @@ type sagaLogisticRegressionL1worker struct {
   x1              DenseBareRealVector
   xs            []bool
   xk            []int
-  d               int
   ns              int
   dict          []gradientJit
   s               DenseBareRealVector
@@ -581,9 +580,6 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   obj.cumulative_sums = NullDenseBareRealVector(m)
   obj.indices         = indices
 
-  // length of gradient
-  obj.d = x.Dim()
-
   // some constants
   obj.t_n = BareReal(0.0)
   obj.t_g = BareReal(gamma.Value)
@@ -591,7 +587,7 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   obj.jit.SetLambda(l1reg.Value*gamma.Value/float64(n))
 
   // sum of gradients
-  obj.s = NullDenseBareRealVector(obj.d)
+  obj.s = NullDenseBareRealVector(x.Dim())
   // initialize s and d
   obj.dict = make([]gradientJit, n)
   if seed.Value != -1 {
@@ -655,13 +651,13 @@ func (obj *sagaLogisticRegressionL1worker) gradientUpdates(i_ int, g1, g2 gradie
 }
 
 func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
-  n := len(obj.cumulative_sums)
+  m := len(obj.indices)
   var g1 gradientJit
   var g2 gradientJit
-  for i_ := 0; i_ < n; i_++ {
+  for i_ := 0; i_ < m; i_++ {
     j := obj.indices[i_]
     if obj.rand != nil {
-      j = obj.indices[obj.rand.Intn(n)]
+      j = obj.indices[obj.rand.Intn(m)]
     }
     if !obj.xs[j] {
       obj.xs[j] = true
@@ -693,7 +689,7 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     obj.dict[j].Set(g2.W, g2.G)
   }
   // compute missing updates of x1
-  obj.jitUpdatesMissing(n)
+  obj.jitUpdatesMissing(m)
   return nil
 }
 
