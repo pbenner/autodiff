@@ -548,7 +548,6 @@ func (g1 gradientJit) Update(g2 gradientJit, v DenseBareRealVector) {
 type sagaLogisticRegressionL1worker struct {
   indices       []int
   f               saga.Objective1Sparse
-  x0              DenseBareRealVector
   x1              DenseBareRealVector
   xs            []bool
   xk            []int
@@ -575,7 +574,6 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   m := len(indices)
 
   obj.f  = f
-  obj.x0 = AsDenseBareRealVector(x)
   obj.x1 = AsDenseBareRealVector(x)
   obj.xk = make([]int,  x.Dim())
   obj.xs = make([]bool, n)
@@ -766,12 +764,12 @@ func (obj *sagaLogisticRegressionL1) Execute(
   maxIterations saga.MaxIterations,
   hook saga.Hook) (DenseBareRealVector, int64, error) {
 
-  x0 := obj.Workers[0].x0
+  x0 := obj.Workers[0].x1.Clone()
   x1 := obj.Workers[0].x1
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     // copy initial value
     for i := 1; i < len(obj.Workers); i++ {
-      obj.Workers[i].x0.SET(x0)
+      obj.Workers[i].x1.SET(x1)
     }
     if err := obj.Pool.RangeJob(0, len(obj.Workers), func(i int, pool ThreadPool, erf func() error) error {
       return obj.Workers[i].Iterate(epoch)
