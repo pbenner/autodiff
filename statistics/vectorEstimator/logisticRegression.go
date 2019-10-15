@@ -566,12 +566,13 @@ type sagaLogisticRegressionL1worker struct {
 func (obj *sagaLogisticRegressionL1worker) Initialize(
   f saga.Objective1Sparse,
   indices []int,
+  n int,
   x DenseBareRealVector,
   l1reg  saga.L1Regularization,
   gamma saga.Gamma,
   seed saga.Seed) error {
 
-  n := len(indices)
+  m := len(indices)
 
   obj.f  = f
   obj.x0 = AsDenseBareRealVector(x)
@@ -579,7 +580,7 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   obj.xk = make([]int,  x.Dim())
   obj.xs = make([]bool, n)
   obj.ns = 0
-  obj.cumulative_sums = NullDenseBareRealVector(n)
+  obj.cumulative_sums = NullDenseBareRealVector(m)
   obj.indices         = indices
 
   // length of gradient
@@ -602,7 +603,7 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
 }
 
 func (obj *sagaLogisticRegressionL1worker) jitUpdates(i_, j int) error {
-  if _, _, gt, err := obj.f(obj.indices[j], nil); err != nil {
+  if _, _, gt, err := obj.f(j, nil); err != nil {
     return err
   } else {
     for _, k := range gt.GetSparseIndices() {
@@ -632,7 +633,7 @@ func (obj *sagaLogisticRegressionL1worker) jitUpdatesMissing(n int) {
   }
 }
 
-func (obj *sagaLogisticRegressionL1worker) gradientUpdates(i_, j int, g1, g2 gradientJit) {
+func (obj *sagaLogisticRegressionL1worker) gradientUpdates(i_ int, g1, g2 gradientJit) {
   v1 := g1.G.GetSparseValues()
   v2 := g2.G.GetSparseValues()
   if v1 == nil || &v1[0] != &v2[0] {
@@ -656,13 +657,13 @@ func (obj *sagaLogisticRegressionL1worker) gradientUpdates(i_, j int, g1, g2 gra
 }
 
 func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
-  n := len(obj.xs)
+  n := len(obj.cumulative_sums)
   var g1 gradientJit
   var g2 gradientJit
   for i_ := 0; i_ < n; i_++ {
-    j := i_
+    j := obj.indices[i_]
     if obj.rand != nil {
-      j = obj.rand.Intn(n)
+      j = obj.indices[obj.rand.Intn(n)]
     }
     if !obj.xs[j] {
       obj.xs[j] = true
@@ -681,13 +682,13 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
       return nil
     }
     // evaluate objective function
-    if _, w, gt, err := obj.f(obj.indices[j], obj.x1); err != nil {
+    if _, w, gt, err := obj.f(j, obj.x1); err != nil {
       return err
     } else {
       g2.Set(w, gt)
     }
     // perform actual gradient step
-    obj.gradientUpdates(i_, j, g1, g2)
+    obj.gradientUpdates(i_, g1, g2)
     // update gradient avarage
     g1.Update(g2, obj.s)
     // update dictionary
@@ -699,7 +700,7 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
 }
 
 func (obj *sagaLogisticRegressionL1worker) ComputeLambda() float64 {
-  return float64(len(obj.indices))*obj.jit.GetLambda()/obj.t_g.GetValue()
+  return float64(len(obj.xs))*obj.jit.GetLambda()/obj.t_g.GetValue()
 }
 
 /* -------------------------------------------------------------------------- */
@@ -751,7 +752,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   }
   obj.Workers = make([]sagaLogisticRegressionL1worker, pool.NumberOfThreads())
   for i := 0; i < pool.NumberOfThreads(); i++ {
-    if err := obj.Workers[i].Initialize(f, indices[i], x, l1reg, gamma, seed); err != nil {
+    if err := obj.Workers[i].Initialize(f, indices[i], n, x, l1reg, gamma, seed); err != nil {
       return err
     }
   }
