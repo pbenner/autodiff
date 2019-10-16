@@ -21,6 +21,7 @@ package vectorEstimator
 import   "fmt"
 import   "math"
 import   "math/rand"
+import   "sort"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/saga"
@@ -415,6 +416,71 @@ func (obj *LogisticRegression) setStepSize() {
 
 /* -------------------------------------------------------------------------- */
 
+type weightedRand struct {
+  cum   []int
+  items []int
+  max     int
+  i       int
+  rand   *rand.Rand
+}
+
+func newWeightedRand(weights []int, n int, seed int64) weightedRand {
+  r := weightedRand{}
+  if seed != -1 {
+    r.rand = rand.New(rand.NewSource(seed))
+  }
+  if len(weights) > 0 {
+    if len(weights) != n {
+      panic("internal error")
+    }
+    s := 0
+    r.cum   = make([]int, len(weights))
+    r.items = make([]int, len(weights))
+    for i := 0; i < len(weights); i++ {
+      s += weights[i]
+      r.cum  [i] = s
+      r.items[i] = i
+    }
+    r.max = s
+    sort.Sort(r)
+  } else {
+    r.max = n
+  }
+  return r
+}
+
+func (obj weightedRand) Less(i, j int) bool {
+  return obj.cum[i] < obj.cum[j]
+}
+
+func (obj weightedRand) Len() int {
+  return len(obj.cum)
+}
+
+func (obj weightedRand) Swap(i, j int) {
+  obj.cum  [i], obj.cum  [j] = obj.cum  [j], obj.cum  [i]
+  obj.items[i], obj.items[j] = obj.items[j], obj.items[i]
+}
+
+func (obj *weightedRand) Draw() int {
+  r := obj.i
+  if obj.rand == nil {
+    // update counter
+    obj.i = (obj.i + 1) % obj.max
+  } else {
+    // draw new value
+    r = obj.rand.Intn(obj.max)
+  }
+  if len(obj.cum) > 0 {
+    i := sort.SearchInts(obj.cum, r+1)
+    return obj.items[i]
+  } else {
+    return r
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 type proximalWrapper struct {
   saga.ProximalOperatorType
 }
@@ -557,7 +623,6 @@ type sagaLogisticRegressionL1worker struct {
   t_n             BareReal
   t_g             BareReal
   jit             sagaJitUpdateL1
-  rand           *rand.Rand
 }
 
 func (obj *sagaLogisticRegressionL1worker) Initialize(
@@ -566,8 +631,7 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   n int,
   x DenseBareRealVector,
   l1reg  saga.L1Regularization,
-  gamma saga.Gamma,
-  seed saga.Seed) error {
+  gamma saga.Gamma) error {
 
   m := len(indices)
 
@@ -589,9 +653,6 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   obj.s = NullDenseBareRealVector(x.Dim())
   // initialize s and d
   obj.dict = make([]gradientJit, n)
-  if seed.Value != -1 {
-    obj.rand = rand.New(rand.NewSource(seed.Value))
-  }
   return nil
 }
 
@@ -655,9 +716,6 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
   var g2 gradientJit
   for i_ := 0; i_ < m; i_++ {
     j := obj.indices[i_]
-    if obj.rand != nil {
-      j = obj.indices[obj.rand.Intn(m)]
-    }
     if !obj.xs[j] {
       obj.xs[j] = true
       obj.ns   += 1
@@ -706,6 +764,7 @@ type sagaLogisticRegressionL1 struct {
   n_x_old   int
   n_x_new   int
   l1_step   float64
+  rand      weightedRand
 }
 
 func (obj *sagaLogisticRegressionL1) Initialize(
@@ -723,6 +782,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   if autoReg.Value > 0 && l1reg.Value == 0.0 {
     l1reg.Value = 1.0
   }
+  obj.rand = newWeightedRand(nil, n, seed.Value)
   // number of non-zero parameters used for auto-lambda mode
   obj.n_x_old = 0
   obj.n_x_new = 0
@@ -730,9 +790,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   obj.l1_step = 0.5*l1reg.Value*gamma.Value/float64(n)
   // slice of data indices
   obj.Indices = make([]int, n)
-  for i := 0; i < n; i++ {
-    obj.Indices[i] = i
-  }
+
   m := n/pool.NumberOfThreads()
   // create a slice for every worker
   indices := make([][]int, pool.NumberOfThreads())
@@ -745,7 +803,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   }
   obj.Workers = make([]sagaLogisticRegressionL1worker, pool.NumberOfThreads())
   for i := 0; i < pool.NumberOfThreads(); i++ {
-    if err := obj.Workers[i].Initialize(f, indices[i], n, x, l1reg, gamma, seed); err != nil {
+    if err := obj.Workers[i].Initialize(f, indices[i], n, x, l1reg, gamma); err != nil {
       return err
     }
   }
@@ -766,12 +824,16 @@ func (obj *sagaLogisticRegressionL1) Execute(
     for i := 1; i < len(obj.Workers); i++ {
       obj.Workers[i].x1.SET(x1)
     }
+    // generate new random sample
+    for i := 0; i < len(obj.Indices); i++ {
+      obj.Indices[i] = obj.rand.Draw()
+    }
     if err := obj.Pool.RangeJob(0, len(obj.Workers), func(i int, pool ThreadPool, erf func() error) error {
       return obj.Workers[i].Iterate(epoch)
     }); err != nil {
       seed := int64(-1)
-      if obj.Workers[0].rand != nil {
-        seed = obj.Workers[0].rand.Int63()
+      if obj.rand.rand != nil {
+        seed = obj.rand.rand.Int63()
       }
       return x1, seed, err
     }
@@ -785,7 +847,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
     }
     // check convergence
     if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value*obj.Workers[0].t_g.GetValue()); stop {
-      return x1, obj.Workers[0].rand.Int63(), err
+      return x1, obj.rand.rand.Int63(), err
     } else {
       // execute hook if available
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(obj.Workers[0].ComputeLambda()), epoch) {
@@ -822,17 +884,11 @@ func (obj *sagaLogisticRegressionL1) Execute(
       // swap old and new counts
       obj.n_x_old, obj.n_x_new = obj.n_x_new, obj.n_x_old
     }
-    // shuffle all indices
-    if len(obj.Workers) > 1 && obj.Workers[0].rand != nil {
-      obj.Workers[0].rand.Shuffle(len(obj.Indices), func(i, j int) {
-        obj.Indices[i], obj.Indices[j] = obj.Indices[j], obj.Indices[i]
-      })
-    }
     x0.SET(x1)
   }
   seed := int64(-1)
-  if obj.Workers[0].rand != nil {
-    seed = obj.Workers[0].rand.Int63()
+  if obj.rand.rand != nil {
+    seed = obj.rand.rand.Int63()
   }
   return x1, seed, nil
 }
