@@ -83,18 +83,19 @@ type LogisticRegression struct {
   c        []bool
   stepSize   float64
   // optional parameters
-  Balance         bool
-  Epsilon         float64
-  L1Reg           float64
-  AutoReg         int
-  Eta          [2]float64
-  L2Reg           float64
-  TiReg           float64
-  StepSizeFactor  float64
-  MaxIterations   int
-  ClassWeights [2]float64
-  Seed            int64
-  Hook            func(x ConstVector, step, lambda ConstScalar, i int) bool
+  Balance          bool
+  Epsilon          float64
+  L1Reg            float64
+  AutoReg          int
+  Eta           [2]float64
+  L2Reg            float64
+  TiReg            float64
+  StepSizeFactor   float64
+  MaxIterations    int
+   ClassWeights [2]float64
+  sampleWeights  []int
+  Seed             int64
+  Hook             func(x ConstVector, step, lambda ConstScalar, i int) bool
   sagaLogisticRegressionL1
 }
 
@@ -241,6 +242,17 @@ func (obj *LogisticRegression) setLabels(c []bool) {
     }
     obj.ClassWeights[1] = float64(n0+n1)/float64(2*n1)
     obj.ClassWeights[0] = float64(n0+n1)/float64(2*n0)
+    // convert class weights to sample weights
+    w1 := int(math.Round(float64(4*n0+4*n1)/float64(2*n1)))
+    w0 := int(math.Round(float64(4*n0+4*n1)/float64(2*n0)))
+    obj.sampleWeights = make([]int, len(obj.c))
+    for i := 0; i < len(obj.c); i++ {
+      if obj.c[i] {
+        obj.sampleWeights[i] = w1
+      } else {
+        obj.sampleWeights[i] = w0
+      }
+    }
   }
 }
 
@@ -308,6 +320,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       saga.L1Regularization{obj.L1Reg},
       saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
+      saga.SampleWeights   {obj.sampleWeights},
       saga.Seed            {obj.Seed}, p); err != nil {
       return err
     }
@@ -409,7 +422,6 @@ func (obj *LogisticRegression) setStepSize() {
     }
   }
   L := (0.25*(max_squared_sum + 1.0) + obj.L2Reg/float64(obj.n))
-  L *= math.Max(obj.ClassWeights[0], obj.ClassWeights[1])
   obj.stepSize  = 1.0/(2.0*L + math.Min(2.0*obj.L2Reg, L))
   obj.stepSize *= obj.StepSizeFactor
 }
@@ -532,9 +544,9 @@ func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstR
   }
   y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
+    w = ConstReal(math.Exp(r) - 1.0)
   } else {
-    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
+    w = ConstReal(math.Exp(r))
   }
   return y, w, x[i], nil
 }
@@ -558,9 +570,9 @@ func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (Const
   }
   y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
+    w = ConstReal(math.Exp(r) - 1.0)
   } else {
-    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
+    w = ConstReal(math.Exp(r))
   }
   return y, w, x[i], nil
 }
@@ -782,6 +794,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   l1reg  saga.L1Regularization,
   autoReg saga.AutoReg,
   gamma saga.Gamma,
+  sampleWeights saga.SampleWeights,
   seed saga.Seed,
   pool ThreadPool) error {
 
@@ -790,7 +803,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   if autoReg.Value > 0 && l1reg.Value == 0.0 {
     l1reg.Value = 1.0
   }
-  obj.rand = newWeightedRand(nil, n, seed.Value)
+  obj.rand = newWeightedRand(sampleWeights.Value, n, seed.Value)
   // number of non-zero parameters used for auto-lambda mode
   obj.n_x_old = 0
   obj.n_x_new = 0
