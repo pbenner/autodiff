@@ -812,18 +812,22 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   // slice of data indices
   obj.Indices = make([]int, n)
 
-  m := n/pool.NumberOfThreads()
+  p := pool.NumberOfThreads()
+  if p > n {
+    p = n
+  }
+  m := n/p
   // create a slice for every worker
-  indices := make([][]int, pool.NumberOfThreads())
-  for i, k := 0, 0; i < pool.NumberOfThreads(); i++ {
-    if i+1 == pool.NumberOfThreads() {
+  indices := make([][]int, p)
+  for i, k := 0, 0; i < p; i++ {
+    if i+1 == p {
       indices[i] = obj.Indices[k:n]
     } else {
       indices[i] = obj.Indices[k:k+m]; k += m
     }
   }
-  obj.Workers = make([]sagaLogisticRegressionL1worker, pool.NumberOfThreads())
-  for i := 0; i < pool.NumberOfThreads(); i++ {
+  obj.Workers = make([]sagaLogisticRegressionL1worker, p)
+  for i := 0; i < p; i++ {
     if err := obj.Workers[i].Initialize(f, indices[i], n, x, l1reg, gamma); err != nil {
       return err
     }
