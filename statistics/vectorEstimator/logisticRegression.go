@@ -30,7 +30,6 @@ import . "github.com/pbenner/autodiff/logarithmetic"
 
 import . "github.com/pbenner/threadpool"
 
-
 /* -------------------------------------------------------------------------- */
 
 type logisticRegression struct {
@@ -667,7 +666,7 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     if i_ == 0 {
       obj.cumulative_sums[0 ] = obj.t_g/obj.t_n
     } else {
-      obj.cumulative_sums[i_] = obj.cumulative_sums[i_-1] + obj.t_g/obj.t_n
+      obj.cumulative_sums[i_] = obj.t_g/obj.t_n + obj.cumulative_sums[i_-1]
     }
     // get old gradient
     g1 = obj.dict[j]
