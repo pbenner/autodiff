@@ -479,6 +479,14 @@ func (obj *weightedRand) Draw() int {
   }
 }
 
+func (obj *weightedRand) Int63() int64 {
+  if obj.rand != nil {
+    return obj.rand.Int63()
+  } else {
+    return -1
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 
 type proximalWrapper struct {
@@ -831,11 +839,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
     if err := obj.Pool.RangeJob(0, len(obj.Workers), func(i int, pool ThreadPool, erf func() error) error {
       return obj.Workers[i].Iterate(epoch)
     }); err != nil {
-      seed := int64(-1)
-      if obj.rand.rand != nil {
-        seed = obj.rand.rand.Int63()
-      }
-      return x1, seed, err
+      return x1, obj.rand.Int63(), err
     }
     // compute mean
     if len(obj.Workers) > 1 {
@@ -847,7 +851,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
     }
     // check convergence
     if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value*obj.Workers[0].t_g.GetValue()); stop {
-      return x1, obj.rand.rand.Int63(), err
+      return x1, obj.rand.Int63(), err
     } else {
       // execute hook if available
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(obj.Workers[0].ComputeLambda()), epoch) {
@@ -886,9 +890,5 @@ func (obj *sagaLogisticRegressionL1) Execute(
     }
     x0.SET(x1)
   }
-  seed := int64(-1)
-  if obj.rand.rand != nil {
-    seed = obj.rand.rand.Int63()
-  }
-  return x1, seed, nil
+  return x1, obj.rand.Int63(), nil
 }
