@@ -86,6 +86,7 @@ type LogisticRegression struct {
   Balance          bool
   Epsilon          float64
   L1Reg            float64
+  L1RegMax         float64
   AutoReg          int
   Eta           [2]float64
   L2Reg            float64
@@ -325,6 +326,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
       return err
     }
     if r, s, err := obj.sagaLogisticRegressionL1.Execute(
+      obj.L1RegMax,
       saga.Epsilon         {obj.Epsilon},
       saga.Eta             {obj.Eta},
       saga.MaxIterations   {obj.MaxIterations},
@@ -865,6 +867,7 @@ func (obj *sagaLogisticRegressionL1) average() {
 }
 
 func (obj *sagaLogisticRegressionL1) Execute(
+  lambdaMax float64,
   epsilon saga.Epsilon,
   eta saga.Eta,
   maxIterations saga.MaxIterations,
@@ -905,6 +908,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
           obj.n_x_new += 1
         }
       }
+      l1_step_old := obj.l1_step
       switch {
       case obj.n_x_old < obj.autoReg.Value && obj.n_x_new < obj.autoReg.Value: fallthrough
       case obj.n_x_old > obj.autoReg.Value && obj.n_x_new > obj.autoReg.Value:
@@ -912,16 +916,17 @@ func (obj *sagaLogisticRegressionL1) Execute(
       default:
         obj.l1_step = eta.Value[1]*obj.l1_step
       }
+      if obj.l1_step < 0.0 {
+        obj.l1_step = 0.0
+        obj.l1_step = l1_step_old
+      }
+      if lambdaMax != 0.0 && obj.l1_step > lambdaMax {
+        obj.l1_step = lambdaMax
+        obj.l1_step = l1_step_old
+      }
+      // distribute new step size
       for i, _ := range obj.Workers {
-        if obj.n_x_new < obj.autoReg.Value {
-          obj.Workers[i].jit.SetLambda(obj.Workers[i].jit.GetLambda() - obj.l1_step)
-        } else
-        if obj.n_x_new > obj.autoReg.Value {
-          obj.Workers[i].jit.SetLambda(obj.Workers[i].jit.GetLambda() + obj.l1_step)
-        }
-        if obj.Workers[i].jit.GetLambda() < 0.0 {
-          obj.Workers[i].jit.SetLambda(0.0)
-        }
+        obj.Workers[i].jit.SetLambda(obj.l1_step)
       }
       // swap old and new counts
       obj.n_x_old, obj.n_x_new = obj.n_x_new, obj.n_x_old
