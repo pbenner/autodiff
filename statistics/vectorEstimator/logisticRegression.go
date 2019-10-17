@@ -815,7 +815,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   obj.n_x_old = 0
   obj.n_x_new = 0
   // step size for auto-lambda mode
-  obj.l1_step = 0.01*l1reg.Value*gamma.Value/float64(n)
+  obj.l1_step = 0.01*l1reg.Value
   // slice of data indices
   obj.Indices = make([]int, n)
 
