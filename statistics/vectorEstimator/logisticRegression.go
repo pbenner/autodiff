@@ -772,8 +772,12 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
   return nil
 }
 
-func (obj *sagaLogisticRegressionL1worker) ComputeLambda() float64 {
+func (obj *sagaLogisticRegressionL1worker) GetLambda() float64 {
   return float64(len(obj.xs))*obj.jit.GetLambda()/obj.t_g.GetValue()
+}
+
+func (obj *sagaLogisticRegressionL1worker) SetLambda(lambda float64) {
+  obj.jit.SetLambda(obj.t_g.GetValue()*lambda/float64(len(obj.xs)))
 }
 
 /* -------------------------------------------------------------------------- */
@@ -895,7 +899,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
       return x1, obj.rand.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(obj.Workers[0].ComputeLambda()), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(obj.Workers[0].GetLambda()), epoch) {
         break
       }
     }
@@ -908,6 +912,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
           obj.n_x_new += 1
         }
       }
+      // compute new step size
       l1_step_old := obj.l1_step
       switch {
       case obj.n_x_old < obj.autoReg.Value && obj.n_x_new < obj.autoReg.Value: fallthrough
@@ -916,17 +921,25 @@ func (obj *sagaLogisticRegressionL1) Execute(
       default:
         obj.l1_step = eta.Value[1]*obj.l1_step
       }
-      if obj.l1_step < 0.0 {
-        obj.l1_step = 0.0
-        obj.l1_step = l1_step_old
+      // compute new lambda
+      lambda := obj.Workers[0].GetLambda()
+      if obj.n_x_new < obj.autoReg.Value {
+        lambda -= obj.l1_step
+      } else
+      if obj.n_x_new > obj.autoReg.Value {
+        lambda += obj.l1_step
       }
-      if lambdaMax != 0.0 && obj.l1_step > lambdaMax {
-        obj.l1_step = lambdaMax
+      // check lambda
+      if lambda < 0.0 {
         obj.l1_step = l1_step_old
-      }
-      // distribute new step size
-      for i, _ := range obj.Workers {
-        obj.Workers[i].jit.SetLambda(obj.l1_step)
+      } else
+      if lambdaMax != 0.0 && lambda > lambdaMax {
+        obj.l1_step = l1_step_old
+      } else {
+        // distribute new lambda
+        for i, _ := range obj.Workers {
+          obj.Workers[i].SetLambda(lambda)
+        }
       }
       // swap old and new counts
       obj.n_x_old, obj.n_x_new = obj.n_x_new, obj.n_x_old
