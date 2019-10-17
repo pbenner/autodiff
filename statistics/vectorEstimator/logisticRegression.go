@@ -785,6 +785,7 @@ type sagaLogisticRegressionL1 struct {
   n_x_new   int
   l1_step   float64
   rand      weightedRand
+  Summary   byte
 }
 
 func (obj *sagaLogisticRegressionL1) Initialize(
@@ -808,7 +809,7 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   obj.n_x_old = 0
   obj.n_x_new = 0
   // step size for auto-lambda mode
-  obj.l1_step = 0.5*l1reg.Value*gamma.Value/float64(n)
+  obj.l1_step = 0.01*l1reg.Value*gamma.Value/float64(n)
   // slice of data indices
   obj.Indices = make([]int, n)
 
@@ -830,6 +831,33 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   }
   obj.Pool = pool
   return nil
+}
+
+func (obj *sagaLogisticRegressionL1) average() {
+  if len(obj.Workers) == 1 {
+    return
+  }
+  x1 := obj.Workers[0].x1
+  switch obj.Summary {
+  case 0:
+    t := make([]float64, len(obj.Workers))
+    for i := 0; i < x1.Dim(); i++ {
+      for j := 0; j < len(obj.Workers); j++ {
+        t[j] = obj.Workers[j].x1[i].GetValue()
+      }
+      sort.Float64s(t)
+      x1[i].SetValue(t[len(t)/2])
+    }
+  case 1:
+    t := ConstReal(len(obj.Workers))
+    // compute mean
+    for i := 1; i < len(obj.Workers); i++ {
+      x1.VADDV(x1, obj.Workers[i].x1)
+    }
+    x1.VDIVS(x1, &t)
+  default:
+    panic("internal error")
+  }
 }
 
 func (obj *sagaLogisticRegressionL1) Execute(
@@ -854,16 +882,9 @@ func (obj *sagaLogisticRegressionL1) Execute(
     }); err != nil {
       return x1, obj.rand.Int63(), err
     }
-    // compute mean
-    if len(obj.Workers) > 1 {
-      for i := 1; i < len(obj.Workers); i++ {
-        x1.VADDV(x1, obj.Workers[i].x1)
-      }
-      t := ConstReal(len(obj.Workers))
-      x1.VDIVS(x1, &t)
-    }
+    obj.average()
     // check convergence
-    if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value*obj.Workers[0].t_g.GetValue()); stop {
+    if stop, delta, err := saga.EvalStopping(x0, x1, epsilon.Value); stop {
       return x1, obj.rand.Int63(), err
     } else {
       // execute hook if available

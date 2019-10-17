@@ -153,6 +153,7 @@ func TestLogistic2(test *testing.T) {
   if err != nil {
     test.Error(err); return
   }
+  estimator.Epsilon = 1e-7
   //estimator.Hook = hook
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
@@ -387,6 +388,7 @@ func TestLogistic7(test *testing.T) {
     test.Error(err); return
   }
   //estimator.Hook    = hook
+  estimator.Epsilon = 1e-8
   estimator.L1Reg   = 1.0/C
 
   err = estimator.EstimateOnData(x, nil, ThreadPool{})
