@@ -904,7 +904,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
       }
     }
     // update lambda
-    if obj.autoReg.Value > 0 {
+    if obj.autoReg.Value > 0 && (epoch % len(obj.Workers)) == 0 {
       obj.n_x_new = 0
       // count number of non-zero entries
       for k := 1; k < x1.Dim(); k++ {
