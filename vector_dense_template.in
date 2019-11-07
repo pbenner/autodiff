@@ -553,6 +553,14 @@ func (obj *VECTOR_ITERATOR) Index() int {
   return obj.i
 }
 
+func (obj *VECTOR_ITERATOR) CloneConstIterator() VectorConstIterator {
+  return &VECTOR_ITERATOR{obj.v, obj.i}
+}
+
+func (obj *VECTOR_ITERATOR) CloneIterator() VectorIterator {
+  return &VECTOR_ITERATOR{obj.v, obj.i}
+}
+
 /* joint iterator
  * -------------------------------------------------------------------------- */
 

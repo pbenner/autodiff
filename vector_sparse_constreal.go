@@ -298,6 +298,10 @@ func (obj *SparseConstRealVectorIterator) Next() {
   obj.i += 1
 }
 
+func (obj *SparseConstRealVectorIterator) CloneConstIterator() VectorConstIterator {
+  return &SparseConstRealVectorIterator{obj.i, obj.v}
+}
+
 /* joint iterator
  * -------------------------------------------------------------------------- */
 

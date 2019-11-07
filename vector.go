@@ -23,6 +23,7 @@ import "encoding/json"
 /* -------------------------------------------------------------------------- */
 
 type VectorConstIterator interface {
+  CloneConstIterator() VectorConstIterator
   GetValue() float64
   GetConst() ConstScalar
   Ok      () bool
@@ -39,6 +40,7 @@ type VectorConstJointIterator interface {
 }
 
 type VectorIterator interface {
+  CloneIterator() VectorIterator
   GetConst() ConstScalar
   GetValue() float64
   Get     () Scalar

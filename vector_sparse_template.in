@@ -730,6 +730,14 @@ func (obj *VECTOR_ITERATOR) Index() int {
   return obj.vectorSparseIndexIterator.Get()
 }
 
+func (obj *VECTOR_ITERATOR) CloneConstIterator() VectorConstIterator {
+  return &VECTOR_ITERATOR{*obj.vectorSparseIndexIterator.Clone(), obj.v}
+}
+
+func (obj *VECTOR_ITERATOR) CloneIterator() VectorIterator {
+  return &VECTOR_ITERATOR{*obj.vectorSparseIndexIterator.Clone(), obj.v}
+}
+
 /* joint iterator
  * -------------------------------------------------------------------------- */
 

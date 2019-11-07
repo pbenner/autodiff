@@ -189,6 +189,10 @@ func (obj *DenseConstRealVectorIterator) Index() int {
   return obj.i
 }
 
+func (obj *DenseConstRealVectorIterator) CloneConstIterator() VectorConstIterator {
+  return &DenseConstRealVectorIterator{obj.v, obj.i}
+}
+
 /* joint iterator
  * -------------------------------------------------------------------------- */
 

@@ -163,6 +163,10 @@ func (obj *DenseGradientIterator) Index() int {
   return obj.i
 }
 
+func (obj *DenseGradientIterator) CloneConstIterator() VectorConstIterator {
+  return &DenseGradientIterator{obj.v, obj.i}
+}
+
 /* joint iterator
  * -------------------------------------------------------------------------- */
 

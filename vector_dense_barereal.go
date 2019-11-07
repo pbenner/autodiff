@@ -418,6 +418,12 @@ func (obj *DenseBareRealVectorIterator) Next() {
 func (obj *DenseBareRealVectorIterator) Index() int {
   return obj.i
 }
+func (obj *DenseBareRealVectorIterator) CloneConstIterator() VectorConstIterator {
+  return &DenseBareRealVectorIterator{obj.v, obj.i}
+}
+func (obj *DenseBareRealVectorIterator) CloneIterator() VectorIterator {
+  return &DenseBareRealVectorIterator{obj.v, obj.i}
+}
 /* joint iterator
  * -------------------------------------------------------------------------- */
 type DenseBareRealVectorJointIterator struct {

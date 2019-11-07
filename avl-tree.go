@@ -498,3 +498,7 @@ func (obj *AvlIterator) Next() {
     }
   }
 }
+
+func (obj *AvlIterator) Clone() AvlIterator {
+  return AvlIterator{obj.node, obj.tree}
+}

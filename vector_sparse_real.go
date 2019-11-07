@@ -636,6 +636,12 @@ func (obj *SparseRealVectorIterator) Next() {
 func (obj *SparseRealVectorIterator) Index() int {
   return obj.vectorSparseIndexIterator.Get()
 }
+func (obj *SparseRealVectorIterator) CloneConstIterator() VectorConstIterator {
+  return &SparseRealVectorIterator{*obj.vectorSparseIndexIterator.Clone(), obj.v}
+}
+func (obj *SparseRealVectorIterator) CloneIterator() VectorIterator {
+  return &SparseRealVectorIterator{*obj.vectorSparseIndexIterator.Clone(), obj.v}
+}
 /* joint iterator
  * -------------------------------------------------------------------------- */
 type SparseRealVectorJointIterator struct {
