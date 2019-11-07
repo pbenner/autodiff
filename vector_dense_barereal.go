@@ -488,7 +488,7 @@ func (obj *DenseBareRealVectorJointIterator) GET() (*BareReal, ConstScalar) {
     return obj.s1, obj.s2
   }
 }
-func (obj *DenseBareRealVectorJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+func (obj *DenseBareRealVectorJointIterator) Clone() *DenseBareRealVectorJointIterator {
   r := DenseBareRealVectorJointIterator{}
   r.it1 = obj.it1.Clone()
   r.it2 = obj.it2.CloneConstIterator()
@@ -496,6 +496,12 @@ func (obj *DenseBareRealVectorJointIterator) CloneConstJointIterator() VectorCon
   r.s1 = obj.s1
   r.s2 = obj.s2
   return &r
+}
+func (obj *DenseBareRealVectorJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+  return obj.Clone()
+}
+func (obj *DenseBareRealVectorJointIterator) CloneJointIterator() VectorJointIterator {
+  return obj.Clone()
 }
 /* joint iterator
  * -------------------------------------------------------------------------- */

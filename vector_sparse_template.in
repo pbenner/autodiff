@@ -823,7 +823,7 @@ func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
   return obj.s1, obj.s2
 }
 
-func (obj *VECTOR_JOINT_ITERATOR) CloneConstJointIterator() VectorConstJointIterator {
+func (obj *VECTOR_JOINT_ITERATOR) Clone() *VECTOR_JOINT_ITERATOR {
   r := VECTOR_JOINT_ITERATOR{}
   r.it1 = obj.it1.Clone()
   r.it2 = obj.it2.CloneConstIterator()
@@ -831,6 +831,14 @@ func (obj *VECTOR_JOINT_ITERATOR) CloneConstJointIterator() VectorConstJointIter
   r.s1  = obj.s1
   r.s2  = obj.s2
   return &r
+}
+
+func (obj *VECTOR_JOINT_ITERATOR) CloneConstJointIterator() VectorConstJointIterator {
+  return obj.Clone()
+}
+
+func (obj *VECTOR_JOINT_ITERATOR) CloneJointIterator() VectorJointIterator {
+  return obj.Clone()
 }
 
 /* joint iterator

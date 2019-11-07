@@ -717,7 +717,7 @@ func (obj *SparseRealVectorJointIterator) GetValue() (float64, float64) {
 func (obj *SparseRealVectorJointIterator) GET() (*Real, ConstScalar) {
   return obj.s1, obj.s2
 }
-func (obj *SparseRealVectorJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+func (obj *SparseRealVectorJointIterator) Clone() *SparseRealVectorJointIterator {
   r := SparseRealVectorJointIterator{}
   r.it1 = obj.it1.Clone()
   r.it2 = obj.it2.CloneConstIterator()
@@ -725,6 +725,12 @@ func (obj *SparseRealVectorJointIterator) CloneConstJointIterator() VectorConstJ
   r.s1 = obj.s1
   r.s2 = obj.s2
   return &r
+}
+func (obj *SparseRealVectorJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+  return obj.Clone()
+}
+func (obj *SparseRealVectorJointIterator) CloneJointIterator() VectorJointIterator {
+  return obj.Clone()
 }
 /* joint iterator
  * -------------------------------------------------------------------------- */
