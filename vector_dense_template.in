@@ -553,6 +553,10 @@ func (obj *VECTOR_ITERATOR) Index() int {
   return obj.i
 }
 
+func (obj *VECTOR_ITERATOR) Clone() *VECTOR_ITERATOR {
+  return &VECTOR_ITERATOR{obj.v, obj.i}
+}
+
 func (obj *VECTOR_ITERATOR) CloneConstIterator() VectorConstIterator {
   return &VECTOR_ITERATOR{obj.v, obj.i}
 }
@@ -629,6 +633,16 @@ func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
   } else {
     return obj.s1, obj.s2
   }
+}
+
+func (obj *VECTOR_JOINT_ITERATOR) CloneConstJointIterator() VectorConstJointIterator {
+  r := VECTOR_JOINT_ITERATOR{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.idx = obj.idx
+  r.s1  = obj.s1
+  r.s2  = obj.s2
+  return &r
 }
 
 /* joint iterator

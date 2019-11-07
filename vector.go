@@ -32,6 +32,7 @@ type VectorConstIterator interface {
 }
 
 type VectorConstJointIterator interface {
+  CloneConstJointIterator() VectorConstJointIterator
   GetValue() (float64, float64)
   GetConst() (ConstScalar, ConstScalar)
   Ok      () bool

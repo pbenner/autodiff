@@ -189,6 +189,10 @@ func (obj *DenseConstRealVectorIterator) Index() int {
   return obj.i
 }
 
+func (obj *DenseConstRealVectorIterator) Clone() *DenseConstRealVectorIterator {
+  return &DenseConstRealVectorIterator{obj.v, obj.i}
+}
+
 func (obj *DenseConstRealVectorIterator) CloneConstIterator() VectorConstIterator {
   return &DenseConstRealVectorIterator{obj.v, obj.i}
 }
@@ -243,4 +247,14 @@ func (obj *DenseConstRealVectorJointIterator) GetValue() (float64, float64) {
 
 func (obj *DenseConstRealVectorJointIterator) GET() (ConstReal, ConstScalar) {
   return obj.s1, obj.s2
+}
+
+func (obj *DenseConstRealVectorJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+  r := DenseConstRealVectorJointIterator{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.idx = obj.idx
+  r.s1  = obj.s1
+  r.s2  = obj.s2
+  return &r
 }

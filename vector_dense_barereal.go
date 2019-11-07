@@ -418,6 +418,9 @@ func (obj *DenseBareRealVectorIterator) Next() {
 func (obj *DenseBareRealVectorIterator) Index() int {
   return obj.i
 }
+func (obj *DenseBareRealVectorIterator) Clone() *DenseBareRealVectorIterator {
+  return &DenseBareRealVectorIterator{obj.v, obj.i}
+}
 func (obj *DenseBareRealVectorIterator) CloneConstIterator() VectorConstIterator {
   return &DenseBareRealVectorIterator{obj.v, obj.i}
 }
@@ -484,6 +487,15 @@ func (obj *DenseBareRealVectorJointIterator) GET() (*BareReal, ConstScalar) {
   } else {
     return obj.s1, obj.s2
   }
+}
+func (obj *DenseBareRealVectorJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+  r := DenseBareRealVectorJointIterator{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.idx = obj.idx
+  r.s1 = obj.s1
+  r.s2 = obj.s2
+  return &r
 }
 /* joint iterator
  * -------------------------------------------------------------------------- */

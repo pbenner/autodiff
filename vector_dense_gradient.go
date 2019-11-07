@@ -163,6 +163,10 @@ func (obj *DenseGradientIterator) Index() int {
   return obj.i
 }
 
+func (obj *DenseGradientIterator) Clone() *DenseGradientIterator {
+  return &DenseGradientIterator{obj.v, obj.i}
+}
+
 func (obj *DenseGradientIterator) CloneConstIterator() VectorConstIterator {
   return &DenseGradientIterator{obj.v, obj.i}
 }
@@ -217,6 +221,16 @@ func (obj *DenseGradientJointIterator) GetValue() (float64, float64) {
 
 func (obj *DenseGradientJointIterator) GET() (ConstReal, ConstScalar) {
   return obj.s1, obj.s2
+}
+
+func (obj *DenseGradientJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+  r := DenseGradientJointIterator{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.idx = obj.idx
+  r.s1  = obj.s1
+  r.s2  = obj.s2
+  return &r
 }
 
 /* imlement ConstScalarContainer

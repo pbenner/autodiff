@@ -636,6 +636,9 @@ func (obj *SparseBareRealVectorIterator) Next() {
 func (obj *SparseBareRealVectorIterator) Index() int {
   return obj.vectorSparseIndexIterator.Get()
 }
+func (obj *SparseBareRealVectorIterator) Clone() *SparseBareRealVectorIterator {
+  return &SparseBareRealVectorIterator{*obj.vectorSparseIndexIterator.Clone(), obj.v}
+}
 func (obj *SparseBareRealVectorIterator) CloneConstIterator() VectorConstIterator {
   return &SparseBareRealVectorIterator{*obj.vectorSparseIndexIterator.Clone(), obj.v}
 }
@@ -713,6 +716,15 @@ func (obj *SparseBareRealVectorJointIterator) GetValue() (float64, float64) {
 }
 func (obj *SparseBareRealVectorJointIterator) GET() (*BareReal, ConstScalar) {
   return obj.s1, obj.s2
+}
+func (obj *SparseBareRealVectorJointIterator) CloneConstJointIterator() VectorConstJointIterator {
+  r := SparseBareRealVectorJointIterator{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.idx = obj.idx
+  r.s1 = obj.s1
+  r.s2 = obj.s2
+  return &r
 }
 /* joint iterator
  * -------------------------------------------------------------------------- */
