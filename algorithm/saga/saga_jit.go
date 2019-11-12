@@ -58,10 +58,8 @@ func sagaJit(
   f Objective1Sparse,
   n int,
   x Vector,
-  autoReg AutoReg,
   gamma Gamma,
   epsilon Epsilon,
-  eta Eta,
   maxIterations MaxIterations,
   jit JitUpdateType,
   hook Hook,
@@ -81,16 +79,6 @@ func sagaJit(
   // some constants
   t_n := BareReal(n)
   t_g := BareReal(gamma.Value)
-
-  // number of non-zero parameters used for auto-lambda mode
-  n_x_old := 0
-  n_x_new := 0
-  // step size for auto-lambda mode
-  l1_step := 0.1*jit.GetLambda()
-
-  if l1_step == 0.0 {
-    l1_step = 0.01*gamma.Value/float64(n)
-  }
 
   // sum of gradients
   s := NullDenseBareRealVector(d)
@@ -150,34 +138,6 @@ func sagaJit(
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*jit.GetLambda()/gamma.Value), epoch) {
         break
       }
-    }
-    // update lambda
-    if autoReg.Value > 0 {
-      n_x_new = 0
-      // count number of non-zero entries
-      for k := 1; k < x1.Dim(); k++ {
-        if x1[k] != 0.0 {
-          n_x_new += 1
-        }
-      }
-      switch {
-      case n_x_old < autoReg.Value && n_x_new < autoReg.Value: fallthrough
-      case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
-        l1_step = eta.Value[0]*l1_step
-      default:
-        l1_step = eta.Value[1]*l1_step
-      }
-      if n_x_new < autoReg.Value {
-        jit.SetLambda(jit.GetLambda() - l1_step)
-      } else
-      if n_x_new > autoReg.Value {
-        jit.SetLambda(jit.GetLambda() + l1_step)
-      }
-      if jit.GetLambda() < 0.0 {
-        jit.SetLambda(0.0)
-      }
-      // swap old and new counts
-      n_x_old, n_x_new = n_x_new, n_x_old
     }
     xs.SET(x1)
   }

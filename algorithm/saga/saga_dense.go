@@ -80,10 +80,8 @@ func saga1Dense(
   f Objective1Dense,
   n int,
   x Vector,
-  autoReg AutoReg,
   gamma Gamma,
   epsilon Epsilon,
-  eta Eta,
   maxIterations MaxIterations,
   proxop ProximalOperatorType,
   hook Hook,
@@ -109,18 +107,6 @@ func saga1Dense(
   // some constants
   t_n := float64(n)
   t_g := gamma.Value
-  // number of non-zero parameters used for auto-lambda mode
-  n_x_old := 0
-  n_x_new := 0
-  // step size for auto-lambda mode
-  l1_step := 0.0
-  if proxop != nil {
-    if l1_step == 0.0 {
-      l1_step = 0.01*gamma.Value/float64(n)
-    } else {
-      l1_step = 0.01*proxop.GetLambda()
-    }
-  }
   // sum of gradients
   s := NullDenseBareRealVector(d)
   // initialize s and d
@@ -177,34 +163,6 @@ func saga1Dense(
         break
       }
     }
-    // update lambda
-    if autoReg.Value > 0 {
-      n_x_new = 0
-      // count number of non-zero entries
-      for k := 1; k < x1.Dim(); k++ {
-        if x1[k] != 0.0 {
-          n_x_new += 1
-        }
-      }
-      switch {
-      case n_x_old < autoReg.Value && n_x_new < autoReg.Value: fallthrough
-      case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
-        l1_step = eta.Value[0]*l1_step
-      default:
-        l1_step = eta.Value[1]*l1_step
-      }
-      if n_x_new < autoReg.Value {
-        proxop.SetLambda(proxop.GetLambda() - l1_step)
-      } else
-      if n_x_new > autoReg.Value {
-        proxop.SetLambda(proxop.GetLambda() + l1_step)
-      }
-      if proxop.GetLambda() < 0.0 {
-        proxop.SetLambda(0.0)
-      }
-      // swap old and new counts
-      n_x_old, n_x_new = n_x_new, n_x_old
-    }
     xs.SET(x1)
   }
   return x1, g.Int63(), nil
@@ -213,10 +171,8 @@ func saga2Dense(
   f Objective2Dense,
   n int,
   x Vector,
-  autoReg AutoReg,
   gamma Gamma,
   epsilon Epsilon,
-  eta Eta,
   maxIterations MaxIterations,
   proxop ProximalOperatorType,
   hook Hook,
@@ -242,18 +198,6 @@ func saga2Dense(
   // some constants
   t_n := float64(n)
   t_g := gamma.Value
-  // number of non-zero parameters used for auto-lambda mode
-  n_x_old := 0
-  n_x_new := 0
-  // step size for auto-lambda mode
-  l1_step := 0.0
-  if proxop != nil {
-    if l1_step == 0.0 {
-      l1_step = 0.01*gamma.Value/float64(n)
-    } else {
-      l1_step = 0.01*proxop.GetLambda()
-    }
-  }
   // sum of gradients
   s := NullDenseBareRealVector(d)
   // initialize s and d
@@ -309,34 +253,6 @@ func saga2Dense(
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
         break
       }
-    }
-    // update lambda
-    if autoReg.Value > 0 {
-      n_x_new = 0
-      // count number of non-zero entries
-      for k := 1; k < x1.Dim(); k++ {
-        if x1[k] != 0.0 {
-          n_x_new += 1
-        }
-      }
-      switch {
-      case n_x_old < autoReg.Value && n_x_new < autoReg.Value: fallthrough
-      case n_x_old > autoReg.Value && n_x_new > autoReg.Value:
-        l1_step = eta.Value[0]*l1_step
-      default:
-        l1_step = eta.Value[1]*l1_step
-      }
-      if n_x_new < autoReg.Value {
-        proxop.SetLambda(proxop.GetLambda() - l1_step)
-      } else
-      if n_x_new > autoReg.Value {
-        proxop.SetLambda(proxop.GetLambda() + l1_step)
-      }
-      if proxop.GetLambda() < 0.0 {
-        proxop.SetLambda(0.0)
-      }
-      // swap old and new counts
-      n_x_old, n_x_new = n_x_new, n_x_old
     }
     xs.SET(x1)
   }

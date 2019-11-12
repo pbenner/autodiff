@@ -86,9 +86,6 @@ type LogisticRegression struct {
   Balance          bool
   Epsilon          float64
   L1Reg            float64
-  L1RegMax         float64
-  AutoReg          int
-  Eta           [2]float64
   L2Reg            float64
   TiReg            float64
   StepSizeFactor   float64
@@ -109,8 +106,6 @@ func NewLogisticRegression(n int, sparse bool) (*LogisticRegression, error) {
   r.MaxIterations   = int(^uint(0) >> 1)
   r.ClassWeights[0] = 1.0
   r.ClassWeights[1] = 1.0
-  r.Eta[0]          = 1.1
-  r.Eta[1]          = 0.9
   r.StepSizeFactor  = 1.0
   r.sparse          = sparse
   return &r, nil
@@ -319,16 +314,13 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     // use specialized saga implementation
     if err := obj.sagaLogisticRegressionL1.Initialize(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.L1Regularization{obj.L1Reg},
-      saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
       saga.SampleWeights   {obj.sampleWeights},
       saga.Seed            {obj.Seed}, p); err != nil {
       return err
     }
     if r, s, err := obj.sagaLogisticRegressionL1.Execute(
-      obj.L1RegMax,
       saga.Epsilon         {obj.Epsilon},
-      saga.Eta             {obj.Eta},
       saga.MaxIterations   {obj.MaxIterations},
       saga.Hook            {obj.Hook}); err != nil {
       return err
@@ -344,10 +336,8 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   if obj.sparse {
     if r, s, err := saga.Run(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.Hook            {obj.Hook},
-      saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
       saga.Epsilon         {obj.Epsilon},
-      saga.Eta             {obj.Eta},
       saga.MaxIterations   {obj.MaxIterations},
       saga.Seed            {obj.Seed},
       saga.ProximalOperator{proxop},
@@ -360,9 +350,7 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
   } else {
     if r, s, err := saga.Run(saga.Objective1Dense(obj.f_dense), len(obj.x_dense), obj.Theta,
       saga.Hook            {obj.Hook},
-      saga.AutoReg         {obj.AutoReg},
       saga.Gamma           {obj.stepSize},
-      saga.Eta             {obj.Eta},
       saga.Epsilon         {obj.Epsilon},
       saga.MaxIterations   {obj.MaxIterations},
       saga.Seed            {obj.Seed},
@@ -786,10 +774,6 @@ type sagaLogisticRegressionL1 struct {
   Workers []sagaLogisticRegressionL1worker
   Indices []int
   Pool      ThreadPool
-  autoReg   saga.AutoReg
-  n_x_old   int
-  n_x_new   int
-  l1_step   float64
   rand      weightedRand
   Summary   byte
 }
@@ -799,23 +783,12 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   n int,
   x DenseBareRealVector,
   l1reg  saga.L1Regularization,
-  autoReg saga.AutoReg,
   gamma saga.Gamma,
   sampleWeights saga.SampleWeights,
   seed saga.Seed,
   pool ThreadPool) error {
 
-  obj.autoReg = autoReg
-  // prevent that in auto-lambda mode the step size is initialized to zero
-  if autoReg.Value > 0 && l1reg.Value == 0.0 {
-    l1reg.Value = 1.0
-  }
   obj.rand = newWeightedRand(sampleWeights.Value, n, seed.Value)
-  // number of non-zero parameters used for auto-lambda mode
-  obj.n_x_old = 0
-  obj.n_x_new = 0
-  // step size for auto-lambda mode
-  obj.l1_step = 0.01*l1reg.Value
   // slice of data indices
   obj.Indices = make([]int, n)
 
@@ -871,9 +844,7 @@ func (obj *sagaLogisticRegressionL1) average() {
 }
 
 func (obj *sagaLogisticRegressionL1) Execute(
-  lambdaMax float64,
   epsilon saga.Epsilon,
-  eta saga.Eta,
   maxIterations saga.MaxIterations,
   hook saga.Hook) (DenseBareRealVector, int64, error) {
 
@@ -902,47 +873,6 @@ func (obj *sagaLogisticRegressionL1) Execute(
       if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(obj.Workers[0].GetLambda()), epoch) {
         break
       }
-    }
-    // update lambda
-    if obj.autoReg.Value > 0 && (epoch % len(obj.Workers)) == 0 {
-      obj.n_x_new = 0
-      // count number of non-zero entries
-      for k := 1; k < x1.Dim(); k++ {
-        if x1[k] != 0.0 {
-          obj.n_x_new += 1
-        }
-      }
-      // compute new step size
-      l1_step_old := obj.l1_step
-      switch {
-      case obj.n_x_old < obj.autoReg.Value && obj.n_x_new < obj.autoReg.Value: fallthrough
-      case obj.n_x_old > obj.autoReg.Value && obj.n_x_new > obj.autoReg.Value:
-        obj.l1_step = eta.Value[0]*obj.l1_step
-      default:
-        obj.l1_step = eta.Value[1]*obj.l1_step
-      }
-      // compute new lambda
-      lambda := obj.Workers[0].GetLambda()
-      if obj.n_x_new < obj.autoReg.Value {
-        lambda -= obj.l1_step
-      } else
-      if obj.n_x_new > obj.autoReg.Value {
-        lambda += obj.l1_step
-      }
-      // check lambda
-      if lambda < 0.0 {
-        obj.l1_step = l1_step_old
-      } else
-      if lambdaMax != 0.0 && lambda > lambdaMax {
-        obj.l1_step = l1_step_old
-      } else {
-        // distribute new lambda
-        for i, _ := range obj.Workers {
-          obj.Workers[i].SetLambda(lambda)
-        }
-      }
-      // swap old and new counts
-      obj.n_x_old, obj.n_x_new = obj.n_x_new, obj.n_x_old
     }
     x0.SET(x1)
   }
