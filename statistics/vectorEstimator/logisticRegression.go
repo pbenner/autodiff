@@ -91,7 +91,6 @@ type LogisticRegression struct {
   StepSizeFactor   float64
   MaxIterations    int
    ClassWeights [2]float64
-  sampleWeights  []int
   Seed             int64
   Hook             func(x ConstVector, step, lambda ConstScalar, i int) bool
   sagaLogisticRegressionL1
@@ -154,39 +153,6 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   if k := obj.logisticRegression.Dim()+2; x[0].Dim() != k {
     return fmt.Errorf("LogisticRegression: data has invalid dimension: got data of dimension `%d' but expected dimension `%d'", x[0].Dim(), k)
   }
-  if obj.sparse {
-    x_sparse := make([]ConstVector, len(x))
-    for i, _ := range x {
-      if x[i].Dim() != x[0].Dim() {
-        return fmt.Errorf("data has inconsistent dimensions")
-      }
-      t := x[i].ConstSlice(0, x[i].Dim()-1)
-      switch a := t.(type) {
-      case SparseConstRealVector:
-        x_sparse[i] = a
-      default:
-        x_sparse[i] = AsSparseConstRealVector(t)
-      }
-    }
-    obj.SetSparseData(x_sparse, nil, n)
-    obj.setStepSize()
-  } else {
-    x_dense := make([]ConstVector, len(x))
-    for i, _ := range x {
-      if x[i].Dim() != x[0].Dim() {
-        return fmt.Errorf("data has inconsistent dimensions")
-      }
-      t := x[i].ConstSlice(0, x[i].Dim()-1)
-      switch a := t.(type) {
-      case DenseConstRealVector:
-        x_dense[i] = a
-      default:
-        x_dense[i] = AsDenseConstRealVector(t)
-      }
-    }
-    obj.SetDenseData(x_dense, nil, n)
-    obj.setStepSize()
-  }
   obj.c = make([]bool       , len(x))
   obj.x = make([]ConstVector, len(x))
   for i, _ := range x {
@@ -221,7 +187,38 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.x[i] = x[i]
   }
-  obj.SetLabels(obj.c)
+  if obj.sparse {
+    x_sparse := make([]ConstVector, len(x))
+    for i, _ := range x {
+      if x[i].Dim() != x[0].Dim() {
+        return fmt.Errorf("data has inconsistent dimensions")
+      }
+      t := x[i].ConstSlice(0, x[i].Dim()-1)
+      switch a := t.(type) {
+      case SparseConstRealVector:
+        x_sparse[i] = a
+      default:
+        x_sparse[i] = AsSparseConstRealVector(t)
+      }
+    }
+    obj.SetSparseData(x_sparse, obj.c, n)
+  } else {
+    x_dense := make([]ConstVector, len(x))
+    for i, _ := range x {
+      if x[i].Dim() != x[0].Dim() {
+        return fmt.Errorf("data has inconsistent dimensions")
+      }
+      t := x[i].ConstSlice(0, x[i].Dim()-1)
+      switch a := t.(type) {
+      case DenseConstRealVector:
+        x_dense[i] = a
+      default:
+        x_dense[i] = AsDenseConstRealVector(t)
+      }
+    }
+    obj.SetDenseData(x_dense, obj.c, n)
+  }
+  obj.setStepSize()
   return nil
 }
 
@@ -238,17 +235,6 @@ func (obj *LogisticRegression) SetLabels(c []bool) {
     }
     obj.ClassWeights[1] = float64(n0+n1)/float64(2*n1)
     obj.ClassWeights[0] = float64(n0+n1)/float64(2*n0)
-    // convert class weights to sample weights
-    w1 := int(math.Round(float64(4*n0+4*n1)/float64(2*n1)))
-    w0 := int(math.Round(float64(4*n0+4*n1)/float64(2*n0)))
-    obj.sampleWeights = make([]int, len(obj.c))
-    for i := 0; i < len(obj.c); i++ {
-      if obj.c[i] {
-        obj.sampleWeights[i] = w1
-      } else {
-        obj.sampleWeights[i] = w0
-      }
-    }
   }
 }
 
@@ -269,8 +255,8 @@ func (obj *LogisticRegression) SetSparseData(x []ConstVector, c []bool, n int) e
       return fmt.Errorf("data is not of type SparseConstRealVector")
     }
   }
-  obj.setStepSize()
   obj.SetLabels(c)
+  obj.setStepSize()
   return nil
 }
 
@@ -288,8 +274,8 @@ func (obj *LogisticRegression) SetDenseData(x []ConstVector, c []bool, n int) er
       return fmt.Errorf("data is not of type DenseConstRealVector")
     }
   }
-  obj.setStepSize()
   obj.SetLabels(c)
+  obj.setStepSize()
   return nil
 }
 
@@ -315,7 +301,6 @@ func (obj *LogisticRegression) Estimate(gamma ConstVector, p ThreadPool) error {
     if err := obj.sagaLogisticRegressionL1.Initialize(saga.Objective1Sparse(obj.f_sparse), len(obj.x_sparse), obj.Theta,
       saga.L1Regularization{obj.L1Reg},
       saga.Gamma           {obj.stepSize},
-      saga.SampleWeights   {obj.sampleWeights},
       saga.Seed            {obj.Seed}, p); err != nil {
       return err
     }
@@ -380,6 +365,7 @@ func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
 
 func (obj *LogisticRegression) setStepSize() {
   max_squared_sum := 0.0
+  max_weight      := 1.0
   if obj.sparse {
     for _, x := range obj.x_sparse {
       r  := 0.0
@@ -396,7 +382,7 @@ func (obj *LogisticRegression) setStepSize() {
       }
     }
   } else {
-    for _, x := range obj.x_dense {
+    for i, x := range obj.x_dense {
       r  := 0.0
       it := x.ConstIterator()
       // skip first element
@@ -408,85 +394,18 @@ func (obj *LogisticRegression) setStepSize() {
       }
       if r > max_squared_sum {
         max_squared_sum = r
+        if obj.c[i] {
+          max_weight = obj.ClassWeights[1]
+        } else {
+          max_weight = obj.ClassWeights[0]
+        }
       }
     }
   }
   L := (0.25*(max_squared_sum + 1.0) + obj.L2Reg/float64(obj.n))
+  L *= max_weight
   obj.stepSize  = 1.0/(2.0*L + math.Min(2.0*obj.L2Reg, L))
   obj.stepSize *= obj.StepSizeFactor
-}
-
-/* -------------------------------------------------------------------------- */
-
-type weightedRand struct {
-  cum   []int
-  items []int
-  max     int
-  i       int
-  rand   *rand.Rand
-}
-
-func newWeightedRand(weights []int, n int, seed int64) weightedRand {
-  r := weightedRand{}
-  if seed != -1 {
-    r.rand = rand.New(rand.NewSource(seed))
-  }
-  if len(weights) > 0 {
-    if len(weights) != n {
-      panic("internal error")
-    }
-    s := 0
-    r.cum   = make([]int, len(weights))
-    r.items = make([]int, len(weights))
-    for i := 0; i < len(weights); i++ {
-      s += weights[i]
-      r.cum  [i] = s
-      r.items[i] = i
-    }
-    r.max = s
-    sort.Sort(r)
-  } else {
-    r.max = n
-  }
-  return r
-}
-
-func (obj weightedRand) Less(i, j int) bool {
-  return obj.cum[i] < obj.cum[j]
-}
-
-func (obj weightedRand) Len() int {
-  return len(obj.cum)
-}
-
-func (obj weightedRand) Swap(i, j int) {
-  obj.cum  [i], obj.cum  [j] = obj.cum  [j], obj.cum  [i]
-  obj.items[i], obj.items[j] = obj.items[j], obj.items[i]
-}
-
-func (obj *weightedRand) Draw() int {
-  r := obj.i
-  if obj.rand == nil {
-    // update counter
-    obj.i = (obj.i + 1) % obj.max
-  } else {
-    // draw new value
-    r = obj.rand.Intn(obj.max)
-  }
-  if len(obj.cum) > 0 {
-    i := sort.SearchInts(obj.cum, r+1)
-    return obj.items[i]
-  } else {
-    return r
-  }
-}
-
-func (obj *weightedRand) Int63() int64 {
-  if obj.rand != nil {
-    return obj.rand.Int63()
-  } else {
-    return -1
-  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -534,9 +453,9 @@ func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstR
   }
   y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(math.Exp(r) - 1.0)
+    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
   } else {
-    w = ConstReal(math.Exp(r))
+    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
   }
   return y, w, x[i], nil
 }
@@ -560,9 +479,9 @@ func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (Const
   }
   y = ConstReal(r)
   if obj.c[i] {
-    w = ConstReal(math.Exp(r) - 1.0)
+    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
   } else {
-    w = ConstReal(math.Exp(r))
+    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
   }
   return y, w, x[i], nil
 }
@@ -774,7 +693,7 @@ type sagaLogisticRegressionL1 struct {
   Workers []sagaLogisticRegressionL1worker
   Indices []int
   Pool      ThreadPool
-  rand      weightedRand
+  rand     *rand.Rand
   Summary   byte
 }
 
@@ -784,11 +703,10 @@ func (obj *sagaLogisticRegressionL1) Initialize(
   x DenseBareRealVector,
   l1reg  saga.L1Regularization,
   gamma saga.Gamma,
-  sampleWeights saga.SampleWeights,
   seed saga.Seed,
   pool ThreadPool) error {
 
-  obj.rand = newWeightedRand(sampleWeights.Value, n, seed.Value)
+  obj.rand = rand.New(rand.NewSource(seed.Value))
   // slice of data indices
   obj.Indices = make([]int, n)
 
@@ -857,7 +775,7 @@ func (obj *sagaLogisticRegressionL1) Execute(
     }
     // generate new random sample
     for i := 0; i < len(obj.Indices); i++ {
-      obj.Indices[i] = obj.rand.Draw()
+      obj.Indices[i] = obj.rand.Intn(len(obj.Indices))
     }
     if err := obj.Pool.RangeJob(0, len(obj.Workers), func(i int, pool ThreadPool, erf func() error) error {
       return obj.Workers[i].Iterate(epoch)
