@@ -221,11 +221,11 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.x[i] = x[i]
   }
-  obj.setLabels(obj.c)
+  obj.SetLabels(obj.c)
   return nil
 }
 
-func (obj *LogisticRegression) setLabels(c []bool) {
+func (obj *LogisticRegression) SetLabels(c []bool) {
   obj.c = c
   if obj.Balance {
     n1 := 0
@@ -270,7 +270,7 @@ func (obj *LogisticRegression) SetSparseData(x []ConstVector, c []bool, n int) e
     }
   }
   obj.setStepSize()
-  obj.setLabels(c)
+  obj.SetLabels(c)
   return nil
 }
 
@@ -289,7 +289,7 @@ func (obj *LogisticRegression) SetDenseData(x []ConstVector, c []bool, n int) er
     }
   }
   obj.setStepSize()
-  obj.setLabels(c)
+  obj.SetLabels(c)
   return nil
 }
 
