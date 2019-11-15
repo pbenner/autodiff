@@ -61,10 +61,6 @@ type MaxIterations struct {
   Value int
 }
 
-type SampleWeights struct {
-  Value []int
-}
-
 type Seed struct {
   Value int64
 }
