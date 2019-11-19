@@ -218,7 +218,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
     }
     obj.SetDenseData(x_dense, obj.c, n)
   }
-  obj.setStepSize()
+  obj.estimateStepSize()
   return nil
 }
 
@@ -256,7 +256,7 @@ func (obj *LogisticRegression) SetSparseData(x []ConstVector, c []bool, n int) e
     }
   }
   obj.SetLabels(c)
-  obj.setStepSize()
+  obj.estimateStepSize()
   return nil
 }
 
@@ -275,7 +275,7 @@ func (obj *LogisticRegression) SetDenseData(x []ConstVector, c []bool, n int) er
     }
   }
   obj.SetLabels(c)
-  obj.setStepSize()
+  obj.estimateStepSize()
   return nil
 }
 
@@ -363,7 +363,7 @@ func (obj *LogisticRegression) GetEstimate() (VectorPdf, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *LogisticRegression) setStepSize() {
+func (obj *LogisticRegression) estimateStepSize() {
   max_squared_sum := 0.0
   max_weight      := 1.0
   if obj.sparse {
@@ -566,7 +566,7 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
 
   obj.f  = f
   obj.x1 = AsDenseBareRealVector(x)
-  obj.xk = make([]int,  x.Dim())
+  obj.xk = make([]int , x.Dim())
   obj.xs = make([]bool, n)
   obj.ns = 0
   obj.cumulative_sums = NullDenseBareRealVector(m)
@@ -583,6 +583,16 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   // initialize s and d
   obj.dict = make([]gradientJit, n)
   return nil
+}
+
+func (obj *sagaLogisticRegressionL1worker) reset() {
+  obj.xk   = make([]int , len(obj.xk))
+  obj.xs   = make([]bool, len(obj.xs))
+  obj.ns   = 0
+  obj.cumulative_sums = NullDenseBareRealVector(obj.cumulative_sums.Dim())
+  obj.t_n  = BareReal(0.0)
+  obj.s    = NullDenseBareRealVector(obj.s.Dim())
+  obj.dict = make([]gradientJit, len(obj.dict))
 }
 
 func (obj *sagaLogisticRegressionL1worker) jitUpdates(i_, j int) error {
@@ -795,4 +805,22 @@ func (obj *sagaLogisticRegressionL1) Execute(
     x0.SET(x1)
   }
   return x1, obj.rand.Int63(), nil
+}
+
+func (obj *sagaLogisticRegressionL1) GetStepSize() float64 {
+  return obj.Workers[0].t_g.GetValue()
+}
+
+func (obj *sagaLogisticRegressionL1) SetStepSize(gamma float64) {
+  for i, _ := range obj.Workers {
+    lambda := obj.Workers[i].GetLambda()
+    obj.Workers[i].t_g.SetValue(gamma)
+    obj.Workers[i].SetLambda(lambda)
+  }
+}
+
+func (obj *sagaLogisticRegressionL1) Reset() {
+  for i, _ := range obj.Workers {
+    obj.Workers[i].reset()
+  }
 }
