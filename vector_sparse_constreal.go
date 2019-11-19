@@ -21,7 +21,6 @@ package autodiff
 import "fmt"
 import "bytes"
 import "sort"
-import "sync"
 
 /* vector type declaration
  * -------------------------------------------------------------------------- */
@@ -30,7 +29,6 @@ type SparseConstRealVector struct {
   values  []float64
   indices []int
   idxmap  map[int]int
-  idxmut  sync.Mutex
   n       int
 }
 
@@ -66,8 +64,10 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
 }
 
 func NilSparseConstRealVector(n int) SparseConstRealVector {
-  r  := SparseConstRealVector{}
-  r.n = n
+  r := SparseConstRealVector{}
+  r.n      = n
+  // create map here so that no pointer receivers are needed
+  r.idxmap = make(map[int]int)
   return r
 }
 
@@ -117,7 +117,7 @@ func (obj SparseConstRealVector) Dim() int {
 
 func (obj SparseConstRealVector) ValueAt(i int) float64 {
   if len(obj.idxmap) == 0 {
-    obj.createIndex()
+    obj.CreateIndex()
   }
   if k, ok := obj.idxmap[i]; ok {
     return obj.values[k]
@@ -128,7 +128,7 @@ func (obj SparseConstRealVector) ValueAt(i int) float64 {
 
 func (obj SparseConstRealVector) ConstAt(i int) ConstScalar {
   if len(obj.idxmap) == 0 {
-    obj.createIndex()
+    obj.CreateIndex()
   }
   if k, ok := obj.idxmap[i]; ok {
     return ConstReal(obj.values[k])
@@ -261,15 +261,12 @@ func (a SparseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj SparseConstRealVector) createIndex() {
-  obj.idxmut.Lock()
+func (obj SparseConstRealVector) CreateIndex() {
   if len(obj.idxmap) == 0 {
-    obj.idxmap = make(map[int]int)
     for i, k := range obj.indices {
       obj.idxmap[k] = i
     }
   }
-  obj.idxmut.Unlock()
 }
 
 /* const iterator
