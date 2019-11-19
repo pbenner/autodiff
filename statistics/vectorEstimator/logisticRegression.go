@@ -62,7 +62,7 @@ func (obj logisticRegression) LogPdfSparse(v SparseConstRealVector) float64 {
   i := 0
   n := len(index)
   // skip first element
-  if index[i] == 0 {
+  if n > 0 && index[i] == 0 {
     i++
   }
   for ; i < n; i++ {
