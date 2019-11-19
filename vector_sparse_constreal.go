@@ -21,6 +21,7 @@ package autodiff
 import "fmt"
 import "bytes"
 import "sort"
+import "sync"
 
 /* vector type declaration
  * -------------------------------------------------------------------------- */
@@ -29,6 +30,7 @@ type SparseConstRealVector struct {
   values  []float64
   indices []int
   idxmap  map[int]int
+  idxmut  sync.Mutex
   n       int
 }
 
@@ -64,9 +66,8 @@ func NewSparseConstRealVector(indices []int, values []float64, n int) SparseCons
 }
 
 func NilSparseConstRealVector(n int) SparseConstRealVector {
-  r := SparseConstRealVector{}
-  r.n      = n
-  r.idxmap = make(map[int]int)
+  r  := SparseConstRealVector{}
+  r.n = n
   return r
 }
 
@@ -261,9 +262,14 @@ func (a SparseConstRealVector) Equals(b ConstVector, epsilon float64) bool {
 /* -------------------------------------------------------------------------- */
 
 func (obj SparseConstRealVector) createIndex() {
-  for i, k := range obj.indices {
-    obj.idxmap[k] = i
+  obj.idxmut.Lock()
+  if len(obj.idxmap) == 0 {
+    obj.idxmap = make(map[int]int)
+    for i, k := range obj.indices {
+      obj.idxmap[k] = i
+    }
   }
+  obj.idxmut.Unlock()
 }
 
 /* const iterator
