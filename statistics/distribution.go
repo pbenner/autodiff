@@ -25,6 +25,13 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
+type Configurable interface {
+  ImportConfig(config ConfigDistribution, t ScalarType) error
+  ExportConfig() ConfigDistribution
+}
+
+/* -------------------------------------------------------------------------- */
+
 type BasicDistribution interface {
   ImportConfig(config ConfigDistribution, t ScalarType) error
   ExportConfig() ConfigDistribution

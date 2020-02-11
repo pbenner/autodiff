@@ -351,11 +351,11 @@ func (config ConfigDistribution) GetNamedParametersAsIntPairs(name string) ([][2
 
 /* -------------------------------------------------------------------------- */
 
-func ExportDistribution(filename string, distribution BasicDistribution) error {
+func ExportDistribution(filename string, distribution Configurable) error {
   return distribution.ExportConfig().ExportJson(filename)
 }
 
-func ImportDistribution(filename string, distribution BasicDistribution, t ScalarType) error {
+func ImportDistribution(filename string, distribution Configurable, t ScalarType) error {
   config := ConfigDistribution{}
 
   if err := config.ImportJson(filename); err != nil {
