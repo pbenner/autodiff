@@ -25,7 +25,7 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-type Configurable interface {
+type ConfigurableDistribution interface {
   ImportConfig(config ConfigDistribution, t ScalarType) error
   ExportConfig() ConfigDistribution
 }
@@ -33,8 +33,7 @@ type Configurable interface {
 /* -------------------------------------------------------------------------- */
 
 type BasicDistribution interface {
-  ImportConfig(config ConfigDistribution, t ScalarType) error
-  ExportConfig() ConfigDistribution
+  ConfigurableDistribution
   GetParameters() Vector
   SetParameters(parameters Vector) error
   ScalarType() ScalarType
