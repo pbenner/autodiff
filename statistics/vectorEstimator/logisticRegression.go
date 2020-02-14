@@ -702,6 +702,7 @@ func (obj *sagaLogisticRegressionL1worker) SetLambda(lambda float64) {
 type sagaLogisticRegressionL1 struct {
   Workers []sagaLogisticRegressionL1worker
   Indices []int
+  stepSize  float64
   Pool      ThreadPool
   rand     *rand.Rand
   Summary   byte
@@ -740,7 +741,8 @@ func (obj *sagaLogisticRegressionL1) Initialize(
       return err
     }
   }
-  obj.Pool = pool
+  obj.stepSize = gamma.Value
+  obj.Pool     = pool
   return nil
 }
 
@@ -808,10 +810,12 @@ func (obj *sagaLogisticRegressionL1) Execute(
 }
 
 func (obj *sagaLogisticRegressionL1) GetStepSize() float64 {
-  return obj.Workers[0].t_g.GetValue()
+  return obj.stepSize
 }
 
 func (obj *sagaLogisticRegressionL1) SetStepSize(gamma float64) {
+  obj.stepSize = gamma
+  // propagate step size to all workers
   for i, _ := range obj.Workers {
     lambda := obj.Workers[i].GetLambda()
     obj.Workers[i].t_g.SetValue(gamma)
