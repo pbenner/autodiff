@@ -53,7 +53,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
   // loop over x(1), ..., x(N-1)
   for k := 1; k < n-1; k++ {
     for j := 0; j < m; j++ {
-      i_pos := -1
+      i_pos := 0
       i_val := math.Inf(-1)
       // loop over states and find maximum
       for i := 0; i < m; i++ {
@@ -73,7 +73,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
   if n > 1 {
     k := n-1
     for j := 0; j < m; j++ {
-      i_pos := -1
+      i_pos := 0
       i_val := math.Inf(-1)
       // loop over states and find maximum
       for i := 0; i < m; i++ {
@@ -91,7 +91,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
   }
   // loop backwards
   // find maximum at the last position
-  i_pos := -1
+  i_pos := 0
   i_val := math.Inf(-1)
   for i := 0; i < m; i++ {
     // loop over states and find maximum

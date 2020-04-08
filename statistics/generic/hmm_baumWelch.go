@@ -231,7 +231,8 @@ func (obj *Hmm) BaumWelchStep(hmm1, hmm2 *Hmm, data HmmDataSet, meta ConstVector
     tmp[0].likelihood += tmp[threadIdx].likelihood
   }
   // normalize pi and the transition matrix
-  hmm1.normalize(t1, t2)
-
+  if err := hmm1.normalize(t1, t2); err != nil {
+    return math.Inf(-1), err
+  }
   return tmp[0].likelihood, nil
 }

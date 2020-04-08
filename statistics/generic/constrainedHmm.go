@@ -81,6 +81,18 @@ func (obj ChmmTransitionMatrix) GetConstraints() []EqualityConstraint {
 }
 
 func (obj ChmmTransitionMatrix) Normalize() error {
+  t1 := NullBareReal()
+  t2 := NullBareReal()
+  n, m := obj.Dims()
+  for i := 0; i < n; i++ {
+    t1.SetValue(math.Inf(-1))
+    for j := 0; j < m; j++ {
+      t1.LogAdd(t1, obj.At(i, j), t2)
+    }
+    if math.IsInf(t1.GetValue(), -1) {
+      obj.At(i, i).SetValue(0.0)
+    }
+  }
   if lambda, err := obj.computeLambda(); err != nil {
     return err
   } else {

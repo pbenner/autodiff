@@ -124,10 +124,11 @@ func (obj HmmTransitionMatrix) Normalize() error {
       t1.LogAdd(t1, obj.At(i, j), t2)
     }
     if math.IsInf(t1.GetValue(), -1) {
-      return fmt.Errorf("normalization failed")
-    }
-    for j := 0; j < m; j++ {
-      obj.At(i, j).Sub(obj.At(i, j), t1)
+      obj.At(i, i).SetValue(0.0)
+    } else {
+      for j := 0; j < m; j++ {
+        obj.At(i, j).Sub(obj.At(i, j), t1)
+      }
     }
   }
   return nil
