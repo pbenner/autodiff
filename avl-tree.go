@@ -401,8 +401,8 @@ func (obj *AvlNode) balance2(balanced bool) bool {
     if balance <= 0 {
       obj.rotateLL()
       if balance == 0 {
-        obj     .Balance =  1
-        obj.Left.Balance = -1
+        obj      .Balance =  1
+        obj.Right.Balance = -1
         balanced = true
       }
     } else {
@@ -431,7 +431,7 @@ func (obj *AvlNode) string(writer io.Writer) {
     obj.Left.string(writer)
     fmt.Fprintf(writer, "):")
   }
-  fmt.Fprintf(writer, "%d", obj.Value)
+  fmt.Fprintf(writer, "%d#%d", obj.Value, obj.Balance)
   if obj.Right != nil {
     fmt.Fprintf(writer, ":(")
     obj.Right.string(writer)
