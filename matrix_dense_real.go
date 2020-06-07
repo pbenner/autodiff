@@ -579,7 +579,7 @@ func (obj *DenseRealMatrix) MarshalJSON() ([]byte, error) {
     tmp.Set(obj)
     obj = tmp
   }
-  r := struct{Values DenseRealVector; Rows int; Cols int}{}
+  r := struct{Values []*Real; Rows int; Cols int}{}
   r.Values = obj.values
   r.Rows = obj.rows
   r.Cols = obj.cols
