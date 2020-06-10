@@ -34,6 +34,11 @@ import "unsafe"
 
 /* -------------------------------------------------------------------------- */
 
+#define MATRIX_ITERATOR         STR_CONCAT(MATRIX_NAME, Iterator)
+#define VECTOR_ITERATOR         STR_CONCAT(VECTOR_NAME, Iterator)
+
+/* -------------------------------------------------------------------------- */
+
 #ifdef STORE_PTR
 # define STORED_SCALAR_TYPE *SCALAR_NAME
 #else
@@ -164,6 +169,18 @@ func (matrix MATRIX_TYPE) index(i, j int) int {
     return (matrix.colOffset + j)*matrix.rowMax + (matrix.rowOffset + i)
   } else {
     return (matrix.rowOffset + i)*matrix.colMax + (matrix.colOffset + j)
+  }
+}
+
+func (matrix MATRIX_TYPE) ij(k int) (int, int) {
+  if matrix.transposed {
+    i := (k%matrix.colMax) - matrix.colOffset
+    j := (k/matrix.colMax) - matrix.rowOffset
+    return i, j
+  } else {
+    i := (k%matrix.rowMax) - matrix.rowOffset
+    j := (k/matrix.rowMax) - matrix.colOffset
+    return i, j
   }
 }
 
@@ -715,4 +732,44 @@ func (obj MATRIX_TYPE) UnmarshalJSON(data []byte) error {
   obj.transposed = false
   obj.initTmp()
   return nil
+}
+
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+
+func (obj MATRIX_TYPE) ConstIterator() MatrixConstIterator {
+  return obj.ITERATOR()
+}
+
+func (obj MATRIX_TYPE) Iterator() MatrixIterator {
+  return obj.ITERATOR()
+}
+
+func (obj MATRIX_TYPE) ITERATOR() *MATRIX_ITERATOR {
+  r := MATRIX_ITERATOR{*obj.values.ITERATOR(), obj}
+  return &r
+}
+
+/* iterator
+ * -------------------------------------------------------------------------- */
+
+type MATRIX_ITERATOR struct {
+  VECTOR_ITERATOR
+  m MATRIX_TYPE
+}
+
+func (obj *MATRIX_ITERATOR) Index() (int, int) {
+  return obj.m.ij(obj.VECTOR_ITERATOR.Index())
+}
+
+func (obj *MATRIX_ITERATOR) Clone() *MATRIX_ITERATOR {
+  return &MATRIX_ITERATOR{*obj.VECTOR_ITERATOR.Clone(), obj.m}
+}
+
+func (obj *MATRIX_ITERATOR) CloneConstIterator() MatrixConstIterator {
+  return &MATRIX_ITERATOR{*obj.VECTOR_ITERATOR.Clone(), obj.m}
+}
+
+func (obj *MATRIX_ITERATOR) CloneIterator() MatrixIterator {
+  return &MATRIX_ITERATOR{*obj.VECTOR_ITERATOR.Clone(), obj.m}
 }

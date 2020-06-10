@@ -20,6 +20,46 @@ package autodiff
 
 import "encoding/json"
 
+/* -------------------------------------------------------------------------- */
+
+type MatrixConstIterator interface {
+  CloneConstIterator() MatrixConstIterator
+  GetValue() float64
+  GetConst() ConstScalar
+  Ok      () bool
+  Next    ()
+  Index   () (int, int)
+}
+
+type MatrixConstJointIterator interface {
+  CloneConstJointIterator() MatrixConstJointIterator
+  GetValue() (float64, float64)
+  GetConst() (ConstScalar, ConstScalar)
+  Ok      () bool
+  Next    ()
+  Index   () (int, int)
+}
+
+type MatrixIterator interface {
+  CloneIterator() MatrixIterator
+  GetConst() ConstScalar
+  GetValue() float64
+  Get     () Scalar
+  Ok      () bool
+  Next    ()
+  Index   () (int, int)
+}
+
+type MatrixJointIterator interface {
+  CloneJointIterator() MatrixJointIterator
+  GetConst() (ConstScalar, ConstScalar)
+  GetValue() (float64, float64)
+  Get     () (Scalar, ConstScalar)
+  Ok      () bool
+  Next    ()
+  Index   () (int, int)
+}
+
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
 
