@@ -168,7 +168,7 @@ func (matrix *SparseBareRealMatrix) ROW(i int) *SparseBareRealVector {
   if matrix.transposed {
     v = nilSparseBareRealVector(matrix.cols)
     for j := 0; j < matrix.cols; j++ {
-      v.At(j).Set(matrix.values.At(matrix.index(i, j)))
+      v.At(j).Set(matrix.values.ConstAt(matrix.index(i, j)))
     }
   } else {
     i = matrix.index(i, 0)
@@ -187,7 +187,7 @@ func (matrix *SparseBareRealMatrix) COL(j int) *SparseBareRealVector {
   } else {
     v = nilSparseBareRealVector(matrix.rows)
     for i := 0; i < matrix.rows; i++ {
-      v.At(i).Set(matrix.values.At(matrix.index(i, j)))
+      v.At(i).Set(matrix.values.ConstAt(matrix.index(i, j)))
     }
   }
   return v
@@ -202,7 +202,7 @@ func (matrix *SparseBareRealMatrix) DIAG() *SparseBareRealVector {
   }
   v := nilSparseBareRealVector(n)
   for i := 0; i < n; i++ {
-    v.At(i).Set(matrix.values.At(matrix.index(i, i)))
+    v.At(i).Set(matrix.values.ConstAt(matrix.index(i, i)))
   }
   return v
 }
@@ -234,7 +234,7 @@ func (matrix *SparseBareRealMatrix) AsSparseBareRealVector() *SparseBareRealVect
     v := nilSparseBareRealVector(n*m)
     for it := matrix.ConstIterator(); it.Ok(); it.Next() {
       i, j := it.Index()
-      v.At(i*matrix.cols + j).Set(matrix.AT(i, j))
+      v.At(i*matrix.cols + j).Set(matrix.ConstAt(i, j))
     }
     return v
   } else {
@@ -283,10 +283,10 @@ func (matrix *SparseBareRealMatrix) Tip() {
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *SparseBareRealMatrix) ValueAt(i, j int) float64 {
-  return matrix.values.At(matrix.index(i, j)).GetValue()
+  return matrix.values.ConstAt(matrix.index(i, j)).GetValue()
 }
 func (matrix *SparseBareRealMatrix) ConstAt(i, j int) ConstScalar {
-  return matrix.values.At(matrix.index(i, j))
+  return matrix.values.ConstAt(matrix.index(i, j))
 }
 func (matrix *SparseBareRealMatrix) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
   return matrix.Slice(rfrom, rto, cfrom, cto)
@@ -332,35 +332,30 @@ func (a *SparseBareRealMatrix) Set(b ConstMatrix) {
   if n1 != n2 || m1 != m2 {
     panic("Copy(): Matrix dimension does not match!")
   }
-  for i := 0; i < n1; i++ {
-    for j := 0; j < m1; j++ {
-      a.At(i, j).Set(b.ConstAt(i, j))
-    }
+  for it := a.Iterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    it.Get().Set(b.ConstAt(i, j))
   }
 }
 func (matrix *SparseBareRealMatrix) SetIdentity() {
-  n, m := matrix.Dims()
   c := NewScalar(matrix.ElementType(), 1.0)
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      if i == j {
-        matrix.At(i, j).Set(c)
-      } else {
-        matrix.At(i, j).Reset()
-      }
+  for it := matrix.Iterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    if i == j {
+      it.Get().Set(c)
+    } else {
+      it.Get().Reset()
     }
   }
 }
 func (matrix *SparseBareRealMatrix) IsSymmetric(epsilon float64) bool {
-  n, m := matrix.Dims()
-  if n != m {
+  if n, m := matrix.Dims(); n != m {
     return false
   }
-  for i := 0; i < n; i++ {
-    for j := i+1; j < m; j++ {
-      if !matrix.At(i,j).Equals(matrix.At(j,i), 1e-12) {
-        return false
-      }
+  for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    if !matrix.ConstAt(i,j).Equals(matrix.ConstAt(j,i), 1e-12) {
+      return false
     }
   }
   return true

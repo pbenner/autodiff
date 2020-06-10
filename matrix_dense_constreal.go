@@ -189,6 +189,21 @@ func (matrix DenseConstRealMatrix) AsConstVector() ConstVector {
   return DenseConstRealVector(matrix.values)
 }
 
+func (matrix DenseConstRealMatrix) IsSymmetric(epsilon float64) bool {
+  n, m := matrix.Dims()
+  if n != m {
+    return false
+  }
+  for i := 0; i < n; i++ {
+    for j := i+1; j < m; j++ {
+      if !matrix.ConstAt(i,j).Equals(matrix.ConstAt(j,i), 1e-12) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
 /* -------------------------------------------------------------------------- */
 
 func (m DenseConstRealMatrix) String() string {

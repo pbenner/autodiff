@@ -78,6 +78,7 @@ type ConstMatrix interface {
   AsConstVector   ()                           ConstVector
   CloneConstMatrix()                           ConstMatrix
   ConstIterator   ()                           MatrixConstIterator
+  IsSymmetric     (float64)                    bool
   // private methods
   storageLocation() uintptr
 }
