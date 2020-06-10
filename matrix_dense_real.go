@@ -144,6 +144,17 @@ func (matrix *DenseRealMatrix) index(i, j int) int {
     return (matrix.rowOffset + i)*matrix.colMax + (matrix.colOffset + j)
   }
 }
+func (matrix *DenseRealMatrix) ij(k int) (int, int) {
+  if matrix.transposed {
+    i := (k%matrix.colMax) - matrix.colOffset
+    j := (k/matrix.colMax) - matrix.rowOffset
+    return i, j
+  } else {
+    i := (k%matrix.rowMax) - matrix.rowOffset
+    j := (k/matrix.rowMax) - matrix.colOffset
+    return i, j
+  }
+}
 func (matrix *DenseRealMatrix) Dims() (int, int) {
   if matrix == nil {
     return 0, 0
@@ -603,4 +614,34 @@ func (obj *DenseRealMatrix) UnmarshalJSON(data []byte) error {
   obj.transposed = false
   obj.initTmp()
   return nil
+}
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+func (obj *DenseRealMatrix) ConstIterator() MatrixConstIterator {
+  return obj.ITERATOR()
+}
+func (obj *DenseRealMatrix) Iterator() MatrixIterator {
+  return obj.ITERATOR()
+}
+func (obj *DenseRealMatrix) ITERATOR() *DenseRealMatrixIterator {
+  r := DenseRealMatrixIterator{*obj.values.ITERATOR(), obj}
+  return &r
+}
+/* iterator
+ * -------------------------------------------------------------------------- */
+type DenseRealMatrixIterator struct {
+  DenseRealVectorIterator
+  m *DenseRealMatrix
+}
+func (obj *DenseRealMatrixIterator) Index() (int, int) {
+  return obj.m.ij(obj.DenseRealVectorIterator.Index())
+}
+func (obj *DenseRealMatrixIterator) Clone() *DenseRealMatrixIterator {
+  return &DenseRealMatrixIterator{*obj.DenseRealVectorIterator.Clone(), obj.m}
+}
+func (obj *DenseRealMatrixIterator) CloneConstIterator() MatrixConstIterator {
+  return &DenseRealMatrixIterator{*obj.DenseRealVectorIterator.Clone(), obj.m}
+}
+func (obj *DenseRealMatrixIterator) CloneIterator() MatrixIterator {
+  return &DenseRealMatrixIterator{*obj.DenseRealVectorIterator.Clone(), obj.m}
 }

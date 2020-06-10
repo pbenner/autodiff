@@ -90,10 +90,9 @@ func AsSparseBareRealMatrix(matrix ConstMatrix) *SparseBareRealMatrix {
   }
   n, m := matrix.Dims()
   r := NullSparseBareRealMatrix(n, m)
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.AT(i,j).Set(matrix.ConstAt(i,j))
-    }
+  for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    r.AT(i,j).Set(it.GetConst())
   }
   return r
 }
@@ -233,10 +232,9 @@ func (matrix *SparseBareRealMatrix) AsSparseBareRealVector() *SparseBareRealVect
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()
     v := nilSparseBareRealVector(n*m)
-    for i := 0; i < n; i++ {
-      for j := 0; j < m; j++ {
-        v.At(i*matrix.cols + j).Set(matrix.AT(i, j))
-      }
+    for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+      i, j := it.Index()
+      v.At(i*matrix.cols + j).Set(matrix.AT(i, j))
     }
     return v
   } else {
@@ -305,10 +303,9 @@ func (matrix *SparseBareRealMatrix) ConstDiag() ConstVector {
 func (matrix *SparseBareRealMatrix) GetValues() []float64 {
   n, m := matrix.Dims()
   s := make([]float64, n*m)
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      s[i*m+j] = matrix.ConstAt(i,j).GetValue()
-    }
+  for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    s[i*m+j] = matrix.ConstAt(i,j).GetValue()
   }
   return s
 }
@@ -320,13 +317,13 @@ func (matrix *SparseBareRealMatrix) AT(i, j int) *BareReal {
   return matrix.values.AT(matrix.index(i, j))
 }
 func (matrix *SparseBareRealMatrix) Reset() {
-  for i := 0; i < matrix.values.Dim(); i++ {
-    matrix.values.AT(i).Reset()
+  for it := matrix.Iterator(); it.Ok(); it.Next() {
+    it.Get().Reset()
   }
 }
 func (matrix *SparseBareRealMatrix) ResetDerivatives() {
-  for i := 0; i < matrix.values.Dim(); i++ {
-    matrix.values.AT(i).ResetDerivatives()
+  for it := matrix.Iterator(); it.Ok(); it.Next() {
+    it.Get().ResetDerivatives()
   }
 }
 func (a *SparseBareRealMatrix) Set(b ConstMatrix) {

@@ -111,10 +111,9 @@ func AS_MATRIX(matrix ConstMatrix) MATRIX_TYPE {
   }
   n, m := matrix.Dims()
   r := NULL_MATRIX(n, m)
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.AT(i,j).Set(matrix.ConstAt(i,j))
-    }
+  for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    r.AT(i,j).Set(it.GetConst())
   }
   return r
 }
@@ -274,10 +273,9 @@ func (matrix MATRIX_TYPE) STR_CONCAT(As, VECTOR_NAME)() VECTOR_TYPE {
     (matrix.rows < matrix.rowMax - matrix.rowOffset) {
     n, m := matrix.Dims()
     v := NIL_VECTOR(n*m)
-    for i := 0; i < n; i++ {
-      for j := 0; j < m; j++ {
-        v.At(i*matrix.cols + j).Set(matrix.AT(i, j))
-      }
+    for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+      i, j := it.Index()
+      v.At(i*matrix.cols + j).Set(matrix.AT(i, j))
     }
     return v
   } else {
@@ -359,10 +357,9 @@ func (matrix MATRIX_TYPE) ConstDiag() ConstVector {
 func (matrix MATRIX_TYPE) GetValues() []float64 {
   n, m := matrix.Dims()
   s := make([]float64, n*m)
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      s[i*m+j] = matrix.ConstAt(i,j).GetValue()
-    }
+  for it := matrix.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    s[i*m+j] = matrix.ConstAt(i,j).GetValue()
   }
   return s
 }
@@ -378,14 +375,14 @@ func (matrix MATRIX_TYPE) AT(i, j int) SCALAR_TYPE {
 }
 
 func (matrix MATRIX_TYPE) Reset() {
-  for i := 0; i < matrix.values.Dim(); i++ {
-    matrix.values.AT(i).Reset()
+  for it := matrix.Iterator(); it.Ok(); it.Next() {
+    it.Get().Reset()
   }
 }
 
 func (matrix MATRIX_TYPE) ResetDerivatives() {
-  for i := 0; i < matrix.values.Dim(); i++ {
-    matrix.values.AT(i).ResetDerivatives()
+  for it := matrix.Iterator(); it.Ok(); it.Next() {
+    it.Get().ResetDerivatives()
   }
 }
 

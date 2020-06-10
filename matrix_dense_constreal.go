@@ -88,6 +88,18 @@ func (matrix DenseConstRealMatrix) index(i, j int) int {
   }
 }
 
+func (matrix DenseConstRealMatrix) ij(k int) (int, int) {
+  if matrix.transposed {
+    i := (k%matrix.colMax) - matrix.colOffset
+    j := (k/matrix.colMax) - matrix.rowOffset
+    return i, j
+  } else {
+    i := (k%matrix.rowMax) - matrix.rowOffset
+    j := (k/matrix.rowMax) - matrix.colOffset
+    return i, j
+  }
+}
+
 func (matrix DenseConstRealMatrix) storageLocation() uintptr {
   return uintptr(unsafe.Pointer(&matrix.values[0]))
 }
@@ -246,4 +258,57 @@ func (a DenseConstRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
     }
   }
   return true
+}
+
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+
+func (m DenseConstRealMatrix) ConstIterator() MatrixConstIterator {
+  return m.ITERATOR()
+}
+
+func (m DenseConstRealMatrix) ITERATOR() *DenseConstRealMatrixIterator {
+  r := DenseConstRealMatrixIterator{m, -1}
+  r.Next()
+  return &r
+}
+
+/* const iterator
+ * -------------------------------------------------------------------------- */
+
+type DenseConstRealMatrixIterator struct {
+  m DenseConstRealMatrix
+  i int
+}
+
+func (obj *DenseConstRealMatrixIterator) GetConst() ConstScalar {
+  return ConstReal(obj.m.values[obj.i])
+}
+
+func (obj *DenseConstRealMatrixIterator) GetValue() float64 {
+  return obj.m.values[obj.i]
+}
+
+func (obj *DenseConstRealMatrixIterator) GET() ConstReal {
+  return ConstReal(obj.m.values[obj.i])
+}
+
+func (obj *DenseConstRealMatrixIterator) Ok() bool {
+  return obj.i < len(obj.m.values)
+}
+
+func (obj *DenseConstRealMatrixIterator) Next() {
+  obj.i++
+}
+
+func (obj *DenseConstRealMatrixIterator) Index() (int, int) {
+  return obj.m.ij(obj.i)
+}
+
+func (obj *DenseConstRealMatrixIterator) Clone() *DenseConstRealMatrixIterator {
+  return &DenseConstRealMatrixIterator{obj.m, obj.i}
+}
+
+func (obj *DenseConstRealMatrixIterator) CloneConstIterator() MatrixConstIterator {
+  return &DenseConstRealMatrixIterator{obj.m, obj.i}
 }

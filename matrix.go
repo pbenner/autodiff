@@ -77,6 +77,7 @@ type ConstMatrix interface {
   GetValues       ()                           []float64
   AsConstVector   ()                           ConstVector
   CloneConstMatrix()                           ConstMatrix
+  ConstIterator   ()                           MatrixConstIterator
   // private methods
   storageLocation() uintptr
 }
@@ -121,6 +122,9 @@ type Matrix interface {
   // a vector, the order is unspecified
   AsVector            ()                   Vector
   AsConstVector       ()                   ConstVector
+  // iterators
+  ConstIterator       ()                   MatrixConstIterator
+  Iterator            ()                   MatrixIterator
   // math operations
   MaddM(a,             b ConstMatrix)      Matrix
   MaddS(a ConstMatrix, b ConstScalar)      Matrix
