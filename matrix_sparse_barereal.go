@@ -97,12 +97,12 @@ func AsSparseBareRealMatrix(matrix ConstMatrix) *SparseBareRealMatrix {
   return r
 }
 func (matrix *SparseBareRealMatrix) initTmp() {
-  if matrix.tmp1.Dim() < matrix.rows {
+  if matrix.tmp1 == nil || matrix.tmp1.Dim() < matrix.rows {
     matrix.tmp1 = NullSparseBareRealVector(matrix.rows)
   } else {
     matrix.tmp1 = matrix.tmp1.Slice(0, matrix.rows).(*SparseBareRealVector)
   }
-  if matrix.tmp2.Dim() < matrix.cols {
+  if matrix.tmp2 == nil || matrix.tmp2.Dim() < matrix.cols {
     matrix.tmp2 = NullSparseBareRealVector(matrix.cols)
   } else {
     matrix.tmp2 = matrix.tmp2.Slice(0, matrix.cols).(*SparseBareRealVector)

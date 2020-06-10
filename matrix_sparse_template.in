@@ -119,12 +119,12 @@ func AS_MATRIX(matrix ConstMatrix) MATRIX_TYPE {
 }
 
 func (matrix MATRIX_TYPE) initTmp() {
-  if matrix.tmp1.Dim() < matrix.rows {
+  if matrix.tmp1 == nil || matrix.tmp1.Dim() < matrix.rows {
     matrix.tmp1 = NULL_VECTOR(matrix.rows)
   } else {
     matrix.tmp1 = matrix.tmp1.Slice(0, matrix.rows).(VECTOR_TYPE)
   }
-  if matrix.tmp2.Dim() < matrix.cols {
+  if matrix.tmp2 == nil || matrix.tmp2.Dim() < matrix.cols {
     matrix.tmp2 = NULL_VECTOR(matrix.cols)
   } else {
     matrix.tmp2 = matrix.tmp2.Slice(0, matrix.cols).(VECTOR_TYPE)

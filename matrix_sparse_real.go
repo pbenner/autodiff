@@ -96,12 +96,12 @@ func AsSparseRealMatrix(matrix ConstMatrix) *SparseRealMatrix {
   return r
 }
 func (matrix *SparseRealMatrix) initTmp() {
-  if matrix.tmp1.Dim() < matrix.rows {
+  if matrix.tmp1 == nil || matrix.tmp1.Dim() < matrix.rows {
     matrix.tmp1 = NullSparseRealVector(matrix.rows)
   } else {
     matrix.tmp1 = matrix.tmp1.Slice(0, matrix.rows).(*SparseRealVector)
   }
-  if matrix.tmp2.Dim() < matrix.cols {
+  if matrix.tmp2 == nil || matrix.tmp2.Dim() < matrix.cols {
     matrix.tmp2 = NullSparseRealVector(matrix.cols)
   } else {
     matrix.tmp2 = matrix.tmp2.Slice(0, matrix.cols).(*SparseRealVector)
