@@ -24,62 +24,62 @@ import . "github.com/pbenner/autodiff"
 
 // Element-wise addition of two vectors.
 func VaddV(a, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VaddV(a, b)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VaddV(a, b)
+	return r
 }
 
 // Element-wise addition of a vector and a scalar.
 func VaddS(a Vector, b Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VaddS(a, b)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VaddS(a, b)
+	return r
 }
 
 // Element-wise substraction of two vectors.
 func VsubV(a, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VsubV(a, b)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VsubV(a, b)
+	return r
 }
 
 // Element-wise substractor of a vector and a scalar.
 func VsubS(a Vector, b Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VsubS(a, b)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VsubS(a, b)
+	return r
 }
 
 // Element-wise multiplication of two vectors.
 func VmulV(a Vector, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VmulV(a, b)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VmulV(a, b)
+	return r
 }
 
 // Element-wise substraction of a vector and a scalar.
 func VmulS(a Vector, s Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VmulS(a, s)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VmulS(a, s)
+	return r
 }
 
 // Element-wise division of two vectors.
 func VdivV(a Vector, b Vector) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VdivV(a, b)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VdivV(a, b)
+	return r
 }
 
 // Element-wise division of a vector and a scalar.
 func VdivS(a Vector, s Scalar) Vector {
-  r := NullVector(a.ElementType(), a.Dim())
-  r.VdivS(a, s)
-  return r
+	r := NullVector(a.ElementType(), a.Dim())
+	r.VdivS(a, s)
+	return r
 }
 
 func VdotV(a, b Vector) Scalar {
-  r := NullScalar(a.ElementType())
-  r.VdotV(a, b)
-  return r
+	r := NullScalar(a.ElementType())
+	r.VdotV(a, b)
+	return r
 }

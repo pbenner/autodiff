@@ -19,8 +19,8 @@ package scalarDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -29,20 +29,20 @@ import . "github.com/pbenner/autodiff/statistics"
 
 func TestPdfLogTransform1(t *testing.T) {
 
-  var d ScalarPdf
+	var d ScalarPdf
 
-  mu    := NewReal(2.0)
-  sigma := NewReal(3.0)
+	mu := NewReal(2.0)
+	sigma := NewReal(3.0)
 
-  d, _ = NewNormalDistribution(mu, sigma)
-  d, _ = NewPdfLogTransform(d, 0.0)
+	d, _ = NewNormalDistribution(mu, sigma)
+	d, _ = NewPdfLogTransform(d, 0.0)
 
-  x := NewReal(4.0)
-  r := NewReal(0.0)
+	x := NewReal(4.0)
+	r := NewReal(0.0)
 
-  d.LogPdf(r, x)
+	d.LogPdf(r, x)
 
-  if math.Abs(r.GetValue() - -3.424769) > 1e-4 {
-    t.Error("test failed")
-  }
+	if math.Abs(r.GetValue() - -3.424769) > 1e-4 {
+		t.Error("test failed")
+	}
 }

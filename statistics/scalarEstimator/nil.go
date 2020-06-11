@@ -28,29 +28,29 @@ import . "github.com/pbenner/threadpool"
 /* -------------------------------------------------------------------------- */
 
 type NilEstimator struct {
-  ScalarPdf
+	ScalarPdf
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj NilEstimator) CloneScalarEstimator() ScalarEstimator {
-  return NilEstimator{obj.ScalarPdf.CloneScalarPdf()}
+	return NilEstimator{obj.ScalarPdf.CloneScalarPdf()}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (NilEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
-  return nil
+	return nil
 }
 
 func (NilEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {
-  return nil
+	return nil
 }
 
 func (NilEstimator) SetData(x ConstVector, n int) error {
-  return nil
+	return nil
 }
 
 func (obj NilEstimator) GetEstimate() (ScalarPdf, error) {
-  return obj.ScalarPdf, nil
+	return obj.ScalarPdf, nil
 }

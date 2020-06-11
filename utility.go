@@ -24,65 +24,65 @@ import "os"
 /* -------------------------------------------------------------------------- */
 
 func iMin(a, b int) int {
-  if a < b {
-    return a
-  } else {
-    return b
-  }
+	if a < b {
+		return a
+	} else {
+		return b
+	}
 }
 
 func iMax(a, b int) int {
-  if a > b {
-    return a
-  } else {
-    return b
-  }
+	if a > b {
+		return a
+	} else {
+		return b
+	}
 }
 
 func sign(a float64) int {
-  if math.Signbit(a) {
-    return -1
-  } else {
-    return 1
-  }
+	if math.Signbit(a) {
+		return -1
+	} else {
+		return 1
+	}
 }
 
 func isGzip(filename string) (bool, error) {
 
-  f, err := os.Open(filename)
-  if err != nil {
-    return false, err
-  }
-  defer f.Close()
+	f, err := os.Open(filename)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
 
-  b := make([]byte, 2)
-  n, err := f.Read(b)
-  if err != nil {
-    return false, err
-  }
+	b := make([]byte, 2)
+	n, err := f.Read(b)
+	if err != nil {
+		return false, err
+	}
 
-  if n == 2 && b[0] == 31 && b[1] == 139 {
-    return true, nil
-  }
-  return false, nil
+	if n == 2 && b[0] == 31 && b[1] == 139 {
+		return true, nil
+	}
+	return false, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 type sortIntFloat struct {
-  a []int
-  b []float64
+	a []int
+	b []float64
 }
 
 func (obj sortIntFloat) Len() int {
-  return len(obj.a)
+	return len(obj.a)
 }
 
 func (obj sortIntFloat) Swap(i, j int) {
-  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
-  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+	obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+	obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
 }
 
 func (obj sortIntFloat) Less(i, j int) bool {
-  return obj.a[i] < obj.a[j]
+	return obj.a[i] < obj.a[j]
 }

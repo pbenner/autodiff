@@ -19,8 +19,8 @@ package vectorDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 
@@ -28,18 +28,18 @@ import . "github.com/pbenner/autodiff"
 
 func TestTDistribution1(t *testing.T) {
 
-  nu     := NewReal(1.0)
-  mu     := NewVector(RealType, []float64{2,3})
-  sigma  := NewMatrix(RealType, 2, 2, []float64{2,1,1,2})
+	nu := NewReal(1.0)
+	mu := NewVector(RealType, []float64{2, 3})
+	sigma := NewMatrix(RealType, 2, 2, []float64{2, 1, 1, 2})
 
-  distribution, _ := NewTDistribution(nu, mu, sigma)
+	distribution, _ := NewTDistribution(nu, mu, sigma)
 
-  x := NewVector(RealType, []float64{1,2})
-  y := NewReal(0.0)
+	x := NewVector(RealType, []float64{1, 2})
+	y := NewReal(0.0)
 
-  distribution.LogPdf(y, x)
+	distribution.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -3.153422e+00) > 1e-4 {
-    t.Error("T LogPdf failed!")
-  }
+	if math.Abs(y.GetValue() - -3.153422e+00) > 1e-4 {
+		t.Error("T LogPdf failed!")
+	}
 }

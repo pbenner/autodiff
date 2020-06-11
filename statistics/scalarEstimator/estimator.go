@@ -25,18 +25,18 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type StdEstimator struct {
-  x ConstVector
-  n int
+	x ConstVector
+	n int
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *StdEstimator) GetData() (ConstVector, int) {
-  return obj.x, obj.n
+	return obj.x, obj.n
 }
 
 func (obj *StdEstimator) SetData(x ConstVector, n int) error {
-  obj.x = x
-  obj.n = n
-  return nil
+	obj.x = x
+	obj.n = n
+	return nil
 }

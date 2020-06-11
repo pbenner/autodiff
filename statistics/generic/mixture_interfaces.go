@@ -25,6 +25,6 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 type BasicMixture interface {
-  BasicDistribution
-  String() string
+	BasicDistribution
+	String() string
 }

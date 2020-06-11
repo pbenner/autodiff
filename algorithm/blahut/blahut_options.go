@@ -23,13 +23,13 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type Lambda struct {
-  Value float64
+	Value float64
 }
 
 type Hook struct {
-  Value func(Vector, Scalar) bool
+	Value func(Vector, Scalar) bool
 }
 
 type HookNaive struct {
-  Value func([]float64, float64) bool
+	Value func([]float64, float64) bool
 }

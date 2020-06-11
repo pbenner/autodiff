@@ -19,8 +19,8 @@ package scalarDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 
@@ -28,17 +28,17 @@ import . "github.com/pbenner/autodiff"
 
 func TestCauchy1(t *testing.T) {
 
-  mu    := NewReal(2.0)
-  sigma := NewReal(3.0)
+	mu := NewReal(2.0)
+	sigma := NewReal(3.0)
 
-  d, _ := NewCauchyDistribution(mu, sigma)
+	d, _ := NewCauchyDistribution(mu, sigma)
 
-  x := NewReal(2.3)
-  r := NewReal(0.0)
+	x := NewReal(2.3)
+	r := NewReal(0.0)
 
-  d.LogPdf(r, x)
+	d.LogPdf(r, x)
 
-  if math.Abs(r.GetValue() - -2.253293) > 1e-4 {
-    t.Error("test failed")
-  }
+	if math.Abs(r.GetValue() - -2.253293) > 1e-4 {
+		t.Error("test failed")
+	}
 }

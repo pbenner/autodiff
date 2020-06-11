@@ -27,44 +27,44 @@ import . "github.com/pbenner/autodiff"
 
 func TestBlahut(t *testing.T) {
 
-  channel := NewMatrix(RealType, 3, 3,
-    flatten([][]float64{
-      {0.60, 0.30, 0.10},
-      {0.70, 0.10, 0.20},
-      {0.50, 0.05, 0.45}}))
+	channel := NewMatrix(RealType, 3, 3,
+		flatten([][]float64{
+			{0.60, 0.30, 0.10},
+			{0.70, 0.10, 0.20},
+			{0.50, 0.05, 0.45}}))
 
-  // initial value
-  px0 := NewVector(RealType,
-    []float64{1.0/3.0, 1.0/3.0, 1.0/3.0})
-  // fixed point
-  pxstar := []float64{0.501735, 0.0, 0.498265}
+	// initial value
+	px0 := NewVector(RealType,
+		[]float64{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0})
+	// fixed point
+	pxstar := []float64{0.501735, 0.0, 0.498265}
 
-  pxn := Run(channel, px0, 1000)
+	pxn := Run(channel, px0, 1000)
 
-  for i := 0; i < px0.Dim(); i++ {
-    if math.Abs(pxn.At(i).GetValue() - pxstar[i]) > 1e-5 {
-      t.Error("Blahut test failed!")
-    }
-  }
+	for i := 0; i < px0.Dim(); i++ {
+		if math.Abs(pxn.At(i).GetValue()-pxstar[i]) > 1e-5 {
+			t.Error("Blahut test failed!")
+		}
+	}
 }
 
 func TestBlahutNaive(t *testing.T) {
 
-  channel := [][]float64{
-    {0.60, 0.30, 0.10},
-    {0.70, 0.10, 0.20},
-    {0.50, 0.05, 0.45} }
+	channel := [][]float64{
+		{0.60, 0.30, 0.10},
+		{0.70, 0.10, 0.20},
+		{0.50, 0.05, 0.45}}
 
-  // initial value
-  px0 := []float64{1.0/3.0, 1.0/3.0, 1.0/3.0}
-  // fixed point
-  pxstar := []float64{0.501735, 0.0, 0.498265}
+	// initial value
+	px0 := []float64{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0}
+	// fixed point
+	pxstar := []float64{0.501735, 0.0, 0.498265}
 
-  pxn := RunNaive(channel, px0, 1000)
+	pxn := RunNaive(channel, px0, 1000)
 
-  for i := 0; i < len(px0); i++ {
-    if math.Abs(pxn[i] - pxstar[i]) > 1e-5 {
-      t.Error("Blahut test failed!")
-    }
-  }
+	for i := 0; i < len(px0); i++ {
+		if math.Abs(pxn[i]-pxstar[i]) > 1e-5 {
+			t.Error("Blahut test failed!")
+		}
+	}
 }

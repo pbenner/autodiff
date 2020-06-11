@@ -21,7 +21,7 @@ package scalarEstimator
 //import   "fmt"
 
 import . "github.com/pbenner/autodiff/statistics"
-import   "github.com/pbenner/autodiff/statistics/scalarDistribution"
+import "github.com/pbenner/autodiff/statistics/scalarDistribution"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/threadpool"
@@ -29,60 +29,60 @@ import . "github.com/pbenner/threadpool"
 /* -------------------------------------------------------------------------- */
 
 type DeltaEstimator struct {
-  *scalarDistribution.DeltaDistribution
-  StdEstimator
+	*scalarDistribution.DeltaDistribution
+	StdEstimator
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewDeltaEstimator(x float64) (*DeltaEstimator, error) {
-  if dist, err := scalarDistribution.NewDeltaDistribution(NewBareReal(x)); err != nil {
-    return nil, err
-  } else {
-    r := DeltaEstimator{}
-    r.DeltaDistribution = dist
-    return &r, nil
-  }
+	if dist, err := scalarDistribution.NewDeltaDistribution(NewBareReal(x)); err != nil {
+		return nil, err
+	} else {
+		r := DeltaEstimator{}
+		r.DeltaDistribution = dist
+		return &r, nil
+	}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *DeltaEstimator) Clone() *DeltaEstimator {
-  r := DeltaEstimator{}
-  r.DeltaDistribution = obj.DeltaDistribution.Clone()
-  return &r
+	r := DeltaEstimator{}
+	r.DeltaDistribution = obj.DeltaDistribution.Clone()
+	return &r
 }
 
 func (obj *DeltaEstimator) CloneScalarEstimator() ScalarEstimator {
-  return obj.Clone()
+	return obj.Clone()
 }
 
 func (obj *DeltaEstimator) CloneScalarBatchEstimator() ScalarBatchEstimator {
-  return obj.Clone()
+	return obj.Clone()
 }
 
 /* batch estimator interface
  * -------------------------------------------------------------------------- */
 
 func (obj *DeltaEstimator) Initialize(p ThreadPool) error {
-  return nil
+	return nil
 }
 
 func (obj *DeltaEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
-  return nil
+	return nil
 }
 
 /* estimator interface
  * -------------------------------------------------------------------------- */
 
 func (obj *DeltaEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
-  return nil
+	return nil
 }
 
 func (obj *DeltaEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {
-  return nil
+	return nil
 }
 
 func (obj *DeltaEstimator) GetEstimate() (ScalarPdf, error) {
-  return obj.DeltaDistribution, nil
+	return obj.DeltaDistribution, nil
 }

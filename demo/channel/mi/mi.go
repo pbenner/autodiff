@@ -18,32 +18,32 @@ package mi
 
 /* -------------------------------------------------------------------------- */
 
-import   "math"
+import "math"
 
 /* mutual information
  * -------------------------------------------------------------------------- */
 
 func MI(channel [][]float64, px []float64) float64 {
-  n := len(channel)
-  m := len(channel[0])
-  if len(px) != n {
-    panic("Input vector has invalid dimension!")
-  }
-  // compute p(y) from p(y|x)*p(x)
-  py := make([]float64, m)
-  for j := 0; j < m; j++ {
-    for i := 0; i < n; i++ {
-      py[j] += channel[i][j]*px[i]
-    }
-  }
-  // compute mutual information
-  mi := 0.0
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      if channel[i][j] > 0.0 {
-        mi += channel[i][j]*px[i]*math.Log2(channel[i][j]/py[j])
-      }
-    }
-  }
-  return mi
+	n := len(channel)
+	m := len(channel[0])
+	if len(px) != n {
+		panic("Input vector has invalid dimension!")
+	}
+	// compute p(y) from p(y|x)*p(x)
+	py := make([]float64, m)
+	for j := 0; j < m; j++ {
+		for i := 0; i < n; i++ {
+			py[j] += channel[i][j] * px[i]
+		}
+	}
+	// compute mutual information
+	mi := 0.0
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			if channel[i][j] > 0.0 {
+				mi += channel[i][j] * px[i] * math.Log2(channel[i][j]/py[j])
+			}
+		}
+	}
+	return mi
 }

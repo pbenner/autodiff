@@ -24,18 +24,18 @@ import "math"
 
 // multivariate gamma function
 func Mgamma(x float64, k int) float64 {
-  result := math.Pow(math.Pi, float64(k*(k-1.0))/4.0)
-  for i := 1; i <= k; i += 1 {
-    result *= math.Gamma((2.0*x+1.0-float64(i))/2.0)
-  }
-  return result
+	result := math.Pow(math.Pi, float64(k*(k-1.0))/4.0)
+	for i := 1; i <= k; i += 1 {
+		result *= math.Gamma((2.0*x + 1.0 - float64(i)) / 2.0)
+	}
+	return result
 }
 
 func Mlgamma(x float64, k int) float64 {
-  result := float64(k*(k-1.0))/4.0*math.Log(math.Pi)
-  for i := 1; i <= k; i += 1 {
-    v, _ := math.Lgamma((2.0*x+1.0-float64(i))/2.0)
-    result += v
-  }
-  return result
+	result := float64(k*(k-1.0)) / 4.0 * math.Log(math.Pi)
+	for i := 1; i <= k; i += 1 {
+		v, _ := math.Lgamma((2.0*x + 1.0 - float64(i)) / 2.0)
+		result += v
+	}
+	return result
 }

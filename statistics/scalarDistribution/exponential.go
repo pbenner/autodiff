@@ -18,8 +18,8 @@ package scalarDistribution
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
-import   "math"
+import "fmt"
+import "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -27,127 +27,127 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 type ExponentialDistribution struct {
-  Lambda    Scalar
-  LambdaLog Scalar
-  c1        Scalar
+	Lambda    Scalar
+	LambdaLog Scalar
+	c1        Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error) {
-  if lambda.GetValue() <= 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter lambda: %f", lambda.GetValue())
-  }
-  // some constants
-  l1 := lambda.CloneScalar()
-  l2 := lambda.CloneScalar()
-  l2.Log(l1)
+	if lambda.GetValue() <= 0.0 {
+		return nil, fmt.Errorf("invalid value for parameter lambda: %f", lambda.GetValue())
+	}
+	// some constants
+	l1 := lambda.CloneScalar()
+	l2 := lambda.CloneScalar()
+	l2.Log(l1)
 
-  result := ExponentialDistribution{
-    Lambda   : l1,
-    LambdaLog: l2 }
+	result := ExponentialDistribution{
+		Lambda:    l1,
+		LambdaLog: l2}
 
-  return &result, nil
+	return &result, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *ExponentialDistribution) Clone() *ExponentialDistribution {
-  return &ExponentialDistribution{
-    Lambda   : dist.Lambda   .CloneScalar(),
-    LambdaLog: dist.LambdaLog.CloneScalar() }
+	return &ExponentialDistribution{
+		Lambda:    dist.Lambda.CloneScalar(),
+		LambdaLog: dist.LambdaLog.CloneScalar()}
 }
 
 func (dist *ExponentialDistribution) CloneScalarPdf() ScalarPdf {
-  return dist.Clone()
+	return dist.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *ExponentialDistribution) ScalarType() ScalarType {
-  return dist.Lambda.Type()
+	return dist.Lambda.Type()
 }
 
 func (dist *ExponentialDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() < 0 {
-    r.SetValue(math.Inf(-1))
-    return nil
-  }
+	if x.GetValue() < 0 {
+		r.SetValue(math.Inf(-1))
+		return nil
+	}
 
-  r.Mul(dist.Lambda, x)
-  r.Neg(r)
-  r.Add(r, dist.LambdaLog)
+	r.Mul(dist.Lambda, x)
+	r.Neg(r)
+	r.Add(r, dist.LambdaLog)
 
-  return nil
+	return nil
 }
 
 func (dist *ExponentialDistribution) Pdf(r Scalar, x ConstScalar) error {
-  if err := dist.LogPdf(r, x); err != nil {
-    return err
-  }
-  r.Exp(r)
-  return nil
+	if err := dist.LogPdf(r, x); err != nil {
+		return err
+	}
+	r.Exp(r)
+	return nil
 }
 
 func (dist *ExponentialDistribution) LogCdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() < 0 {
-    r.SetValue(math.Inf(-1))
-    return nil
-  }
+	if x.GetValue() < 0 {
+		r.SetValue(math.Inf(-1))
+		return nil
+	}
 
-  r.Mul(dist.Lambda, x)
-  r.Neg(r)
-  r.Exp(r)
-  r.Neg(r)
-  r.Log1p(r)
+	r.Mul(dist.Lambda, x)
+	r.Neg(r)
+	r.Exp(r)
+	r.Neg(r)
+	r.Log1p(r)
 
-  return nil
+	return nil
 }
 
 func (dist *ExponentialDistribution) Cdf(r Scalar, x ConstScalar) error {
-  if err := dist.LogCdf(r, x); err != nil {
-    return err
-  }
-  r.Exp(r)
-  return nil
+	if err := dist.LogCdf(r, x); err != nil {
+		return err
+	}
+	r.Exp(r)
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist ExponentialDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 1)
-  p.At(0).Set(dist.Lambda)
-  return p
+	p := NullVector(dist.ScalarType(), 1)
+	p.At(0).Set(dist.Lambda)
+	return p
 }
 
 func (dist *ExponentialDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewExponentialDistribution(parameters.At(0)); err != nil {
-    return err
-  } else {
-    *dist = *tmp
-  }
-  return nil
+	if tmp, err := NewExponentialDistribution(parameters.At(0)); err != nil {
+		return err
+	} else {
+		*dist = *tmp
+	}
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *ExponentialDistribution) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
-  if parameters, ok := config.GetParametersAsFloats(); !ok {
-    return fmt.Errorf("invalid config file")
-  } else {
-    lambda := NewScalar(t, parameters[0])
+	if parameters, ok := config.GetParametersAsFloats(); !ok {
+		return fmt.Errorf("invalid config file")
+	} else {
+		lambda := NewScalar(t, parameters[0])
 
-    if tmp, err := NewExponentialDistribution(lambda); err != nil {
-      return err
-    } else {
-      *dist = *tmp
-    }
-    return nil
-  }
+		if tmp, err := NewExponentialDistribution(lambda); err != nil {
+			return err
+		} else {
+			*dist = *tmp
+		}
+		return nil
+	}
 }
 
 func (dist *ExponentialDistribution) ExportConfig() ConfigDistribution {
 
-  return NewConfigDistribution("scalar:exponential distribution", dist.GetParameters())
+	return NewConfigDistribution("scalar:exponential distribution", dist.GetParameters())
 }

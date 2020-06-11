@@ -18,7 +18,7 @@ package gradientDescent
 
 /* -------------------------------------------------------------------------- */
 
-import   "math"
+import "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/algorithm"
@@ -26,71 +26,71 @@ import . "github.com/pbenner/autodiff/algorithm"
 /* -------------------------------------------------------------------------- */
 
 type Epsilon struct {
-  Value float64
+	Value float64
 }
 
 type Hook struct {
-  Value func([]float64, Vector, Scalar) bool
+	Value func([]float64, Vector, Scalar) bool
 }
 
 /* -------------------------------------------------------------------------- */
 
 func gradientDescent(f func(Vector) (Scalar, error), x0 Vector, step, epsilon float64,
-  hook func([]float64, Vector, Scalar) bool) (Vector, error) {
+	hook func([]float64, Vector, Scalar) bool) (Vector, error) {
 
-  t := x0.ElementType()
-  // copy variables
-  x := x0.CloneVector()
-  x.Variables(1)
-  // slice containing the gradient
-  gradient := make([]float64, x.Dim())
+	t := x0.ElementType()
+	// copy variables
+	x := x0.CloneVector()
+	x.Variables(1)
+	// slice containing the gradient
+	gradient := make([]float64, x.Dim())
 
-  for {
-    // evaluate objective function
-    s, err := f(x)
-    if err != nil {
-      return x, err
-    }
-    // compute partial derivatives and update variables
-    for i := 0; i < x.Dim(); i++ {
-      // save partial derivative
-      gradient[i] = s.GetDerivative(i)
-    }
-    // execute hook if available
-    if hook != nil && hook(gradient, x, s) {
-      break
-    }
-    // evaluate stop criterion
-    if Norm(gradient) < epsilon {
-      break
-    }
-    // update variables
-    for i := 0; i < x.Dim(); i++ {
-      x.At(i).Sub(x.At(i), NewScalar(t, step*s.GetDerivative(i)))
-      if math.IsNaN(x.At(i).GetValue()) {
-        panic("Gradient descent diverged!")
-      }
-    }
-  }
-  return x, nil
+	for {
+		// evaluate objective function
+		s, err := f(x)
+		if err != nil {
+			return x, err
+		}
+		// compute partial derivatives and update variables
+		for i := 0; i < x.Dim(); i++ {
+			// save partial derivative
+			gradient[i] = s.GetDerivative(i)
+		}
+		// execute hook if available
+		if hook != nil && hook(gradient, x, s) {
+			break
+		}
+		// evaluate stop criterion
+		if Norm(gradient) < epsilon {
+			break
+		}
+		// update variables
+		for i := 0; i < x.Dim(); i++ {
+			x.At(i).Sub(x.At(i), NewScalar(t, step*s.GetDerivative(i)))
+			if math.IsNaN(x.At(i).GetValue()) {
+				panic("Gradient descent diverged!")
+			}
+		}
+	}
+	return x, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func Run(f func(Vector) (Scalar, error), x0 Vector, step float64, args ...interface{}) (Vector, error) {
 
-  hook    := Hook   { nil}.Value
-  epsilon := Epsilon{1e-8}.Value
+	hook := Hook{nil}.Value
+	epsilon := Epsilon{1e-8}.Value
 
-  for _, arg := range args {
-    switch a := arg.(type) {
-    case Hook:
-      hook = a.Value
-    case Epsilon:
-      epsilon = a.Value
-    default:
-      panic("GradientDescent(): Invalid optional argument!")
-    }
-  }
-  return gradientDescent(f, x0, step, epsilon, hook)
+	for _, arg := range args {
+		switch a := arg.(type) {
+		case Hook:
+			hook = a.Value
+		case Epsilon:
+			epsilon = a.Value
+		default:
+			panic("GradientDescent(): Invalid optional argument!")
+		}
+	}
+	return gradientDescent(f, x0, step, epsilon, hook)
 }

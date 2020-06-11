@@ -25,6 +25,6 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 type BasicHmm interface {
-  BasicDistribution
-  String() string
+	BasicDistribution
+	String() string
 }

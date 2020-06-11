@@ -24,24 +24,24 @@ import "testing"
 
 func TestContainer(t *testing.T) {
 
-  v := NewVector(RealType, []float64{1,2,3,4})
-  m := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
+	v := NewVector(RealType, []float64{1, 2, 3, 4})
+	m := NewMatrix(RealType, 2, 2, []float64{1, 2, 3, 4})
 
-  // test if container interface is implements
-  var c1 ScalarContainer
-  var c2 ScalarContainer
+	// test if container interface is implements
+	var c1 ScalarContainer
+	var c2 ScalarContainer
 
-  c1 = v
-  c2 = m
+	c1 = v
+	c2 = m
 
-  c1.Map(func(x Scalar) { x.Mul(x,x) })
-  c2.Map(func(x Scalar) { x.Mul(x,x) })
+	c1.Map(func(x Scalar) { x.Mul(x, x) })
+	c2.Map(func(x Scalar) { x.Mul(x, x) })
 
-  if v.At(1).GetValue() != 4.0 {
-    t.Error("Vector initialization failed!")
-  }
-  if m.At(0, 1).GetValue() != 4.0 {
-    t.Error("Vector initialization failed!")
-  }
+	if v.At(1).GetValue() != 4.0 {
+		t.Error("Vector initialization failed!")
+	}
+	if m.At(0, 1).GetValue() != 4.0 {
+		t.Error("Vector initialization failed!")
+	}
 
 }

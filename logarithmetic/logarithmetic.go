@@ -18,24 +18,24 @@ package special
 
 /* -------------------------------------------------------------------------- */
 
-import   "math"
+import "math"
 
 /* -------------------------------------------------------------------------- */
 
 func LogAdd(a, b float64) float64 {
-  if a > b {
-    // swap
-    a, b = b, a
-  }
-  if math.IsInf(a, -1) {
-    return b
-  }
-  return b + math.Log1p(math.Exp(a-b))
+	if a > b {
+		// swap
+		a, b = b, a
+	}
+	if math.IsInf(a, -1) {
+		return b
+	}
+	return b + math.Log1p(math.Exp(a-b))
 }
 
 func LogSub(a, b float64) float64 {
-  if math.IsInf(b, -1) {
-    return a
-  }
-  return a + math.Log1p(-math.Exp(b-a))
+	if math.IsInf(b, -1) {
+		return a
+	}
+	return a + math.Log1p(-math.Exp(b-a))
 }

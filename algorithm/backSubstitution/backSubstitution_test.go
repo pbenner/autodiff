@@ -20,7 +20,7 @@ package backSubstitution
 
 //import   "fmt"
 //import   "math"
-import   "testing"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/simple"
@@ -28,18 +28,18 @@ import . "github.com/pbenner/autodiff/simple"
 /* -------------------------------------------------------------------------- */
 
 func Test1(t *testing.T) {
-  a := NewMatrix(RealType, 3, 3, []float64{
-    1, -2,  1,
-    0,  1,  6,
-    0,  0,  1 })
-  b := NewVector(RealType, []float64{
-    4, -1, 2 })
-  r := NewVector(RealType, []float64{
-    -24, -13, 2 })
+	a := NewMatrix(RealType, 3, 3, []float64{
+		1, -2, 1,
+		0, 1, 6,
+		0, 0, 1})
+	b := NewVector(RealType, []float64{
+		4, -1, 2})
+	r := NewVector(RealType, []float64{
+		-24, -13, 2})
 
-  x, _ := Run(a, b)
+	x, _ := Run(a, b)
 
-  if Vnorm(VsubV(r, x)).GetValue() > 1e-8 {
-    t.Error("test failed")
-  }
+	if Vnorm(VsubV(r, x)).GetValue() > 1e-8 {
+		t.Error("test failed")
+	}
 }

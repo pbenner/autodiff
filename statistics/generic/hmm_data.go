@@ -25,22 +25,22 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type HmmDataRecord interface {
-  // map index of the kth observation
-  MapIndex(k int) int
-  // get number of observations in this record
-  GetN    ()      int
-  // evaluate component c at position k
-  LogPdf  (r Scalar, c, k int) error
+	// map index of the kth observation
+	MapIndex(k int) int
+	// get number of observations in this record
+	GetN() int
+	// evaluate component c at position k
+	LogPdf(r Scalar, c, k int) error
 }
 
 /* -------------------------------------------------------------------------- */
 
 type HmmDataSet interface {
-  GetRecord(i int) HmmDataRecord
-  // number of mapped observations
-  GetNMapped()     int
-  // number of records in the data set
-  GetNRecords()    int
-  // total number of observations
-  GetN()           int
+	GetRecord(i int) HmmDataRecord
+	// number of mapped observations
+	GetNMapped() int
+	// number of records in the data set
+	GetNRecords() int
+	// total number of observations
+	GetN() int
 }

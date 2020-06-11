@@ -16,245 +16,252 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package saga
+
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 //import   "fmt"
 import "math/rand"
 import . "github.com/pbenner/autodiff"
+
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 type Objective1Sparse func(int, DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error)
 type Objective2Sparse func(int, DenseBareRealVector) (ConstReal, SparseConstRealVector, error)
+
 /* -------------------------------------------------------------------------- */
 type ConstGradientSparse struct {
-  g SparseConstRealVector
-  w ConstReal
+	g SparseConstRealVector
+	w ConstReal
 }
+
 func (obj ConstGradientSparse) update(g2 ConstGradientSparse, v DenseBareRealVector) {
-  c := g2.w.GetValue() - obj.w.GetValue()
-  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
-    s_a := v.AT(it.Index())
-    s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() + c*s_b.GetValue())
-  }
+	c := g2.w.GetValue() - obj.w.GetValue()
+	for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+		s_a := v.AT(it.Index())
+		s_b := it.GET()
+		s_a.SetValue(s_a.GetValue() + c*s_b.GetValue())
+	}
 }
 func (obj ConstGradientSparse) add(v DenseBareRealVector) {
-  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
-    s_a := v.AT(it.Index())
-    s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
-  }
+	for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+		s_a := v.AT(it.Index())
+		s_b := it.GET()
+		s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
+	}
 }
 func (obj *ConstGradientSparse) set(w ConstReal, g SparseConstRealVector) {
-  obj.g = g
-  obj.w = w
+	obj.g = g
+	obj.w = w
 }
+
 /* -------------------------------------------------------------------------- */
 type GradientSparse struct {
-  g DenseBareRealVector
+	g DenseBareRealVector
 }
+
 func (obj GradientSparse) add(v DenseBareRealVector) {
-  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
-    s_a := v.AT(it.Index())
-    s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() + s_b.GetValue())
-  }
+	for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+		s_a := v.AT(it.Index())
+		s_b := it.GET()
+		s_a.SetValue(s_a.GetValue() + s_b.GetValue())
+	}
 }
 func (obj GradientSparse) sub(v DenseBareRealVector) {
-  for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
-    s_a := v.AT(it.Index())
-    s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() - s_b.GetValue())
-  }
+	for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
+		s_a := v.AT(it.Index())
+		s_b := it.GET()
+		s_a.SetValue(s_a.GetValue() - s_b.GetValue())
+	}
 }
 func (obj *GradientSparse) set(g ConstVector) {
-  if obj.g != nil {
-    obj.g.Set(g)
-  } else {
-    obj.g = AsDenseBareRealVector(g)
-  }
+	if obj.g != nil {
+		obj.g.Set(g)
+	} else {
+		obj.g = AsDenseBareRealVector(g)
+	}
 }
+
 /* -------------------------------------------------------------------------- */
 func saga1Sparse(
-  f Objective1Sparse,
-  n int,
-  x Vector,
-  gamma Gamma,
-  epsilon Epsilon,
-  maxIterations MaxIterations,
-  proxop ProximalOperatorType,
-  hook Hook,
-  seed Seed,
-  inSitu *InSitu) (Vector, int64, error) {
-  xs := AsDenseBareRealVector(x)
-  x1 := AsDenseBareRealVector(x)
-  // length of gradient
-  d := x.Dim()
-  // gradient
-  var g1 ConstGradientSparse
-  var g2 ConstGradientSparse
-  // allocate temporary memory
-  if inSitu.T1 == nil {
-    inSitu.T1 = NullDenseBareRealVector(d)
-  }
-  if inSitu.T2 == nil {
-    inSitu.T2 = NullBareReal()
-  }
-  // temporary variables
-  t1 := inSitu.T1
-  t2 := inSitu.T2
-  // some constants
-  t_n := float64(n)
-  t_g := gamma.Value
-  // sum of gradients
-  s := NullDenseBareRealVector(d)
-  // initialize s and d
-  dict := make([]ConstGradientSparse, n)
-  for i := 0; i < n; i++ {
-    if _, w, gt, err := f(i, x1); err != nil {
-      return nil, seed.Value, err
-    } else {
-      dict[i].set(w, gt)
-      dict[i].add(s)
-    }
-  }
-  g := rand.New(rand.NewSource(seed.Value))
-  for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 0; i_ < n; i_++ {
-      j := g.Intn(n)
-      // get old gradient
-      g1 = dict[j]
-      // evaluate objective function
-      if _, w, gt, err := f(j, x1); err != nil {
-        return x1, g.Int63(), err
-      } else {
-        g2.set(w, gt)
-      }
-      gw1 := g1.w.GetValue()
-      gw2 := g2.w.GetValue()
-      c := gw2 - gw1
-      if proxop == nil {
-        for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          x1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
-        }
-      } else {
-        for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          t1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
-        }
-        proxop.Eval(x1, t1, t2)
-      }
-      // update gradient avarage
-      g1.update(g2, s)
-      // update dictionary
-      dict[j].set(g2.w, g2.g)
-    }
-    if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
-      return x1, g.Int63(), err
-    } else {
-      // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
-        break
-      }
-    }
-    xs.SET(x1)
-  }
-  return x1, g.Int63(), nil
+	f Objective1Sparse,
+	n int,
+	x Vector,
+	gamma Gamma,
+	epsilon Epsilon,
+	maxIterations MaxIterations,
+	proxop ProximalOperatorType,
+	hook Hook,
+	seed Seed,
+	inSitu *InSitu) (Vector, int64, error) {
+	xs := AsDenseBareRealVector(x)
+	x1 := AsDenseBareRealVector(x)
+	// length of gradient
+	d := x.Dim()
+	// gradient
+	var g1 ConstGradientSparse
+	var g2 ConstGradientSparse
+	// allocate temporary memory
+	if inSitu.T1 == nil {
+		inSitu.T1 = NullDenseBareRealVector(d)
+	}
+	if inSitu.T2 == nil {
+		inSitu.T2 = NullBareReal()
+	}
+	// temporary variables
+	t1 := inSitu.T1
+	t2 := inSitu.T2
+	// some constants
+	t_n := float64(n)
+	t_g := gamma.Value
+	// sum of gradients
+	s := NullDenseBareRealVector(d)
+	// initialize s and d
+	dict := make([]ConstGradientSparse, n)
+	for i := 0; i < n; i++ {
+		if _, w, gt, err := f(i, x1); err != nil {
+			return nil, seed.Value, err
+		} else {
+			dict[i].set(w, gt)
+			dict[i].add(s)
+		}
+	}
+	g := rand.New(rand.NewSource(seed.Value))
+	for epoch := 0; epoch < maxIterations.Value; epoch++ {
+		for i_ := 0; i_ < n; i_++ {
+			j := g.Intn(n)
+			// get old gradient
+			g1 = dict[j]
+			// evaluate objective function
+			if _, w, gt, err := f(j, x1); err != nil {
+				return x1, g.Int63(), err
+			} else {
+				g2.set(w, gt)
+			}
+			gw1 := g1.w.GetValue()
+			gw2 := g2.w.GetValue()
+			c := gw2 - gw1
+			if proxop == nil {
+				for i := 0; i < s.Dim(); i++ {
+					s_i := s.ValueAt(i)
+					g1i := g1.g.ValueAt(i)
+					x1i := x1.ValueAt(i)
+					x1.AT(i).SetValue(x1i - t_g*(c*g1i+s_i/t_n))
+				}
+			} else {
+				for i := 0; i < s.Dim(); i++ {
+					s_i := s.ValueAt(i)
+					g1i := g1.g.ValueAt(i)
+					x1i := x1.ValueAt(i)
+					t1.AT(i).SetValue(x1i - t_g*(c*g1i+s_i/t_n))
+				}
+				proxop.Eval(x1, t1, t2)
+			}
+			// update gradient avarage
+			g1.update(g2, s)
+			// update dictionary
+			dict[j].set(g2.w, g2.g)
+		}
+		if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
+			return x1, g.Int63(), err
+		} else {
+			// execute hook if available
+			if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
+				break
+			}
+		}
+		xs.SET(x1)
+	}
+	return x1, g.Int63(), nil
 }
 func saga2Sparse(
-  f Objective2Sparse,
-  n int,
-  x Vector,
-  gamma Gamma,
-  epsilon Epsilon,
-  maxIterations MaxIterations,
-  proxop ProximalOperatorType,
-  hook Hook,
-  seed Seed,
-  inSitu *InSitu) (Vector, int64, error) {
-  xs := AsDenseBareRealVector(x)
-  x1 := AsDenseBareRealVector(x)
-  // length of gradient
-  d := x.Dim()
-  // gradient
-  var g1 GradientSparse
-  var g2 GradientSparse
-  // allocate temporary memory
-  if inSitu.T1 == nil {
-    inSitu.T1 = NullDenseBareRealVector(d)
-  }
-  if inSitu.T2 == nil {
-    inSitu.T2 = NullBareReal()
-  }
-  // temporary variables
-  t1 := inSitu.T1
-  t2 := inSitu.T2
-  // some constants
-  t_n := float64(n)
-  t_g := gamma.Value
-  // sum of gradients
-  s := NullDenseBareRealVector(d)
-  // initialize s and d
-  dict := make([]GradientSparse, n)
-  for i := 0; i < n; i++ {
-    if _, gt, err := f(i, x1); err != nil {
-      return nil, seed.Value, err
-    } else {
-      dict[i].set(gt)
-      dict[i].add(s)
-    }
-  }
-  g := rand.New(rand.NewSource(seed.Value))
-  for epoch := 0; epoch < maxIterations.Value; epoch++ {
-    for i_ := 0; i_ < n; i_++ {
-      j := g.Intn(n)
-      // get old gradient
-      g1 = dict[j]
-      // evaluate objective function
-      if _, gt, err := f(j, x1); err != nil {
-        return x1, g.Int63(), err
-      } else {
-        g2.set(gt)
-      }
-      if proxop == nil {
-        for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          g2i := g2.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          x1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
-        }
-      } else {
-        for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          g2i := g2.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          t1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
-        }
-        proxop.Eval(x1, t1, t2)
-      }
-      // update gradient avarage
-      g1.sub(s)
-      g2.add(s)
-      // update dictionary
-      dict[j].set(g2.g)
-    }
-    if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
-      return x1, g.Int63(), err
-    } else {
-      // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
-        break
-      }
-    }
-    xs.SET(x1)
-  }
-  return x1, g.Int63(), nil
+	f Objective2Sparse,
+	n int,
+	x Vector,
+	gamma Gamma,
+	epsilon Epsilon,
+	maxIterations MaxIterations,
+	proxop ProximalOperatorType,
+	hook Hook,
+	seed Seed,
+	inSitu *InSitu) (Vector, int64, error) {
+	xs := AsDenseBareRealVector(x)
+	x1 := AsDenseBareRealVector(x)
+	// length of gradient
+	d := x.Dim()
+	// gradient
+	var g1 GradientSparse
+	var g2 GradientSparse
+	// allocate temporary memory
+	if inSitu.T1 == nil {
+		inSitu.T1 = NullDenseBareRealVector(d)
+	}
+	if inSitu.T2 == nil {
+		inSitu.T2 = NullBareReal()
+	}
+	// temporary variables
+	t1 := inSitu.T1
+	t2 := inSitu.T2
+	// some constants
+	t_n := float64(n)
+	t_g := gamma.Value
+	// sum of gradients
+	s := NullDenseBareRealVector(d)
+	// initialize s and d
+	dict := make([]GradientSparse, n)
+	for i := 0; i < n; i++ {
+		if _, gt, err := f(i, x1); err != nil {
+			return nil, seed.Value, err
+		} else {
+			dict[i].set(gt)
+			dict[i].add(s)
+		}
+	}
+	g := rand.New(rand.NewSource(seed.Value))
+	for epoch := 0; epoch < maxIterations.Value; epoch++ {
+		for i_ := 0; i_ < n; i_++ {
+			j := g.Intn(n)
+			// get old gradient
+			g1 = dict[j]
+			// evaluate objective function
+			if _, gt, err := f(j, x1); err != nil {
+				return x1, g.Int63(), err
+			} else {
+				g2.set(gt)
+			}
+			if proxop == nil {
+				for i := 0; i < s.Dim(); i++ {
+					s_i := s.ValueAt(i)
+					g1i := g1.g.ValueAt(i)
+					g2i := g2.g.ValueAt(i)
+					x1i := x1.ValueAt(i)
+					x1.AT(i).SetValue(x1i - t_g*(g2i-g1i+s_i/t_n))
+				}
+			} else {
+				for i := 0; i < s.Dim(); i++ {
+					s_i := s.ValueAt(i)
+					g1i := g1.g.ValueAt(i)
+					g2i := g2.g.ValueAt(i)
+					x1i := x1.ValueAt(i)
+					t1.AT(i).SetValue(x1i - t_g*(g2i-g1i+s_i/t_n))
+				}
+				proxop.Eval(x1, t1, t2)
+			}
+			// update gradient avarage
+			g1.sub(s)
+			g2.add(s)
+			// update dictionary
+			dict[j].set(g2.g)
+		}
+		if stop, delta, err := EvalStopping(xs, x1, epsilon.Value*gamma.Value); stop {
+			return x1, g.Int63(), err
+		} else {
+			// execute hook if available
+			if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
+				break
+			}
+		}
+		xs.SET(x1)
+	}
+	return x1, g.Int63(), nil
 }

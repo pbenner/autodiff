@@ -27,18 +27,18 @@ import . "github.com/pbenner/autodiff/statistics/matrixDistribution"
 /* -------------------------------------------------------------------------- */
 
 type MixtureLikelihood struct {
-  *Mixture
-  States []int
+	*Mixture
+	States []int
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixtureLikelihood) CloneMatrixBatchClassifier() MatrixBatchClassifier {
-  return MixtureLikelihood{obj.Clone(), obj.States}
+	return MixtureLikelihood{obj.Clone(), obj.States}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixtureLikelihood) Eval(r Scalar, x ConstMatrix) error {
-  return obj.Mixture.Likelihood(r, x, obj.States)
+	return obj.Mixture.Likelihood(r, x, obj.States)
 }

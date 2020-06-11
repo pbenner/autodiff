@@ -19,8 +19,8 @@ package matrixDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 
@@ -28,15 +28,15 @@ import . "github.com/pbenner/autodiff"
 
 func TestInverseWishartDistribution1(t *testing.T) {
 
-  x  := NewMatrix(RealType, 2, 2, []float64{2, -0.3, -0.3, 4})
-  nu := NewReal(3.0)
-  s  := NewMatrix(RealType, 2, 2, []float64{1, +0.3, +0.3, 1})
-  r  := NewReal(0.0)
+	x := NewMatrix(RealType, 2, 2, []float64{2, -0.3, -0.3, 4})
+	nu := NewReal(3.0)
+	s := NewMatrix(RealType, 2, 2, []float64{1, +0.3, +0.3, 1})
+	r := NewReal(0.0)
 
-  wishart, _ := NewInverseWishartDistribution(nu, s)
-  wishart.LogPdf(r, x)
+	wishart, _ := NewInverseWishartDistribution(nu, s)
+	wishart.LogPdf(r, x)
 
-  if math.Abs(r.GetValue() - -9.25614036) > 1e-4 {
-    t.Error("Inverse Wishart LogPdf failed!")
-  }
+	if math.Abs(r.GetValue() - -9.25614036) > 1e-4 {
+		t.Error("Inverse Wishart LogPdf failed!")
+	}
 }

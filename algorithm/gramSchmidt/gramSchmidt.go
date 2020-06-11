@@ -18,74 +18,75 @@ package gramSchmidt
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
+import "fmt"
 
 import . "github.com/pbenner/autodiff"
+
 //import . "github.com/pbenner/autodiff/algorithm"
 
 /* -------------------------------------------------------------------------- */
 
 type InSitu struct {
-  Q Matrix
-  R Matrix
+	Q Matrix
+	R Matrix
 }
 
 /* -------------------------------------------------------------------------- */
 
 func gramSchmidt(a, q, r Matrix, t ScalarType, n, m int) (Matrix, Matrix, error) {
 
-  v := a.CloneMatrix()
-  s := NullScalar(t)
+	v := a.CloneMatrix()
+	s := NullScalar(t)
 
-  for i := 0; i < m; i++ {
-    // r_ii = ||v_i||
-    r.At(i, i).Vnorm(v.Col(i))
-    for k := 0; k < n; k++ {
-      q.At(k, i).Div(v.At(k, i), r.At(i, i))
-    }
-    for j := i+1; j < m; j++ {
-      w := v.Col(j)
-      r.At(i, j).VdotV(q.Col(i), w)
-      for k := 0; k < n; k++ {
-        s.Mul(r.At(i, j), q.At(k, i))
-        w.At(k).Sub(w.At(k), s)
-      }
-    }
-  }
-  return q, r, nil
+	for i := 0; i < m; i++ {
+		// r_ii = ||v_i||
+		r.At(i, i).Vnorm(v.Col(i))
+		for k := 0; k < n; k++ {
+			q.At(k, i).Div(v.At(k, i), r.At(i, i))
+		}
+		for j := i + 1; j < m; j++ {
+			w := v.Col(j)
+			r.At(i, j).VdotV(q.Col(i), w)
+			for k := 0; k < n; k++ {
+				s.Mul(r.At(i, j), q.At(k, i))
+				w.At(k).Sub(w.At(k), s)
+			}
+		}
+	}
+	return q, r, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
 
-  n, m := a.Dims()
-  t := a.ElementType()
+	n, m := a.Dims()
+	t := a.ElementType()
 
-  var q Matrix
-  var r Matrix
+	var q Matrix
+	var r Matrix
 
-  // loop over optional arguments
-  for _, arg := range args {
-    switch a := arg.(type) {
-    case InSitu:
-      q = a.Q
-      r = a.R
-    }
-  }
-  if q == nil {
-    q = NullMatrix(t, n, m)
-  } else {
-    if u, v := q.Dims(); u != n || v != m {
-      return nil, nil, fmt.Errorf("q has invalid dimension (%dx%d instead of %dx%d)", u, v, n, m)
-    }
-  }
-  if r == nil {
-    r = NullMatrix(t, n, m)
-  } else {
-    if u, v := r.Dims(); u != n || v != m {
-      return nil, nil, fmt.Errorf("r has invalid dimension (%dx%d instead of %dx%d)", u, v, n, m)
-    }
-  }
-  return gramSchmidt(a, q, r, t, n, m)
+	// loop over optional arguments
+	for _, arg := range args {
+		switch a := arg.(type) {
+		case InSitu:
+			q = a.Q
+			r = a.R
+		}
+	}
+	if q == nil {
+		q = NullMatrix(t, n, m)
+	} else {
+		if u, v := q.Dims(); u != n || v != m {
+			return nil, nil, fmt.Errorf("q has invalid dimension (%dx%d instead of %dx%d)", u, v, n, m)
+		}
+	}
+	if r == nil {
+		r = NullMatrix(t, n, m)
+	} else {
+		if u, v := r.Dims(); u != n || v != m {
+			return nil, nil, fmt.Errorf("r has invalid dimension (%dx%d instead of %dx%d)", u, v, n, m)
+		}
+	}
+	return gramSchmidt(a, q, r, t, n, m)
 }

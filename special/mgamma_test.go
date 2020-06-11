@@ -25,15 +25,15 @@ import "testing"
 /* -------------------------------------------------------------------------- */
 
 func TestMgamma(t *testing.T) {
-  if math.Abs(Mgamma(12, 2) - 8.418923e+14) > 1e10  ||
-    (math.Abs(Mgamma(12, 3) - 9.597751e+21) > 1e15) {
-    t.Error("Mgamma failed!")
-  }
+	if math.Abs(Mgamma(12, 2)-8.418923e+14) > 1e10 ||
+		(math.Abs(Mgamma(12, 3)-9.597751e+21) > 1e15) {
+		t.Error("Mgamma failed!")
+	}
 }
 
 func TestMlgamma(t *testing.T) {
-  if math.Abs(Mlgamma(12, 2) - math.Log(8.418923e+14)) > 1e-4  ||
-    (math.Abs(Mlgamma(12, 3) - math.Log(9.597751e+21)) > 1e-4) {
-    t.Error("Mlgamma failed!")
-  }
+	if math.Abs(Mlgamma(12, 2)-math.Log(8.418923e+14)) > 1e-4 ||
+		(math.Abs(Mlgamma(12, 3)-math.Log(9.597751e+21)) > 1e-4) {
+		t.Error("Mlgamma failed!")
+	}
 }

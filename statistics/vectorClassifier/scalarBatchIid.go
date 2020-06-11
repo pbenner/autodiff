@@ -18,8 +18,8 @@ package vectorClassifier
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
-import   "math"
+import "fmt"
+import "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -27,46 +27,46 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 type ScalarBatchIid struct {
-  Classifier ScalarBatchClassifier
-  N          int
+	Classifier ScalarBatchClassifier
+	N          int
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewScalarBatchIid(classifier ScalarBatchClassifier, n int) (ScalarBatchIid, error) {
-  if n < -1 && n != 0 {
-    return ScalarBatchIid{}, fmt.Errorf("invalid dimension")
-  }
-  return ScalarBatchIid{classifier, n}, nil
+	if n < -1 && n != 0 {
+		return ScalarBatchIid{}, fmt.Errorf("invalid dimension")
+	}
+	return ScalarBatchIid{classifier, n}, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj ScalarBatchIid) CloneVectorBatchClassifier() VectorBatchClassifier {
-  return ScalarBatchIid{obj.Classifier.CloneScalarBatchClassifier(), obj.N}
+	return ScalarBatchIid{obj.Classifier.CloneScalarBatchClassifier(), obj.N}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj ScalarBatchIid) Dim() int {
-  return obj.N
+	return obj.N
 }
 
 func (obj ScalarBatchIid) Eval(r Scalar, x ConstVector) error {
-  if obj.N != -1 && obj.N != x.Dim() {
-    return fmt.Errorf("data has invalid dimension (expected dimension `%d' but data has dimension `%d')", obj.N, x.Dim())
-  }
-  if x.Dim() == 1 {
-    return obj.Classifier.Eval(r, x.ConstAt(0))
-  } else {
-    t := r.CloneScalar()
-    r.SetValue(math.Inf(-1))
-    for i := 0; i < x.Dim(); i++ {
-      if err := obj.Classifier.Eval(t, x.ConstAt(i)); err != nil {
-        return err
-      }
-      r.Add(r, t)
-    }
-  }
-  return nil
+	if obj.N != -1 && obj.N != x.Dim() {
+		return fmt.Errorf("data has invalid dimension (expected dimension `%d' but data has dimension `%d')", obj.N, x.Dim())
+	}
+	if x.Dim() == 1 {
+		return obj.Classifier.Eval(r, x.ConstAt(0))
+	} else {
+		t := r.CloneScalar()
+		r.SetValue(math.Inf(-1))
+		for i := 0; i < x.Dim(); i++ {
+			if err := obj.Classifier.Eval(t, x.ConstAt(i)); err != nil {
+				return err
+			}
+			r.Add(r, t)
+		}
+	}
+	return nil
 }

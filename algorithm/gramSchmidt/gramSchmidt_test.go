@@ -19,7 +19,7 @@ package gramSchmidt
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "testing"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/simple"
@@ -27,26 +27,26 @@ import . "github.com/pbenner/autodiff/simple"
 /* -------------------------------------------------------------------------- */
 
 func TestRProp(t *testing.T) {
-  a := NewMatrix(RealType, 3, 3, []float64{
-    12, -51,   4,
-     6, 167, -68,
-    -4,  24, -41})
+	a := NewMatrix(RealType, 3, 3, []float64{
+		12, -51, 4,
+		6, 167, -68,
+		-4, 24, -41})
 
-  q, r, _ := Run(a)
+	q, r, _ := Run(a)
 
-  r1 := NewMatrix(RealType, 3, 3, []float64{
-     6.0/7.0, -69.0/175.0, -58.0/175.0,
-     3.0/7.0, 158.0/175.0,   6.0/175.0,
-    -2.0/7.0,   6.0/ 35.0, -33.0/ 35.0})
-  r2 := NewMatrix(RealType, 3, 3, []float64{
-    14,  21, -14,
-     0, 175, -70,
-     0,   0,  35})
+	r1 := NewMatrix(RealType, 3, 3, []float64{
+		6.0 / 7.0, -69.0 / 175.0, -58.0 / 175.0,
+		3.0 / 7.0, 158.0 / 175.0, 6.0 / 175.0,
+		-2.0 / 7.0, 6.0 / 35.0, -33.0 / 35.0})
+	r2 := NewMatrix(RealType, 3, 3, []float64{
+		14, 21, -14,
+		0, 175, -70,
+		0, 0, 35})
 
-  if Mnorm(MsubM(r1, q)).GetValue() > 1e-8 {
-    t.Error("Gram-Schmidt failed!")
-  }
-  if Mnorm(MsubM(r2, r)).GetValue() > 1e-8 {
-    t.Error("Gram-Schmidt failed!")
-  }  
+	if Mnorm(MsubM(r1, q)).GetValue() > 1e-8 {
+		t.Error("Gram-Schmidt failed!")
+	}
+	if Mnorm(MsubM(r2, r)).GetValue() > 1e-8 {
+		t.Error("Gram-Schmidt failed!")
+	}
 }

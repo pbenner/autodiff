@@ -25,17 +25,17 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type MixtureDataRecord interface {
-  // evaluate component c
-  LogPdf(r Scalar, c int) error
+	// evaluate component c
+	LogPdf(r Scalar, c int) error
 }
 
 /* -------------------------------------------------------------------------- */
 
 type MixtureDataSet interface {
-  // evaluate component c on observation i
-  LogPdf(r Scalar, c, i int) error
-  // total number of observations
-  GetCounts()    []int
-  // total number of observations
-  GetN()           int
+	// evaluate component c on observation i
+	LogPdf(r Scalar, c, i int) error
+	// total number of observations
+	GetCounts() []int
+	// total number of observations
+	GetN() int
 }

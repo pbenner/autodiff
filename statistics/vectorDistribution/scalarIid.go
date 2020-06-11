@@ -18,7 +18,7 @@ package vectorDistribution
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
+import "fmt"
 
 import . "github.com/pbenner/autodiff/statistics"
 
@@ -27,94 +27,94 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type ScalarIid struct {
-  Distribution ScalarPdf
-  n int
-  t Scalar
+	Distribution ScalarPdf
+	n            int
+	t            Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewScalarIid(distribution ScalarPdf, n int) (*ScalarIid, error) {
-  t := NewScalar(distribution.ScalarType(), 0.0)
-  return &ScalarIid{distribution, n, t}, nil
+	t := NewScalar(distribution.ScalarType(), 0.0)
+	return &ScalarIid{distribution, n, t}, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *ScalarIid) Clone() *ScalarIid {
-  return &ScalarIid{obj.Distribution.CloneScalarPdf(), obj.n, obj.t.CloneScalar()}
+	return &ScalarIid{obj.Distribution.CloneScalarPdf(), obj.n, obj.t.CloneScalar()}
 }
 
 func (obj *ScalarIid) CloneVectorPdf() VectorPdf {
-  return obj.Clone()
+	return obj.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *ScalarIid) Dim() int {
-  return obj.n
+	return obj.n
 }
 
 func (obj *ScalarIid) ScalarType() ScalarType {
-  return obj.Distribution.ScalarType()
+	return obj.Distribution.ScalarType()
 }
 
 func (obj *ScalarIid) LogPdf(r Scalar, x ConstVector) error {
-  n := obj.Dim()
-  t := obj.t
-  if n != -1 && x.Dim() != n {
-    return fmt.Errorf("LogPdf(): dimensions do not match (input has dimension `%d' whereas this distribution is of dimension `%d'", x.Dim(), obj.Dim())
-  }
-  r.Reset()
-  for i := 0; i < n; i++ {
-    if err := obj.Distribution.LogPdf(t, x.ConstAt(i)); err != nil {
-      return err
-    }
-    r.Add(r, t)
-  }
-  return nil
+	n := obj.Dim()
+	t := obj.t
+	if n != -1 && x.Dim() != n {
+		return fmt.Errorf("LogPdf(): dimensions do not match (input has dimension `%d' whereas this distribution is of dimension `%d'", x.Dim(), obj.Dim())
+	}
+	r.Reset()
+	for i := 0; i < n; i++ {
+		if err := obj.Distribution.LogPdf(t, x.ConstAt(i)); err != nil {
+			return err
+		}
+		r.Add(r, t)
+	}
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *ScalarIid) GetParameters() Vector {
-  return obj.Distribution.GetParameters()
+	return obj.Distribution.GetParameters()
 }
 
 func (obj *ScalarIid) SetParameters(parameters Vector) error {
-  return obj.Distribution.SetParameters(parameters)
+	return obj.Distribution.SetParameters(parameters)
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *ScalarIid) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
-  if parameters, ok := config.GetParametersAsFloats(); !ok {
-    return fmt.Errorf("invalid config file")
-  } else {
-    if len(parameters) != 1 {
-      return fmt.Errorf("invalid config file")
-    }
-    if len(config.Distributions) != 1 {
-      return fmt.Errorf("invalid config file")
-    }
+	if parameters, ok := config.GetParametersAsFloats(); !ok {
+		return fmt.Errorf("invalid config file")
+	} else {
+		if len(parameters) != 1 {
+			return fmt.Errorf("invalid config file")
+		}
+		if len(config.Distributions) != 1 {
+			return fmt.Errorf("invalid config file")
+		}
 
-    if dist, err := ImportScalarPdfConfig(config.Distributions[0], t); err != nil {
-      return err
-    } else {
-      if tmp, err := NewScalarIid(dist, int(parameters[0])); err != nil {
-        return err
-      } else {
-        *obj = *tmp
-      }
-    }
-    return nil
-  }
+		if dist, err := ImportScalarPdfConfig(config.Distributions[0], t); err != nil {
+			return err
+		} else {
+			if tmp, err := NewScalarIid(dist, int(parameters[0])); err != nil {
+				return err
+			} else {
+				*obj = *tmp
+			}
+		}
+		return nil
+	}
 }
 
 func (obj *ScalarIid) ExportConfig() (config ConfigDistribution) {
 
-  parameters := NewVector(BareRealType, []float64{float64(obj.n)})
+	parameters := NewVector(BareRealType, []float64{float64(obj.n)})
 
-  return NewConfigDistribution("vector:scalar iid", parameters, obj.Distribution.ExportConfig())
+	return NewConfigDistribution("vector:scalar iid", parameters, obj.Distribution.ExportConfig())
 }

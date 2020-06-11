@@ -18,7 +18,7 @@ package matrixClassifier
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
+import "fmt"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -27,32 +27,32 @@ import . "github.com/pbenner/autodiff/statistics/matrixDistribution"
 /* -------------------------------------------------------------------------- */
 
 type HmmClassifier struct {
-  *Hmm
+	*Hmm
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmClassifier) CloneMatrixClassifier() MatrixClassifier {
-  return HmmClassifier{obj.Clone()}
+	return HmmClassifier{obj.Clone()}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmClassifier) Dims() (int, int) {
-  return obj.Hmm.Dims()
+	return obj.Hmm.Dims()
 }
 
 func (obj HmmClassifier) Eval(r Vector, x ConstMatrix) error {
-  m, _ := x.Dims()
-  if r.Dim() != m {
-    return fmt.Errorf("r has invalid length")
-  }
-  if p, err := obj.Viterbi(x); err != nil {
-    return err
-  } else {
-    for i := 0; i < m; i++ {
-      r.At(i).SetValue(float64(p[i]))
-    }
-  }
-  return nil
+	m, _ := x.Dims()
+	if r.Dim() != m {
+		return fmt.Errorf("r has invalid length")
+	}
+	if p, err := obj.Viterbi(x); err != nil {
+		return err
+	} else {
+		for i := 0; i < m; i++ {
+			r.At(i).SetValue(float64(p[i]))
+		}
+	}
+	return nil
 }

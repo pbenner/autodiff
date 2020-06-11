@@ -24,7 +24,7 @@ import "reflect"
 /* -------------------------------------------------------------------------- */
 
 type Real struct {
-  BasicState
+	BasicState
 }
 
 /* register scalar type
@@ -33,8 +33,8 @@ type Real struct {
 var RealType ScalarType = NewReal(0.0).Type()
 
 func init() {
-  f := func(value float64) Scalar { return NewReal(value) }
-  RegisterScalar(RealType, f)
+	f := func(value float64) Scalar { return NewReal(value) }
+	RegisterScalar(RealType, f)
 }
 
 /* constructors
@@ -42,49 +42,49 @@ func init() {
 
 // Create a new real constant or variable.
 func NewReal(v float64) *Real {
-  s := Real{*NewBasicState(v)}
-  return &s
+	s := Real{*NewBasicState(v)}
+	return &s
 }
 
 func NullReal() *Real {
-  s := Real{*NewBasicState(0.0)}
-  return &s
+	s := Real{*NewBasicState(0.0)}
+	return &s
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (a *Real) Clone() *Real {
-  r := NewReal(0.0)
-  r.Set(a)
-  return r
+	r := NewReal(0.0)
+	r.Set(a)
+	return r
 }
 
 func (a *Real) CloneScalar() Scalar {
-  return a.Clone()
+	return a.Clone()
 }
 
 func (a *Real) Type() ScalarType {
-  return reflect.TypeOf(a)
+	return reflect.TypeOf(a)
 }
 
 func (a *Real) ConvertType(t ScalarType) Scalar {
-  switch t {
-  case RealType:
-    return a
-  case BareRealType:
-    return NewBareReal(a.GetValue())
-  default:
-    panic(fmt.Sprintf("cannot convert `Real' to type `%v'", t))
-  }
+	switch t {
+	case RealType:
+		return a
+	case BareRealType:
+		return NewBareReal(a.GetValue())
+	default:
+		panic(fmt.Sprintf("cannot convert `Real' to type `%v'", t))
+	}
 }
 
 func (a *Real) SET(b *Real) {
-  a.BasicState.SET(&b.BasicState)
+	a.BasicState.SET(&b.BasicState)
 }
 
 /* type conversion
  * -------------------------------------------------------------------------- */
 
 func (a *Real) String() string {
-  return fmt.Sprintf("%e", a.GetValue())
+	return fmt.Sprintf("%e", a.GetValue())
 }

@@ -25,14 +25,14 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 func init() {
-  VectorPdfRegistry["vector:constrained hmm distribution"]  = new(Chmm)
-  VectorPdfRegistry["vector:hierarchical hmm distribution"] = new(Hhmm)
-  VectorPdfRegistry["vector:hmm distribution"]              = new(Hmm)
-  VectorPdfRegistry["vector:mixture distribution"]          = new(Mixture)
-  VectorPdfRegistry["vector:normal distribtion"]            = new(NormalDistribution)
-  VectorPdfRegistry["vector:skew normal distribtion"]       = new(SkewNormalDistribution)
-  VectorPdfRegistry["vector:scalar id"]                     = new(ScalarId)
-  VectorPdfRegistry["vector:scalar iid"]                    = new(ScalarIid)
-  VectorPdfRegistry["vector:vector id"]                     = new(VectorId)
-  VectorPdfRegistry["vector:vector iid"]                    = new(VectorIid)
+	VectorPdfRegistry["vector:constrained hmm distribution"] = new(Chmm)
+	VectorPdfRegistry["vector:hierarchical hmm distribution"] = new(Hhmm)
+	VectorPdfRegistry["vector:hmm distribution"] = new(Hmm)
+	VectorPdfRegistry["vector:mixture distribution"] = new(Mixture)
+	VectorPdfRegistry["vector:normal distribtion"] = new(NormalDistribution)
+	VectorPdfRegistry["vector:skew normal distribtion"] = new(SkewNormalDistribution)
+	VectorPdfRegistry["vector:scalar id"] = new(ScalarId)
+	VectorPdfRegistry["vector:scalar iid"] = new(ScalarIid)
+	VectorPdfRegistry["vector:vector id"] = new(VectorId)
+	VectorPdfRegistry["vector:vector iid"] = new(VectorIid)
 }

@@ -19,8 +19,8 @@ package scalarDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 
@@ -28,69 +28,69 @@ import . "github.com/pbenner/autodiff"
 
 func TestGevDistribution1(t *testing.T) {
 
-  mu    := NewReal(1.0)
-  sigma := NewReal(1.0)
-  xi    := NewReal(0.0)
+	mu := NewReal(1.0)
+	sigma := NewReal(1.0)
+	xi := NewReal(0.0)
 
-  gev, _ := NewGevDistribution(mu, sigma, xi)
+	gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewReal(100)
-  y := NewReal(0.0)
-  z := NewReal(0.0)
+	x := NewReal(100)
+	y := NewReal(0.0)
+	z := NewReal(0.0)
 
-  gev.LogPdf(y, x)
-  gev.Cdf(z, x)
+	gev.LogPdf(y, x)
+	gev.Cdf(z, x)
 
-  if math.Abs(y.GetValue() - -99.0) > 1e-4 {
-    t.Error("Gev LogPdf failed!")
-  }
-  if math.Abs(z.GetValue() - 1.0) > 1e-4 {
-    t.Error("Gev LogPdf failed!")
-  }
+	if math.Abs(y.GetValue() - -99.0) > 1e-4 {
+		t.Error("Gev LogPdf failed!")
+	}
+	if math.Abs(z.GetValue()-1.0) > 1e-4 {
+		t.Error("Gev LogPdf failed!")
+	}
 }
 
 func TestGevDistribution2(t *testing.T) {
 
-  mu    := NewReal(1.0)
-  sigma := NewReal(1.0)
-  xi    := NewReal(0.0)
+	mu := NewReal(1.0)
+	sigma := NewReal(1.0)
+	xi := NewReal(0.0)
 
-  gev, _ := NewGevDistribution(mu, sigma, xi)
+	gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewReal(10)
-  y := NewReal(0.0)
-  z := NewReal(0.0)
+	x := NewReal(10)
+	y := NewReal(0.0)
+	z := NewReal(0.0)
 
-  gev.LogPdf(y, x)
-  gev.Cdf(z, x)
+	gev.LogPdf(y, x)
+	gev.Cdf(z, x)
 
-  if math.Abs(y.GetValue() - -9.000123) > 1e-4 {
-    t.Error("Gev LogPdf failed!")
-  }
-  if math.Abs(z.GetValue() - 0.9998766) > 1e-4 {
-    t.Error("Gev LogPdf failed!")
-  }
+	if math.Abs(y.GetValue() - -9.000123) > 1e-4 {
+		t.Error("Gev LogPdf failed!")
+	}
+	if math.Abs(z.GetValue()-0.9998766) > 1e-4 {
+		t.Error("Gev LogPdf failed!")
+	}
 }
 
 func TestGevDistribution3(t *testing.T) {
 
-  mu    := NewReal(1.0)
-  sigma := NewReal(1.0)
-  xi    := NewReal(2.0)
+	mu := NewReal(1.0)
+	sigma := NewReal(1.0)
+	xi := NewReal(2.0)
 
-  gev, _ := NewGevDistribution(mu, sigma, xi)
+	gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewReal(100)
-  y := NewReal(0.0)
-  z := NewReal(0.0)
+	x := NewReal(100)
+	y := NewReal(0.0)
+	z := NewReal(0.0)
 
-  gev.LogPdf(y, x)
-  gev.Cdf(z, x)
+	gev.LogPdf(y, x)
+	gev.Cdf(z, x)
 
-  if math.Abs(y.GetValue() - -8.010845) > 1e-4 {
-    t.Error("Gev LogPdf failed!")
-  }
-  if math.Abs(z.GetValue() - 0.9315661) > 1e-4 {
-    t.Error("Gev LogPdf failed!")
-  }
+	if math.Abs(y.GetValue() - -8.010845) > 1e-4 {
+		t.Error("Gev LogPdf failed!")
+	}
+	if math.Abs(z.GetValue()-0.9315661) > 1e-4 {
+		t.Error("Gev LogPdf failed!")
+	}
 }

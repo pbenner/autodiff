@@ -18,8 +18,8 @@ package matrixClassifier
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
-import   "math"
+import "fmt"
+import "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -28,41 +28,41 @@ import . "github.com/pbenner/autodiff/statistics/matrixDistribution"
 /* -------------------------------------------------------------------------- */
 
 type HmmPosterior struct {
-  *Hmm
-  States   []int
-  LogScale   bool
+	*Hmm
+	States   []int
+	LogScale bool
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmPosterior) CloneMatrixClassifier() MatrixClassifier {
-  return HmmPosterior{obj.Clone(), obj.States, obj.LogScale}
+	return HmmPosterior{obj.Clone(), obj.States, obj.LogScale}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmPosterior) Dims() (int, int) {
-  return obj.Hmm.Dims()
+	return obj.Hmm.Dims()
 }
 
 func (obj HmmPosterior) Eval(r Vector, x ConstMatrix) error {
-  m, _ := x.Dims()
-  if r.Dim() != m {
-    return fmt.Errorf("r has invalid length")
-  }
-  if p, err := obj.PosteriorMarginals(x); err != nil {
-    return err
-  } else {
-    t := NewBareReal(0.0)
-    for i := 0; i < m; i++ {
-      r.At(i).SetValue(math.Inf(-1))
-      for j := 0; j < len(obj.States); j++ {
-        r.At(i).LogAdd(r.At(i), p[obj.States[j]].At(i), t)
-      }
-      if !obj.LogScale {
-        r.At(i).Exp(r.At(i))
-      }
-    }
-  }
-  return nil
+	m, _ := x.Dims()
+	if r.Dim() != m {
+		return fmt.Errorf("r has invalid length")
+	}
+	if p, err := obj.PosteriorMarginals(x); err != nil {
+		return err
+	} else {
+		t := NewBareReal(0.0)
+		for i := 0; i < m; i++ {
+			r.At(i).SetValue(math.Inf(-1))
+			for j := 0; j < len(obj.States); j++ {
+				r.At(i).LogAdd(r.At(i), p[obj.States[j]].At(i), t)
+			}
+			if !obj.LogScale {
+				r.At(i).Exp(r.At(i))
+			}
+		}
+	}
+	return nil
 }

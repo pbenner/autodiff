@@ -18,8 +18,8 @@ package vectorClassifier
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
-import   "math"
+import "fmt"
+import "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -28,37 +28,37 @@ import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 /* -------------------------------------------------------------------------- */
 
 type HmmPosterior struct {
-  *Hmm
-  States []int
+	*Hmm
+	States []int
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmPosterior) CloneVectorClassifier() VectorClassifier {
-  return HmmPosterior{obj.Clone(), obj.States}
+	return HmmPosterior{obj.Clone(), obj.States}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmPosterior) Dim() int {
-  return obj.Hmm.Dim()
+	return obj.Hmm.Dim()
 }
 
 func (obj HmmPosterior) Eval(r Vector, x ConstVector) error {
-  if r.Dim() != x.Dim() {
-    return fmt.Errorf("r has invalid length")
-  }
-  if p, err := obj.PosteriorMarginals(x); err != nil {
-    return err
-  } else {
-    t := NewBareReal(0.0)
-    for i := 0; i < x.Dim(); i++ {
-      r.At(i).SetValue(math.Inf(-1))
-      for j := 0; j < len(obj.States); j++ {
-        r.At(i).LogAdd(r.At(i), p[obj.States[j]].At(i), t)
-      }
-      r.At(i).Exp(r.At(i))
-    }
-  }
-  return nil
+	if r.Dim() != x.Dim() {
+		return fmt.Errorf("r has invalid length")
+	}
+	if p, err := obj.PosteriorMarginals(x); err != nil {
+		return err
+	} else {
+		t := NewBareReal(0.0)
+		for i := 0; i < x.Dim(); i++ {
+			r.At(i).SetValue(math.Inf(-1))
+			for j := 0; j < len(obj.States); j++ {
+				r.At(i).LogAdd(r.At(i), p[obj.States[j]].At(i), t)
+			}
+			r.At(i).Exp(r.At(i))
+		}
+	}
+	return nil
 }

@@ -20,7 +20,7 @@ package householderTridiagonalization
 
 //import   "fmt"
 //import   "math"
-import   "testing"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/simple"
@@ -28,25 +28,25 @@ import . "github.com/pbenner/autodiff/simple"
 /* -------------------------------------------------------------------------- */
 
 func Test1(t *testing.T) {
-  a := NewMatrix(RealType, 4, 4, []float64{
-    4,  2,  2, 1,
-    2, -3,  1, 1,
-    2,  1,  3, 1,
-    1,  1,  1, 2 })
+	a := NewMatrix(RealType, 4, 4, []float64{
+		4, 2, 2, 1,
+		2, -3, 1, 1,
+		2, 1, 3, 1,
+		1, 1, 1, 2})
 
-  b, u, _ := Run(a, ComputeU{true})
+	b, u, _ := Run(a, ComputeU{true})
 
-  r1 := NewMatrix(RealType, 4, 4, []float64{
-    4.000000e+00, 3.000000e+00,  0.000000e+00, 0.000000e+00,
-    3.000000e+00, 2.000000e+00,  3.162278e+00, 0.000000e+00,
-    0.000000e+00, 3.162278e+00, -1.400000e+00, 2.000000e-01,
-    0.000000e+00, 0.000000e+00,  2.000000e-01, 1.400000e+00})
-  r2 := MdotM(u.T(),MdotM(a,u))
+	r1 := NewMatrix(RealType, 4, 4, []float64{
+		4.000000e+00, 3.000000e+00, 0.000000e+00, 0.000000e+00,
+		3.000000e+00, 2.000000e+00, 3.162278e+00, 0.000000e+00,
+		0.000000e+00, 3.162278e+00, -1.400000e+00, 2.000000e-01,
+		0.000000e+00, 0.000000e+00, 2.000000e-01, 1.400000e+00})
+	r2 := MdotM(u.T(), MdotM(a, u))
 
-  if Mnorm(MsubM(r1, b)).GetValue() > 1e-8 {
-    t.Error("test failed")
-  }
-  if Mnorm(MsubM(r2, b)).GetValue() > 1e-8 {
-    t.Error("test failed")
-  }
+	if Mnorm(MsubM(r1, b)).GetValue() > 1e-8 {
+		t.Error("test failed")
+	}
+	if Mnorm(MsubM(r2, b)).GetValue() > 1e-8 {
+		t.Error("test failed")
+	}
 }

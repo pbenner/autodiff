@@ -20,12 +20,12 @@ import "math"
 
 func Powm1(a, z float64) float64 {
 
-  if math.Abs(a) < 1.0 || math.Abs(z) < 1 {
-    p := math.Log(a) * z
-    if math.Abs(p) < 2.0 {
-      return math.Expm1(p)
-    }
-    // otherwise fall though:
-  }
-  return math.Pow(a, z) - 1.0
+	if math.Abs(a) < 1.0 || math.Abs(z) < 1 {
+		p := math.Log(a) * z
+		if math.Abs(p) < 2.0 {
+			return math.Expm1(p)
+		}
+		// otherwise fall though:
+	}
+	return math.Pow(a, z) - 1.0
 }

@@ -25,11 +25,11 @@ import . "github.com/pbenner/autodiff/statistics"
 /* -------------------------------------------------------------------------- */
 
 func init() {
-  MatrixPdfRegistry["matrix:hierarchical hmm distribution"] = new(Hhmm)
-  MatrixPdfRegistry["matrix:inverse wishart distribtion"]   = new(InverseWishartDistribution)
-  MatrixPdfRegistry["matrix:shape hmm distribution"]        = new(ShapeHmm)
-  MatrixPdfRegistry["matrix:hmm distribution"]              = new(Hmm)
-  MatrixPdfRegistry["matrix:mixture distribution"]          = new(Mixture)
-  MatrixPdfRegistry["matrix:vector id"]                     = new(VectorId)
-  MatrixPdfRegistry["matrix:vector iid"]                    = new(VectorIid)
+	MatrixPdfRegistry["matrix:hierarchical hmm distribution"] = new(Hhmm)
+	MatrixPdfRegistry["matrix:inverse wishart distribtion"] = new(InverseWishartDistribution)
+	MatrixPdfRegistry["matrix:shape hmm distribution"] = new(ShapeHmm)
+	MatrixPdfRegistry["matrix:hmm distribution"] = new(Hmm)
+	MatrixPdfRegistry["matrix:mixture distribution"] = new(Mixture)
+	MatrixPdfRegistry["matrix:vector id"] = new(VectorId)
+	MatrixPdfRegistry["matrix:vector iid"] = new(VectorIid)
 }

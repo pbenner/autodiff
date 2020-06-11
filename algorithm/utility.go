@@ -18,21 +18,21 @@ package algorithm
 
 /* -------------------------------------------------------------------------- */
 
-import   "math"
+import "math"
 
 /* -------------------------------------------------------------------------- */
 
 func Norm(v []float64) float64 {
-  sum := 0.0
-  for _, x := range v {
-    sum += math.Pow(x, 2.0)
-  }
-  return math.Sqrt(sum)
+	sum := 0.0
+	for _, x := range v {
+		sum += math.Pow(x, 2.0)
+	}
+	return math.Sqrt(sum)
 }
 
 func ScaleVectorLength(v []float64, length float64) {
-  c := length/Norm(v)
-  for i := 0; i < len(v); i++ {
-    v[i] *= c
-  }
+	c := length / Norm(v)
+	for i := 0; i < len(v); i++ {
+		v[i] *= c
+	}
 }

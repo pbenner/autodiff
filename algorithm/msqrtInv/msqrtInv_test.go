@@ -20,19 +20,19 @@ package msqrtInv
 
 //import   "fmt"
 
-import   "testing"
+import "testing"
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
 func TestMSqrtInv(t *testing.T) {
-  n := 2
-  a := NewMatrix(RealType, n, n, []float64{2, 1, 1, 2})
-  x, _ := Run(a)
-  r := NewMatrix(RealType, n, n, []float64{7.886751e-01, -2.113249e-01, -2.113249e-01, 7.886751e-01})
+	n := 2
+	a := NewMatrix(RealType, n, n, []float64{2, 1, 1, 2})
+	x, _ := Run(a)
+	r := NewMatrix(RealType, n, n, []float64{7.886751e-01, -2.113249e-01, -2.113249e-01, 7.886751e-01})
 
-  if Mnorm(MsubM(x, r)).GetValue() > 1e-8 {
-    t.Error("MSqrt failed!")
-  }
+	if Mnorm(MsubM(x, r)).GetValue() > 1e-8 {
+		t.Error("MSqrt failed!")
+	}
 }

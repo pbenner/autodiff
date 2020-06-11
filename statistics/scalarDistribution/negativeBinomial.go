@@ -18,8 +18,8 @@ package scalarDistribution
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
-import   "math"
+import "fmt"
+import "math"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -29,135 +29,135 @@ import . "github.com/pbenner/autodiff/statistics"
 // Gamma(r+k)/Gamma(k+1)/Gamma(r) p^k (1-p)^r
 
 type NegativeBinomialDistribution struct {
-  R     Scalar
-  P     Scalar
-  p     Scalar // q = log(p)
-  z     Scalar
-  c1    Scalar
-  t1    Scalar
-  t2    Scalar
+	R  Scalar
+	P  Scalar
+	p  Scalar // q = log(p)
+	z  Scalar
+	c1 Scalar
+	t1 Scalar
+	t2 Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewNegativeBinomialDistribution(r, p Scalar) (*NegativeBinomialDistribution, error) {
-  if r.GetValue() <= 0.0 || p.GetValue() < 0.0 || p.GetValue() > 1.0 {
-    return nil, fmt.Errorf("invalid parameters")
-  }
-  t := r.Type()
+	if r.GetValue() <= 0.0 || p.GetValue() < 0.0 || p.GetValue() > 1.0 {
+		return nil, fmt.Errorf("invalid parameters")
+	}
+	t := r.Type()
 
-  // (1-p)^r
-  t1 := p.CloneScalar()
-  t1.Sub(NewBareReal(1.0), t1)
-  t1.Log(t1)
-  t1.Mul(t1, r)
+	// (1-p)^r
+	t1 := p.CloneScalar()
+	t1.Sub(NewBareReal(1.0), t1)
+	t1.Log(t1)
+	t1.Mul(t1, r)
 
-  // Gamma(r)
-  t2 := r.CloneScalar()
-  t2.Lgamma(t2)
+	// Gamma(r)
+	t2 := r.CloneScalar()
+	t2.Lgamma(t2)
 
-  // p^r / Gamma(r)
-  t1.Sub(t1, t2)
-  
-  dist := NegativeBinomialDistribution{}
-  dist.R  = r.CloneScalar()
-  dist.P  = p.CloneScalar()
-  dist.p  = NewScalar(t, 0.0)
-  dist.p.Log(p)
-  dist.z  = t1
-  dist.c1 = NewScalar(t, 1.0)
-  dist.t1 = NewScalar(t, 0.0)
-  dist.t2 = NewScalar(t, 0.0)
-  return &dist, nil
+	// p^r / Gamma(r)
+	t1.Sub(t1, t2)
+
+	dist := NegativeBinomialDistribution{}
+	dist.R = r.CloneScalar()
+	dist.P = p.CloneScalar()
+	dist.p = NewScalar(t, 0.0)
+	dist.p.Log(p)
+	dist.z = t1
+	dist.c1 = NewScalar(t, 1.0)
+	dist.t1 = NewScalar(t, 0.0)
+	dist.t2 = NewScalar(t, 0.0)
+	return &dist, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *NegativeBinomialDistribution) Clone() *NegativeBinomialDistribution {
-  r, _ := NewNegativeBinomialDistribution(dist.R, dist.P)
-  return r
+	r, _ := NewNegativeBinomialDistribution(dist.R, dist.P)
+	return r
 }
 
 func (dist *NegativeBinomialDistribution) CloneScalarPdf() ScalarPdf {
-  return dist.Clone()
+	return dist.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *NegativeBinomialDistribution) ScalarType() ScalarType {
-  return dist.R.Type()
+	return dist.R.Type()
 }
 
 func (dist *NegativeBinomialDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); v < 0.0 || math.Floor(v) != v {
-    r.SetValue(math.Inf(-1))
-    return nil
-  }
-  t1 := dist.t1
-  t2 := dist.t2
+	if v := x.GetValue(); v < 0.0 || math.Floor(v) != v {
+		r.SetValue(math.Inf(-1))
+		return nil
+	}
+	t1 := dist.t1
+	t2 := dist.t2
 
-  // Gamma(r + k)
-  t1.Add(dist.R, x)
-  t1.Lgamma(t1)
+	// Gamma(r + k)
+	t1.Add(dist.R, x)
+	t1.Lgamma(t1)
 
-  // Gamma(k + 1)
-  t2.Add(x, dist.c1)
-  t2.Lgamma(t2)
+	// Gamma(k + 1)
+	t2.Add(x, dist.c1)
+	t2.Lgamma(t2)
 
-  r.Mul(x, dist.p)
-  r.Add(r, t1)
-  r.Sub(r, t2)
-  r.Add(r, dist.z)
+	r.Mul(x, dist.p)
+	r.Add(r, t1)
+	r.Sub(r, t2)
+	r.Add(r, dist.z)
 
-  return nil
+	return nil
 }
 
 func (dist *NegativeBinomialDistribution) Pdf(r Scalar, x ConstScalar) error {
-  if err := dist.LogPdf(r, x); err != nil {
-    return err
-  }
-  r.Exp(r)
-  return nil
+	if err := dist.LogPdf(r, x); err != nil {
+		return err
+	}
+	r.Exp(r)
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *NegativeBinomialDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 2)
-  p.At(0).Set(dist.R)
-  p.At(1).Set(dist.P)
-  return p
+	p := NullVector(dist.ScalarType(), 2)
+	p.At(0).Set(dist.R)
+	p.At(1).Set(dist.P)
+	return p
 }
 
 func (dist *NegativeBinomialDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewNegativeBinomialDistribution(parameters.At(0), parameters.At(1)); err != nil {
-    return err
-  } else {
-    *dist = *tmp
-  }
-  return nil
+	if tmp, err := NewNegativeBinomialDistribution(parameters.At(0), parameters.At(1)); err != nil {
+		return err
+	} else {
+		*dist = *tmp
+	}
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *NegativeBinomialDistribution) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
-  if parameters, ok := config.GetParametersAsFloats(); !ok {
-    return fmt.Errorf("invalid config file")
-  } else {
-    r := NewScalar(t, parameters[0])
-    p := NewScalar(t, parameters[1])
+	if parameters, ok := config.GetParametersAsFloats(); !ok {
+		return fmt.Errorf("invalid config file")
+	} else {
+		r := NewScalar(t, parameters[0])
+		p := NewScalar(t, parameters[1])
 
-    if tmp, err := NewNegativeBinomialDistribution(r, p); err != nil {
-      return err
-    } else {
-      *dist = *tmp
-    }
-    return nil
-  }
+		if tmp, err := NewNegativeBinomialDistribution(r, p); err != nil {
+			return err
+		} else {
+			*dist = *tmp
+		}
+		return nil
+	}
 }
 
 func (dist *NegativeBinomialDistribution) ExportConfig() ConfigDistribution {
 
-  return NewConfigDistribution("scalar:negative binomial distribution", dist.GetParameters())
+	return NewConfigDistribution("scalar:negative binomial distribution", dist.GetParameters())
 }

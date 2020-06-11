@@ -23,53 +23,53 @@ import . "github.com/pbenner/autodiff/logarithmetic"
 /* -------------------------------------------------------------------------- */
 
 type Polynomial struct {
-  coefficients []float64
+	coefficients []float64
 }
 
 type EvenPolynomial struct {
-  Polynomial
+	Polynomial
 }
 
 type LogPolynomial struct {
-  coefficients []float64
+	coefficients []float64
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewPolynomial(coefficients []float64) Polynomial {
-  return Polynomial{coefficients}
+	return Polynomial{coefficients}
 }
 
 func NewEvenPolynomial(coefficients []float64) EvenPolynomial {
-  return EvenPolynomial{NewPolynomial(coefficients)}
+	return EvenPolynomial{NewPolynomial(coefficients)}
 }
 
 func NewLogPolynomial(coefficients []float64) LogPolynomial {
-  return LogPolynomial{coefficients}
+	return LogPolynomial{coefficients}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (p Polynomial) Eval(z float64) float64 {
-  count := len(p.coefficients)
-  sum := p.coefficients[count - 1]
-  for i := count - 2; i >= 0; i-- {
-    sum *= z
-    sum += p.coefficients[i]
-  }
-  return sum
+	count := len(p.coefficients)
+	sum := p.coefficients[count-1]
+	for i := count - 2; i >= 0; i-- {
+		sum *= z
+		sum += p.coefficients[i]
+	}
+	return sum
 }
 
 func (p EvenPolynomial) Eval(z float64) float64 {
-  return p.Polynomial.Eval(z*z)
+	return p.Polynomial.Eval(z * z)
 }
 
 func (p LogPolynomial) Eval(logz float64) float64 {
-  count := len(p.coefficients)
-  sum := p.coefficients[count - 1]
-  for i := count - 2; i >= 0; i-- {
-    sum += logz
-    sum  = LogAdd(sum, p.coefficients[i])
-  }
-  return sum
+	count := len(p.coefficients)
+	sum := p.coefficients[count-1]
+	for i := count - 2; i >= 0; i-- {
+		sum += logz
+		sum = LogAdd(sum, p.coefficients[i])
+	}
+	return sum
 }

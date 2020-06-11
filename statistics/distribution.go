@@ -19,46 +19,46 @@ package statistics
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "reflect"
+import "reflect"
 
 import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
 type ConfigurableDistribution interface {
-  ImportConfig(config ConfigDistribution, t ScalarType) error
-  ExportConfig() ConfigDistribution
+	ImportConfig(config ConfigDistribution, t ScalarType) error
+	ExportConfig() ConfigDistribution
 }
 
 /* -------------------------------------------------------------------------- */
 
 type BasicDistribution interface {
-  ConfigurableDistribution
-  GetParameters() Vector
-  SetParameters(parameters Vector) error
-  ScalarType() ScalarType
+	ConfigurableDistribution
+	GetParameters() Vector
+	SetParameters(parameters Vector) error
+	ScalarType() ScalarType
 }
 
 /* -------------------------------------------------------------------------- */
 
 type ScalarPdf interface {
-  BasicDistribution
-  LogPdf(r Scalar, x ConstScalar) error
-  CloneScalarPdf() ScalarPdf
+	BasicDistribution
+	LogPdf(r Scalar, x ConstScalar) error
+	CloneScalarPdf() ScalarPdf
 }
 
 type VectorPdf interface {
-  BasicDistribution
-  LogPdf(r Scalar, x ConstVector) error
-  Dim() int
-  CloneVectorPdf() VectorPdf
+	BasicDistribution
+	LogPdf(r Scalar, x ConstVector) error
+	Dim() int
+	CloneVectorPdf() VectorPdf
 }
 
 type MatrixPdf interface {
-  BasicDistribution
-  LogPdf(r Scalar, x ConstMatrix) error
-  Dims() (int, int)
-  CloneMatrixPdf() MatrixPdf
+	BasicDistribution
+	LogPdf(r Scalar, x ConstMatrix) error
+	Dims() (int, int)
+	CloneMatrixPdf() MatrixPdf
 }
 
 /* -------------------------------------------------------------------------- */
@@ -68,33 +68,33 @@ var VectorPdfRegistry map[string]VectorPdf
 var MatrixPdfRegistry map[string]MatrixPdf
 
 func init() {
-  ScalarPdfRegistry = make(map[string]ScalarPdf)
-  VectorPdfRegistry = make(map[string]VectorPdf)
-  MatrixPdfRegistry = make(map[string]MatrixPdf)
+	ScalarPdfRegistry = make(map[string]ScalarPdf)
+	VectorPdfRegistry = make(map[string]VectorPdf)
+	MatrixPdfRegistry = make(map[string]MatrixPdf)
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewScalarPdf(name string) ScalarPdf {
-  if x, ok := ScalarPdfRegistry[name]; ok {
-    return reflect.New(reflect.TypeOf(x).Elem()).Interface().(ScalarPdf)
-  } else {
-    return nil
-  }
+	if x, ok := ScalarPdfRegistry[name]; ok {
+		return reflect.New(reflect.TypeOf(x).Elem()).Interface().(ScalarPdf)
+	} else {
+		return nil
+	}
 }
 
 func NewVectorPdf(name string) VectorPdf {
-  if x, ok := VectorPdfRegistry[name]; ok {
-    return reflect.New(reflect.TypeOf(x).Elem()).Interface().(VectorPdf)
-  } else {
-    return nil
-  }
+	if x, ok := VectorPdfRegistry[name]; ok {
+		return reflect.New(reflect.TypeOf(x).Elem()).Interface().(VectorPdf)
+	} else {
+		return nil
+	}
 }
 
 func NewMatrixPdf(name string) MatrixPdf {
-  if x, ok := MatrixPdfRegistry[name]; ok {
-    return reflect.New(reflect.TypeOf(x).Elem()).Interface().(MatrixPdf)
-  } else {
-    return nil
-  }
+	if x, ok := MatrixPdfRegistry[name]; ok {
+		return reflect.New(reflect.TypeOf(x).Elem()).Interface().(MatrixPdf)
+	} else {
+		return nil
+	}
 }

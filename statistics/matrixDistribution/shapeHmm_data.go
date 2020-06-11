@@ -27,29 +27,29 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type ShapeHmmDataRecord struct {
-  Edist []MatrixPdf
-  X       ConstMatrix
+	Edist []MatrixPdf
+	X     ConstMatrix
 }
 
 func (obj ShapeHmmDataRecord) MapIndex(k int) int {
-  return k
+	return k
 }
 
 func (obj ShapeHmmDataRecord) GetN() int {
-  n, _ := obj.X.Dims()
-  return n
+	n, _ := obj.X.Dims()
+	return n
 }
 
 func (obj ShapeHmmDataRecord) LogPdf(r Scalar, c, k int) error {
-  n, m := obj.Edist[c].Dims()
+	n, m := obj.Edist[c].Dims()
 
-  i := k - n/2
-  j := k - n/2 + n
+	i := k - n/2
+	j := k - n/2 + n
 
-  if l, _ := obj.X.Dims(); i >= 0 && j < l {
-    return obj.Edist[c].LogPdf(r, obj.X.ConstSlice(i, j, 0, m))
-  } else {
-    r.SetValue(0.0)
-    return nil
-  }
+	if l, _ := obj.X.Dims(); i >= 0 && j < l {
+		return obj.Edist[c].LogPdf(r, obj.X.ConstSlice(i, j, 0, m))
+	} else {
+		r.SetValue(0.0)
+		return nil
+	}
 }

@@ -18,128 +18,133 @@ package vectorDistribution
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
+import "fmt"
 
 import . "github.com/pbenner/autodiff/statistics"
-import   "github.com/pbenner/autodiff/statistics/generic"
+import "github.com/pbenner/autodiff/statistics/generic"
 
 import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
 type Chmm struct {
-  Hmm
+	Hmm
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewConstrainedHmm(pi Vector, tr Matrix, stateMap []int, edist []ScalarPdf, constraints []generic.EqualityConstraint) (*Chmm, error) {
-  return newConstrainedHmm(pi, tr, stateMap, edist, constraints, false)
+	return newConstrainedHmm(pi, tr, stateMap, edist, constraints, false)
 }
 
 func newConstrainedHmm(pi Vector, tr Matrix, stateMap []int, edist []ScalarPdf, constraints []generic.EqualityConstraint, isLog bool) (*Chmm, error) {
-  p, err := generic.NewHmmProbabilityVector(pi, isLog); if err != nil {
-    return nil, err
-  }
-  t, err := generic.NewChmmTransitionMatrix(tr, constraints, isLog); if err != nil {
-    return nil, err
-  }
-  if hmm, err := generic.NewHmm(p, t, stateMap); err != nil {
-    return nil, err
-  } else {
-    if len(edist) == 0 {
-      edist = make([]ScalarPdf, hmm.NEDists())
-    } else {
-      if hmm.NEDists() != len(edist) {
-        return nil, fmt.Errorf("invalid number of emission distributions")
-      }
-    }
-    return &Chmm{Hmm{*hmm, edist}}, nil
-  }
+	p, err := generic.NewHmmProbabilityVector(pi, isLog)
+	if err != nil {
+		return nil, err
+	}
+	t, err := generic.NewChmmTransitionMatrix(tr, constraints, isLog)
+	if err != nil {
+		return nil, err
+	}
+	if hmm, err := generic.NewHmm(p, t, stateMap); err != nil {
+		return nil, err
+	} else {
+		if len(edist) == 0 {
+			edist = make([]ScalarPdf, hmm.NEDists())
+		} else {
+			if hmm.NEDists() != len(edist) {
+				return nil, fmt.Errorf("invalid number of emission distributions")
+			}
+		}
+		return &Chmm{Hmm{*hmm, edist}}, nil
+	}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *Chmm) ImportConfig(config ConfigDistribution, t ScalarType) error {
-  hmm  := Hmm{}
-  if err := hmm.ImportConfig(config, t); err != nil {
-    return err
-  }
-  c, ok := config.GetNamedParametersAsNestedInts("Constraints"); if !ok {
-    return fmt.Errorf("invalid config file")
-  }
-  constraints := []generic.EqualityConstraint{}
-  if a1, ok1 := c.([]interface{}); ok1 {
-    for i := 0; i < len(a1); i++ {
-      if a2, ok2 := a1[i].([]interface{}); ok2 {
-        constraint := generic.EqualityConstraint{}
-        for j := 0; j < len(a2); j++ {
-          if a3, ok3 := a2[j].([]interface{}); ok3 {
-            c1 := 0
-            c2 := 0
-            if len(a3) != 2 {
-              goto err
-            }
-            if a, ok := a3[0].(int); ok {
-              c1 = a
-            } else {
-              goto err
-            }
-            if a, ok := a3[1].(int); ok {
-              c2 = a
-            } else {
-              goto err
-            }
-            constraint = append(constraint, [2]int{c1, c2})
-          }
-        }
-        constraints = append(constraints, constraint)
-      }
-    }
-  }
-  // get hierarchical transition matrix
-  if r, err := newConstrainedHmm(hmm.Pi, hmm.Tr, hmm.StateMap, hmm.Edist, constraints, true); err != nil {
-    return err
-  } else {
-    *obj = *r
-  }
-  return nil
+	hmm := Hmm{}
+	if err := hmm.ImportConfig(config, t); err != nil {
+		return err
+	}
+	c, ok := config.GetNamedParametersAsNestedInts("Constraints")
+	if !ok {
+		return fmt.Errorf("invalid config file")
+	}
+	constraints := []generic.EqualityConstraint{}
+	if a1, ok1 := c.([]interface{}); ok1 {
+		for i := 0; i < len(a1); i++ {
+			if a2, ok2 := a1[i].([]interface{}); ok2 {
+				constraint := generic.EqualityConstraint{}
+				for j := 0; j < len(a2); j++ {
+					if a3, ok3 := a2[j].([]interface{}); ok3 {
+						c1 := 0
+						c2 := 0
+						if len(a3) != 2 {
+							goto err
+						}
+						if a, ok := a3[0].(int); ok {
+							c1 = a
+						} else {
+							goto err
+						}
+						if a, ok := a3[1].(int); ok {
+							c2 = a
+						} else {
+							goto err
+						}
+						constraint = append(constraint, [2]int{c1, c2})
+					}
+				}
+				constraints = append(constraints, constraint)
+			}
+		}
+	}
+	// get hierarchical transition matrix
+	if r, err := newConstrainedHmm(hmm.Pi, hmm.Tr, hmm.StateMap, hmm.Edist, constraints, true); err != nil {
+		return err
+	} else {
+		*obj = *r
+	}
+	return nil
 err:
-  return fmt.Errorf("invalid config")
+	return fmt.Errorf("invalid config")
 }
 
 func (obj *Chmm) ExportConfig() ConfigDistribution {
-  configHmm := obj.Hmm.ExportConfig()
-  parametersHmm := configHmm.Parameters.(struct{
-    Pi          []float64
-    Tr          []float64
-    StateMap    []int
-    N             int
-    StartStates []int
-    FinalStates []int })
+	configHmm := obj.Hmm.ExportConfig()
+	parametersHmm := configHmm.Parameters.(struct {
+		Pi          []float64
+		Tr          []float64
+		StateMap    []int
+		N           int
+		StartStates []int
+		FinalStates []int
+	})
 
-  parameters := struct{
-    Pi               []float64
-    Tr               []float64
-    StateMap         []int
-    N                  int
-    StartStates      []int
-    FinalStates      []int
-    Constraints [][][2]int }{}
+	parameters := struct {
+		Pi          []float64
+		Tr          []float64
+		StateMap    []int
+		N           int
+		StartStates []int
+		FinalStates []int
+		Constraints [][][2]int
+	}{}
 
-  constraints := obj.Tr.(generic.ChmmTransitionMatrix).GetConstraints()
+	constraints := obj.Tr.(generic.ChmmTransitionMatrix).GetConstraints()
 
-  parameters.Pi          = parametersHmm.Pi
-  parameters.Tr          = parametersHmm.Tr
-  parameters.StateMap    = parametersHmm.StateMap
-  parameters.N           = parametersHmm.N
-  parameters.StartStates = parametersHmm.StartStates
-  parameters.FinalStates = parametersHmm.FinalStates
-  parameters.Constraints = make([][][2]int, len(constraints))
+	parameters.Pi = parametersHmm.Pi
+	parameters.Tr = parametersHmm.Tr
+	parameters.StateMap = parametersHmm.StateMap
+	parameters.N = parametersHmm.N
+	parameters.StartStates = parametersHmm.StartStates
+	parameters.FinalStates = parametersHmm.FinalStates
+	parameters.Constraints = make([][][2]int, len(constraints))
 
-  for i := 0; i < len(constraints); i++ {
-    parameters.Constraints[i] = constraints[i]
-  }
+	for i := 0; i < len(constraints); i++ {
+		parameters.Constraints[i] = constraints[i]
+	}
 
-  return NewConfigDistribution("vector:constrained hmm distribution", parameters, configHmm.Distributions...)
+	return NewConfigDistribution("vector:constrained hmm distribution", parameters, configHmm.Distributions...)
 }

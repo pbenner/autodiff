@@ -19,8 +19,8 @@ package lineSearch
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/simple"
@@ -29,27 +29,27 @@ import . "github.com/pbenner/autodiff/simple"
 
 func TestLineSearch(t *testing.T) {
 
-  f := func(x Scalar) Scalar {
-    a := Sub(x, NewReal(3.0))
-    b := Pow(x, NewReal(3.0))
-    c := Pow(Sub(x, NewReal(6.0)), NewReal(4.0))
-    return Mul(Mul(a, b), c)
-  }
-  g := func(alpha Scalar) (Scalar, error) {
-    return f(Add(NewReal(1.7), alpha)), nil
-  }
-  // hook := func(x, y, g Scalar) bool {
-  //   fmt.Println("x:", x)
-  //   fmt.Println("y:", y)
-  //   return false
-  // }
-  x, err := Run(g, RealType)
+	f := func(x Scalar) Scalar {
+		a := Sub(x, NewReal(3.0))
+		b := Pow(x, NewReal(3.0))
+		c := Pow(Sub(x, NewReal(6.0)), NewReal(4.0))
+		return Mul(Mul(a, b), c)
+	}
+	g := func(alpha Scalar) (Scalar, error) {
+		return f(Add(NewReal(1.7), alpha)), nil
+	}
+	// hook := func(x, y, g Scalar) bool {
+	//   fmt.Println("x:", x)
+	//   fmt.Println("y:", y)
+	//   return false
+	// }
+	x, err := Run(g, RealType)
 
-  if err != nil {
-    t.Error(err)
-  } else {
-    if math.Abs(x.GetValue() - 4.381409e-02) > 1e-6 {
-      t.Error("TestLineSearch failed")
-    }
-  }
+	if err != nil {
+		t.Error(err)
+	} else {
+		if math.Abs(x.GetValue()-4.381409e-02) > 1e-6 {
+			t.Error("TestLineSearch failed")
+		}
+	}
 }

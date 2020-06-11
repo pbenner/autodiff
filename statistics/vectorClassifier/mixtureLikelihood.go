@@ -27,18 +27,18 @@ import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 /* -------------------------------------------------------------------------- */
 
 type MixtureLikelihood struct {
-  *Mixture
-  States []int
+	*Mixture
+	States []int
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixtureLikelihood) CloneVectorBatchClassifier() VectorBatchClassifier {
-  return MixtureLikelihood{obj.Clone(), obj.States}
+	return MixtureLikelihood{obj.Clone(), obj.States}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixtureLikelihood) Eval(r Scalar, x ConstVector) error {
-  return obj.Mixture.Likelihood(r, x, obj.States)
+	return obj.Mixture.Likelihood(r, x, obj.States)
 }

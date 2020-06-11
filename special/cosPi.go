@@ -19,36 +19,36 @@ import "math"
 /* -------------------------------------------------------------------------- */
 
 func CosPi(x float64) float64 {
-  // cos of pi*x:
-  invert := false
-  if math.Abs(x) < 0.25 {
-    return math.Cos(math.Pi * x)
-  }
-  if x < 0 {
-    x = -x
-  }
+	// cos of pi*x:
+	invert := false
+	if math.Abs(x) < 0.25 {
+		return math.Cos(math.Pi * x)
+	}
+	if x < 0 {
+		x = -x
+	}
 
-  rem := math.Floor(x)
-  if int(rem) & 1 != 0 {
-    invert = !invert
-  }
-  rem = x - rem
-  if rem > 0.5 {
-    rem = 1 - rem
-    invert = !invert
-  }
-  if rem == 0.5 {
-    return 0
-  }
-  if rem > 0.25 {
-    rem = 0.5 - rem
-    rem = math.Sin(math.Pi * rem)
-  } else {
-    rem = math.Cos(math.Pi * rem)
-  }
-  if invert {
-    return -rem
-  } else {
-    return  rem
-  }
+	rem := math.Floor(x)
+	if int(rem)&1 != 0 {
+		invert = !invert
+	}
+	rem = x - rem
+	if rem > 0.5 {
+		rem = 1 - rem
+		invert = !invert
+	}
+	if rem == 0.5 {
+		return 0
+	}
+	if rem > 0.25 {
+		rem = 0.5 - rem
+		rem = math.Sin(math.Pi * rem)
+	} else {
+		rem = math.Cos(math.Pi * rem)
+	}
+	if invert {
+		return -rem
+	} else {
+		return rem
+	}
 }

@@ -18,249 +18,260 @@
  */
 /* -------------------------------------------------------------------------- */
 package autodiff
+
 /* -------------------------------------------------------------------------- */
 // Test if elements in a equal elements in b.
 func (a DenseBareRealVector) Equals(b ConstVector, epsilon float64) bool {
-  if a.Dim() != b.Dim() {
-    panic("VEqual(): Vector dimensions do not match!")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    if !a.ConstAt(i).Equals(b.ConstAt(i), epsilon) {
-      return false
-    }
-  }
-  return true
+	if a.Dim() != b.Dim() {
+		panic("VEqual(): Vector dimensions do not match!")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		if !a.ConstAt(i).Equals(b.ConstAt(i), epsilon) {
+			return false
+		}
+	}
+	return true
 }
 func (a DenseBareRealVector) EQUALS(b DenseBareRealVector, epsilon float64) bool {
-  if a.Dim() != b.Dim() {
-    panic("VEqual(): Vector dimensions do not match!")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    if !a.AT(i).EQUALS(b.AT(i), epsilon) {
-      return false
-    }
-  }
-  return true
+	if a.Dim() != b.Dim() {
+		panic("VEqual(): Vector dimensions do not match!")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		if !a.AT(i).EQUALS(b.AT(i), epsilon) {
+			return false
+		}
+	}
+	return true
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VaddV(a, b ConstVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Add(a.ConstAt(i), b.ConstAt(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Add(a.ConstAt(i), b.ConstAt(i))
+	}
+	return r
 }
 func (r DenseBareRealVector) VADDV(a, b DenseBareRealVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).ADD(a.AT(i), b.AT(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).ADD(a.AT(i), b.AT(i))
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Add(a.ConstAt(i), b)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Add(a.ConstAt(i), b)
+	}
+	return r
 }
 func (r DenseBareRealVector) VADDS(a DenseBareRealVector, b *BareReal) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).ADD(a.AT(i), b)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).ADD(a.AT(i), b)
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VsubV(a, b ConstVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Sub(a.ConstAt(i), b.ConstAt(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Sub(a.ConstAt(i), b.ConstAt(i))
+	}
+	return r
 }
 func (r DenseBareRealVector) VSUBV(a, b DenseBareRealVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).SUB(a.AT(i), b.AT(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).SUB(a.AT(i), b.AT(i))
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Sub(a.ConstAt(i), b)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Sub(a.ConstAt(i), b)
+	}
+	return r
 }
 func (r DenseBareRealVector) VSUBS(a DenseBareRealVector, b *BareReal) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).SUB(a.AT(i), b)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).SUB(a.AT(i), b)
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise multiplication of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VmulV(a, b ConstVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Mul(a.ConstAt(i), b.ConstAt(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Mul(a.ConstAt(i), b.ConstAt(i))
+	}
+	return r
 }
 func (r DenseBareRealVector) VMULV(a, b DenseBareRealVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).MUL(a.AT(i), b.AT(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).MUL(a.AT(i), b.AT(i))
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Mul(a.ConstAt(i), s)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Mul(a.ConstAt(i), s)
+	}
+	return r
 }
 func (r DenseBareRealVector) VMULS(a DenseBareRealVector, s *BareReal) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).MUL(a.AT(i), s)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).MUL(a.AT(i), s)
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise division of two vectors. The result is stored in r.
 func (r DenseBareRealVector) VdivV(a, b ConstVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Div(a.ConstAt(i), b.ConstAt(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Div(a.ConstAt(i), b.ConstAt(i))
+	}
+	return r
 }
 func (r DenseBareRealVector) VDIVV(a, b DenseBareRealVector) Vector {
-  n := r.Dim()
-  if a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).DIV(a.AT(i), b.AT(i))
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n || b.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).DIV(a.AT(i), b.AT(i))
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.
 func (r DenseBareRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).Div(a.ConstAt(i), s)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).Div(a.ConstAt(i), s)
+	}
+	return r
 }
 func (r DenseBareRealVector) VDIVS(a DenseBareRealVector, s *BareReal) Vector {
-  n := r.Dim()
-  if a.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for i := 0; i < a.Dim(); i++ {
-    r.AT(i).DIV(a.AT(i), s)
-  }
-  return r
+	n := r.Dim()
+	if a.Dim() != n {
+		panic("vector dimensions do not match")
+	}
+	for i := 0; i < a.Dim(); i++ {
+		r.AT(i).DIV(a.AT(i), s)
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Matrix vector product of a and b. The result is stored in r.
 func (r DenseBareRealVector) MdotV(a ConstMatrix, b ConstVector) Vector {
-  n, m := a.Dims()
-  if r.Dim() != n || b.Dim() != m {
-    panic("matrix/vector dimensions do not match!")
-  }
-  if n == 0 || m == 0 {
-    return r
-  }
-  if r.AT(0) == b.ConstAt(0) {
-    panic("result and argument must be different vectors")
-  }
-  t := NullBareReal()
-  for i := 0; i < n; i++ {
-    r.AT(i).Reset()
-    for j := 0; j < m; j++ {
-      t.Mul(a.ConstAt(i, j), b.ConstAt(j))
-      r.AT(i).ADD(r.AT(i), t)
-    }
-  }
-  return r
+	n, m := a.Dims()
+	if r.Dim() != n || b.Dim() != m {
+		panic("matrix/vector dimensions do not match!")
+	}
+	if n == 0 || m == 0 {
+		return r
+	}
+	if r.AT(0) == b.ConstAt(0) {
+		panic("result and argument must be different vectors")
+	}
+	t := NullBareReal()
+	for i := 0; i < n; i++ {
+		r.AT(i).Reset()
+		for j := 0; j < m; j++ {
+			t.Mul(a.ConstAt(i, j), b.ConstAt(j))
+			r.AT(i).ADD(r.AT(i), t)
+		}
+	}
+	return r
 }
+
 /* -------------------------------------------------------------------------- */
 // Vector matrix product of a and b. The result is stored in r.
 func (r DenseBareRealVector) VdotM(a ConstVector, b ConstMatrix) Vector {
-  n, m := b.Dims()
-  if r.Dim() != m || a.Dim() != n {
-    panic("matrix/vector dimensions do not match!")
-  }
-  if n == 0 || m == 0 {
-    return r
-  }
-  if r.AT(0) == a.ConstAt(0) {
-    panic("result and argument must be different vectors")
-  }
-  t := NullBareReal()
-  for i := 0; i < m; i++ {
-    r.AT(i).Reset()
-    for j := 0; j < n; j++ {
-      t.Mul(a.ConstAt(j), b.ConstAt(j, i))
-      r.AT(i).ADD(r.AT(i), t)
-    }
-  }
-  return r
+	n, m := b.Dims()
+	if r.Dim() != m || a.Dim() != n {
+		panic("matrix/vector dimensions do not match!")
+	}
+	if n == 0 || m == 0 {
+		return r
+	}
+	if r.AT(0) == a.ConstAt(0) {
+		panic("result and argument must be different vectors")
+	}
+	t := NullBareReal()
+	for i := 0; i < m; i++ {
+		r.AT(i).Reset()
+		for j := 0; j < n; j++ {
+			t.Mul(a.ConstAt(j), b.ConstAt(j, i))
+			r.AT(i).ADD(r.AT(i), t)
+		}
+	}
+	return r
 }

@@ -19,8 +19,8 @@ package scalarDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 
@@ -28,17 +28,17 @@ import . "github.com/pbenner/autodiff"
 
 func TestNormal1(t *testing.T) {
 
-  mu     := NewReal(3.0)
-  sigma  := NewReal(math.Sqrt(2.0))
+	mu := NewReal(3.0)
+	sigma := NewReal(math.Sqrt(2.0))
 
-  normal, _ := NewNormalDistribution(mu, sigma)
+	normal, _ := NewNormalDistribution(mu, sigma)
 
-  x := NewReal(2.2)
-  y := NewReal(0.0)
+	x := NewReal(2.2)
+	y := NewReal(0.0)
 
-  normal.LogCdf(y, x)
+	normal.LogCdf(y, x)
 
-  if math.Abs(y.GetValue() - -1.2524496) > 1e-4 {
-    t.Error("Normal LogCdf failed!")
-  }
+	if math.Abs(y.GetValue() - -1.2524496) > 1e-4 {
+		t.Error("Normal LogCdf failed!")
+	}
 }

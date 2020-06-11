@@ -27,46 +27,46 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type DiscreteMixtureEstimator struct {
-  MixtureEstimator
+	MixtureEstimator
 }
 
 /* -------------------------------------------------------------------------- */
 
-func NewDiscreteMixtureEstimator(weights []float64, estimators []ScalarEstimator, epsilon float64, maxSteps int, args... interface{}) (*DiscreteMixtureEstimator, error) {
-  if r, err := NewMixtureEstimator(weights, estimators, epsilon, maxSteps, args...); err != nil {
-    return nil, err
-  } else {
-    return &DiscreteMixtureEstimator{*r}, nil
-  }
+func NewDiscreteMixtureEstimator(weights []float64, estimators []ScalarEstimator, epsilon float64, maxSteps int, args ...interface{}) (*DiscreteMixtureEstimator, error) {
+	if r, err := NewMixtureEstimator(weights, estimators, epsilon, maxSteps, args...); err != nil {
+		return nil, err
+	} else {
+		return &DiscreteMixtureEstimator{*r}, nil
+	}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *DiscreteMixtureEstimator) CloneScalarEstimator() ScalarEstimator {
-  return &DiscreteMixtureEstimator{*obj.MixtureEstimator.Clone()}
+	return &DiscreteMixtureEstimator{*obj.MixtureEstimator.Clone()}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *DiscreteMixtureEstimator) SetData(x ConstVector, n int) error {
-  if data, err := NewMixtureSummarizedDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
-    return err
-  } else {
-    obj.data  = data
-  }
-  for i, estimator := range obj.estimators {
-    // set data
-    if err := estimator.SetData(obj.data.GetData(), n); err != nil {
-      return err
-    }
-    // initialize distribution
-    if d, err := estimator.GetEstimate(); err != nil {
-      return err
-    } else {
-      obj.mixture1.Edist[i] = d.CloneScalarPdf()
-      obj.mixture2.Edist[i] = d.CloneScalarPdf()
-      obj.mixture3.Edist[i] = d.CloneScalarPdf()
-    }
-  }
-  return nil
+	if data, err := NewMixtureSummarizedDataSet(obj.ScalarType(), x, obj.mixture1.NComponents()); err != nil {
+		return err
+	} else {
+		obj.data = data
+	}
+	for i, estimator := range obj.estimators {
+		// set data
+		if err := estimator.SetData(obj.data.GetData(), n); err != nil {
+			return err
+		}
+		// initialize distribution
+		if d, err := estimator.GetEstimate(); err != nil {
+			return err
+		} else {
+			obj.mixture1.Edist[i] = d.CloneScalarPdf()
+			obj.mixture2.Edist[i] = d.CloneScalarPdf()
+			obj.mixture3.Edist[i] = d.CloneScalarPdf()
+		}
+	}
+	return nil
 }

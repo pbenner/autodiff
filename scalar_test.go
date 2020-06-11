@@ -24,9 +24,9 @@ import "testing"
 
 func TestScalar(t *testing.T) {
 
-  a := NullScalar(RealType)
+	a := NullScalar(RealType)
 
-  if a.GetValue() != 0.0 {
-    t.Error("a.GetValue() should be 1.0")
-  }
+	if a.GetValue() != 0.0 {
+		t.Error("a.GetValue() should be 1.0")
+	}
 }

@@ -18,7 +18,7 @@ package matrixDistribution
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
+import "fmt"
 
 import . "github.com/pbenner/autodiff/statistics"
 
@@ -27,99 +27,99 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type VectorIid struct {
-  Distribution VectorPdf
-  n int
-  t Scalar
+	Distribution VectorPdf
+	n            int
+	t            Scalar
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewVectorIid(distribution VectorPdf, n int) (*VectorIid, error) {
-  m := distribution.Dim()
-  t := NewScalar(distribution.ScalarType(), 0.0)
-  if n < 0 || n % m != 0 {
-    return nil, fmt.Errorf("error while creating a vector iid distribution: dimension `%d' is not a multiple of dimension `%d'", n, m)
-  }
-  return &VectorIid{distribution, n, t}, nil
+	m := distribution.Dim()
+	t := NewScalar(distribution.ScalarType(), 0.0)
+	if n < 0 || n%m != 0 {
+		return nil, fmt.Errorf("error while creating a vector iid distribution: dimension `%d' is not a multiple of dimension `%d'", n, m)
+	}
+	return &VectorIid{distribution, n, t}, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *VectorIid) Clone() *VectorIid {
-  return &VectorIid{obj.Distribution.CloneVectorPdf(), obj.n, obj.t.CloneScalar()}
+	return &VectorIid{obj.Distribution.CloneVectorPdf(), obj.n, obj.t.CloneScalar()}
 }
 
 func (obj *VectorIid) CloneMatrixPdf() MatrixPdf {
-  return obj.Clone()
+	return obj.Clone()
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *VectorIid) Dims() (int, int) {
-  return obj.n, obj.Distribution.Dim()
+	return obj.n, obj.Distribution.Dim()
 }
 
 func (obj *VectorIid) ScalarType() ScalarType {
-  return obj.Distribution.ScalarType()
+	return obj.Distribution.ScalarType()
 }
 
 func (obj *VectorIid) LogPdf(r Scalar, x ConstMatrix) error {
-  n1, m1 := obj.Dims()
-  n2, m2 :=   x.Dims()
-  t := obj.t
-  if n1 != n2 || m1 != m2 {
-    return fmt.Errorf("LogPdf(): dimensions do not match (input has dimension `%dx%d' whereas this distribution is of dimension `%dx%d'", n2, m2, n1, m1)
-  }
-  r.Reset()
-  for i := 0; i < n1; i++ {
-    if err := obj.Distribution.LogPdf(t, x.ConstRow(i)); err != nil {
-      return err
-    }
-    r.Add(r, t)
-  }
-  return nil
+	n1, m1 := obj.Dims()
+	n2, m2 := x.Dims()
+	t := obj.t
+	if n1 != n2 || m1 != m2 {
+		return fmt.Errorf("LogPdf(): dimensions do not match (input has dimension `%dx%d' whereas this distribution is of dimension `%dx%d'", n2, m2, n1, m1)
+	}
+	r.Reset()
+	for i := 0; i < n1; i++ {
+		if err := obj.Distribution.LogPdf(t, x.ConstRow(i)); err != nil {
+			return err
+		}
+		r.Add(r, t)
+	}
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *VectorIid) GetParameters() Vector {
-  return obj.Distribution.GetParameters()
+	return obj.Distribution.GetParameters()
 }
 
 func (obj *VectorIid) SetParameters(parameters Vector) error {
-  return obj.Distribution.SetParameters(parameters)
+	return obj.Distribution.SetParameters(parameters)
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *VectorIid) ImportConfig(config ConfigDistribution, t ScalarType) error {
 
-  if parameters, ok := config.GetParametersAsFloats(); !ok {
-    return fmt.Errorf("invalid config file")
-  } else {
-    if len(parameters) != 1 {
-      return fmt.Errorf("invalid config file")
-    }
-    if len(config.Distributions) != 1 {
-      return fmt.Errorf("invalid config file")
-    }
+	if parameters, ok := config.GetParametersAsFloats(); !ok {
+		return fmt.Errorf("invalid config file")
+	} else {
+		if len(parameters) != 1 {
+			return fmt.Errorf("invalid config file")
+		}
+		if len(config.Distributions) != 1 {
+			return fmt.Errorf("invalid config file")
+		}
 
-    if dist, err := ImportVectorPdfConfig(config.Distributions[0], t); err != nil {
-      return err
-    } else {
-      if tmp, err := NewVectorIid(dist, int(parameters[0])); err != nil {
-        return err
-      } else {
-        *obj = *tmp
-      }
-    }
-    return nil
-  }
+		if dist, err := ImportVectorPdfConfig(config.Distributions[0], t); err != nil {
+			return err
+		} else {
+			if tmp, err := NewVectorIid(dist, int(parameters[0])); err != nil {
+				return err
+			} else {
+				*obj = *tmp
+			}
+		}
+		return nil
+	}
 }
 
 func (obj *VectorIid) ExportConfig() (config ConfigDistribution) {
 
-  parameters := NewVector(BareRealType, []float64{float64(obj.n)})
+	parameters := NewVector(BareRealType, []float64{float64(obj.n)})
 
-  return NewConfigDistribution("matrix:vector iid", parameters, obj.Distribution.ExportConfig())
+	return NewConfigDistribution("matrix:vector iid", parameters, obj.Distribution.ExportConfig())
 }

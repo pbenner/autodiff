@@ -19,10 +19,10 @@ package vectorDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "testing"
+import "testing"
 
 import . "github.com/pbenner/autodiff/statistics"
-import   "github.com/pbenner/autodiff/statistics/scalarDistribution"
+import "github.com/pbenner/autodiff/statistics/scalarDistribution"
 
 import . "github.com/pbenner/autodiff"
 
@@ -30,32 +30,32 @@ import . "github.com/pbenner/autodiff"
 
 func TestScalarId(t *testing.T) {
 
-  d1, _ := scalarDistribution.NewGammaDistribution(NewReal(1.0), NewReal(2.0))
-  d2, _ := scalarDistribution.NewGammaDistribution(NewReal(2.0), NewReal(3.0))
+	d1, _ := scalarDistribution.NewGammaDistribution(NewReal(1.0), NewReal(2.0))
+	d2, _ := scalarDistribution.NewGammaDistribution(NewReal(2.0), NewReal(3.0))
 
-  id, _ := NewScalarId(d1, d2)
+	id, _ := NewScalarId(d1, d2)
 
-  ExportDistribution("scalarId_test.json", id)
+	ExportDistribution("scalarId_test.json", id)
 
-  if d, err := ImportVectorPdf("scalarId_test.json", BareRealType); err != nil {
-    t.Error(err)
-  } else {
-    switch id := d.(type) {
-    case *ScalarId:
-      if len(id.Distributions) != 2 {
-        t.Error("test failed")
-      } else {
-        switch gamma := id.Distributions[0].(type) {
-        case *scalarDistribution.GammaDistribution:
-          if gamma.Alpha.GetValue() != 1.0 {
-            t.Error("test failed")
-          }
-        default:
-          t.Error("test failed")
-        }
-      }
-    default:
-      t.Error("test failed")
-    }
-  }
+	if d, err := ImportVectorPdf("scalarId_test.json", BareRealType); err != nil {
+		t.Error(err)
+	} else {
+		switch id := d.(type) {
+		case *ScalarId:
+			if len(id.Distributions) != 2 {
+				t.Error("test failed")
+			} else {
+				switch gamma := id.Distributions[0].(type) {
+				case *scalarDistribution.GammaDistribution:
+					if gamma.Alpha.GetValue() != 1.0 {
+						t.Error("test failed")
+					}
+				default:
+					t.Error("test failed")
+				}
+			}
+		default:
+			t.Error("test failed")
+		}
+	}
 }

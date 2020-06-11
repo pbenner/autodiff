@@ -23,41 +23,41 @@ package autodiff
 /* -------------------------------------------------------------------------- */
 
 type vectorSparseIndex struct {
-  AvlTree
+	AvlTree
 }
 
 type vectorSparseIndexIterator struct {
-  AvlIterator
+	AvlIterator
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *vectorSparseIndex) indexInsert(i int) {
-  obj.AvlTree.Insert(i)
+	obj.AvlTree.Insert(i)
 }
 
 func (obj *vectorSparseIndex) indexDelete(i int) {
-  obj.AvlTree.Delete(i)
+	obj.AvlTree.Delete(i)
 }
 
 func (obj *vectorSparseIndex) indexIterator() vectorSparseIndexIterator {
-  return vectorSparseIndexIterator{*obj.AvlTree.Iterator()}
+	return vectorSparseIndexIterator{*obj.AvlTree.Iterator()}
 }
 
 func (obj *vectorSparseIndex) indexIteratorFrom(i int) vectorSparseIndexIterator {
-  return vectorSparseIndexIterator{*obj.AvlTree.IteratorFrom(i)}
+	return vectorSparseIndexIterator{*obj.AvlTree.IteratorFrom(i)}
 }
 
 func (obj *vectorSparseIndex) indexClone() vectorSparseIndex {
-  return vectorSparseIndex{*obj.AvlTree.Clone()}
+	return vectorSparseIndex{*obj.AvlTree.Clone()}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *vectorSparseIndexIterator) Get() int {
-  return obj.AvlIterator.Get().Value
+	return obj.AvlIterator.Get().Value
 }
 
 func (obj *vectorSparseIndexIterator) Clone() *vectorSparseIndexIterator {
-  return &vectorSparseIndexIterator{obj.AvlIterator.Clone()}
+	return &vectorSparseIndexIterator{obj.AvlIterator.Clone()}
 }

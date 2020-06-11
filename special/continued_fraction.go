@@ -23,42 +23,42 @@ import "math"
 /* -------------------------------------------------------------------------- */
 
 type ContinuedFraction interface {
-  Eval() (float64, float64)
+	Eval() (float64, float64)
 }
 
 /* -------------------------------------------------------------------------- */
 
 func EvalContinuedFraction(fraction ContinuedFraction, factor float64, max_terms int) float64 {
 
-  tiny := math.SmallestNonzeroFloat64
-  a, b := fraction.Eval()
+	tiny := math.SmallestNonzeroFloat64
+	a, b := fraction.Eval()
 
-  f  := b
-  a0 := a
+	f := b
+	a0 := a
 
-  if f == 0.0 {
-    f = tiny
-  }
-  C := f
-  D := 0.0
-  delta := 0.0
+	if f == 0.0 {
+		f = tiny
+	}
+	C := f
+	D := 0.0
+	delta := 0.0
 
-  for i := 0; i < max_terms; i++ {
-    a, b = fraction.Eval()
-    D = b + a*D;
-    if D == 0.0 {
-      D = tiny
-    }
-    C = b + a/C
-    if C == 0 {
-      C = tiny
-    }
-    D = 1.0/D
-    delta = C*D
-    f = f*delta
-    if math.Abs(delta - 1.0) <= factor {
-      break
-    }
-  }
-  return a0/f
+	for i := 0; i < max_terms; i++ {
+		a, b = fraction.Eval()
+		D = b + a*D
+		if D == 0.0 {
+			D = tiny
+		}
+		C = b + a/C
+		if C == 0 {
+			C = tiny
+		}
+		D = 1.0 / D
+		delta = C * D
+		f = f * delta
+		if math.Abs(delta-1.0) <= factor {
+			break
+		}
+	}
+	return a0 / f
 }

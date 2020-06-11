@@ -23,29 +23,29 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 func flatten(m [][]float64) []float64 {
-  v := []float64{}
-  for i, _ := range m {
-    v = append(v, m[i]...)
-  }
-  return v
+	v := []float64{}
+	for i, _ := range m {
+		v = append(v, m[i]...)
+	}
+	return v
 }
 
 func normalizeSlice(p []float64) {
-  sum := 0.0
-  for _, v := range p {
-    sum += v
-  }
-  for i, _ := range p {
-    p[i] /= sum
-  }
+	sum := 0.0
+	for _, v := range p {
+		sum += v
+	}
+	for i, _ := range p {
+		p[i] /= sum
+	}
 }
 
 func normalizeVector(p Vector) {
-  sum := NewScalar(p.ElementType(), 0.0)
-  for i := 0; i < p.Dim(); i++ {
-    sum.Add(sum, p.At(i))
-  }
-  for i := 0; i < p.Dim(); i++ {
-    p.At(i).Div(p.At(i), sum)
-  }
+	sum := NewScalar(p.ElementType(), 0.0)
+	for i := 0; i < p.Dim(); i++ {
+		sum.Add(sum, p.At(i))
+	}
+	for i := 0; i < p.Dim(); i++ {
+		p.At(i).Div(p.At(i), sum)
+	}
 }

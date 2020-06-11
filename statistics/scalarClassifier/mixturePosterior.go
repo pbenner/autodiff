@@ -27,18 +27,18 @@ import . "github.com/pbenner/autodiff/statistics/scalarDistribution"
 /* -------------------------------------------------------------------------- */
 
 type MixturePosterior struct {
-  *Mixture
-  States []int
+	*Mixture
+	States []int
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixturePosterior) CloneScalarBatchClassifier() ScalarBatchClassifier {
-  return MixturePosterior{obj.Clone(), obj.States}
+	return MixturePosterior{obj.Clone(), obj.States}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixturePosterior) Eval(r Scalar, x ConstScalar) error {
-  return obj.Mixture.Posterior(r, x, obj.States)
+	return obj.Mixture.Posterior(r, x, obj.States)
 }

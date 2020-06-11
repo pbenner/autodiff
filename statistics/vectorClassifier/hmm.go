@@ -18,7 +18,7 @@ package vectorClassifier
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
+import "fmt"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/autodiff/statistics"
@@ -27,31 +27,31 @@ import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 /* -------------------------------------------------------------------------- */
 
 type HmmClassifier struct {
-  *Hmm
+	*Hmm
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmClassifier) CloneVectorClassifier() VectorClassifier {
-  return HmmClassifier{obj.Clone()}
+	return HmmClassifier{obj.Clone()}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj HmmClassifier) Dim() int {
-  return obj.Hmm.Dim()
+	return obj.Hmm.Dim()
 }
 
 func (obj HmmClassifier) Eval(r Vector, x ConstVector) error {
-  if r.Dim() != x.Dim() {
-    return fmt.Errorf("r has invalid length")
-  }
-  if p, err := obj.Viterbi(x); err != nil {
-    return err
-  } else {
-    for i := 0; i < x.Dim(); i++ {
-      r.At(i).SetValue(float64(p[i]))
-    }
-  }
-  return nil
+	if r.Dim() != x.Dim() {
+		return fmt.Errorf("r has invalid length")
+	}
+	if p, err := obj.Viterbi(x); err != nil {
+		return err
+	} else {
+		for i := 0; i < x.Dim(); i++ {
+			r.At(i).SetValue(float64(p[i]))
+		}
+	}
+	return nil
 }

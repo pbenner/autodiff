@@ -24,15 +24,15 @@ import "math/big"
 /* -------------------------------------------------------------------------- */
 
 func BernoulliNumber(n int) float64 {
-  a := make([]big.Rat, n+1)
-  r := &big.Rat{}
-  for i := 0; i < n+1; i++ {
-    a[i].SetFrac64(1, int64(i+1.0))
-    for j := i; j > 0; j-- {
-      d := &a[j-1]
-      d.Mul(r.SetInt64(int64(j)), d.Sub(d, &a[j]))
-    }
-  }
-  t, _ := a[0].Float64()
-  return t
+	a := make([]big.Rat, n+1)
+	r := &big.Rat{}
+	for i := 0; i < n+1; i++ {
+		a[i].SetFrac64(1, int64(i+1.0))
+		for j := i; j > 0; j-- {
+			d := &a[j-1]
+			d.Mul(r.SetInt64(int64(j)), d.Sub(d, &a[j]))
+		}
+	}
+	t, _ := a[0].Float64()
+	return t
 }

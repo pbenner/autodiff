@@ -27,18 +27,18 @@ import . "github.com/pbenner/autodiff/statistics/vectorDistribution"
 /* -------------------------------------------------------------------------- */
 
 type MixturePosterior struct {
-  *Mixture
-  States []int
+	*Mixture
+	States []int
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixturePosterior) CloneVectorBatchClassifier() VectorBatchClassifier {
-  return MixturePosterior{obj.Clone(), obj.States}
+	return MixturePosterior{obj.Clone(), obj.States}
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj MixturePosterior) Eval(r Scalar, x ConstVector) error {
-  return obj.Mixture.Posterior(r, x, obj.States)
+	return obj.Mixture.Posterior(r, x, obj.States)
 }

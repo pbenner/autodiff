@@ -19,8 +19,8 @@ package scalarDistribution
 /* -------------------------------------------------------------------------- */
 
 //import   "fmt"
-import   "math"
-import   "testing"
+import "math"
+import "testing"
 
 import . "github.com/pbenner/autodiff"
 
@@ -28,38 +28,40 @@ import . "github.com/pbenner/autodiff"
 
 func TestChiSquaredDistribution1(t *testing.T) {
 
-  d, _ := NewChiSquaredDistribution(RealType, 2.0)
+	d, _ := NewChiSquaredDistribution(RealType, 2.0)
 
-  x := NewReal(10.214); Variables(2,x)
-  y := NewReal(0.0)
-  d.LogPdf(y, x)
+	x := NewReal(10.214)
+	Variables(2, x)
+	y := NewReal(0.0)
+	d.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -5.800147) > 1e-4 {
-    t.Error("Chi-Squared LogPdf failed!")
-  }
-  if math.Abs(y.GetDerivative(0) - -0.500000) > 1e-4 {
-    t.Error("Chi-Squared LogPdf failed!")
-  }
-  if math.Abs(y.GetHessian(0, 0) - 0.000000) > 1e-4 {
-    t.Error("Chi-Squared LogPdf failed!")
-  }
+	if math.Abs(y.GetValue() - -5.800147) > 1e-4 {
+		t.Error("Chi-Squared LogPdf failed!")
+	}
+	if math.Abs(y.GetDerivative(0) - -0.500000) > 1e-4 {
+		t.Error("Chi-Squared LogPdf failed!")
+	}
+	if math.Abs(y.GetHessian(0, 0)-0.000000) > 1e-4 {
+		t.Error("Chi-Squared LogPdf failed!")
+	}
 }
 
 func TestChiSquaredDistribution2(t *testing.T) {
 
-  d, _ := NewChiSquaredDistribution(RealType, 2.0)
+	d, _ := NewChiSquaredDistribution(RealType, 2.0)
 
-  x := NewReal(4.817); Variables(2,x)
-  y := NewReal(0.0)
-  d.Cdf(y, x)
+	x := NewReal(4.817)
+	Variables(2, x)
+	y := NewReal(0.0)
+	d.Cdf(y, x)
 
-  if math.Abs(y.GetValue() - 0.91005) > 1e-4 {
-    t.Error("Chi-Squared Cdf failed!")
-  }
-  if math.Abs(y.GetDerivative(0) - 0.0449751) > 1e-4 {
-    t.Error("Chi-Squared Cdf failed!")
-  }
-  if math.Abs(y.GetHessian(0, 0) - -0.0224875) > 1e-4 {
-    t.Error("Chi-Squared Cdf failed!")
-  }
+	if math.Abs(y.GetValue()-0.91005) > 1e-4 {
+		t.Error("Chi-Squared Cdf failed!")
+	}
+	if math.Abs(y.GetDerivative(0)-0.0449751) > 1e-4 {
+		t.Error("Chi-Squared Cdf failed!")
+	}
+	if math.Abs(y.GetHessian(0, 0) - -0.0224875) > 1e-4 {
+		t.Error("Chi-Squared Cdf failed!")
+	}
 }

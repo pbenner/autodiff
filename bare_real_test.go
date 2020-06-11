@@ -25,37 +25,37 @@ import "testing"
 
 func TestBareDiff1(t *testing.T) {
 
-  if !bareRealDebug {
-    return
-  }
-  defer func() {
-    if r := recover(); r == nil {
-      t.Errorf("TestBareDiff1() failed!")
-    }
-  }()
+	if !bareRealDebug {
+		return
+	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("TestBareDiff1() failed!")
+		}
+	}()
 
-  x := NewReal(9)
-  y := NewBareReal(3)
+	x := NewReal(9)
+	y := NewBareReal(3)
 
-  Variables(1, x)
+	Variables(1, x)
 
-  // this should panic
-  y.Mul(y, x)
+	// this should panic
+	y.Mul(y, x)
 }
 
 func TestBareDiff2(t *testing.T) {
 
-  defer func() {
-    if r := recover(); r != nil {
-      t.Errorf("TestBareDiff2() failed!")
-    }
-  }()
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("TestBareDiff2() failed!")
+		}
+	}()
 
-  x := NewReal(9)
-  y := NewBareReal(3)
+	x := NewReal(9)
+	y := NewBareReal(3)
 
-  Variables(1, x)
+	Variables(1, x)
 
-  // this should be ok
-  x.Mul(x, y)
+	// this should be ok
+	x.Mul(x, y)
 }

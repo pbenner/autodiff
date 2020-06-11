@@ -21,7 +21,7 @@ package scalarEstimator
 //import   "fmt"
 
 import . "github.com/pbenner/autodiff/statistics"
-import   "github.com/pbenner/autodiff/statistics/scalarDistribution"
+import "github.com/pbenner/autodiff/statistics/scalarDistribution"
 
 import . "github.com/pbenner/autodiff"
 import . "github.com/pbenner/threadpool"
@@ -29,98 +29,98 @@ import . "github.com/pbenner/threadpool"
 /* -------------------------------------------------------------------------- */
 
 type TranslationEstimator struct {
-  ScalarBatchEstimator
-  StdEstimator
-  c float64
-  y Vector
+	ScalarBatchEstimator
+	StdEstimator
+	c float64
+	y Vector
 }
 
 /* -------------------------------------------------------------------------- */
 
 func NewTranslationEstimator(estimator ScalarBatchEstimator, pseudocount float64) (*TranslationEstimator, error) {
-  r := TranslationEstimator{}
-  r.ScalarBatchEstimator = estimator
-  r.c = pseudocount
-  return &r, nil
+	r := TranslationEstimator{}
+	r.ScalarBatchEstimator = estimator
+	r.c = pseudocount
+	return &r, nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (obj *TranslationEstimator) Clone() *TranslationEstimator {
-  r := TranslationEstimator{}
-  r.ScalarBatchEstimator = obj.ScalarBatchEstimator.CloneScalarBatchEstimator()
-  r.c = obj.c
-  return &r
+	r := TranslationEstimator{}
+	r.ScalarBatchEstimator = obj.ScalarBatchEstimator.CloneScalarBatchEstimator()
+	r.c = obj.c
+	return &r
 }
 
 func (obj *TranslationEstimator) CloneScalarEstimator() ScalarEstimator {
-  return obj.Clone()
+	return obj.Clone()
 }
 
 func (obj *TranslationEstimator) CloneScalarBatchEstimator() ScalarBatchEstimator {
-  return obj.Clone()
+	return obj.Clone()
 }
 
 /* batch estimator interface
  * -------------------------------------------------------------------------- */
 
 func (obj *TranslationEstimator) Initialize(p ThreadPool) error {
-  obj.y = NullVector(BareRealType, p.NumberOfThreads())
-  return obj.ScalarBatchEstimator.Initialize(p)
+	obj.y = NullVector(BareRealType, p.NumberOfThreads())
+	return obj.ScalarBatchEstimator.Initialize(p)
 }
 
 func (obj *TranslationEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
-  y := obj.y.At(p.GetThreadId())
-  y.Add(x, ConstReal(obj.c))
-  return obj.ScalarBatchEstimator.NewObservation(y, gamma, p)
+	y := obj.y.At(p.GetThreadId())
+	y.Add(x, ConstReal(obj.c))
+	return obj.ScalarBatchEstimator.NewObservation(y, gamma, p)
 }
 
 /* estimator interface
  * -------------------------------------------------------------------------- */
 
 func (obj *TranslationEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
-  g := p.NewJobGroup()
-  x := obj.x
+	g := p.NewJobGroup()
+	x := obj.x
 
-  // initialize estimator
-  obj.Initialize(p)
+	// initialize estimator
+	obj.Initialize(p)
 
-  // compute sigma
-  //////////////////////////////////////////////////////////////////////////////
-  if gamma == nil {
-    if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.ConstAt(i), nil, p)
-      return nil
-    }); err != nil {
-      return err
-    }
-  } else {
-    if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
-      obj.NewObservation(x.ConstAt(i), gamma.ConstAt(i), p)
-      return nil
-    }); err != nil {
-      return err
-    }
-  }
-  if err := p.Wait(g); err != nil {
-    return err
-  }
-  // update estimate
-  obj.ScalarBatchEstimator.GetEstimate()
-  return nil
+	// compute sigma
+	//////////////////////////////////////////////////////////////////////////////
+	if gamma == nil {
+		if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
+			obj.NewObservation(x.ConstAt(i), nil, p)
+			return nil
+		}); err != nil {
+			return err
+		}
+	} else {
+		if err := p.AddRangeJob(0, x.Dim(), g, func(i int, p ThreadPool, erf func() error) error {
+			obj.NewObservation(x.ConstAt(i), gamma.ConstAt(i), p)
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+	if err := p.Wait(g); err != nil {
+		return err
+	}
+	// update estimate
+	obj.ScalarBatchEstimator.GetEstimate()
+	return nil
 }
 
 func (obj *TranslationEstimator) EstimateOnData(x, gamma ConstVector, p ThreadPool) error {
-  if err := obj.SetData(x, x.Dim()); err != nil {
-    return err
-  }
-  return obj.Estimate(gamma, p)
+	if err := obj.SetData(x, x.Dim()); err != nil {
+		return err
+	}
+	return obj.Estimate(gamma, p)
 }
 
 func (obj *TranslationEstimator) GetEstimate() (ScalarPdf, error) {
-  if estimate, err := obj.ScalarBatchEstimator.GetEstimate(); err != nil {
-    return nil, err
-  } else {
-    return  scalarDistribution.NewPdfTranslation(estimate, obj.c)
-  }
+	if estimate, err := obj.ScalarBatchEstimator.GetEstimate(); err != nil {
+		return nil, err
+	} else {
+		return scalarDistribution.NewPdfTranslation(estimate, obj.c)
+	}
 }

@@ -18,68 +18,68 @@ package main
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
-import   "math/rand"
+import "fmt"
+import "math/rand"
 import . "github.com/pbenner/autodiff"
-import   "github.com/pbenner/autodiff/algorithm/rprop"
+import "github.com/pbenner/autodiff/algorithm/rprop"
 import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
 func sumOfSquares(x, y Vector, l *Line) Scalar {
 
-  s := NewScalar(RealType, 0)
-  n := NewScalar(RealType, float64(x.Dim()))
+	s := NewScalar(RealType, 0)
+	n := NewScalar(RealType, float64(x.Dim()))
 
-  for i := 0; i < x.Dim(); i++ {
-    s = Add(s, Pow(Sub(l.Eval(x.At(i)), y.At(i)), NewBareReal(2)))
-  }
-  return Div(s, n)
+	for i := 0; i < x.Dim(); i++ {
+		s = Add(s, Pow(Sub(l.Eval(x.At(i)), y.At(i)), NewBareReal(2)))
+	}
+	return Div(s, n)
 }
 
 func gradientDescent(x, y Vector, l *Line) *Line {
 
-  // precision
-  const epsilon = 0.00001
-  // gradient step size
-  const step    = 0.1
+	// precision
+	const epsilon = 0.00001
+	// gradient step size
+	const step = 0.1
 
-  // get a vector of variables
-  variables := NullVector(RealType, 2)
-  variables.At(0).Set(l.Slope())
-  variables.At(1).Set(l.Intercept())
+	// get a vector of variables
+	variables := NullVector(RealType, 2)
+	variables.At(0).Set(l.Slope())
+	variables.At(1).Set(l.Intercept())
 
-  // create the objective function
-  f := func(v Vector) (Scalar, error) {
-    l.SetSlope    (v.At(0))
-    l.SetIntercept(v.At(1))
-    return sumOfSquares(x, y, l), nil
-  }
-//  GradientDescent(f, variables, step, epsilon)
-  _, err := rprop.Run(f, variables, step, []float64{1.2, 0.8},
-    rprop.Epsilon{epsilon})
-  if err != nil {
-    panic(err)
-  }
-  return l
+	// create the objective function
+	f := func(v Vector) (Scalar, error) {
+		l.SetSlope(v.At(0))
+		l.SetIntercept(v.At(1))
+		return sumOfSquares(x, y, l), nil
+	}
+	//  GradientDescent(f, variables, step, epsilon)
+	_, err := rprop.Run(f, variables, step, []float64{1.2, 0.8},
+		rprop.Epsilon{epsilon})
+	if err != nil {
+		panic(err)
+	}
+	return l
 }
 
 func main() {
 
-  const n = 1000
-  x := NullVector(RealType, n)
-  y := NullVector(RealType, n)
+	const n = 1000
+	x := NullVector(RealType, n)
+	y := NullVector(RealType, n)
 
-  // random number generator
-  r := rand.New(rand.NewSource(42))
+	// random number generator
+	r := rand.New(rand.NewSource(42))
 
-  for i := 0; i < n; i++ {
-    x.At(i).SetValue(r.NormFloat64() + 0)
-    y.At(i).SetValue(r.NormFloat64() + 2*x.At(i).GetValue()+1)
-  }
+	for i := 0; i < n; i++ {
+		x.At(i).SetValue(r.NormFloat64() + 0)
+		y.At(i).SetValue(r.NormFloat64() + 2*x.At(i).GetValue() + 1)
+	}
 
-  l := NewLine(NewScalar(RealType, -1.23), NewScalar(RealType, 1));
-  l  = gradientDescent(x, y, l)
+	l := NewLine(NewScalar(RealType, -1.23), NewScalar(RealType, 1))
+	l = gradientDescent(x, y, l)
 
-  fmt.Println("slope: ", l.Slope().GetValue(), "intercept: ", l.Intercept().GetValue())
+	fmt.Println("slope: ", l.Slope().GetValue(), "intercept: ", l.Intercept().GetValue())
 }
