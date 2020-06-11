@@ -24,7 +24,7 @@ import "regexp"
 import "strconv"
 import "strings"
 import "os"
-import "code.google.com/p/getopt"
+import "github.com/pborman/getopt"
 
 import . "github.com/pbenner/autodiff"
 import "github.com/pbenner/autodiff/algorithm/blahut"
