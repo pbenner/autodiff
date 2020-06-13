@@ -620,11 +620,19 @@ func (obj *DenseRealMatrix) UnmarshalJSON(data []byte) error {
 func (obj *DenseRealMatrix) ConstIterator() MatrixConstIterator {
   return obj.ITERATOR()
 }
+func (obj *DenseRealMatrix) JointIterator(b ConstMatrix) MatrixJointIterator {
+  return obj.JOINT_ITERATOR(b)
+}
 func (obj *DenseRealMatrix) Iterator() MatrixIterator {
   return obj.ITERATOR()
 }
 func (obj *DenseRealMatrix) ITERATOR() *DenseRealMatrixIterator {
   r := DenseRealMatrixIterator{*obj.values.ITERATOR(), obj}
+  return &r
+}
+func (obj *DenseRealMatrix) JOINT_ITERATOR(b ConstMatrix) *DenseRealMatrixJointIterator {
+  r := DenseRealMatrixJointIterator{obj.ITERATOR(), b.ConstIterator(), -1, -1, nil, nil}
+  r.Next()
   return &r
 }
 /* iterator
@@ -644,4 +652,92 @@ func (obj *DenseRealMatrixIterator) CloneConstIterator() MatrixConstIterator {
 }
 func (obj *DenseRealMatrixIterator) CloneIterator() MatrixIterator {
   return &DenseRealMatrixIterator{*obj.DenseRealVectorIterator.Clone(), obj.m}
+}
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type DenseRealMatrixJointIterator struct {
+  it1 *DenseRealMatrixIterator
+  it2 MatrixConstIterator
+  i, j int
+  s1 *Real
+  s2 ConstScalar
+}
+func (obj *DenseRealMatrixJointIterator) Index() (int, int) {
+  return obj.i, obj.j
+}
+func (obj *DenseRealMatrixJointIterator) Ok() bool {
+  return obj.s1 != nil || obj.s2 != nil
+}
+func (obj *DenseRealMatrixJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.i, obj.j = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    i, j := obj.it2.Index()
+    switch {
+    case obj.i > i || (obj.i == i && obj.j > j) || !ok1:
+      obj.i, obj.j = i, j
+      obj.s1 = nil
+      obj.s2 = obj.it2.GetConst()
+    case obj.i == i && obj.j == j:
+      obj.s2 = obj.it2.GetConst()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  } else {
+    obj.s2 = ConstReal(0.0)
+  }
+}
+func (obj *DenseRealMatrixJointIterator) Get() (Scalar, ConstScalar) {
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+func (obj *DenseRealMatrixJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+func (obj *DenseRealMatrixJointIterator) GetValue() (float64, float64) {
+  v1 := 0.0
+  v2 := 0.0
+  if obj.s1 != nil {
+    v1 = obj.s1.GetValue()
+  }
+  if obj.s2 != nil {
+    v2 = obj.s2.GetValue()
+  }
+  return v1, v2
+}
+func (obj *DenseRealMatrixJointIterator) GET() (*Real, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *DenseRealMatrixJointIterator) Clone() *DenseRealMatrixJointIterator {
+  r := DenseRealMatrixJointIterator{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.i = obj.i
+  r.j = obj.j
+  r.s1 = obj.s1
+  r.s2 = obj.s2
+  return &r
+}
+func (obj *DenseRealMatrixJointIterator) CloneJointIterator() MatrixJointIterator {
+  return obj.Clone()
+}
+func (obj *DenseRealMatrixJointIterator) CloneConstJointIterator() MatrixConstJointIterator {
+  return obj.Clone()
 }

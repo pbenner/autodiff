@@ -126,6 +126,7 @@ type Matrix interface {
   // iterators
   ConstIterator       ()                   MatrixConstIterator
   Iterator            ()                   MatrixIterator
+  JointIterator       (b ConstMatrix)      MatrixJointIterator
   // math operations
   MaddM(a,             b ConstMatrix)      Matrix
   MaddS(a ConstMatrix, b ConstScalar)      Matrix
