@@ -663,3 +663,88 @@ func (obj *SparseBareRealMatrixIterator) CloneConstIterator() MatrixConstIterato
 func (obj *SparseBareRealMatrixIterator) CloneIterator() MatrixIterator {
   return &SparseBareRealMatrixIterator{*obj.SparseBareRealVectorIterator.Clone(), obj.m}
 }
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+type SparseBareRealMatrixJointIterator struct {
+  it1 *SparseBareRealMatrixIterator
+  it2 MatrixConstIterator
+  i, j int
+  s1 *BareReal
+  s2 ConstScalar
+}
+func (obj *SparseBareRealMatrixJointIterator) Index() (int, int) {
+  return obj.i, obj.j
+}
+func (obj *SparseBareRealMatrixJointIterator) Ok() bool {
+  return obj.s1 != nil || obj.s2 != nil
+}
+func (obj *SparseBareRealMatrixJointIterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.i, obj.j = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    i, j := obj.it2.Index()
+    switch {
+    case obj.i > i || (obj.i == i && obj.j > j) || !ok1:
+      obj.i, obj.j = i, j
+      obj.s1 = nil
+      obj.s2 = obj.it2.GetConst()
+    case obj.i == i && obj.j == j:
+      obj.s2 = obj.it2.GetConst()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  } else {
+    obj.s2 = ConstReal(0.0)
+  }
+}
+func (obj *SparseBareRealMatrixJointIterator) Get() (Scalar, ConstScalar) {
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+func (obj *SparseBareRealMatrixJointIterator) GetConst() (ConstScalar, ConstScalar) {
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+func (obj *SparseBareRealMatrixJointIterator) GetValue() (float64, float64) {
+  v1 := 0.0
+  v2 := 0.0
+  if obj.s1 != nil {
+    v1 = obj.s1.GetValue()
+  }
+  if obj.s2 != nil {
+    v2 = obj.s2.GetValue()
+  }
+  return v1, v2
+}
+func (obj *SparseBareRealMatrixJointIterator) GET() (*BareReal, ConstScalar) {
+  return obj.s1, obj.s2
+}
+func (obj *SparseBareRealMatrixJointIterator) Clone() *SparseBareRealMatrixJointIterator {
+  r := SparseBareRealMatrixJointIterator{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.i = obj.i
+  r.j = obj.j
+  r.s1 = obj.s1
+  r.s2 = obj.s2
+  return &r
+}
+func (obj *SparseBareRealMatrixJointIterator) CloneConstJointIterator() MatrixConstJointIterator {
+  return obj.Clone()
+}

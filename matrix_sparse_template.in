@@ -36,6 +36,7 @@ import "unsafe"
 
 #define MATRIX_ITERATOR         STR_CONCAT(MATRIX_NAME, Iterator)
 #define VECTOR_ITERATOR         STR_CONCAT(VECTOR_NAME, Iterator)
+#define MATRIX_JOINT_ITERATOR   STR_CONCAT(MATRIX_NAME, JointIterator)
 
 /* -------------------------------------------------------------------------- */
 
@@ -764,4 +765,100 @@ func (obj *MATRIX_ITERATOR) CloneConstIterator() MatrixConstIterator {
 
 func (obj *MATRIX_ITERATOR) CloneIterator() MatrixIterator {
   return &MATRIX_ITERATOR{*obj.VECTOR_ITERATOR.Clone(), obj.m}
+}
+
+/* joint iterator
+ * -------------------------------------------------------------------------- */
+
+type MATRIX_JOINT_ITERATOR struct {
+  it1 *MATRIX_ITERATOR
+  it2  MatrixConstIterator
+  i, j int
+  s1   SCALAR_TYPE
+  s2   ConstScalar
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) Index() (int, int) {
+  return obj.i, obj.j
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) Ok() bool {
+  return obj.s1 != nil || obj.s2 != nil
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  if ok1 {
+    obj.i, obj.j = obj.it1.Index()
+    obj.s1       = obj.it1.GET()
+  }
+  if ok2 {
+    i, j := obj.it2.Index()
+    switch {
+    case obj.i > i || (obj.i == i && obj.j > j) || !ok1:
+      obj.i, obj.j = i, j
+      obj.s1       = nil
+      obj.s2       = obj.it2.GetConst()
+    case obj.i == i && obj.j == j:
+      obj.s2       = obj.it2.GetConst()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  } else {
+    obj.s2 = CONST_SCALAR_TYPE(0.0)
+  }
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
+  if obj.s1 == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) GetValue() (float64, float64) {
+  v1 := 0.0
+  v2 := 0.0
+  if obj.s1 != nil {
+    v1 = obj.s1.GetValue()
+  }
+  if obj.s2 != nil {
+    v2 = obj.s2.GetValue()
+  }
+  return v1, v2
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
+  return obj.s1, obj.s2
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) Clone() *MATRIX_JOINT_ITERATOR {
+  r := MATRIX_JOINT_ITERATOR{}
+  r.it1 = obj.it1.Clone()
+  r.it2 = obj.it2.CloneConstIterator()
+  r.i   = obj.i
+  r.j   = obj.j
+  r.s1  = obj.s1
+  r.s2  = obj.s2
+  return &r
+}
+
+func (obj *MATRIX_JOINT_ITERATOR) CloneConstJointIterator() MatrixConstJointIterator {
+  return obj.Clone()
 }
