@@ -653,6 +653,11 @@ func (obj *SparseBareRealMatrix) JOINT_ITERATOR(b ConstMatrix) *SparseBareRealMa
   r.Next()
   return &r
 }
+func (obj *SparseBareRealMatrix) JOINT3_ITERATOR(b, c ConstMatrix) *SparseBareRealMatrixJoint3Iterator {
+  r := SparseBareRealMatrixJoint3Iterator{obj.ITERATOR(), b.ConstIterator(), c.ConstIterator(), -1, -1, nil, nil, nil}
+  r.Next()
+  return &r
+}
 /* iterator
  * -------------------------------------------------------------------------- */
 type SparseBareRealMatrixIterator struct {
@@ -758,4 +763,83 @@ func (obj *SparseBareRealMatrixJointIterator) CloneJointIterator() MatrixJointIt
 }
 func (obj *SparseBareRealMatrixJointIterator) CloneConstJointIterator() MatrixConstJointIterator {
   return obj.Clone()
+}
+/* joint3 iterator
+ * -------------------------------------------------------------------------- */
+type SparseBareRealMatrixJoint3Iterator struct {
+  it1 *SparseBareRealMatrixIterator
+  it2 MatrixConstIterator
+  it3 MatrixConstIterator
+  i, j int
+  s1 *BareReal
+  s2 ConstScalar
+  s3 ConstScalar
+}
+func (obj *SparseBareRealMatrixJoint3Iterator) Index() (int, int) {
+  return obj.i, obj.j
+}
+func (obj *SparseBareRealMatrixJoint3Iterator) Ok() bool {
+  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
+         !(obj.s2 == nil || obj.s2.GetValue() == 0.0) ||
+         !(obj.s3 == nil || obj.s3.GetValue() == 0.0)
+}
+func (obj *SparseBareRealMatrixJoint3Iterator) Next() {
+  ok1 := obj.it1.Ok()
+  ok2 := obj.it2.Ok()
+  ok3 := obj.it3.Ok()
+  obj.s1 = nil
+  obj.s2 = nil
+  obj.s3 = nil
+  if ok1 {
+    obj.i, obj.j = obj.it1.Index()
+    obj.s1 = obj.it1.GET()
+  }
+  if ok2 {
+    i, j := obj.it2.Index()
+    switch {
+    case obj.i > i || (obj.i == i && obj.j > j) || !ok1:
+      obj.i = i
+      obj.j = j
+      obj.s1 = nil
+      obj.s2 = obj.it2.GetConst()
+    case obj.i == i && obj.j == j:
+      obj.s2 = obj.it2.GetConst()
+    }
+  }
+  if ok3 {
+    i, j := obj.it3.Index()
+    switch {
+    case obj.i > i || (obj.i == i && obj.j > j) || (!ok1 && !ok2):
+      obj.i = i
+      obj.j = j
+      obj.s1 = nil
+      obj.s2 = nil
+      obj.s3 = obj.it3.GetConst()
+    case obj.i == i && obj.j == j:
+      obj.s3 = obj.it3.GetConst()
+    }
+  }
+  if obj.s1 != nil {
+    obj.it1.Next()
+  }
+  if obj.s2 != nil {
+    obj.it2.Next()
+  } else {
+    obj.s2 = ConstReal(0.0)
+  }
+  if obj.s3 != nil {
+    obj.it3.Next()
+  } else {
+    obj.s3 = ConstReal(0.0)
+  }
+}
+func (obj *SparseBareRealMatrixJoint3Iterator) Get() (Scalar, ConstScalar, ConstScalar) {
+  if obj.s1 == nil {
+    return nil, obj.s2, obj.s3
+  } else {
+    return obj.s1, obj.s2, obj.s3
+  }
+}
+func (obj *SparseBareRealMatrixJoint3Iterator) GET() (*BareReal, ConstScalar, ConstScalar) {
+  return obj.s1, obj.s2, obj.s3
 }
