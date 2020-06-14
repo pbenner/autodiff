@@ -165,7 +165,7 @@ func (obj *SparseRealVector) GetValues() []float64 {
 /* iterator methods
  * -------------------------------------------------------------------------- */
 func (obj *SparseRealVector) ConstIterator() VectorConstIterator {
-  return obj.ITERATOR()
+  return obj.CONST_ITERATOR()
 }
 func (obj *SparseRealVector) Iterator() VectorIterator {
   return obj.ITERATOR()
@@ -177,6 +177,10 @@ func (obj *SparseRealVector) ConstJointIterator(b ConstVector) VectorConstJointI
   return obj.JOINT_ITERATOR(b)
 }
 func (obj *SparseRealVector) ITERATOR() *SparseRealVectorIterator {
+  r := SparseRealVectorIterator{obj.indexSafeIterator(), obj}
+  return &r
+}
+func (obj *SparseRealVector) CONST_ITERATOR() *SparseRealVectorIterator {
   r := SparseRealVectorIterator{obj.indexIterator(), obj}
   return &r
 }

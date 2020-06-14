@@ -123,9 +123,18 @@ func (r MATRIX_TYPE) MmulM(a, b ConstMatrix) Matrix {
   if n1 != n || m1 != m || n2 != n || m2 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Mul(a.ConstAt(i, j), b.ConstAt(i, j))
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    switch {
+    case s_a == nil || s_b == nil:
+      s_r.SetValue(0.0)
+    default:
+      s_r.Mul(s_a, s_b)
     }
   }
   return r

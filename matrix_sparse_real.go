@@ -147,8 +147,8 @@ func (matrix *SparseRealMatrix) ij(k int) (int, int) {
     j := (k/matrix.colMax) - matrix.rowOffset
     return i, j
   } else {
-    i := (k%matrix.rowMax) - matrix.rowOffset
-    j := (k/matrix.rowMax) - matrix.colOffset
+    i := (k/matrix.rowMax) - matrix.rowOffset
+    j := (k%matrix.rowMax) - matrix.colOffset
     return i, j
   }
 }
@@ -688,7 +688,8 @@ func (obj *SparseRealMatrixJointIterator) Index() (int, int) {
   return obj.i, obj.j
 }
 func (obj *SparseRealMatrixJointIterator) Ok() bool {
-  return obj.s1 != nil || obj.s2 != nil
+  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
+         !(obj.s2 == nil || obj.s2.GetValue() == 0.0)
 }
 func (obj *SparseRealMatrixJointIterator) Next() {
   ok1 := obj.it1.Ok()

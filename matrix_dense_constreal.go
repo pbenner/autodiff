@@ -94,8 +94,8 @@ func (matrix DenseConstRealMatrix) ij(k int) (int, int) {
     j := (k/matrix.colMax) - matrix.rowOffset
     return i, j
   } else {
-    i := (k%matrix.rowMax) - matrix.rowOffset
-    j := (k/matrix.rowMax) - matrix.colOffset
+    i := (k/matrix.rowMax) - matrix.rowOffset
+    j := (k%matrix.rowMax) - matrix.colOffset
     return i, j
   }
 }

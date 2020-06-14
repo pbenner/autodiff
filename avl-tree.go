@@ -136,6 +136,15 @@ func (obj *AvlTree) IteratorFrom(i int) *AvlIterator {
   return &AvlIterator{obj.FindNodeLE(i), obj}
 }
 
+func (obj *AvlTree) SafeIterator() *AvlIterator {
+  return NewAvlIterator(obj.Clone())
+}
+
+func (obj *AvlTree) SafeIteratorFrom(i int) *AvlIterator {
+  tree := obj.Clone()
+  return &AvlIterator{tree.FindNodeLE(i), tree}
+}
+
 func (obj AvlTree) String() string {
   var buffer bytes.Buffer
 

@@ -48,6 +48,14 @@ func (obj *vectorSparseIndex) indexIteratorFrom(i int) vectorSparseIndexIterator
   return vectorSparseIndexIterator{*obj.AvlTree.IteratorFrom(i)}
 }
 
+func (obj *vectorSparseIndex) indexSafeIterator() vectorSparseIndexIterator {
+  return vectorSparseIndexIterator{*obj.AvlTree.SafeIterator()}
+}
+
+func (obj *vectorSparseIndex) indexSafeIteratorFrom(i int) vectorSparseIndexIterator {
+  return vectorSparseIndexIterator{*obj.AvlTree.SafeIteratorFrom(i)}
+}
+
 func (obj *vectorSparseIndex) indexClone() vectorSparseIndex {
   return vectorSparseIndex{*obj.AvlTree.Clone()}
 }

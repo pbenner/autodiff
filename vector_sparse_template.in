@@ -197,7 +197,7 @@ func (obj VECTOR_TYPE) GetValues() []float64 {
  * -------------------------------------------------------------------------- */
 
 func (obj VECTOR_TYPE) ConstIterator() VectorConstIterator {
-  return obj.ITERATOR()
+  return obj.CONST_ITERATOR()
 }
 
 func (obj VECTOR_TYPE) Iterator() VectorIterator {
@@ -213,6 +213,11 @@ func (obj VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterato
 }
 
 func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
+  r := VECTOR_ITERATOR{obj.indexSafeIterator(), obj}
+  return &r
+}
+
+func (obj VECTOR_TYPE) CONST_ITERATOR() *VECTOR_ITERATOR {
   r := VECTOR_ITERATOR{obj.indexIterator(), obj}
   return &r
 }
