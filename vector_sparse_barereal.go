@@ -177,7 +177,7 @@ func (obj *SparseBareRealVector) ConstJointIterator(b ConstVector) VectorConstJo
   return obj.JOINT_ITERATOR(b)
 }
 func (obj *SparseBareRealVector) ITERATOR() *SparseBareRealVectorIterator {
-  r := SparseBareRealVectorIterator{obj.indexSafeIterator(), obj}
+  r := SparseBareRealVectorIterator{obj.indexIterator(), obj}
   return &r
 }
 func (obj *SparseBareRealVector) CONST_ITERATOR() *SparseBareRealVectorIterator {

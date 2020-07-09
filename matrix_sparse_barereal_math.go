@@ -20,6 +20,7 @@
 package autodiff
 /* -------------------------------------------------------------------------- */
 //import "fmt"
+import "math"
 /* -------------------------------------------------------------------------- */
 // True if matrix a equals b.
 func (a *SparseBareRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
@@ -28,11 +29,13 @@ func (a *SparseBareRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
   if n1 != n2 || m1 != m2 {
     panic("MEqual(): matrix dimensions do not match!")
   }
-  for i := 0; i < n1; i++ {
-    for j := 0; j < m1; j++ {
-      if !a.ConstAt(i, j).Equals(b.ConstAt(i, j), epsilon) {
-        return false
-      }
+  for it := a.JOINT_ITERATOR(b); it.Ok(); it.Next() {
+    s1, s2 := it.GET()
+    if s1 == nil {
+      return false
+    }
+    if !s1.Equals(s2, epsilon) {
+      return false
     }
   }
   return true
@@ -46,10 +49,14 @@ func (r *SparseBareRealMatrix) MaddM(a, b ConstMatrix) Matrix {
   if n1 != n || m1 != m || n2 != n || m2 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Add(a.ConstAt(i, j), b.ConstAt(i, j))
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
     }
+    s_r.Add(s_a, s_b)
   }
   return r
 }
@@ -61,10 +68,13 @@ func (r *SparseBareRealMatrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Add(a.ConstAt(i, j), b)
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      s_r = r.AT(it.Index())
     }
+    s_r.Add(s_a, b)
   }
   return r
 }
@@ -77,10 +87,14 @@ func (r *SparseBareRealMatrix) MsubM(a, b ConstMatrix) Matrix {
   if n1 != n || m1 != m || n2 != n || m2 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Sub(a.ConstAt(i, j), b.ConstAt(i, j))
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
     }
+    s_r.Sub(s_a, s_b)
   }
   return r
 }
@@ -92,10 +106,13 @@ func (r *SparseBareRealMatrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Sub(a.ConstAt(i, j), b)
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      s_r = r.AT(it.Index())
     }
+    s_r.Sub(s_a, b)
   }
   return r
 }
@@ -132,10 +149,13 @@ func (r *SparseBareRealMatrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Mul(a.ConstAt(i, j), b)
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      continue
     }
+    s_r.Mul(s_a, b)
   }
   return r
 }
@@ -148,9 +168,20 @@ func (r *SparseBareRealMatrix) MdivM(a, b ConstMatrix) Matrix {
   if n1 != n || m1 != m || n2 != n || m2 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Div(a.ConstAt(i, j), b.ConstAt(i, j))
+  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    s_b := it.s3
+    if s_r == nil {
+      s_r = r.AT(it.Index())
+    }
+    switch {
+    case s_b == nil:
+      s_r.SetValue(math.NaN())
+    case s_a == nil:
+      s_r.SetValue(0.0)
+    default:
+      s_r.Mul(s_a, s_b)
     }
   }
   return r
@@ -163,10 +194,13 @@ func (r *SparseBareRealMatrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Div(a.ConstAt(i, j), b)
+  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
+    s_r := it.s1
+    s_a := it.s2
+    if s_r == nil {
+      continue
     }
+    s_r.Div(s_a, b)
   }
   return r
 }

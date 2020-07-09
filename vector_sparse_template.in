@@ -213,7 +213,7 @@ func (obj VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterato
 }
 
 func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
-  r := VECTOR_ITERATOR{obj.indexSafeIterator(), obj}
+  r := VECTOR_ITERATOR{obj.indexIterator(), obj}
   return &r
 }
 

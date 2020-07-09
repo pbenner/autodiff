@@ -245,7 +245,7 @@ func (r *SparseRealVector) VMULV(a, b *SparseRealVector) Vector {
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of a vector and a scalar. The result is stored in r.
-func (r *SparseRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
+func (r *SparseRealVector) VmulS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
@@ -255,7 +255,7 @@ func (r *SparseRealVector) VmulS(a ConstVector, s ConstScalar) Vector {
     if s_r == nil {
       continue
     }
-    s_r.Mul(s_a, s)
+    s_r.Mul(s_a, b)
   }
   return r
 }
@@ -318,7 +318,7 @@ func (r *SparseRealVector) VDIVV(a, b *SparseRealVector) Vector {
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.
-func (r *SparseRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
+func (r *SparseRealVector) VdivS(a ConstVector, b ConstScalar) Vector {
   if r.Dim() != a.Dim() {
     panic("vector dimensions do not match")
   }
@@ -328,7 +328,7 @@ func (r *SparseRealVector) VdivS(a ConstVector, s ConstScalar) Vector {
     if s_r == nil {
       continue
     }
-    s_r.Div(s_a, s)
+    s_r.Div(s_a, b)
   }
   return r
 }
