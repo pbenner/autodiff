@@ -36,9 +36,9 @@ func TestAvlTree1(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -58,9 +58,9 @@ func TestAvlTree2(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -82,9 +82,9 @@ func TestAvlTree3(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -105,9 +105,9 @@ func TestAvlTree4(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -132,9 +132,9 @@ func TestAvlTree5(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -162,9 +162,9 @@ func TestAvlTree6(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -189,9 +189,9 @@ func TestAvlTree7(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -221,9 +221,9 @@ func TestAvlTree8(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -253,9 +253,9 @@ func TestAvlTree9(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -286,9 +286,9 @@ func TestAvlTree10(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -320,9 +320,9 @@ func TestAvlTree11(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -352,9 +352,9 @@ func TestAvlTree12(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -388,9 +388,9 @@ func TestAvlTree13(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
-    case it.Get().Balance != b[i]:
+    case it.node.Balance != b[i]:
       test.Error("test failed")
     }
     i++
@@ -417,7 +417,7 @@ func TestAvlTree14(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
     }
     i++
@@ -444,7 +444,7 @@ func TestAvlTree15(test *testing.T) {
     switch {
     case i >= len(v):
       test.Error("test failed")
-    case it.Get().Value != v[i]:
+    case it.Get() != v[i]:
       test.Error("test failed")
     }
     i++

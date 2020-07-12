@@ -63,7 +63,7 @@ func (obj *vectorSparseIndex) indexClone() vectorSparseIndex {
 /* -------------------------------------------------------------------------- */
 
 func (obj *vectorSparseIndexIterator) Get() int {
-  return obj.AvlIterator.Get().Value
+  return obj.AvlIterator.Get()
 }
 
 func (obj *vectorSparseIndexIterator) Clone() *vectorSparseIndexIterator {

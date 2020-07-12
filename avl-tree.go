@@ -25,12 +25,12 @@ import "io"
 /* -------------------------------------------------------------------------- */
 
 type AvlNode struct {
-  Value   int
-  Balance int
-  Deleted bool
-  Left   *AvlNode
-  Right  *AvlNode
-  Parent *AvlNode
+  Value    int
+  Balance  int
+  Deleted  bool
+  Left    *AvlNode
+  Right   *AvlNode
+  Parent  *AvlNode
 }
 
 type AvlTree struct {
@@ -133,7 +133,8 @@ func (obj *AvlTree) Iterator() *AvlIterator {
 }
 
 func (obj *AvlTree) IteratorFrom(i int) *AvlIterator {
-  return &AvlIterator{obj.FindNodeLE(i), obj}
+  node := obj.FindNodeLE(i)
+  return &AvlIterator{obj, node, node.Value}
 }
 
 func (obj *AvlTree) SafeIterator() *AvlIterator {
@@ -142,7 +143,8 @@ func (obj *AvlTree) SafeIterator() *AvlIterator {
 
 func (obj *AvlTree) SafeIteratorFrom(i int) *AvlIterator {
   tree := obj.Clone()
-  return &AvlIterator{tree.FindNodeLE(i), tree}
+  node := tree.FindNodeLE(i)
+  return &AvlIterator{tree, node, node.Value}
 }
 
 func (obj AvlTree) String() string {
@@ -451,8 +453,9 @@ func (obj *AvlNode) string(writer io.Writer) {
 /* -------------------------------------------------------------------------- */
 
 type AvlIterator struct {
-  node *AvlNode
-  tree *AvlTree
+  tree  *AvlTree
+  node  *AvlNode
+  value  int
 }
 
 func NewAvlIterator(tree *AvlTree) *AvlIterator {
@@ -463,13 +466,16 @@ func NewAvlIterator(tree *AvlTree) *AvlIterator {
     }
   }
   r := AvlIterator{}
-  r.node = node
   r.tree = tree
+  r.node = node
+  if node != nil {
+    r.value = node.Value
+  }
   return &r
 }
 
-func (obj *AvlIterator) Get() *AvlNode {
-  return obj.node
+func (obj *AvlIterator) Get() int {
+  return obj.value
 }
 
 func (obj *AvlIterator) Ok() bool {
@@ -480,10 +486,9 @@ func (obj *AvlIterator) Next() {
   if obj.node == nil {
     return
   }
-  if obj.node.Deleted {
-    obj.node = obj.tree.FindNodeLE(obj.node.Value+1)
-    return
-  }
+  if obj.node.Deleted || obj.value != obj.node.Value {
+    obj.node = obj.tree.FindNodeLE(obj.value+1)
+  } else
   if obj.node.Right != nil {
     // there is a node to the right where we can go
     // further down
@@ -506,8 +511,11 @@ func (obj *AvlIterator) Next() {
       obj.node = obj.node.Parent
     }
   }
+  if obj.node != nil {
+    obj.value = obj.node.Value
+  }
 }
 
 func (obj *AvlIterator) Clone() AvlIterator {
-  return AvlIterator{obj.node, obj.tree}
+  return AvlIterator{obj.tree, obj.node, obj.value}
 }

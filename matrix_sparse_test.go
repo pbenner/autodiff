@@ -46,7 +46,7 @@ func randf(r *rand.Rand, m int) []float64 {
 func TestSparseMatrix1(t *testing.T) {
   r := rand.New(rand.NewSource(42))
 
-  for i := 0; i < 100; i++ {
+  for i := 0; i < 1000; i++ {
     n := 100
     m := r.Intn(n)
 
