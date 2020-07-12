@@ -39,7 +39,13 @@ func checkBare(b ConstScalar) {
 /* -------------------------------------------------------------------------- */
 
 func (a  BareReal) Equals(b ConstScalar, epsilon float64) bool {
-  return math.Abs(a.GetValue() - b.GetValue()) < epsilon
+  v1 := a.GetValue()
+  v2 := b.GetValue()
+  return math.Abs(v1 - v2) < epsilon               ||
+        (math.IsNaN(v1)     && math.IsNaN(v2))     ||
+        (math.IsInf(v1,  1) && math.IsInf(v2,  1)) ||
+        (math.IsInf(v1, -1) && math.IsInf(v2, -1))
+
 }
 
 /* -------------------------------------------------------------------------- */

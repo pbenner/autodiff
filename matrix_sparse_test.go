@@ -71,3 +71,90 @@ func TestSparseMatrix1(t *testing.T) {
     }
   }
 }
+
+func TestSparseMatrix2(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    rows1 := randn(r, n, m)
+    cols1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    rows2 := randn(r, n, m)
+    cols2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+
+    d1 := AsDenseRealMatrix(m1)
+    d2 := AsDenseRealMatrix(m2)
+
+    m2.MsubM(m1, m2)
+    d2.MsubM(d1, d2)
+
+    if !d2.Equals(m2, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}
+
+func TestSparseMatrix3(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    rows1 := randn(r, n, m)
+    cols1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    rows2 := randn(r, n, m)
+    cols2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+
+    d1 := AsDenseRealMatrix(m1)
+    d2 := AsDenseRealMatrix(m2)
+
+    m2.MmulM(m1, m2)
+    d2.MmulM(d1, d2)
+
+    if !d2.Equals(m2, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}
+
+func TestSparseMatrix4(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    rows1 := randn(r, n, m)
+    cols1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    rows2 := randn(r, n, m)
+    cols2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+
+    d1 := AsDenseRealMatrix(m1)
+    d2 := AsDenseRealMatrix(m2)
+
+    m2.MdivM(m1, m2)
+    d2.MdivM(d1, d2)
+
+    if !d2.Equals(m2, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}

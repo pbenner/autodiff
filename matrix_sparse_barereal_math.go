@@ -20,7 +20,6 @@
 package autodiff
 /* -------------------------------------------------------------------------- */
 //import "fmt"
-import "math"
 /* -------------------------------------------------------------------------- */
 // True if matrix a equals b.
 func (a *SparseBareRealMatrix) Equals(b ConstMatrix, epsilon float64) bool {
@@ -168,20 +167,11 @@ func (r *SparseBareRealMatrix) MdivM(a, b ConstMatrix) Matrix {
   if n1 != n || m1 != m || n2 != n || m2 != m {
     panic("matrix dimensions do not match!")
   }
-  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    s_b := it.s3
-    if s_r == nil {
-      s_r = r.AT(it.Index())
-    }
-    switch {
-    case s_b == nil:
-      s_r.SetValue(math.NaN())
-    case s_a == nil:
-      s_r.SetValue(0.0)
-    default:
-      s_r.Mul(s_a, s_b)
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      if r.ValueAt(i, j) != 0.0 || b.ValueAt(i, j) == 0.0 {
+        r.At(i, j).Div(a.ConstAt(i, j), b.ConstAt(i, j))
+      }
     }
   }
   return r
@@ -194,13 +184,21 @@ func (r *SparseBareRealMatrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
   }
-  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      continue
+  if b.GetValue() == 0.0 {
+    for i := 0; i < n; i++ {
+      for j := 0; j < m; j++ {
+        r.At(i, j).Div(a.ConstAt(i, j), b)
+      }
     }
-    s_r.Div(s_a, b)
+  } else {
+    for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
+      s_r := it.s1
+      s_a := it.s2
+      if s_r == nil {
+        continue
+      }
+      s_r.Div(s_a, b)
+    }
   }
   return r
 }
