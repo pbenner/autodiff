@@ -67,13 +67,10 @@ func (r *SparseBareRealMatrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
   }
-  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      s_r = r.AT(it.Index())
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.At(i, j).Add(a.ConstAt(i, j), b)
     }
-    s_r.Add(s_a, b)
   }
   return r
 }
@@ -105,13 +102,10 @@ func (r *SparseBareRealMatrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
   if n1 != n || m1 != m {
     panic("matrix dimensions do not match!")
   }
-  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      s_r = r.AT(it.Index())
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.At(i, j).Sub(a.ConstAt(i, j), b)
     }
-    s_r.Sub(s_a, b)
   }
   return r
 }

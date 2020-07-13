@@ -98,36 +98,17 @@ func (r *SparseBareRealVector) VADDV(a, b *SparseBareRealVector) Vector {
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of a vector and a scalar. The result is stored in r.
 func (r *SparseBareRealVector) VaddS(a ConstVector, b ConstScalar) Vector {
-  if r.Dim() != a.Dim() {
+  n := r.Dim()
+  if n != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      s_r = r.AT(it.Index())
-    }
-    s_r.Add(s_a, b)
+  for i := 0; i < n; i++ {
+    r.AT(i).Add(a.ConstAt(i), b)
   }
   return r
 }
 func (r *SparseBareRealVector) VADDS(a *SparseBareRealVector, b *BareReal) Vector {
-  if r.Dim() != a.Dim() {
-    panic("vector dimensions do not match")
-  }
-  for it := r.JOINT_ITERATOR_(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      s_r = r.AT(it.Index())
-    }
-    if s_a == nil {
-      s_r.SET(b)
-    } else {
-      s_r.ADD(s_a, b)
-    }
-  }
-  return r
+  return r.VaddS(a, b)
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of two vectors. The result is stored in r.
@@ -174,37 +155,17 @@ func (r *SparseBareRealVector) VSUBV(a, b *SparseBareRealVector) Vector {
 /* -------------------------------------------------------------------------- */
 // Element-wise substractor of a vector and a scalar. The result is stored in r.
 func (r *SparseBareRealVector) VsubS(a ConstVector, b ConstScalar) Vector {
-  if r.Dim() != a.Dim() {
+  n := r.Dim()
+  if n != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      s_r = r.AT(it.Index())
-    }
-    s_r.Sub(s_a, b)
+  for i := 0; i < n; i++ {
+    r.AT(i).Sub(a.ConstAt(i), b)
   }
   return r
 }
 func (r *SparseBareRealVector) VSUBS(a *SparseBareRealVector, b *BareReal) Vector {
-  if r.Dim() != a.Dim() {
-    panic("vector dimensions do not match")
-  }
-  for it := r.JOINT_ITERATOR_(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      s_r = r.AT(it.Index())
-    }
-    if s_a == nil {
-      s_r.SET(b)
-      s_r.NEG(s_r)
-    } else {
-      s_r.SUB(s_a, b)
-    }
-  }
-  return r
+  return r.VsubS(a, b)
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise multiplication of two vectors. The result is stored in r.
