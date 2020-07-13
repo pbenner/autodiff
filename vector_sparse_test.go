@@ -20,6 +20,7 @@ package autodiff
 
 //import "fmt"
 import "encoding/json"
+import "math/rand"
 import "testing"
 
 /* -------------------------------------------------------------------------- */
@@ -78,7 +79,7 @@ func TestSparseVector3(test *testing.T) {
   w2 := NewSparseRealVector([]int{    0, 19998,     3,     2, 19999,     1}, []float64{10, -2, 3,  4, -5, 6}, 20000)
   t  := NullReal()
 
-  v.Sort(false)  
+  v.Sort(false)
   if t.Vnorm(w1.VsubV(w1, v)); t.GetValue() > 0.0 {
     test.Errorf("test failed")
   }
@@ -220,5 +221,115 @@ func TestSparseVector9(test *testing.T) {
   v.Swap(100, 210)
   if t.Vnorm(r.VsubV(r, v)); t.GetValue() > 0 {
     test.Errorf("test failed")
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+func TestSparseVector10(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    inds1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    inds2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    v1 := NewSparseRealVector(inds1, vals1, n)
+    v2 := NewSparseRealVector(inds2, vals2, n)
+
+    d1 := AsDenseRealVector(v1)
+    d2 := AsDenseRealVector(v2)
+
+    v2.VaddV(v1, v2)
+    d2.VaddV(d1, d2)
+
+    if !d2.Equals(v2, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}
+
+func TestSparseVector11(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    inds1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    inds2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    v1 := NewSparseRealVector(inds1, vals1, n)
+    v2 := NewSparseRealVector(inds2, vals2, n)
+
+    d1 := AsDenseRealVector(v1)
+    d2 := AsDenseRealVector(v2)
+
+    v2.VsubV(v1, v2)
+    d2.VsubV(d1, d2)
+
+    if !d2.Equals(v2, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}
+
+func TestSparseVector12(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    inds1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    inds2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    v1 := NewSparseRealVector(inds1, vals1, n)
+    v2 := NewSparseRealVector(inds2, vals2, n)
+
+    d1 := AsDenseRealVector(v1)
+    d2 := AsDenseRealVector(v2)
+
+    v2.VmulV(v1, v2)
+    d2.VmulV(d1, d2)
+
+    if !d2.Equals(v2, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}
+
+func TestSparseVector13(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    inds1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    inds2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    v1 := NewSparseRealVector(inds1, vals1, n)
+    v2 := NewSparseRealVector(inds2, vals2, n)
+
+    d1 := AsDenseRealVector(v1)
+    d2 := AsDenseRealVector(v2)
+
+    v2.VdivV(v1, v2)
+    d2.VdivV(d1, d2)
+
+    if !d2.Equals(v2, 1e-8) {
+      t.Errorf("test failed")
+    }
   }
 }
