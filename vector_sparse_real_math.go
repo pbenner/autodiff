@@ -18,7 +18,7 @@
 /* -------------------------------------------------------------------------- */
 package autodiff
 /* -------------------------------------------------------------------------- */
-import "math"
+//import "math"
 /* -------------------------------------------------------------------------- */
 // Test if elements in a equal elements in b.
 func (a *SparseRealVector) Equals(b ConstVector, epsilon float64) bool {
@@ -280,41 +280,21 @@ func (r *SparseRealVector) VMULS(a *SparseRealVector, b *Real) Vector {
 /* -------------------------------------------------------------------------- */
 // Element-wise division of two vectors. The result is stored in r.
 func (r *SparseRealVector) VdivV(a, b ConstVector) Vector {
-  if n := r.Dim(); a.Dim() != n || b.Dim() != n {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
     panic("vector dimensions do not match")
   }
-  for it := r.JOINT3_ITERATOR(a, b); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    s_b := it.s3
-    if s_r == nil {
-      continue
+  for i := 0; i < n; i++ {
+    c1 := a.ConstAt(i)
+    c2 := b.ConstAt(i)
+    if r.ValueAt(i) != 0.0 || c2.GetValue() == 0.0 {
+      r.At(i).Div(c1, c2)
     }
-    s_r.Div(s_a, s_b)
   }
   return r
 }
 func (r *SparseRealVector) VDIVV(a, b *SparseRealVector) Vector {
-  if n := r.Dim(); a.Dim() != n || b.Dim() != n {
-    panic("vector dimensions do not match")
-  }
-  for it := r.JOINT3_ITERATOR_(a, b); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    s_b := it.s3
-    if s_r == nil {
-      s_r = r.AT(it.Index())
-    }
-    switch {
-    case s_b == nil:
-      s_r.SetValue(math.NaN())
-    case s_a == nil:
-      s_r.SetValue(0.0)
-    default:
-      s_r.MUL(s_a, s_b)
-    }
-  }
-  return r
+  return r.VdivV(a, b)
 }
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.

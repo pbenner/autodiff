@@ -168,8 +168,10 @@ func (r *SparseRealMatrix) MdivM(a, b ConstMatrix) Matrix {
   }
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      if r.ValueAt(i, j) != 0.0 || b.ValueAt(i, j) == 0.0 {
-        r.At(i, j).Div(a.ConstAt(i, j), b.ConstAt(i, j))
+      c1 := a.ConstAt(i, j)
+      c2 := b.ConstAt(i, j)
+      if r.ValueAt(i, j) != 0.0 || c2.GetValue() == 0.0 {
+        r.At(i, j).Div(c1, c2)
       }
     }
   }
