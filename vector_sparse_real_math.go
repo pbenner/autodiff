@@ -287,8 +287,12 @@ func (r *SparseRealVector) VdivV(a, b ConstVector) Vector {
   for i := 0; i < n; i++ {
     c1 := a.ConstAt(i)
     c2 := b.ConstAt(i)
-    if r.ValueAt(i) != 0.0 || c2.GetValue() == 0.0 {
+    if c1.GetValue() != 0.0 || c2.GetValue() == 0.0 {
       r.At(i).Div(c1, c2)
+    } else {
+      if r.ConstAt(i).GetValue() != 0.0 {
+        r.At(i).Reset()
+      }
     }
   }
   return r
@@ -299,16 +303,23 @@ func (r *SparseRealVector) VDIVV(a, b *SparseRealVector) Vector {
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.
 func (r *SparseRealVector) VdivS(a ConstVector, b ConstScalar) Vector {
-  if r.Dim() != a.Dim() {
+  n := r.Dim()
+  if n != a.Dim() {
     panic("vector dimensions do not match")
   }
-  for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
-    s_r := it.s1
-    s_a := it.s2
-    if s_r == nil {
-      continue
+  if b.GetValue() == 0.0 {
+    for i := 0; i < n; i++ {
+      r.At(i).Div(a.ConstAt(i), b)
     }
-    s_r.Div(s_a, b)
+  } else {
+    for it := r.JOINT_ITERATOR(a); it.Ok(); it.Next() {
+      s_r := it.s1
+      s_a := it.s2
+      if s_r == nil {
+        s_r = r.AT(it.Index())
+      }
+      s_r.Div(s_a, b)
+    }
   }
   return r
 }

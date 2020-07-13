@@ -151,7 +151,7 @@ func (r *SparseRealMatrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
     s_r := it.s1
     s_a := it.s2
     if s_r == nil {
-      continue
+      s_r = r.AT(it.Index())
     }
     s_r.Mul(s_a, b)
   }
@@ -170,8 +170,12 @@ func (r *SparseRealMatrix) MdivM(a, b ConstMatrix) Matrix {
     for j := 0; j < m; j++ {
       c1 := a.ConstAt(i, j)
       c2 := b.ConstAt(i, j)
-      if r.ValueAt(i, j) != 0.0 || c2.GetValue() == 0.0 {
+      if c1.GetValue() != 0.0 || c2.GetValue() == 0.0 {
         r.At(i, j).Div(c1, c2)
+      } else {
+        if r.ConstAt(i, j).GetValue() != 0.0 {
+          r.At(i, j).Reset()
+        }
       }
     }
   }
@@ -196,7 +200,7 @@ func (r *SparseRealMatrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
       s_r := it.s1
       s_a := it.s2
       if s_r == nil {
-        continue
+        s_r = r.AT(it.Index())
       }
       s_r.Div(s_a, b)
     }
