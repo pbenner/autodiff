@@ -405,3 +405,63 @@ func TestSparseVector13(t *testing.T) {
     }
   }
 }
+
+func TestSparseVector14(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    inds1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    rows2 := randn(r, n, m)
+    cols2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    v := NewSparseRealVector(inds1, vals1, n)
+    w := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    r := NewSparseRealVector([]int{}, []float64{}, n)
+
+    d_v := AsDenseRealVector(v)
+    d_w := AsDenseRealMatrix(w)
+    d_r := AsDenseRealVector(r)
+
+      r.MdotV(  w,   v)
+    d_r.MdotV(d_w, d_v)
+
+    if !d_r.Equals(r, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}
+
+func TestSparseVector15(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    inds1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    rows2 := randn(r, n, m)
+    cols2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    v := NewSparseRealVector(inds1, vals1, n)
+    w := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    r := NewSparseRealVector([]int{}, []float64{}, n)
+
+    d_v := AsDenseRealVector(v)
+    d_w := AsDenseRealMatrix(w)
+    d_r := AsDenseRealVector(r)
+
+      r.VdotM(  v,   w)
+    d_r.VdotM(d_v, d_w)
+
+    if !d_r.Equals(r, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}

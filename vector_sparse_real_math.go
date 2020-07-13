@@ -318,10 +318,12 @@ func (r *SparseRealVector) MdotV(a ConstMatrix, b ConstVector) Vector {
   t := NullReal()
   for i := 0; i < n; i++ {
     r.AT(i).Reset()
-    for j := 0; j < m; j++ {
-      t.Mul(a.ConstAt(i, j), b.ConstAt(j))
-      r.AT(i).ADD(r.AT(i), t)
-    }
+  }
+  for it := a.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    s := r.AT(i)
+    t.Mul(it.GetConst(), b.ConstAt(j))
+    s.ADD(s, t)
   }
   return r
 }
@@ -339,12 +341,14 @@ func (r *SparseRealVector) VdotM(a ConstVector, b ConstMatrix) Vector {
     panic("result and argument must be different vectors")
   }
   t := NullReal()
-  for i := 0; i < m; i++ {
+  for i := 0; i < n; i++ {
     r.AT(i).Reset()
-    for j := 0; j < n; j++ {
-      t.Mul(a.ConstAt(j), b.ConstAt(j, i))
-      r.AT(i).ADD(r.AT(i), t)
-    }
+  }
+  for it := b.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    s := r.AT(j)
+    t.Mul(a.ConstAt(i), it.GetConst())
+    s.ADD(s, t)
   }
   return r
 }
