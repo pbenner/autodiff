@@ -77,6 +77,16 @@ func TestSparseMatrix1(t *testing.T) {
     if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    d1 = AsDenseRealMatrix(m1)
+    s := NewScalar(RealType, r.Float64())
+    m1.MaddS(m1, s)
+    d1.MaddS(d1, s)
+
+    if !d1.Equals(m1, 1e-8) {
+      t.Errorf("test failed")
+    }
   }
 }
 
@@ -112,6 +122,16 @@ func TestSparseMatrix2(t *testing.T) {
     m1.MsubM(m1, m2)
 
     if !d2.Equals(m1, 1e-8) {
+      t.Errorf("test failed")
+    }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    d1 = AsDenseRealMatrix(m1)
+    s := NewScalar(RealType, r.Float64())
+    m1.MsubS(m1, s)
+    d1.MsubS(d1, s)
+
+    if !d1.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
   }
@@ -151,6 +171,16 @@ func TestSparseMatrix3(t *testing.T) {
     if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    d1 = AsDenseRealMatrix(m1)
+    s := NewScalar(RealType, r.Float64())
+    m1.MmulS(m1, s)
+    d1.MmulS(d1, s)
+
+    if !d1.Equals(m1, 1e-8) {
+      t.Errorf("test failed")
+    }
   }
 }
 
@@ -186,6 +216,16 @@ func TestSparseMatrix4(t *testing.T) {
     m1.MdivM(m1, m2)
 
     if !d2.Equals(m1, 1e-8) {
+      t.Errorf("test failed")
+    }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    d1 = AsDenseRealMatrix(m1)
+    s := NewScalar(RealType, r.Float64())
+    m1.MdivS(m1, s)
+    d1.MdivS(d1, s)
+
+    if !d1.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
   }
