@@ -250,6 +250,14 @@ func TestSparseVector10(t *testing.T) {
     if !d2.Equals(v2, 1e-8) {
       t.Errorf("test failed")
     }
+
+    v1 = NewSparseRealVector(inds1, vals1, n)
+    v2 = NewSparseRealVector(inds2, vals2, n)
+    v1.VaddV(v1, v2)
+
+    if !d2.Equals(v1, 1e-8) {
+      t.Errorf("test failed")
+    }
   }
 }
 
@@ -275,6 +283,14 @@ func TestSparseVector11(t *testing.T) {
     d2.VsubV(d1, d2)
 
     if !d2.Equals(v2, 1e-8) {
+      t.Errorf("test failed")
+    }
+
+    v1 = NewSparseRealVector(inds1, vals1, n)
+    v2 = NewSparseRealVector(inds2, vals2, n)
+    v1.VsubV(v1, v2)
+
+    if !d2.Equals(v1, 1e-8) {
       t.Errorf("test failed")
     }
   }
@@ -304,6 +320,14 @@ func TestSparseVector12(t *testing.T) {
     if !d2.Equals(v2, 1e-8) {
       t.Errorf("test failed")
     }
+
+    v1 = NewSparseRealVector(inds1, vals1, n)
+    v2 = NewSparseRealVector(inds2, vals2, n)
+    v1.VmulV(v1, v2)
+
+    if !d2.Equals(v1, 1e-8) {
+      t.Errorf("test failed")
+    }
   }
 }
 
@@ -329,6 +353,14 @@ func TestSparseVector13(t *testing.T) {
     d2.VdivV(d1, d2)
 
     if !d2.Equals(v2, 1e-8) {
+      t.Errorf("test failed")
+    }
+
+    v1 = NewSparseRealVector(inds1, vals1, n)
+    v2 = NewSparseRealVector(inds2, vals2, n)
+    v1.VdivV(v1, v2)
+
+    if !d2.Equals(v1, 1e-8) {
       t.Errorf("test failed")
     }
   }

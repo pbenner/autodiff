@@ -69,6 +69,14 @@ func TestSparseMatrix1(t *testing.T) {
     if !d2.Equals(m2, 1e-8) {
       t.Errorf("test failed")
     }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1.MaddM(m1, m2)
+
+    if !d2.Equals(m1, 1e-8) {
+      t.Errorf("test failed")
+    }
   }
 }
 
@@ -96,6 +104,14 @@ func TestSparseMatrix2(t *testing.T) {
     d2.MsubM(d1, d2)
 
     if !d2.Equals(m2, 1e-8) {
+      t.Errorf("test failed")
+    }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1.MsubM(m1, m2)
+
+    if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
   }
@@ -127,6 +143,14 @@ func TestSparseMatrix3(t *testing.T) {
     if !d2.Equals(m2, 1e-8) {
       t.Errorf("test failed")
     }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1.MmulM(m1, m2)
+
+    if !d2.Equals(m1, 1e-8) {
+      t.Errorf("test failed")
+    }
   }
 }
 
@@ -154,6 +178,14 @@ func TestSparseMatrix4(t *testing.T) {
     d2.MdivM(d1, d2)
 
     if !d2.Equals(m2, 1e-8) {
+      t.Errorf("test failed")
+    }
+
+    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1.MdivM(m1, m2)
+
+    if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
   }
