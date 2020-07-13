@@ -230,3 +230,32 @@ func TestSparseMatrix4(t *testing.T) {
     }
   }
 }
+
+func TestSparseMatrix5(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 100
+    m := r.Intn(n)
+
+    inds1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    inds2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    v1 := NewSparseRealVector(inds1, vals1, n)
+    v2 := NewSparseRealVector(inds2, vals2, n)
+    r  := NewSparseRealMatrix(n, n, []int{}, []int{}, []float64{})
+
+    d1 := AsDenseRealVector(v1)
+    d2 := AsDenseRealVector(v2)
+    s  := AsDenseRealMatrix(r)
+
+    r.Outer(v1, v2)
+    s.Outer(d1, d2)
+
+    if !r.Equals(s, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}

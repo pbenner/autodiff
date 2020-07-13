@@ -252,9 +252,16 @@ func (r *SparseRealMatrix) Outer(a, b ConstVector) Matrix {
   if a.Dim() != n || b.Dim() != m {
     panic("matrix/vector dimensions do not match!")
   }
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      r.At(i, j).Mul(a.ConstAt(i), b.ConstAt(j))
+  for it := r.Iterator(); it.Ok(); it.Next() {
+    it.Get().Reset()
+  }
+  for it := a.ConstIterator(); it.Ok(); it.Next() {
+    i := it.Index()
+    p := it.GetConst()
+    for is := b.ConstIterator(); is.Ok(); is.Next() {
+      j := is.Index()
+      q := is.GetConst()
+      r.At(i, j).Mul(p, q)
     }
   }
   return r
