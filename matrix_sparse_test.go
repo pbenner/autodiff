@@ -259,3 +259,34 @@ func TestSparseMatrix5(t *testing.T) {
     }
   }
 }
+
+func TestSparseMatrix6(t *testing.T) {
+  r := rand.New(rand.NewSource(42))
+
+  for i := 0; i < 1000; i++ {
+    n := 20
+    m := r.Intn(n)
+
+    rows1 := randn(r, n, m)
+    cols1 := randn(r, n, m)
+    vals1 := randf(r, m)
+    rows2 := randn(r, n, m)
+    cols2 := randn(r, n, m)
+    vals2 := randf(r, m)
+
+    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    r  := NewSparseRealMatrix(n, n, []int{}, []int{}, []float64{})
+
+    d1 := AsDenseRealMatrix(m1)
+    d2 := AsDenseRealMatrix(m2)
+    s  := AsDenseRealMatrix(r)
+
+    r.MdotM(m1, m2)
+    s.MdotM(d1, d2)
+
+    if !r.Equals(s, 1e-8) {
+      t.Errorf("test failed")
+    }
+  }
+}

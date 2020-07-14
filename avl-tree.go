@@ -133,8 +133,12 @@ func (obj *AvlTree) Iterator() *AvlIterator {
 }
 
 func (obj *AvlTree) IteratorFrom(i int) *AvlIterator {
-  node := obj.FindNodeLE(i)
-  return &AvlIterator{obj, node, node.Value}
+  node  := obj.FindNodeLE(i)
+  value := 0
+  if node != nil {
+    value = node.Value
+  }
+  return &AvlIterator{obj, node, value}
 }
 
 func (obj *AvlTree) SafeIterator() *AvlIterator {
@@ -142,9 +146,13 @@ func (obj *AvlTree) SafeIterator() *AvlIterator {
 }
 
 func (obj *AvlTree) SafeIteratorFrom(i int) *AvlIterator {
-  tree := obj.Clone()
-  node := tree.FindNodeLE(i)
-  return &AvlIterator{tree, node, node.Value}
+  tree  := obj.Clone()
+  node  := tree.FindNodeLE(i)
+  value := 0
+  if node != nil {
+    value = node.Value
+  }
+  return &AvlIterator{tree, node, value}
 }
 
 func (obj AvlTree) String() string {
