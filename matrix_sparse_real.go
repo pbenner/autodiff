@@ -167,7 +167,9 @@ func (matrix *SparseRealMatrix) ROW(i int) *SparseRealVector {
   if matrix.transposed {
     v = nilSparseRealVector(matrix.cols)
     for j := 0; j < matrix.cols; j++ {
-      v.At(j).Set(matrix.values.ConstAt(matrix.index(i, j)))
+      if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
+        v.At(j).Set(s)
+      }
     }
   } else {
     i = matrix.index(i, 0)
@@ -186,7 +188,9 @@ func (matrix *SparseRealMatrix) COL(j int) *SparseRealVector {
   } else {
     v = nilSparseRealVector(matrix.rows)
     for i := 0; i < matrix.rows; i++ {
-      v.At(i).Set(matrix.values.ConstAt(matrix.index(i, j)))
+      if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
+        v.At(i).Set(s)
+      }
     }
   }
   return v
@@ -201,7 +205,9 @@ func (matrix *SparseRealMatrix) DIAG() *SparseRealVector {
   }
   v := nilSparseRealVector(n)
   for i := 0; i < n; i++ {
-    v.At(i).Set(matrix.values.ConstAt(matrix.index(i, i)))
+    if s := matrix.values.ConstAt(matrix.index(i, i)); s.GetValue() != 0.0 {
+      v.At(i).Set(s)
+    }
   }
   return v
 }
