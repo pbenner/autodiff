@@ -58,7 +58,6 @@ type MATRIX_NAME struct {
   rowMax     int
   colOffset  int
   colMax     int
-  transposed bool
   tmp1       VECTOR_TYPE
   tmp2       VECTOR_TYPE
 }
@@ -142,7 +141,6 @@ func (matrix MATRIX_TYPE) Clone() MATRIX_TYPE {
     values    : matrix.values.Clone(),
     rows      : matrix.rows,
     cols      : matrix.cols,
-    transposed: matrix.transposed,
     rowOffset : matrix.rowOffset,
     rowMax    : matrix.rowMax,
     colOffset : matrix.colOffset,
@@ -166,23 +164,13 @@ func (matrix MATRIX_TYPE) index(i, j int) int {
   if i < 0 || j < 0 || i >= matrix.rows || j >= matrix.cols {
     panic(fmt.Errorf("index (%d,%d) out of bounds for matrix of dimension %dx%d", i, j, matrix.rows, matrix.cols))
   }
-  if matrix.transposed {
-    return (matrix.colOffset + j)*matrix.rowMax + (matrix.rowOffset + i)
-  } else {
-    return (matrix.rowOffset + i)*matrix.colMax + (matrix.colOffset + j)
-  }
+  return (matrix.rowOffset + i)*matrix.colMax + (matrix.colOffset + j)
 }
 
 func (matrix MATRIX_TYPE) ij(k int) (int, int) {
-  if matrix.transposed {
-    i := (k%matrix.colMax) - matrix.colOffset
-    j := (k/matrix.colMax) - matrix.rowOffset
-    return i, j
-  } else {
-    i := (k/matrix.rowMax) - matrix.rowOffset
-    j := (k%matrix.rowMax) - matrix.colOffset
-    return i, j
-  }
+  i := (k/matrix.colMax) - matrix.rowOffset
+  j := (k%matrix.colMax) - matrix.colOffset
+  return i, j
 }
 
 func (matrix MATRIX_TYPE) Dims() (int, int) {
@@ -199,17 +187,8 @@ func (matrix MATRIX_TYPE) Row(i int) Vector {
 
 func (matrix MATRIX_TYPE) ROW(i int) VECTOR_TYPE {
   var v VECTOR_TYPE
-  if matrix.transposed {
-    v = NIL_VECTOR(matrix.cols)
-    for j := 0; j < matrix.cols; j++ {
-      if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
-        v.At(j).Set(s)
-      }
-    }
-  } else {
-    i = matrix.index(i, 0)
-    v = matrix.values.Slice(i, i + matrix.cols).(VECTOR_TYPE)
-  }
+  i = matrix.index(i, 0)
+  v = matrix.values.Slice(i, i + matrix.cols).(VECTOR_TYPE)
   return v
 }
 
@@ -219,15 +198,10 @@ func (matrix MATRIX_TYPE) Col(j int) Vector {
 
 func (matrix MATRIX_TYPE) COL(j int) VECTOR_TYPE {
   var v VECTOR_TYPE
-  if matrix.transposed {
-    j = matrix.index(0, j)
-    v = matrix.values.Slice(j, j + matrix.rows).(VECTOR_TYPE)
-  } else {
-    v = NIL_VECTOR(matrix.rows)
-    for i := 0; i < matrix.rows; i++ {
-      if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
-        v.At(i).Set(s)
-      }
+  v = NIL_VECTOR(matrix.rows)
+  for i := 0; i < matrix.rows; i++ {
+    if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
+      v.At(i).Set(s)
     }
   }
   return v
@@ -294,17 +268,24 @@ func (matrix MATRIX_TYPE) STR_CONCAT(As, VECTOR_NAME)() VECTOR_TYPE {
 /* -------------------------------------------------------------------------- */
 
 func (matrix MATRIX_TYPE) T() Matrix {
-  return &MATRIX_NAME{
-    values    :  matrix.values,
+  m := &MATRIX_NAME{
+    values    :  NULL_VECTOR(matrix.values.Dim()),
     rows      :  matrix.cols,
     cols      :  matrix.rows,
-    transposed: !matrix.transposed,
     rowOffset :  matrix.colOffset,
     rowMax    :  matrix.colMax,
     colOffset :  matrix.rowOffset,
     colMax    :  matrix.rowMax,
     tmp1      :  matrix.tmp2,
     tmp2      :  matrix.tmp1 }
+  for k1, value := range matrix.values.values {
+    // transform indices so that iterators operate correctly
+    i1, j1 := matrix.ij(k1)
+    k2     := m.index(j1, i1)
+    m.values.values[k2] = value
+    m.values.indexInsert(k2)
+  }
+  return m
 }
 
 func (matrix MATRIX_TYPE) Tip() {
@@ -694,7 +675,7 @@ func (m MATRIX_TYPE) Import(filename string) error {
  * -------------------------------------------------------------------------- */
 
 func (obj MATRIX_TYPE) MarshalJSON() ([]byte, error) {
-  if obj.transposed || obj.rowMax > obj.rows || obj.colMax > obj.cols {
+  if obj.rowMax > obj.rows || obj.colMax > obj.cols {
     n, m := obj.Dims()
     tmp  := NULL_MATRIX(n, m)
     tmp.Set(obj)
@@ -729,7 +710,6 @@ func (obj MATRIX_TYPE) UnmarshalJSON(data []byte) error {
   obj.cols       = r.Cols
   obj.colMax     = r.Cols
   obj.colOffset  = 0
-  obj.transposed = false
   obj.initTmp()
   return nil
 }

@@ -40,7 +40,6 @@ type SparseBareRealMatrix struct {
   rowMax int
   colOffset int
   colMax int
-  transposed bool
   tmp1 *SparseBareRealVector
   tmp2 *SparseBareRealVector
 }
@@ -116,7 +115,6 @@ func (matrix *SparseBareRealMatrix) Clone() *SparseBareRealMatrix {
     values : matrix.values.Clone(),
     rows : matrix.rows,
     cols : matrix.cols,
-    transposed: matrix.transposed,
     rowOffset : matrix.rowOffset,
     rowMax : matrix.rowMax,
     colOffset : matrix.colOffset,
@@ -136,22 +134,12 @@ func (matrix *SparseBareRealMatrix) index(i, j int) int {
   if i < 0 || j < 0 || i >= matrix.rows || j >= matrix.cols {
     panic(fmt.Errorf("index (%d,%d) out of bounds for matrix of dimension %dx%d", i, j, matrix.rows, matrix.cols))
   }
-  if matrix.transposed {
-    return (matrix.colOffset + j)*matrix.rowMax + (matrix.rowOffset + i)
-  } else {
-    return (matrix.rowOffset + i)*matrix.colMax + (matrix.colOffset + j)
-  }
+  return (matrix.rowOffset + i)*matrix.colMax + (matrix.colOffset + j)
 }
 func (matrix *SparseBareRealMatrix) ij(k int) (int, int) {
-  if matrix.transposed {
-    i := (k%matrix.colMax) - matrix.colOffset
-    j := (k/matrix.colMax) - matrix.rowOffset
-    return i, j
-  } else {
-    i := (k/matrix.rowMax) - matrix.rowOffset
-    j := (k%matrix.rowMax) - matrix.colOffset
-    return i, j
-  }
+  i := (k/matrix.colMax) - matrix.rowOffset
+  j := (k%matrix.colMax) - matrix.colOffset
+  return i, j
 }
 func (matrix *SparseBareRealMatrix) Dims() (int, int) {
   if matrix == nil {
@@ -165,17 +153,8 @@ func (matrix *SparseBareRealMatrix) Row(i int) Vector {
 }
 func (matrix *SparseBareRealMatrix) ROW(i int) *SparseBareRealVector {
   var v *SparseBareRealVector
-  if matrix.transposed {
-    v = nilSparseBareRealVector(matrix.cols)
-    for j := 0; j < matrix.cols; j++ {
-      if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
-        v.At(j).Set(s)
-      }
-    }
-  } else {
-    i = matrix.index(i, 0)
-    v = matrix.values.Slice(i, i + matrix.cols).(*SparseBareRealVector)
-  }
+  i = matrix.index(i, 0)
+  v = matrix.values.Slice(i, i + matrix.cols).(*SparseBareRealVector)
   return v
 }
 func (matrix *SparseBareRealMatrix) Col(j int) Vector {
@@ -183,15 +162,10 @@ func (matrix *SparseBareRealMatrix) Col(j int) Vector {
 }
 func (matrix *SparseBareRealMatrix) COL(j int) *SparseBareRealVector {
   var v *SparseBareRealVector
-  if matrix.transposed {
-    j = matrix.index(0, j)
-    v = matrix.values.Slice(j, j + matrix.rows).(*SparseBareRealVector)
-  } else {
-    v = nilSparseBareRealVector(matrix.rows)
-    for i := 0; i < matrix.rows; i++ {
-      if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
-        v.At(i).Set(s)
-      }
+  v = nilSparseBareRealVector(matrix.rows)
+  for i := 0; i < matrix.rows; i++ {
+    if s := matrix.values.ConstAt(matrix.index(i, j)); s.GetValue() != 0.0 {
+      v.At(i).Set(s)
     }
   }
   return v
@@ -249,17 +223,24 @@ func (matrix *SparseBareRealMatrix) AsSparseBareRealVector() *SparseBareRealVect
 }
 /* -------------------------------------------------------------------------- */
 func (matrix *SparseBareRealMatrix) T() Matrix {
-  return &SparseBareRealMatrix{
-    values : matrix.values,
+  m := &SparseBareRealMatrix{
+    values : NullSparseBareRealVector(matrix.values.Dim()),
     rows : matrix.cols,
     cols : matrix.rows,
-    transposed: !matrix.transposed,
     rowOffset : matrix.colOffset,
     rowMax : matrix.colMax,
     colOffset : matrix.rowOffset,
     colMax : matrix.rowMax,
     tmp1 : matrix.tmp2,
     tmp2 : matrix.tmp1 }
+  for k1, value := range matrix.values.values {
+    // transform indices so that iterators operate correctly
+    i1, j1 := matrix.ij(k1)
+    k2 := m.index(j1, i1)
+    m.values.values[k2] = value
+    m.values.indexInsert(k2)
+  }
+  return m
 }
 func (matrix *SparseBareRealMatrix) Tip() {
   mn := matrix.values.Dim()
@@ -601,7 +582,7 @@ func (m *SparseBareRealMatrix) Import(filename string) error {
 /* json
  * -------------------------------------------------------------------------- */
 func (obj *SparseBareRealMatrix) MarshalJSON() ([]byte, error) {
-  if obj.transposed || obj.rowMax > obj.rows || obj.colMax > obj.cols {
+  if obj.rowMax > obj.rows || obj.colMax > obj.cols {
     n, m := obj.Dims()
     tmp := NullSparseBareRealMatrix(n, m)
     tmp.Set(obj)
@@ -635,7 +616,6 @@ func (obj *SparseBareRealMatrix) UnmarshalJSON(data []byte) error {
   obj.cols = r.Cols
   obj.colMax = r.Cols
   obj.colOffset = 0
-  obj.transposed = false
   obj.initTmp()
   return nil
 }

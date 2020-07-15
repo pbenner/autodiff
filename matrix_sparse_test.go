@@ -290,3 +290,27 @@ func TestSparseMatrix6(t *testing.T) {
     }
   }
 }
+
+func TestSparseMatrix7(t *testing.T) {
+  r := rand.New(rand.NewSource(3))
+
+  for i := 0; i < 1000; i++ {
+    n := 20
+    m := r.Intn(n)
+    p := r.Intn(n)
+
+    rows1 := randn(r, n+0, m)
+    cols1 := randn(r, n+p, m)
+    vals1 := randf(r, m)
+
+    m1 := NewSparseRealMatrix(n+0, n+p, rows1, cols1, vals1)
+    m2 := NewSparseRealMatrix(n+p, n+0, cols1, rows1, vals1).T()
+
+    for it := m1.JointIterator(m2); it.Ok(); it.Next() {
+      a, b := it.GetValue()
+      if a != b {
+        t.Errorf("test failed")
+      }
+    }
+  }
+}
