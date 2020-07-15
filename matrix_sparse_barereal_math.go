@@ -284,7 +284,9 @@ func (r *SparseBareRealMatrix) Jacobian(f func(ConstVector) ConstVector, x_ Vect
   // copy derivatives
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.At(i, j).SetValue(y.ConstAt(i).GetDerivative(j))
+      if s := y.ConstAt(i).GetDerivative(j); s != 0.0 {
+        r.At(i, j).SetValue(s)
+      }
     }
   }
   return r
@@ -305,7 +307,9 @@ func (r *SparseBareRealMatrix) Hessian(f func(ConstVector) ConstScalar, x_ Vecto
   // copy second derivatives
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      r.At(i, j).SetValue(y.GetHessian(i, j))
+      if s := y.GetHessian(i, j); s != 0.0 {
+        r.At(i, j).SetValue(s)
+      }
     }
   }
   return r
