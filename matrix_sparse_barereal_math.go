@@ -211,37 +211,21 @@ func (r *SparseBareRealMatrix) MdotM(a, b ConstMatrix) Matrix {
   if n1 != n || m2 != m || m1 != n2 {
     panic("matrix dimensions do not match!")
   }
+  if r.storageLocation() == a.storageLocation() ||
+     r.storageLocation() == b.storageLocation() {
+    panic("result and argument must be different matrices")
+  }
   t1 := NullScalar(r.ElementType())
-  t2 := NullScalar(r.ElementType())
-  if r.storageLocation() == b.storageLocation() {
-    t3 := r.tmp1.Slice(0, n).(*SparseBareRealVector)
-    for j := 0; j < m; j++ {
-      for i := 0; i < n; i++ {
-        t2.Reset()
-        for k := 0; k < m1; k++ {
-          t1.Mul(a.ConstAt(i, k), b.ConstAt(k, j))
-          t2.Add(t2, t1)
-        }
-        t3.At(i).Set(t2)
+  for it := a.ConstIterator(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    for is := b.ConstIteratorFrom(j, 0); is.Ok(); is.Next() {
+      p, q := is.Index()
+      if p != j {
+        break
       }
-      for i := 0; i < n; i++ {
-        r.At(i, j).Set(t3.At(i))
-      }
-    }
-  } else {
-    t3 := r.tmp2.Slice(0, m).(*SparseBareRealVector)
-    for i := 0; i < n; i++ {
-      for j := 0; j < m; j++ {
-        t2.Reset()
-        for k := 0; k < m1; k++ {
-          t1.Mul(a.ConstAt(i, k), b.ConstAt(k, j))
-          t2.Add(t2, t1)
-        }
-        t3.At(j).Set(t2)
-      }
-      for j := 0; j < m; j++ {
-        r.At(i, j).Set(t3.At(j))
-      }
+      t1.Mul(it.GetConst(), is.GetConst())
+      r_ := r.At(i, q)
+      r_.Add(r_, t1)
     }
   }
   return r

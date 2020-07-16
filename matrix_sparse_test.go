@@ -264,7 +264,7 @@ func TestSparseMatrix6(t *testing.T) {
   r := rand.New(rand.NewSource(42))
 
   for i := 0; i < 1000; i++ {
-    n := 20
+    n := 25
     m := r.Intn(n)
 
     rows1 := randn(r, n, m)
