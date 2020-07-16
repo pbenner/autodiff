@@ -204,6 +204,14 @@ func (obj VECTOR_TYPE) Iterator() VectorIterator {
   return obj.ITERATOR()
 }
 
+func (obj VECTOR_TYPE) ConstIteratorFrom(i int) VectorConstIterator {
+  return obj.CONST_ITERATOR_FROM(i)
+}
+
+func (obj VECTOR_TYPE) IteratorFrom(i int) VectorIterator {
+  return obj.ITERATOR_FROM(i)
+}
+
 func (obj VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
@@ -217,8 +225,18 @@ func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
   return &r
 }
 
+func (obj VECTOR_TYPE) ITERATOR_FROM(i int) *VECTOR_ITERATOR {
+  r := VECTOR_ITERATOR{obj.indexIteratorFrom(i), obj}
+  return &r
+}
+
 func (obj VECTOR_TYPE) CONST_ITERATOR() *VECTOR_ITERATOR {
   r := VECTOR_ITERATOR{obj.indexIterator(), obj}
+  return &r
+}
+
+func (obj VECTOR_TYPE) CONST_ITERATOR_FROM(i int) *VECTOR_ITERATOR {
+  r := VECTOR_ITERATOR{obj.indexIteratorFrom(i), obj}
   return &r
 }
 

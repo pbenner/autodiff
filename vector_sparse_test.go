@@ -420,7 +420,7 @@ func TestSparseVector14(t *testing.T) {
     vals2 := randf(r, m)
 
     v := NewSparseRealVector(inds1, vals1, n)
-    w := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    w := NewSparseRealMatrix(rows2, cols2, vals2, n, n)
     r := NewSparseRealVector([]int{}, []float64{}, n)
 
     d_v := AsDenseRealVector(v)
@@ -450,7 +450,7 @@ func TestSparseVector15(t *testing.T) {
     vals2 := randf(r, m)
 
     v := NewSparseRealVector(inds1, vals1, n)
-    w := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    w := NewSparseRealMatrix(rows2, cols2, vals2, n, n)
     r := NewSparseRealVector([]int{}, []float64{}, n)
 
     d_v := AsDenseRealVector(v)

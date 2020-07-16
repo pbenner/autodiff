@@ -78,12 +78,22 @@ func (obj DenseGradient) ConstIterator() VectorConstIterator {
   return obj.ITERATOR()
 }
 
+func (obj DenseGradient) ConstIteratorFrom(i int) VectorConstIterator {
+  return obj.ITERATOR_FROM(i)
+}
+
 func (obj DenseGradient) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
 
 func (obj DenseGradient) ITERATOR() *DenseGradientIterator {
   r := DenseGradientIterator{obj, -1}
+  r.Next()
+  return &r
+}
+
+func (obj DenseGradient) ITERATOR_FROM(i int) *DenseGradientIterator {
+  r := DenseGradientIterator{obj, i-1}
   r.Next()
   return &r
 }

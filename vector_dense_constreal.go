@@ -83,12 +83,22 @@ func (v DenseConstRealVector) ConstIterator() VectorConstIterator {
   return v.ITERATOR()
 }
 
+func (v DenseConstRealVector) ConstIteratorFrom(i int) VectorConstIterator {
+  return v.ITERATOR_FROM(i)
+}
+
 func (v DenseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   return v.JOINT_ITERATOR(b)
 }
 
 func (v DenseConstRealVector) ITERATOR() *DenseConstRealVectorIterator {
   r := DenseConstRealVectorIterator{v, -1}
+  r.Next()
+  return &r
+}
+
+func (v DenseConstRealVector) ITERATOR_FROM(i int) *DenseConstRealVectorIterator {
+  r := DenseConstRealVectorIterator{v, i-1}
   r.Next()
   return &r
 }

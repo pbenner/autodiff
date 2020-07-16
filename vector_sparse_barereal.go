@@ -170,6 +170,12 @@ func (obj *SparseBareRealVector) ConstIterator() VectorConstIterator {
 func (obj *SparseBareRealVector) Iterator() VectorIterator {
   return obj.ITERATOR()
 }
+func (obj *SparseBareRealVector) ConstIteratorFrom(i int) VectorConstIterator {
+  return obj.CONST_ITERATOR_FROM(i)
+}
+func (obj *SparseBareRealVector) IteratorFrom(i int) VectorIterator {
+  return obj.ITERATOR_FROM(i)
+}
 func (obj *SparseBareRealVector) JointIterator(b ConstVector) VectorJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
@@ -180,8 +186,16 @@ func (obj *SparseBareRealVector) ITERATOR() *SparseBareRealVectorIterator {
   r := SparseBareRealVectorIterator{obj.indexIterator(), obj}
   return &r
 }
+func (obj *SparseBareRealVector) ITERATOR_FROM(i int) *SparseBareRealVectorIterator {
+  r := SparseBareRealVectorIterator{obj.indexIteratorFrom(i), obj}
+  return &r
+}
 func (obj *SparseBareRealVector) CONST_ITERATOR() *SparseBareRealVectorIterator {
   r := SparseBareRealVectorIterator{obj.indexIterator(), obj}
+  return &r
+}
+func (obj *SparseBareRealVector) CONST_ITERATOR_FROM(i int) *SparseBareRealVectorIterator {
+  r := SparseBareRealVectorIterator{obj.indexIteratorFrom(i), obj}
   return &r
 }
 func (obj *SparseBareRealVector) JOINT_ITERATOR(b ConstVector) *SparseBareRealVectorJointIterator {

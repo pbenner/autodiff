@@ -183,8 +183,16 @@ func (obj VECTOR_TYPE) ConstIterator() VectorConstIterator {
   return obj.ITERATOR()
 }
 
+func (obj VECTOR_TYPE) ConstIteratorFrom(i int) VectorConstIterator {
+  return obj.ITERATOR_FROM(i)
+}
+
 func (obj VECTOR_TYPE) Iterator() VectorIterator {
   return obj.ITERATOR()
+}
+
+func (obj VECTOR_TYPE) IteratorFrom(i int) VectorIterator {
+  return obj.ITERATOR_FROM(i)
 }
 
 func (obj VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
@@ -197,6 +205,12 @@ func (obj VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterato
 
 func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
   r := VECTOR_ITERATOR{obj, -1}
+  r.Next()
+  return &r
+}
+
+func (obj VECTOR_TYPE) ITERATOR_FROM(i int) *VECTOR_ITERATOR {
+  r := VECTOR_ITERATOR{obj, i-1}
   r.Next()
   return &r
 }

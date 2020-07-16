@@ -44,7 +44,7 @@ type SparseRealMatrix struct {
 }
 /* constructors
  * -------------------------------------------------------------------------- */
-func NewSparseRealMatrix(rows, cols int, rowIndices, colIndices []int, values []float64) *SparseRealMatrix {
+func NewSparseRealMatrix(rowIndices, colIndices []int, values []float64, rows, cols int) *SparseRealMatrix {
   m := NullSparseRealMatrix(rows, cols)
   if len(rowIndices) != len(colIndices) || len(colIndices) != len(values) {
     panic("number of row/col-indices does not match number of values")
@@ -575,7 +575,7 @@ func (m *SparseRealMatrix) Import(filename string) error {
       values = append(values, v)
     }
   }
-  *m = *NewSparseRealMatrix(rows, cols, rowIndices, colIndices, values)
+  *m = *NewSparseRealMatrix(rowIndices, colIndices, values, rows, cols)
   return nil
 }
 /* json

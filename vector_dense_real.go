@@ -133,8 +133,14 @@ func (v DenseRealVector) GetValues() []float64 {
 func (obj DenseRealVector) ConstIterator() VectorConstIterator {
   return obj.ITERATOR()
 }
+func (obj DenseRealVector) ConstIteratorFrom(i int) VectorConstIterator {
+  return obj.ITERATOR_FROM(i)
+}
 func (obj DenseRealVector) Iterator() VectorIterator {
   return obj.ITERATOR()
+}
+func (obj DenseRealVector) IteratorFrom(i int) VectorIterator {
+  return obj.ITERATOR_FROM(i)
 }
 func (obj DenseRealVector) JointIterator(b ConstVector) VectorJointIterator {
   return obj.JOINT_ITERATOR(b)
@@ -144,6 +150,11 @@ func (obj DenseRealVector) ConstJointIterator(b ConstVector) VectorConstJointIte
 }
 func (obj DenseRealVector) ITERATOR() *DenseRealVectorIterator {
   r := DenseRealVectorIterator{obj, -1}
+  r.Next()
+  return &r
+}
+func (obj DenseRealVector) ITERATOR_FROM(i int) *DenseRealVectorIterator {
+  r := DenseRealVectorIterator{obj, i-1}
   r.Next()
   return &r
 }

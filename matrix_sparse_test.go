@@ -57,8 +57,8 @@ func TestSparseMatrix1(t *testing.T) {
     cols2 := randn(r, n, m)
     vals2 := randf(r, m)
 
-    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 := NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 := NewSparseRealMatrix(rows2, cols2, vals2, n, n)
 
     d1 := AsDenseRealMatrix(m1)
     d2 := AsDenseRealMatrix(m2)
@@ -70,15 +70,15 @@ func TestSparseMatrix1(t *testing.T) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 = NewSparseRealMatrix(rows2, cols2, vals2, n, n)
     m1.MaddM(m1, m2)
 
     if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
     d1 = AsDenseRealMatrix(m1)
     s := NewScalar(RealType, r.Float64())
     m1.MaddS(m1, s)
@@ -104,8 +104,8 @@ func TestSparseMatrix2(t *testing.T) {
     cols2 := randn(r, n, m)
     vals2 := randf(r, m)
 
-    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 := NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 := NewSparseRealMatrix(rows2, cols2, vals2, n, n)
 
     d1 := AsDenseRealMatrix(m1)
     d2 := AsDenseRealMatrix(m2)
@@ -117,15 +117,15 @@ func TestSparseMatrix2(t *testing.T) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 = NewSparseRealMatrix(rows2, cols2, vals2, n, n)
     m1.MsubM(m1, m2)
 
     if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
     d1 = AsDenseRealMatrix(m1)
     s := NewScalar(RealType, r.Float64())
     m1.MsubS(m1, s)
@@ -151,8 +151,8 @@ func TestSparseMatrix3(t *testing.T) {
     cols2 := randn(r, n, m)
     vals2 := randf(r, m)
 
-    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 := NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 := NewSparseRealMatrix(rows2, cols2, vals2, n, n)
 
     d1 := AsDenseRealMatrix(m1)
     d2 := AsDenseRealMatrix(m2)
@@ -164,15 +164,15 @@ func TestSparseMatrix3(t *testing.T) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 = NewSparseRealMatrix(rows2, cols2, vals2, n, n)
     m1.MmulM(m1, m2)
 
     if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
     d1 = AsDenseRealMatrix(m1)
     s := NewScalar(RealType, r.Float64())
     m1.MmulS(m1, s)
@@ -198,8 +198,8 @@ func TestSparseMatrix4(t *testing.T) {
     cols2 := randn(r, n, m)
     vals2 := randf(r, m)
 
-    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 := NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 := NewSparseRealMatrix(rows2, cols2, vals2, n, n)
 
     d1 := AsDenseRealMatrix(m1)
     d2 := AsDenseRealMatrix(m2)
@@ -211,15 +211,15 @@ func TestSparseMatrix4(t *testing.T) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 = NewSparseRealMatrix(n, n, rows2, cols2, vals2)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 = NewSparseRealMatrix(rows2, cols2, vals2, n, n)
     m1.MdivM(m1, m2)
 
     if !d2.Equals(m1, 1e-8) {
       t.Errorf("test failed")
     }
 
-    m1 = NewSparseRealMatrix(n, n, rows1, cols1, vals1)
+    m1 = NewSparseRealMatrix(rows1, cols1, vals1, n, n)
     d1 = AsDenseRealMatrix(m1)
     s := NewScalar(RealType, r.Float64())
     m1.MdivS(m1, s)
@@ -245,7 +245,7 @@ func TestSparseMatrix5(t *testing.T) {
 
     v1 := NewSparseRealVector(inds1, vals1, n)
     v2 := NewSparseRealVector(inds2, vals2, n)
-    r  := NewSparseRealMatrix(n, n, []int{}, []int{}, []float64{})
+    r  := NewSparseRealMatrix([]int{}, []int{}, []float64{}, n, n)
 
     d1 := AsDenseRealVector(v1)
     d2 := AsDenseRealVector(v2)
@@ -274,9 +274,9 @@ func TestSparseMatrix6(t *testing.T) {
     cols2 := randn(r, n, m)
     vals2 := randf(r, m)
 
-    m1 := NewSparseRealMatrix(n, n, rows1, cols1, vals1)
-    m2 := NewSparseRealMatrix(n, n, rows2, cols2, vals2)
-    r  := NewSparseRealMatrix(n, n, []int{}, []int{}, []float64{})
+    m1 := NewSparseRealMatrix(rows1, cols1, vals1, n, n)
+    m2 := NewSparseRealMatrix(rows2, cols2, vals2, n, n)
+    r  := NewSparseRealMatrix([]int{}, []int{}, []float64{}, n, n)
 
     d1 := AsDenseRealMatrix(m1)
     d2 := AsDenseRealMatrix(m2)
@@ -303,8 +303,8 @@ func TestSparseMatrix7(t *testing.T) {
     cols1 := randn(r, n+p, m)
     vals1 := randf(r, m)
 
-    m1 := NewSparseRealMatrix(n+0, n+p, rows1, cols1, vals1)
-    m2 := NewSparseRealMatrix(n+p, n+0, cols1, rows1, vals1).T()
+    m1 := NewSparseRealMatrix(rows1, cols1, vals1, n+0, n+p)
+    m2 := NewSparseRealMatrix(cols1, rows1, vals1, n+p, n+0).T()
 
     for it := m1.JointIterator(m2); it.Ok(); it.Next() {
       a, b := it.GetValue()

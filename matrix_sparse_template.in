@@ -65,7 +65,7 @@ type MATRIX_NAME struct {
 /* constructors
  * -------------------------------------------------------------------------- */
 
-func NEW_MATRIX(rows, cols int, rowIndices, colIndices []int, values []float64) MATRIX_TYPE {
+func NEW_MATRIX(rowIndices, colIndices []int, values []float64, rows, cols int) MATRIX_TYPE {
   m := NULL_MATRIX(rows, cols)
   if len(rowIndices) != len(colIndices) || len(colIndices) != len(values) {
     panic("number of row/col-indices does not match number of values")
@@ -666,7 +666,7 @@ func (m MATRIX_TYPE) Import(filename string) error {
       values = append(values, v)
     }
   }
-  *m = *NEW_MATRIX(rows, cols, rowIndices, colIndices, values)
+  *m = *NEW_MATRIX(rowIndices, colIndices, values, rows, cols)
 
   return nil
 }

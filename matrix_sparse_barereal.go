@@ -45,7 +45,7 @@ type SparseBareRealMatrix struct {
 }
 /* constructors
  * -------------------------------------------------------------------------- */
-func NewSparseBareRealMatrix(rows, cols int, rowIndices, colIndices []int, values []float64) *SparseBareRealMatrix {
+func NewSparseBareRealMatrix(rowIndices, colIndices []int, values []float64, rows, cols int) *SparseBareRealMatrix {
   m := NullSparseBareRealMatrix(rows, cols)
   if len(rowIndices) != len(colIndices) || len(colIndices) != len(values) {
     panic("number of row/col-indices does not match number of values")
@@ -576,7 +576,7 @@ func (m *SparseBareRealMatrix) Import(filename string) error {
       values = append(values, v)
     }
   }
-  *m = *NewSparseBareRealMatrix(rows, cols, rowIndices, colIndices, values)
+  *m = *NewSparseBareRealMatrix(rowIndices, colIndices, values, rows, cols)
   return nil
 }
 /* json

@@ -73,6 +73,7 @@ type ConstVector interface {
   ConstSlice        (i, j int)             ConstVector
   GetValues         ()                     []float64
   ConstIterator     ()                     VectorConstIterator
+  ConstIteratorFrom (i int)                VectorConstIterator
   ConstJointIterator(ConstVector)          VectorConstJointIterator
 }
 
@@ -88,9 +89,11 @@ type Vector interface {
   GetValues         ()                     []float64
   // iterators
   ConstIterator     ()                     VectorConstIterator
+  ConstIteratorFrom (i int)                VectorConstIterator
   JointIterator     (ConstVector)          VectorJointIterator
   ConstJointIterator(ConstVector)          VectorConstJointIterator
   Iterator          ()                     VectorIterator
+  IteratorFrom      (i int)                VectorIterator
   // other methods
   At                (int)                  Scalar
   Reset             ()

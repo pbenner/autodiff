@@ -170,12 +170,28 @@ func (obj SparseConstRealVector) ConstIterator() VectorConstIterator {
   return obj.ITERATOR()
 }
 
+func (obj SparseConstRealVector) ConstIteratorFrom(i int) VectorConstIterator {
+  return obj.ITERATOR_FROM(i)
+}
+
 func (obj SparseConstRealVector) ConstJointIterator(b ConstVector) VectorConstJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
 
 func (obj SparseConstRealVector) ITERATOR() *SparseConstRealVectorIterator {
   r := SparseConstRealVectorIterator{0, obj}
+  return &r
+}
+
+func (obj SparseConstRealVector) ITERATOR_FROM(i int) *SparseConstRealVectorIterator {
+  k := 0
+  for j, idx := range obj.indices {
+    if idx >= i {
+      k = j
+      break
+    }
+  }
+  r := SparseConstRealVectorIterator{k, obj}
   return &r
 }
 
