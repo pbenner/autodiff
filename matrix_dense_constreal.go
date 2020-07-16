@@ -282,8 +282,19 @@ func (m DenseConstRealMatrix) ConstIterator() MatrixConstIterator {
   return m.ITERATOR()
 }
 
+func (m DenseConstRealMatrix) ConstIteratorFrom(i, j int) MatrixConstIterator {
+  return m.ITERATOR_FROM(i, j)
+}
+
 func (m DenseConstRealMatrix) ITERATOR() *DenseConstRealMatrixIterator {
   r := DenseConstRealMatrixIterator{m, -1}
+  r.Next()
+  return &r
+}
+
+func (m DenseConstRealMatrix) ITERATOR_FROM(i, j int) *DenseConstRealMatrixIterator {
+  k := m.index(i, j)
+  r := DenseConstRealMatrixIterator{m, k-1}
   r.Next()
   return &r
 }

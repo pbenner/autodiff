@@ -624,14 +624,25 @@ func (obj *SparseBareRealMatrix) UnmarshalJSON(data []byte) error {
 func (obj *SparseBareRealMatrix) ConstIterator() MatrixConstIterator {
   return obj.ITERATOR()
 }
+func (obj *SparseBareRealMatrix) ConstIteratorFrom(i, j int) MatrixConstIterator {
+  return obj.ITERATOR_FROM(i, j)
+}
 func (obj *SparseBareRealMatrix) JointIterator(b ConstMatrix) MatrixJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
 func (obj *SparseBareRealMatrix) Iterator() MatrixIterator {
   return obj.ITERATOR()
 }
+func (obj *SparseBareRealMatrix) IteratorFrom(i, j int) MatrixIterator {
+  return obj.ITERATOR_FROM(i, j)
+}
 func (obj *SparseBareRealMatrix) ITERATOR() *SparseBareRealMatrixIterator {
   r := SparseBareRealMatrixIterator{*obj.values.ITERATOR(), obj}
+  return &r
+}
+func (obj *SparseBareRealMatrix) ITERATOR_FROM(i, j int) *SparseBareRealMatrixIterator {
+  k := obj.index(i, j)
+  r := SparseBareRealMatrixIterator{*obj.values.ITERATOR_FROM(k), obj}
   return &r
 }
 func (obj *SparseBareRealMatrix) JOINT_ITERATOR(b ConstMatrix) *SparseBareRealMatrixJointIterator {

@@ -65,22 +65,23 @@ type MatrixJointIterator interface {
 
 type ConstMatrix interface {
   ConstScalarContainer
-  Dims            ()                           (int, int)
-  Equals          (ConstMatrix, float64)       bool
-  Table           ()                           string
-  ValueAt         (i, j int)                   float64
-  ConstAt         (i, j int)                   ConstScalar
-  ConstSlice      (rfrom, rto, cfrom, cto int) ConstMatrix
-  ConstRow        (i int)                      ConstVector
-  ConstCol        (j int)                      ConstVector
-  ConstDiag       ()                           ConstVector
-  GetValues       ()                           []float64
-  AsConstVector   ()                           ConstVector
-  CloneConstMatrix()                           ConstMatrix
-  ConstIterator   ()                           MatrixConstIterator
-  IsSymmetric     (float64)                    bool
+  Dims             ()                           (int, int)
+  Equals           (ConstMatrix, float64)       bool
+  Table            ()                           string
+  ValueAt          (i, j int)                   float64
+  ConstAt          (i, j int)                   ConstScalar
+  ConstSlice       (rfrom, rto, cfrom, cto int) ConstMatrix
+  ConstRow         (i int)                      ConstVector
+  ConstCol         (j int)                      ConstVector
+  ConstDiag        ()                           ConstVector
+  GetValues        ()                           []float64
+  AsConstVector    ()                           ConstVector
+  CloneConstMatrix ()                           ConstMatrix
+  ConstIterator    ()                           MatrixConstIterator
+  ConstIteratorFrom(i, j int)                   MatrixConstIterator
+  IsSymmetric      (float64)                    bool
   // private methods
-  storageLocation() uintptr
+  storageLocation  () uintptr
 }
 
 type Matrix interface {
@@ -125,7 +126,9 @@ type Matrix interface {
   AsConstVector       ()                   ConstVector
   // iterators
   ConstIterator       ()                   MatrixConstIterator
+  ConstIteratorFrom   (i, j int)           MatrixConstIterator
   Iterator            ()                   MatrixIterator
+  IteratorFrom        (i, j int)           MatrixIterator
   JointIterator       (b ConstMatrix)      MatrixJointIterator
   // math operations
   MaddM(a,             b ConstMatrix)      Matrix

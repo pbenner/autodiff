@@ -620,14 +620,25 @@ func (obj *DenseRealMatrix) UnmarshalJSON(data []byte) error {
 func (obj *DenseRealMatrix) ConstIterator() MatrixConstIterator {
   return obj.ITERATOR()
 }
+func (obj *DenseRealMatrix) ConstIteratorFrom(i, j int) MatrixConstIterator {
+  return obj.ITERATOR_FROM(i, j)
+}
 func (obj *DenseRealMatrix) JointIterator(b ConstMatrix) MatrixJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
 func (obj *DenseRealMatrix) Iterator() MatrixIterator {
   return obj.ITERATOR()
 }
+func (obj *DenseRealMatrix) IteratorFrom(i, j int) MatrixIterator {
+  return obj.ITERATOR_FROM(i, j)
+}
 func (obj *DenseRealMatrix) ITERATOR() *DenseRealMatrixIterator {
   r := DenseRealMatrixIterator{*obj.values.ITERATOR(), obj}
+  return &r
+}
+func (obj *DenseRealMatrix) ITERATOR_FROM(i, j int) *DenseRealMatrixIterator {
+  k := obj.index(i, j)
+  r := DenseRealMatrixIterator{*obj.values.ITERATOR_FROM(k), obj}
   return &r
 }
 func (obj *DenseRealMatrix) JOINT_ITERATOR(b ConstMatrix) *DenseRealMatrixJointIterator {

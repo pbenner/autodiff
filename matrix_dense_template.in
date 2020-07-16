@@ -737,6 +737,10 @@ func (obj MATRIX_TYPE) ConstIterator() MatrixConstIterator {
   return obj.ITERATOR()
 }
 
+func (obj MATRIX_TYPE) ConstIteratorFrom(i, j int) MatrixConstIterator {
+  return obj.ITERATOR_FROM(i, j)
+}
+
 func (obj MATRIX_TYPE) JointIterator(b ConstMatrix) MatrixJointIterator {
   return obj.JOINT_ITERATOR(b)
 }
@@ -745,8 +749,18 @@ func (obj MATRIX_TYPE) Iterator() MatrixIterator {
   return obj.ITERATOR()
 }
 
+func (obj MATRIX_TYPE) IteratorFrom(i, j int) MatrixIterator {
+  return obj.ITERATOR_FROM(i, j)
+}
+
 func (obj MATRIX_TYPE) ITERATOR() *MATRIX_ITERATOR {
   r := MATRIX_ITERATOR{*obj.values.ITERATOR(), obj}
+  return &r
+}
+
+func (obj MATRIX_TYPE) ITERATOR_FROM(i, j int) *MATRIX_ITERATOR {
+  k := obj.index(i, j)
+  r := MATRIX_ITERATOR{*obj.values.ITERATOR_FROM(k), obj}
   return &r
 }
 
