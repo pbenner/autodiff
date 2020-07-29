@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
   // temporary variables
   t1 := make([][]float64, m)
   t2 := make([][]int,     m)
-  t3 := NullBareReal()
+  t3 := NullFloat64()
   for i := 0; i < m; i++ {
     t1[i] = make([]float64, n)
     t2[i] = make([]int,     n)
@@ -47,7 +47,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
     if err := data.LogPdf(t3, obj.StateMap[j], 0); err != nil {
       return nil, err
     }
-    t1[j][0] = obj.Pi.At(j).GetValue() + t3.GetValue()
+    t1[j][0] = obj.Pi.At(j).GetFloat64() + t3.GetFloat64()
     t2[j][0] = 0
   }
   // loop over x(1), ..., x(N-1)
@@ -57,7 +57,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
       i_val := math.Inf(-1)
       // loop over states and find maximum
       for i := 0; i < m; i++ {
-        if v := t1[i][k-1] + obj.Tr.At(i, j).GetValue(); v > i_val {
+        if v := t1[i][k-1] + obj.Tr.At(i, j).GetFloat64(); v > i_val {
           i_pos = i
           i_val = v
         }
@@ -65,7 +65,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
       if err := data.LogPdf(t3, obj.StateMap[j], k); err != nil {
         return nil, err
       }
-      t1[j][k] = i_val + t3.GetValue()
+      t1[j][k] = i_val + t3.GetFloat64()
       t2[j][k] = i_pos
     }
   }
@@ -77,7 +77,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
       i_val := math.Inf(-1)
       // loop over states and find maximum
       for i := 0; i < m; i++ {
-        if v := t1[i][k-1] + obj.Tf.At(i, j).GetValue(); v > i_val {
+        if v := t1[i][k-1] + obj.Tf.At(i, j).GetFloat64(); v > i_val {
           i_pos = i
           i_val = v
         }
@@ -85,7 +85,7 @@ func (obj *Hmm) Viterbi(data HmmDataRecord) ([]int, error) {
       if err := data.LogPdf(t3, obj.StateMap[j], k); err != nil {
         return nil, err
       }
-      t1[j][k] = i_val + t3.GetValue()
+      t1[j][k] = i_val + t3.GetFloat64()
       t2[j][k] = i_pos
     }
   }

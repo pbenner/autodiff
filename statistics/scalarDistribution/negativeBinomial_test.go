@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,14 +27,14 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 func TestNegativeBinomial(t *testing.T) {
-  d, _ := NewNegativeBinomialDistribution(NewReal(3), NewReal(0.3))
-  x := NewReal(12.0)
-  r := NewReal(0.0)
+  d, _ := NewNegativeBinomialDistribution(NewFloat64(3), NewFloat64(0.3))
+  x := NewFloat64(12.0)
+  r := NewFloat64(0.0)
 
   if err := d.LogPdf(r, x); err != nil {
     t.Error(err)
   }
-  if math.Abs(r.GetValue() - -11.00684) > 1e-4 {
+  if math.Abs(r.GetFloat64() - -11.00684) > 1e-4 {
     t.Error("test failed")
   }
 }

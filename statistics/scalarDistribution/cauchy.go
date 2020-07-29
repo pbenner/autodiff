@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ type CauchyDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewCauchyDistribution(mu, sigma Scalar) (*CauchyDistribution, error) {
-  if sigma.GetValue() <= 0.0 {
+  if sigma.GetFloat64() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
   t  := mu.Type()
@@ -45,7 +45,7 @@ func NewCauchyDistribution(mu, sigma Scalar) (*CauchyDistribution, error) {
   r := CauchyDistribution{}
   r.Mu    = mu   .CloneScalar()
   r.Sigma = sigma.CloneScalar()
-  r.z     = t1.Log(t1.Div(sigma, ConstReal(math.Pi)))
+  r.z     = t1.Log(t1.Div(sigma, ConstFloat64(math.Pi)))
   r.s2    = t2.Mul(sigma, sigma)
   return &r, nil
 }
@@ -88,7 +88,7 @@ func (obj *CauchyDistribution) Pdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (obj *CauchyDistribution) GetParameters() Vector {
-  p := NullVector(obj.ScalarType(), 2)
+  p := NullDenseVector(obj.ScalarType(), 2)
   p.At(0).Set(obj.Mu)
   p.At(1).Set(obj.Sigma)
   return p

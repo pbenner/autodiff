@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,8 +51,8 @@ func NewNormalEstimator(mu, sigma []float64, sigmaMin float64) (*NormalEstimator
   if len(sigma) != n*n {
     return nil, fmt.Errorf("sigma has invalid dimension")
   } else {
-    Mu := NewVector(BareRealType, mu)
-    Si := NewMatrix(BareRealType, n, n, sigma)
+    Mu := NewDenseFloat64Vector(mu)
+    Si := NewDenseFloat64Matrix(sigma, n, n)
     if dist, err := vectorDistribution.NewNormalDistribution(Mu, Si); err != nil {
       return nil, err
     } else {
@@ -111,21 +111,21 @@ func (obj *NormalEstimator) NewObservation(x ConstVector, gamma ConstScalar, p T
   if gamma == nil {
     obj.sum_g[id] += 1.0
     for i := 0; i < obj.n; i++ {
-      xi := x.ConstAt(i).GetValue()
+      xi := x.ConstAt(i).GetFloat64()
       obj.sum_m[id][i] += xi
       for j := 0; j < obj.n; j++ {
-        xj := x.ConstAt(j).GetValue()
+        xj := x.ConstAt(j).GetFloat64()
         obj.sum_s[id][i][j] += xi*xj
       }
     }
   } else {
-    g := math.Exp(gamma.GetValue() - obj.gamma_max)
+    g := math.Exp(gamma.GetFloat64() - obj.gamma_max)
     obj.sum_g[id] += g
     for i := 0; i < obj.n; i++ {
-      xi := x.ConstAt(i).GetValue()
+      xi := x.ConstAt(i).GetFloat64()
       obj.sum_m[id][i] += g*xi
       for j := 0; j < obj.n; j++ {
-        xj := x.ConstAt(j).GetValue()
+        xj := x.ConstAt(j).GetFloat64()
         obj.sum_s[id][i][j] += g*xi*xj
       }
     }
@@ -149,15 +149,15 @@ func (obj *NormalEstimator) estimateParameters() (Vector, Matrix, int) {
       }
     }
   }
-  mu := NullVector(BareRealType, obj.n)
-  si := NullMatrix(BareRealType, obj.n, obj.n)
+  mu := NullDenseFloat64Vector(obj.n)
+  si := NullDenseFloat64Matrix(obj.n, obj.n)
   for i := 0; i < obj.n; i++ {
-    mu.At(i).SetValue(sum_m[i]/sum_g)
+    mu.At(i).SetFloat64(sum_m[i]/sum_g)
     for j := 0; j < obj.n; j++ {
-      si.At(i,j).SetValue(sum_s[i][j]/sum_g - sum_m[i]/sum_g*sum_m[j]/sum_g)
+      si.At(i,j).SetFloat64(sum_s[i][j]/sum_g - sum_m[i]/sum_g*sum_m[j]/sum_g)
     }
-    if s := si.At(i,i).GetValue(); math.IsNaN(s) || s < obj.SigmaMin {
-      si.At(i,i).SetValue(obj.SigmaMin)
+    if s := si.At(i,i).GetFloat64(); math.IsNaN(s) || s < obj.SigmaMin {
+      si.At(i,i).SetFloat64(obj.SigmaMin)
     }
   }
   obj.sum_g = nil
@@ -188,7 +188,7 @@ func (obj *NormalEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   if gamma != nil {
     obj.gamma_max = math.Inf(-1)
     for i := 0; i < gamma.Dim(); i++ {
-      if g := gamma.ConstAt(i).GetValue(); obj.gamma_max < g {
+      if g := gamma.ConstAt(i).GetFloat64(); obj.gamma_max < g {
         obj.gamma_max = g
       }
     }

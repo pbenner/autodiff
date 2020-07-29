@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,23 +24,22 @@ import   "sort"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func Test1(t *testing.T) {
-  a := NewMatrix(RealType, 5, 5, []float64{
+func Test1(test *testing.T) {
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0, 0, 0,
     0, 2, 1, 0, 0,
     0, 0, 3, 1, 0,
     0, 0, 0, 4, 1,
-    0, 0, 0, 0, 5 })
+    0, 0, 0, 0, 5 }, 5, 5)
 
   h, _, _, _ := Run(a)
 
   r := []float64{}
   for i := 0; i < 4; i++ {
-    r = append(r, h.At(i, i).GetValue())
+    r = append(r, h.At(i, i).GetFloat64())
   }
   sort.Float64s(r)
 
@@ -48,97 +47,108 @@ func Test1(t *testing.T) {
 
   for i := 0; i < len(r); i++ {
     if math.Abs(r[i]-singularValues[i]) > 1e-5 {
-      t.Errorf("test failed for singular value `%d'", i)
+      test.Errorf("test failed for singular value `%d'", i)
     }
   }
 }
 
-func Test2(t *testing.T) {
-  a := NewMatrix(RealType, 3, 3, []float64{
+func Test2(test *testing.T) {
+  t := NewFloat64(0.0)
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0,
     0, 2, 1,
-    0, 0, 3 })
+    0, 0, 3 }, 3, 3)
 
   h, u, v, _ := Run(a, ComputeU{true}, ComputeV{true})
 
-  d := MdotM(MdotM(u.T(), a), v)
+  d := NullDenseFloat64Matrix(3, 3)
+  d.MdotM(d.MdotM(u.T(), a), v)
 
-  if Mnorm(MsubM(d, h)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(d.MsubM(d, h)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
 }
 
-func Test3(t *testing.T) {
-  a := NewMatrix(RealType, 7, 5, []float64{
+func Test3(test *testing.T) {
+  t := NewFloat64(0.0)
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0, 0, 0,
     0, 2, 1, 0, 0,
     0, 0, 3, 1, 0,
     0, 0, 0, 4, 1,
     0, 0, 0, 0, 5,
     0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0 })
+    0, 0, 0, 0, 0 }, 7, 5)
 
   h, u, v, _ := Run(a, ComputeU{true}, ComputeV{true})
 
-  d := MdotM(MdotM(u.T(), a), v)
-  b := MdotM(MdotM(u, h), v.T())
+  d := NullDenseFloat64Matrix(7, 5)
+  b := NullDenseFloat64Matrix(7, 5)
+  d.MdotM(d.MdotM(u.T(), a), v)
+  b.MdotM(b.MdotM(u, h), v.T())
 
-  if Mnorm(MsubM(d, h)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(d.MsubM(d, h)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
-  if Mnorm(MsubM(a, b)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(b.MsubM(a, b)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
 }
 
-func Test4(t *testing.T) {
-  a := NewMatrix(RealType, 7, 7, []float64{
+func Test4(test *testing.T) {
+  t := NewFloat64(0.0)
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0, 0, 0, 0, 0,
     0, 2, 1, 0, 0, 0, 0,
     0, 0, 3, 1, 0, 0, 0,
     0, 0, 0, 4, 1, 0, 0,
     0, 0, 0, 0, 1e-21, 1, 0,
     0, 0, 0, 0, 0, 6, 1,
-    0, 0, 0, 0, 0, 0, 7 })
+    0, 0, 0, 0, 0, 0, 7 }, 7, 7)
 
   h, u, v, _ := Run(a, ComputeU{true}, ComputeV{true})
 
-  d := MdotM(MdotM(u.T(), a), v)
-  b := MdotM(MdotM(u, h), v.T())
+  d := NullDenseFloat64Matrix(7, 7)
+  b := NullDenseFloat64Matrix(7, 7)
+  d.MdotM(d.MdotM(u.T(), a), v)
+  b.MdotM(b.MdotM(u, h), v.T())
 
-  if Mnorm(MsubM(d, h)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(d.MsubM(d, h)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
-  if Mnorm(MsubM(a, b)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(b.MsubM(a, b)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
 }
 
-func Test5(t *testing.T) {
-  a := NewMatrix(RealType, 7, 7, []float64{
+func Test5(test *testing.T) {
+  t := NewFloat64(0.0)
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0, 0, 0, 0, 0,
     0, 2, 1, 0, 0, 0, 0,
     0, 0, 3, 1, 0, 0, 0,
     0, 0, 0, 4, 1, 0, 0,
     0, 0, 0, 0, 0, 1, 0,
     0, 0, 0, 0, 0, 6, 1,
-    0, 0, 0, 0, 0, 0, 7 })
+    0, 0, 0, 0, 0, 0, 7 }, 7, 7)
 
   h, u, v, _ := Run(a, ComputeU{true}, ComputeV{true})
 
-  d := MdotM(MdotM(u.T(), a), v)
-  b := MdotM(MdotM(u, h), v.T())
+  d := NullDenseFloat64Matrix(7, 7)
+  b := NullDenseFloat64Matrix(7, 7)
+  d.MdotM(d.MdotM(u.T(), a), v)
+  b.MdotM(b.MdotM(u, h), v.T())
 
-  if Mnorm(MsubM(d, h)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(d.MsubM(d, h)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
-  if Mnorm(MsubM(a, b)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(b.MsubM(a, b)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
 }
 
-func Test6(t *testing.T) {
-  a := NewMatrix(RealType, 16, 16, []float64{
+func Test6(test *testing.T) {
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -154,14 +164,14 @@ func Test6(t *testing.T) {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 })
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, 16, 16)
 
   p, q := splitMatrix(a, 0)
 
   if p != 6 {
-    t.Error("test failed")
+    test.Error("test failed")
   }
   if q != 3 {
-    t.Error("test failed")
+    test.Error("test failed")
   }
 }

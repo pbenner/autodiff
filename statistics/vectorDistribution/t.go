@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,9 +61,9 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   sigmaDet, err := determinant  .Run(sigma, determinant  .PositiveDefinite{true})
   if err != nil { return nil, err }
 
-  d2 := ConstReal(float64(n)/2.0)
+  d2 := ConstFloat64(float64(n)/2.0)
   n2 := NewScalar(t, 0.0)
-  n2.Div(nu, ConstReal(2.0))
+  n2.Div(nu, ConstFloat64(2.0))
   np := NewScalar(t, 0.0)
   np.Add(n2, d2)
   // +log Gamma(nu/2 + d/2)
@@ -73,9 +73,9 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
   // -log Gamma(nu/2)
   z.Sub(z, t1.Lgamma(n2))
   // -1/2 log |Sigma|
-  z.Sub(z, t1.Div(t1.Log(sigmaDet), ConstReal(2.0)))
+  z.Sub(z, t1.Div(t1.Log(sigmaDet), ConstFloat64(2.0)))
   // -d/2 log nu*pi
-  z.Sub(z, t1.Mul(d2, t1.Log(t1.Mul(nu, ConstReal(math.Pi)))))
+  z.Sub(z, t1.Mul(d2, t1.Log(t1.Mul(nu, ConstFloat64(math.Pi)))))
 
   result := TDistribution{
     Nu      : nu.CloneScalar(),
@@ -84,8 +84,8 @@ func NewTDistribution(nu Scalar, mu Vector, sigma Matrix) (*TDistribution, error
     SigmaInv: sigmaInv,
     SigmaDet: sigmaDet,
     np      : np,
-    t1      : NullVector(t, n),
-    t2      : NullVector(t, n),
+    t1      : NullDenseVector(t, n),
+    t2      : NullDenseVector(t, n),
     z       : z }
 
   return &result, nil
@@ -121,20 +121,20 @@ func (dist *TDistribution) Dim() int {
 }
 
 func (dist *TDistribution) Mean() (Vector, error) {
-  if dist.Nu.GetValue() <= 1.0 {
+  if dist.Nu.GetFloat64() <= 1.0 {
     return nil, fmt.Errorf("mean undefined for given parameters")
   }
   return dist.Mu.CloneVector(), nil
 }
 
 func (dist *TDistribution) Variance() (Vector, error) {
-  if dist.Nu.GetValue() <= 2.0 {
+  if dist.Nu.GetFloat64() <= 2.0 {
     return nil, fmt.Errorf("variance undefined for given parameters")
   }
   n := dist.Dim()
   t := NullScalar(dist.ScalarType())
-  m := NullMatrix(dist.ScalarType(), n, n)
-  m.MmulS(dist.Sigma, t.Div(dist.Nu, t.Sub(dist.Nu, ConstReal(2.0))))
+  m := NullDenseMatrix(dist.ScalarType(), n, n)
+  m.MmulS(dist.Sigma, t.Div(dist.Nu, t.Sub(dist.Nu, ConstFloat64(2.0))))
 
   return m.Diag(), nil
 }
@@ -147,7 +147,7 @@ func (dist *TDistribution) LogPdf(r Scalar, x ConstVector) error {
   s.VdotM(y, dist.SigmaInv)
   r.VdotV(s, y)
   r.Div(r, dist.Nu)
-  r.Add(r, ConstReal(1.0))
+  r.Add(r, ConstFloat64(1.0))
   // log r^[(v+p)/2]
   r.Log(r)
   r.Mul(r, dist.np)
@@ -220,9 +220,9 @@ func (obj *TDistribution) ExportConfig() ConfigDistribution {
     Mu    []float64
     Sigma []float64
     N       int }{}
-  config.Nu    = obj.Nu   .GetValue()
-  config.Mu    = obj.Mu   .GetValues()
-  config.Sigma = obj.Sigma.GetValues()
+  config.Nu    = obj.Nu.GetFloat64()
+  config.Mu    = AsDenseFloat64Vector(obj.Mu)
+  config.Sigma = AsDenseFloat64Vector(obj.Sigma.AsVector())
   config.N     = n
 
   return NewConfigDistribution("vector:t distribtion", config)

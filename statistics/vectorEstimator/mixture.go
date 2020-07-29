@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ func NewMixtureEstimator(weights []float64, estimators []VectorEstimator, epsilo
       weights[i] = 1.0
     }
   }
-  m, err := vectorDistribution.NewMixture(NewVector(BareRealType, weights), nil)
+  m, err := vectorDistribution.NewMixture(NewDenseFloat64Vector(weights), nil)
   if err != nil {
     return nil, err
   }
@@ -102,7 +102,7 @@ func (obj *MixtureEstimator) Swap() {
   obj.mixture1, obj.mixture2, obj.mixture3 = obj.mixture3, obj.mixture1, obj.mixture2
 }
 
-func (obj *MixtureEstimator) Emissions(gamma []DenseBareRealVector, p ThreadPool) error {
+func (obj *MixtureEstimator) Emissions(gamma []DenseFloat64Vector, p ThreadPool) error {
   mixture1 := obj.mixture1
   mixture2 := obj.mixture2
   // estimate emission parameters
@@ -200,7 +200,7 @@ func (obj *MixtureEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   hook_save    := generic.EmHook{}
   hook_trace   := generic.EmHook{}
   hook_verbose := generic.EmHook{}
-  trace := NullVector(obj.ScalarType(), 0)
+  trace := NullDenseVector(obj.ScalarType(), 0)
   if obj.SaveFile != "" && obj.SaveInterval > 0 {
     hook_save.Value = func(hmm generic.BasicMixture, i int, likelihood, epsilon float64) {
       if i % obj.SaveInterval == 0 {

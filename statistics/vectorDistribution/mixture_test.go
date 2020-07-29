@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,34 +25,34 @@ import   "os"
 import . "github.com/pbenner/autodiff/statistics"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func Test1(t *testing.T) {
+func Test1(test *testing.T) {
 
-  mu     := NewVector(RealType, []float64{2,3})
-  sigma  := NewMatrix(RealType, 2, 2, []float64{2,1,1,2})
+  t      := NewFloat64(0.0)
+  mu     := NewDenseFloat64Vector([]float64{2,3})
+  sigma  := NewDenseFloat64Matrix([]float64{2,1,1,2}, 2, 2)
 
   normal, _ := NewNormalDistribution(mu, sigma)
 
-  weights := NewVector(BareRealType, []float64{1.0, 2.0})
+  weights := NewDenseFloat64Vector([]float64{1.0, 2.0})
 
   mixture1, err := NewMixture(weights, []VectorPdf{normal, normal}); if err != nil {
-    t.Error(err); return
+    test.Error(err); return
   }
   if err := ExportDistribution("mixture_test.json", mixture1); err != nil {
-    t.Error(err)
+    test.Error(err)
   }
-  mixture2, err := ImportVectorPdf("mixture_test.json", BareRealType); if err != nil {
-    t.Error(err); return
+  mixture2, err := ImportVectorPdf("mixture_test.json", Float64Type); if err != nil {
+    test.Error(err); return
   }
 
   normal1 := mixture1.Edist[0].(*NormalDistribution)
   normal2 := mixture2.(*Mixture).Edist[0].(*NormalDistribution)
 
-  if Mnorm(MsubM(normal1.Sigma, normal2.Sigma)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(normal1.Sigma.MsubM(normal1.Sigma, normal2.Sigma)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
   os.Remove("mixture_test.json")
 }

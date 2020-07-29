@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ type Mixture struct {
 
 func NewMixture(weights Vector) (*Mixture, error) {
   for i := 0; i < weights.Dim(); i++ {
-    if weights.At(i).GetValue() < 0.0 {
+    if weights.At(i).GetFloat64() < 0.0 {
       return nil, fmt.Errorf("weights must be positive")
     }
   }
@@ -70,7 +70,7 @@ func (obj *Mixture) Clone() *Mixture {
 func (obj *Mixture) normalize() {
   t1 := obj.t1
   t2 := obj.t2
-  t1.SetValue(math.Inf(-1))
+  t1.SetFloat64(math.Inf(-1))
   for i := 0; i < obj.LogWeights.Dim(); i++ {
     t1.LogAdd(t1, obj.LogWeights.At(i), t2)
   }
@@ -92,7 +92,7 @@ func (obj *Mixture) ScalarType() ScalarType {
 func (obj *Mixture) LogPdf(r Scalar, data MixtureDataRecord) error {
   t1 := obj.t1
   t2 := obj.t2
-  r.SetValue(math.Inf(-1))
+  r.SetFloat64(math.Inf(-1))
   for j := 0; j < obj.NComponents(); j++ {
     if err := data.LogPdf(t1, j); err != nil {
       return err
@@ -107,8 +107,8 @@ func (obj *Mixture) Likelihood(r Scalar, data MixtureDataRecord, states []int) e
   t1 := obj.t1
   t2 := obj.t2
   z  := obj.t3
-  r.SetValue(math.Inf(-1))
-  z.SetValue(math.Inf(-1))
+  r.SetFloat64(math.Inf(-1))
+  z.SetFloat64(math.Inf(-1))
   for _, j := range states {
     if j < 0 || j >= obj.NComponents() {
       return fmt.Errorf("state `%d' out of bounds", j)
@@ -128,8 +128,8 @@ func (obj *Mixture) Posterior(r Scalar, data MixtureDataRecord, states []int) er
   t1 := obj.t1
   t2 := obj.t2
   z  := obj.t3
-  r.SetValue(math.Inf(-1))
-  z.SetValue(math.Inf(-1))
+  r.SetFloat64(math.Inf(-1))
+  z.SetFloat64(math.Inf(-1))
   // loop over posterior components
   for _, j := range states {
     if j < 0 || j >= obj.NComponents() {

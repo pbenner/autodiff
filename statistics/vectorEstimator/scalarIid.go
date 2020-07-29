@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ func (obj *ScalarIid) SetData(x []ConstVector, n int) error {
   if obj.n != -1 && obj.n != m {
     return fmt.Errorf("data has invalid dimension (expected dimension `%d' but data has dimension `%d)", obj.n, m)
   }
-  y := NullVector(x[0].ElementType(), m)
+  y := NullDenseVector(x[0].ElementType(), m)
   for i, k := 0, 0; i < len(x); i++ {
     for j := 0; j < x[i].Dim(); j++ {
       y.At(k).Set(x[i].ConstAt(j))

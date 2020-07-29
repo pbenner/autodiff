@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,17 @@ package msqrtInv
 
 import   "testing"
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func TestMSqrtInv(t *testing.T) {
+func TestMSqrtInv(test *testing.T) {
   n := 2
-  a := NewMatrix(RealType, n, n, []float64{2, 1, 1, 2})
+  a := NewDenseFloat64Matrix([]float64{2, 1, 1, 2}, n, n)
   x, _ := Run(a)
-  r := NewMatrix(RealType, n, n, []float64{7.886751e-01, -2.113249e-01, -2.113249e-01, 7.886751e-01})
+  r := NewDenseFloat64Matrix([]float64{7.886751e-01, -2.113249e-01, -2.113249e-01, 7.886751e-01}, n, n)
+  t := NewFloat64(0.0)
 
-  if Mnorm(MsubM(x, r)).GetValue() > 1e-8 {
-    t.Error("MSqrt failed!")
+  if t.Mnorm(x.MsubM(x, r)).GetFloat64() > 1e-8 {
+    test.Error("MSqrt failed!")
   }
 }

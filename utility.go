@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,20 +69,140 @@ func isGzip(filename string) (bool, error) {
 
 /* -------------------------------------------------------------------------- */
 
-type sortIntFloat struct {
+type sortIntConstFloat64 struct {
   a []int
   b []float64
 }
 
-func (obj sortIntFloat) Len() int {
+func (obj sortIntConstFloat64) Len() int {
   return len(obj.a)
 }
 
-func (obj sortIntFloat) Swap(i, j int) {
+func (obj sortIntConstFloat64) Swap(i, j int) {
   obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
   obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
 }
 
-func (obj sortIntFloat) Less(i, j int) bool {
+func (obj sortIntConstFloat64) Less(i, j int) bool {
+  return obj.a[i] < obj.a[j]
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sortIntConstFloat32 struct {
+  a []int
+  b []float32
+}
+
+func (obj sortIntConstFloat32) Len() int {
+  return len(obj.a)
+}
+
+func (obj sortIntConstFloat32) Swap(i, j int) {
+  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+}
+
+func (obj sortIntConstFloat32) Less(i, j int) bool {
+  return obj.a[i] < obj.a[j]
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sortIntConstInt64 struct {
+  a []int
+  b []int64
+}
+
+func (obj sortIntConstInt64) Len() int {
+  return len(obj.a)
+}
+
+func (obj sortIntConstInt64) Swap(i, j int) {
+  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+}
+
+func (obj sortIntConstInt64) Less(i, j int) bool {
+  return obj.a[i] < obj.a[j]
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sortIntConstInt32 struct {
+  a []int
+  b []int32
+}
+
+func (obj sortIntConstInt32) Len() int {
+  return len(obj.a)
+}
+
+func (obj sortIntConstInt32) Swap(i, j int) {
+  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+}
+
+func (obj sortIntConstInt32) Less(i, j int) bool {
+  return obj.a[i] < obj.a[j]
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sortIntConstInt16 struct {
+  a []int
+  b []int16
+}
+
+func (obj sortIntConstInt16) Len() int {
+  return len(obj.a)
+}
+
+func (obj sortIntConstInt16) Swap(i, j int) {
+  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+}
+
+func (obj sortIntConstInt16) Less(i, j int) bool {
+  return obj.a[i] < obj.a[j]
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sortIntConstInt8 struct {
+  a []int
+  b []int8
+}
+
+func (obj sortIntConstInt8) Len() int {
+  return len(obj.a)
+}
+
+func (obj sortIntConstInt8) Swap(i, j int) {
+  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+}
+
+func (obj sortIntConstInt8) Less(i, j int) bool {
+  return obj.a[i] < obj.a[j]
+}
+
+/* -------------------------------------------------------------------------- */
+
+type sortIntConstInt struct {
+  a []int
+  b []int
+}
+
+func (obj sortIntConstInt) Len() int {
+  return len(obj.a)
+}
+
+func (obj sortIntConstInt) Swap(i, j int) {
+  obj.a[i], obj.a[j] = obj.a[j], obj.a[i]
+  obj.b[i], obj.b[j] = obj.b[j], obj.b[i]
+}
+
+func (obj sortIntConstInt) Less(i, j int) bool {
   return obj.a[i] < obj.a[j]
 }

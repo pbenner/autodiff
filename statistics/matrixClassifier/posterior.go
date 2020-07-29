@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-2017 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,8 @@ func NewPosteriorClassifier(fgDist MatrixPdf, bgDist MatrixPdf, weights [2]float
   } else {
     r := PosteriorClassifier{}
     r.LikelihoodClassifier = *classifier
-    r.LogWeights[0] = ConstReal(math.Log(weights[0]/(weights[0] + weights[1])))
-    r.LogWeights[1] = ConstReal(math.Log(weights[1]/(weights[0] + weights[1])))
+    r.LogWeights[0] = ConstFloat64(math.Log(weights[0]/(weights[0] + weights[1])))
+    r.LogWeights[1] = ConstFloat64(math.Log(weights[1]/(weights[0] + weights[1])))
     return &r, nil
   }
 }
@@ -91,8 +91,8 @@ func NewPosteriorOddsClassifier(fgDist MatrixPdf, bgDist MatrixPdf, weights [2]f
   } else {
     r := PosteriorOddsClassifier{}
     r.LikelihoodClassifier = *classifier
-    r.LogWeights[0] = ConstReal(math.Log(weights[0]/(weights[0] + weights[1])))
-    r.LogWeights[1] = ConstReal(math.Log(weights[1]/(weights[0] + weights[1])))
+    r.LogWeights[0] = ConstFloat64(math.Log(weights[0]/(weights[0] + weights[1])))
+    r.LogWeights[1] = ConstFloat64(math.Log(weights[1]/(weights[0] + weights[1])))
     return &r, nil
   }
 }

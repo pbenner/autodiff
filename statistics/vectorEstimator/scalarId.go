@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -127,7 +127,7 @@ func (obj *ScalarId) SetData(x []ConstVector, n int) error {
     }
     for i, estimator := range obj.Estimators {
       // get column i
-      y := NullVector(x[0].ElementType(), len(x))
+      y := NullDenseVector(x[0].ElementType(), len(x))
       for j := 0; j < len(x); j++ {
         y.At(j).Set(x[j].ConstAt(i))
       }

@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,13 +102,14 @@ func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
     return true
   }
   // define the objective function
-  objective_f := func(variables Vector) (Scalar, error) {
+  objective_f := func(variables ConstVector) (MagicScalar, error) {
     // temporary variable
-    t := NullVector(RealType, nt)
-    s := NullVector(RealType, nt)
-    r := NullVector(RealType, nt)
+    t := NullDenseReal64Vector(nt)
+    s := NullDenseReal64Vector(nt)
+    r := NullDenseReal64Vector(nt)
+    v := AsDenseReal64Vector(variables)
     for i := 0; i < len(f); i++ {
-      if err := f[i].SetParameters(variables); err != nil {
+      if err := f[i].SetParameters(v); err != nil {
         return nil, err
       }
     }
@@ -123,7 +124,7 @@ func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
         return nil
       }
       if gamma != nil {
-        if !math.IsInf(gamma.ConstAt(k).GetValue(), -1) {
+        if !math.IsInf(gamma.ConstAt(k).GetFloat64(), -1) {
           if err := f.LogPdf(t, x.ConstAt(k)); err != nil {
             return err
           }
@@ -150,13 +151,13 @@ func (obj *NumericEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
       }
     }
     r.At(0).Neg(r.At(0))
-    r.At(0).Div(r.At(0), NewReal(float64(n)))
-    return r.At(0), nil
+    r.At(0).Div(r.At(0), ConstFloat64(float64(n)))
+    return r.MagicAt(0), nil
   }
   // get parameters of the density function and convert
   // the scalar type to real
   theta_0 := obj.ScalarPdf.GetParameters()
-  theta_0  = AsVector(RealType, theta_0)
+  theta_0  = AsDenseReal64Vector(theta_0)
 
   var theta_n ConstVector
   var err error

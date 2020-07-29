@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ import   "github.com/pbenner/autodiff/statistics/vectorDistribution"
 import   "github.com/pbenner/autodiff/statistics/scalarEstimator"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 import   "github.com/pbenner/autodiff/algorithm/bfgs"
 import   "github.com/pbenner/autodiff/algorithm/newton"
 
@@ -37,12 +36,11 @@ import . "github.com/pbenner/threadpool"
 
 /* -------------------------------------------------------------------------- */
 
-func TestHmm1(t *testing.T) {
+func TestHmm1(test *testing.T) {
   // Hmm definition
   //////////////////////////////////////////////////////////////////////////////
-  pi := NewVector(RealType, []float64{0.6, 0.4})
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  pi := NewDenseFloat64Vector([]float64{0.6, 0.4})
+  tr := NewDenseFloat64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
   e1, _ := scalarEstimator.NewCategoricalEstimator([]float64{0.1, 0.9})
   e2, _ := scalarEstimator.NewCategoricalEstimator([]float64{0.7, 0.3})
@@ -50,101 +48,100 @@ func TestHmm1(t *testing.T) {
   // test Baum-Welch algorithm
   //////////////////////////////////////////////////////////////////////////////
   if estimator, err := NewHmmEstimator(pi, tr, nil, nil, nil, []ScalarEstimator{e1, e2}, 1e-8, -1); err != nil {
-    t.Error(err)
+    test.Error(err)
   } else {
     hmm1, _ := estimator.GetEstimate()
-    x       := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
+    x       := NewDenseFloat64Vector([]float64{1,1,1,1,1,1,0,0,1,0})
 
     if err := estimator.EstimateOnData([]ConstVector{x}, nil, ThreadPool{}); err != nil {
-      t.Error(err)
+      test.Error(err)
     } else {
       hmm2, _ := estimator.GetEstimate()
 
-      p1 := NullReal(); hmm1.LogPdf(p1, x)
-      p2 := NullReal(); hmm2.LogPdf(p2, x)
+      p1 := NullFloat64(); hmm1.LogPdf(p1, x)
+      p2 := NullFloat64(); hmm2.LogPdf(p2, x)
 
       if p1.Greater(p2) {
-        t.Errorf("Baum-Welch test failed")
+        test.Errorf("Baum-Welch test failed")
       }
-      if math.Abs(p2.GetValue() - -4.493268e+00) > 1e-4 {
-        t.Errorf("Baum-Welch test failed")
+      if math.Abs(p2.GetFloat64() - -4.493268e+00) > 1e-4 {
+        test.Errorf("Baum-Welch test failed")
       }
     }
   }
   // test Baum-Welch algorithm with conditioning
   //////////////////////////////////////////////////////////////////////////////
   if estimator, err := NewHmmEstimator(pi, tr, nil, []int{0}, []int{0}, []ScalarEstimator{e1, e2}, 1e-8, -1); err != nil {
-    t.Error(err)
+    test.Error(err)
   } else {
     hmm1, _ := estimator.GetEstimate()
-    x       := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
+    x       := NewDenseFloat64Vector([]float64{1,1,1,1,1,1,0,0,1,0})
 
     if err := estimator.EstimateOnData([]ConstVector{x}, nil, ThreadPool{}); err != nil {
-      t.Error(err)
+      test.Error(err)
     } else {
       hmm2, _ := estimator.GetEstimate()
 
-      p1 := NullReal(); hmm1.LogPdf(p1, x)
-      p2 := NullReal(); hmm2.LogPdf(p2, x)
+      p1 := NullFloat64(); hmm1.LogPdf(p1, x)
+      p2 := NullFloat64(); hmm2.LogPdf(p2, x)
       if p1.Greater(p2) {
-        t.Errorf("Baum-Welch test failed")
+        test.Errorf("Baum-Welch test failed")
       }
-      if math.Abs(p2.GetValue() - -5.834855e+00) > 1e-4 {
-        t.Errorf("Baum-Welch test failed")
+      if math.Abs(p2.GetFloat64() - -5.834855e+00) > 1e-4 {
+        test.Errorf("Baum-Welch test failed")
       }
     }
   }
 }
 
-func TestHmm2(t *testing.T) {
+func TestHmm2(test *testing.T) {
   // Hmm definition
   //////////////////////////////////////////////////////////////////////////////
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  tr := NewDenseFloat64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
   c1, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.1, 0.9}))
+    NewDenseReal64Vector([]float64{0.1, 0.9}))
   c2, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.7, 0.3}))
+    NewDenseReal64Vector([]float64{0.7, 0.3}))
   edist := []ScalarPdf{c1, c2}
 
-  pi := NewVector(RealType, []float64{0.6, 0.4})
+  pi := NewDenseFloat64Vector([]float64{0.6, 0.4})
 
-  x  := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
-  r  := NewReal(0.0)
+  x  := NewDenseFloat64Vector([]float64{1,1,1,1,1,1,0,0,1,0})
+  r  := NewReal64(0.0)
 
   hmm, err := vectorDistribution.NewHmm(pi, tr, nil, edist)
   if err != nil {
-    t.Error(err)
+    test.Error(err)
   }
   hmm.SetStartStates([]int{0})
   hmm.SetFinalStates([]int{0})
 
-  penalty := func(p1, p2, c Scalar) Scalar {
-    r := NewReal(0.0)
+  penalty := func(p1, p2, c ConstScalar) Scalar {
+    r := NewReal64(0.0)
     r.Add(p1, p2)
-    r.Sub(r, NewReal(1.0))
-    r.Pow(r, NewReal(2.0))
+    r.Sub(r, ConstFloat64(1.0))
+    r.Pow(r, ConstFloat64(2.0))
     r.Mul(r, c)
     return r
   }
-  objective_template := func(variables Vector, c Scalar) (Scalar, error) {
+  objective_template := func(variables ConstVector, c ConstScalar) (MagicScalar, error) {
     // create a new initial normal distribution
-    pi := NullVector(RealType, 2)
-    tr := NullMatrix(RealType, 2, 2)
+    pi := NullDenseReal64Vector(2)
+    tr := NullDenseReal64Matrix(2, 2)
     // copy the variables
-    pi.At(0).SetValue(1.0)
-    pi.At(1).SetValue(1.0)
-    tr.At(0, 0).Exp(variables.At(0))
-    tr.At(0, 1).Exp(variables.At(1))
-    tr.At(1, 0).Exp(variables.At(2))
-    tr.At(1, 1).Exp(variables.At(3))
+    pi.At(0).SetFloat64(1.0)
+    pi.At(1).SetFloat64(1.0)
+    tr.At(0, 0).Exp(variables.ConstAt(0))
+    tr.At(0, 1).Exp(variables.ConstAt(1))
+    tr.At(1, 0).Exp(variables.ConstAt(2))
+    tr.At(1, 1).Exp(variables.ConstAt(3))
     // construct new Hmm
     hmm, _ := vectorDistribution.NewHmm(pi, tr, nil, edist)
     hmm.SetStartStates([]int{0})
     hmm.SetFinalStates([]int{0})
     // compute objective function
-    result := NewScalar(RealType, 0.0)
+    result := NullReal64()
     // density function
     hmm.LogPdf(r, x)
     result.Add(result, r)
@@ -166,77 +163,77 @@ func TestHmm2(t *testing.T) {
   vn := hmm.GetParameters()
   vn  = vn.Slice(2,vn.Dim())
   // initial penalty strength
-  c  := NewReal(2.0)
+  c  := NewReal64(2.0)
   // run rprop
   for i := 0; i < 20; i++ {
-    objective := func(variables Vector) (Scalar, error) {
+    objective := func(variables ConstVector) (MagicScalar, error) {
       return objective_template(variables, c)
     }
     vn, _ = bfgs.Run(objective, vn,
       //bfgs.Hook{hook_bfgs},
       bfgs.Epsilon{1e-8})
     // increase penalty strength
-    c.Mul(c, NewReal(2.0))
+    c.Mul(c, ConstFloat64(2.0))
   }
+  t := NullFloat64()
   // check result
-  if math.Abs(Exp(vn.At(0)).GetValue() - 8.257028e-01) > 1e-3 ||
-     math.Abs(Exp(vn.At(1)).GetValue() - 1.743001e-01) > 1e-3 ||
-     math.Abs(Exp(vn.At(2)).GetValue() - 3.597875e-01) > 1e-3 ||
-     math.Abs(Exp(vn.At(3)).GetValue() - 6.402134e-01) > 1e-3 {
-    t.Error("Hmm test failed!")
+  if math.Abs(t.Exp(vn.At(0)).GetFloat64() - 8.257028e-01) > 1e-3 ||
+     math.Abs(t.Exp(vn.At(1)).GetFloat64() - 1.743001e-01) > 1e-3 ||
+     math.Abs(t.Exp(vn.At(2)).GetFloat64() - 3.597875e-01) > 1e-3 ||
+     math.Abs(t.Exp(vn.At(3)).GetFloat64() - 6.402134e-01) > 1e-3 {
+    test.Error("Hmm test failed!")
   }
 }
 
-func TestHmm3(t *testing.T) {
+func TestHmm3(test *testing.T) {
   // Hmm definition
   //////////////////////////////////////////////////////////////////////////////
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{5,1,1,10})
+  tr := NewDenseReal64Matrix([]float64{5,1,1,10}, 2, 2)
 
   c1, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.1, 0.9}))
+    NewDenseReal64Vector([]float64{0.1, 0.9}))
   c2, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.7, 0.3}))
+    NewDenseReal64Vector([]float64{0.7, 0.3}))
   edist := []ScalarPdf{c1, c2}
 
-  pi := NewVector(RealType, []float64{0.6, 0.4})
+  pi := NewDenseReal64Vector([]float64{0.6, 0.4})
 
-  x  := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
-  r  := NewReal(0.0)
+  x  := NewDenseFloat64Vector([]float64{1,1,1,1,1,1,0,0,1,0})
+  r  := NewReal64(0.0)
 
   hmm, err := vectorDistribution.NewHmm(pi, tr, nil, edist)
   if err != nil {
-    t.Error(err)
+    test.Error(err)
   }
 
-  constraint := func(p1, p2, lambda Scalar) Scalar {
-    r := NewReal(0.0)
+  constraint := func(p1, p2, lambda ConstScalar) Scalar {
+    r := NewReal64(0.0)
     r.Add(p1, p2)
-    r.Sub(r, NewReal(1.0))
+    r.Sub(r, ConstFloat64(1.0))
     r.Mul(r, lambda)
     return r
   }
-  objective := func(variables Vector) (Scalar, error) {
+  objective := func(variables ConstVector) (MagicScalar, error) {
     // create a new initial normal distribution
-    tr := NullMatrix(RealType, 2, 2)
+    tr := NullDenseReal64Matrix(2, 2)
     // copy the variables
-    tr.At(0, 0).Exp(variables.At(0))
-    tr.At(0, 1).Exp(variables.At(1))
-    tr.At(1, 0).Exp(variables.At(2))
-    tr.At(1, 1).Exp(variables.At(3))
+    tr.At(0, 0).Exp(variables.ConstAt(0))
+    tr.At(0, 1).Exp(variables.ConstAt(1))
+    tr.At(1, 0).Exp(variables.ConstAt(2))
+    tr.At(1, 1).Exp(variables.ConstAt(3))
     // lambda parameters of the Lagrangian
-    lambda := variables.Slice(4,6)
+    lambda := variables.ConstSlice(4,6)
     // construct new Hmm
     hmm, _ := vectorDistribution.NewHmm(pi, tr, nil, edist)
     // compute objective function
-    result := NewScalar(RealType, 0.0)
+    result := NullReal64()
     // density function
     hmm.LogPdf(r, x)
     result.Add(result, r)
     result.Neg(result)
     // constraints
-    result.Add(result, constraint(tr.At(0, 0), tr.At(0, 1), lambda.At(0)))
-    result.Add(result, constraint(tr.At(1, 0), tr.At(1, 1), lambda.At(1)))
+    result.Add(result, constraint(tr.At(0, 0), tr.At(0, 1), lambda.ConstAt(0)))
+    result.Add(result, constraint(tr.At(1, 0), tr.At(1, 1), lambda.ConstAt(1)))
     return result, nil
   }
   // hook_newton := func(x Vector, hessian Matrix, gradient Vector) bool {
@@ -251,78 +248,78 @@ func TestHmm3(t *testing.T) {
   // drop pi and parameters from the emission distributions
   vn  = vn.Slice(2,6)
   // append Lagriangian lambda parameters
-  vn  = vn.AppendScalar(NewReal(1.0), NewReal(1.0))
+  vn  = vn.AppendScalar(NewReal64(1.0), NewReal64(1.0))
   // find critical points of the Lagrangian
   vn, err = newton.RunCrit(objective, vn,
 //    newton.HookCrit{hook_newton},
     newton.Epsilon{1e-4})
   if err != nil {
-    t.Error(err)
+    test.Error(err)
   } else {
+    t := NullFloat64()
     // check result
-    if math.Abs(Exp(vn.At(0)).GetValue() - 8.230221e-01) > 1e-4 ||
-       math.Abs(Exp(vn.At(1)).GetValue() - 1.769779e-01) > 1e-4 ||
-       math.Abs(Exp(vn.At(2)).GetValue() - 7.975104e-09) > 1e-4 ||
-       math.Abs(Exp(vn.At(3)).GetValue() - 1.000000e+00) > 1e-4 {
-      t.Error("Hmm test failed!")
+    if math.Abs(t.Exp(vn.At(0)).GetFloat64() - 8.230221e-01) > 1e-4 ||
+       math.Abs(t.Exp(vn.At(1)).GetFloat64() - 1.769779e-01) > 1e-4 ||
+       math.Abs(t.Exp(vn.At(2)).GetFloat64() - 7.975104e-09) > 1e-4 ||
+       math.Abs(t.Exp(vn.At(3)).GetFloat64() - 1.000000e+00) > 1e-4 {
+      test.Error("Hmm test failed!")
     }
   }
 }
 
-func TestHmm4(t *testing.T) {
+func TestHmm4(test *testing.T) {
   // Hmm definition
   //////////////////////////////////////////////////////////////////////////////
-  pi := NewVector(RealType, []float64{0.6, 0.4})
+  pi := NewDenseReal64Vector([]float64{0.6, 0.4})
 
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  tr := NewDenseReal64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
   c1, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.1, 0.9}))
+    NewDenseReal64Vector([]float64{0.1, 0.9}))
   c2, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.7, 0.3}))
+    NewDenseReal64Vector([]float64{0.7, 0.3}))
   edist := []ScalarPdf{c1, c2}
 
-  x  := NewVector(RealType, []float64{1,1,1,1,1,1,0,0,1,0})
-  r  := NewReal(0.0)
+  x  := NewDenseFloat64Vector([]float64{1,1,1,1,1,1,0,0,1,0})
+  r  := NewReal64(0.0)
 
   hmm, err := vectorDistribution.NewHmm(pi, tr, nil, edist)
   if err != nil {
-    t.Error(err)
+    test.Error(err)
   }
   hmm.SetStartStates([]int{0})
   hmm.SetFinalStates([]int{0})
 
-  constraint := func(p1, p2, lambda Scalar) Scalar {
-    r := NewReal(0.0)
+  constraint := func(p1, p2, lambda ConstScalar) Scalar {
+    r := NewReal64(0.0)
     r.Add(p1, p2)
-    r.Sub(r, NewReal(1.0))
+    r.Sub(r, NewFloat64(1.0))
     r.Mul(r, lambda)
     return r
   }
-  objective := func(variables Vector) (Scalar, error) {
+  objective := func(variables ConstVector) (MagicScalar, error) {
     // create a new initial normal distribution
-    tr := NullMatrix(RealType, 2, 2)
+    tr := NullDenseReal64Matrix(2, 2)
     // copy the variables
-    tr.At(0, 0).Exp(variables.At(0))
-    tr.At(0, 1).Exp(variables.At(1))
-    tr.At(1, 0).Exp(variables.At(2))
-    tr.At(1, 1).Exp(variables.At(3))
+    tr.At(0, 0).Exp(variables.ConstAt(0))
+    tr.At(0, 1).Exp(variables.ConstAt(1))
+    tr.At(1, 0).Exp(variables.ConstAt(2))
+    tr.At(1, 1).Exp(variables.ConstAt(3))
     // lambda parameters of the Lagrangian
-    lambda := variables.Slice(4,6)
+    lambda := variables.ConstSlice(4,6)
     // construct new Hmm
     hmm, _ := vectorDistribution.NewHmm(pi, tr, nil, edist)
     hmm.SetStartStates([]int{0})
     hmm.SetFinalStates([]int{0})
     // compute objective function
-    result := NewScalar(RealType, 0.0)
+    result := NullReal64()
     // density function
     hmm.LogPdf(r, x)
     result.Add(result, r)
     result.Neg(result)
     // constraints
-    result.Add(result, constraint(tr.At(0, 0), tr.At(0, 1), lambda.At(0)))
-    result.Add(result, constraint(tr.At(1, 0), tr.At(1, 1), lambda.At(1)))
+    result.Add(result, constraint(tr.At(0, 0), tr.At(0, 1), lambda.ConstAt(0)))
+    result.Add(result, constraint(tr.At(1, 0), tr.At(1, 1), lambda.ConstAt(1)))
     return result, nil
   }
   // hook_newton := func(x Vector, hessian Matrix, gradient Vector) bool {
@@ -337,33 +334,32 @@ func TestHmm4(t *testing.T) {
   // drop pi and parameters from the emission distributions
   vn  = vn.Slice(2,6)
   // append Lagriangian lambda parameters
-  vn  = vn.AppendScalar(NewReal(1.0), NewReal(1.0))
+  vn  = vn.AppendScalar(NewReal64(1.0), NewReal64(1.0))
   // run rprop
   vn, err = newton.RunCrit(objective, vn,
     //newton.HookCrit{hook_newton},
     newton.Epsilon{1e-10})
   if err != nil {
-    t.Error(err)
+    test.Error(err)
   } else {
+    t := NullFloat64()
     // check result
-    if math.Abs(Exp(vn.At(0)).GetValue() - 8.257028e-01) > 1e-3 ||
-       math.Abs(Exp(vn.At(1)).GetValue() - 1.743001e-01) > 1e-3 ||
-       math.Abs(Exp(vn.At(2)).GetValue() - 3.597875e-01) > 1e-3 ||
-       math.Abs(Exp(vn.At(3)).GetValue() - 6.402134e-01) > 1e-3 {
-      t.Error("Hmm test failed!")
+    if math.Abs(t.Exp(vn.At(0)).GetFloat64() - 8.257028e-01) > 1e-3 ||
+       math.Abs(t.Exp(vn.At(1)).GetFloat64() - 1.743001e-01) > 1e-3 ||
+       math.Abs(t.Exp(vn.At(2)).GetFloat64() - 3.597875e-01) > 1e-3 ||
+       math.Abs(t.Exp(vn.At(3)).GetFloat64() - 6.402134e-01) > 1e-3 {
+      test.Error("Hmm test failed!")
     }
   }
 }
 
-func TestHmm5(t *testing.T) {
+func TestHmm5(test *testing.T) {
 
-  pi := NewVector(RealType, []float64{0.6, 0.4})
+  var pi Vector = NewDenseFloat64Vector([]float64{0.6, 0.4})
+  var tr Matrix = NewDenseFloat64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
-  var tr Matrix = NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
-
-  c1, _ := scalarDistribution.NewGammaDistribution(NewReal( 0.5), NewReal(2.0))
-  c2, _ := scalarDistribution.NewGammaDistribution(NewReal(10.0), NewReal(2.0))
+  c1, _ := scalarDistribution.NewGammaDistribution(NewFloat64( 0.5), NewFloat64(2.0))
+  c2, _ := scalarDistribution.NewGammaDistribution(NewFloat64(10.0), NewFloat64(2.0))
 
   e1, _ := scalarEstimator.NewNumericEstimator(c1)
   e2, _ := scalarEstimator.NewNumericEstimator(c2)
@@ -372,71 +368,71 @@ func TestHmm5(t *testing.T) {
   e2.Epsilon = 1e-7
 
   x  := []ConstVector{
-    NewVector(RealType, []float64{0.23092451, 0.23092451, 0.23092451, 5.975650, 5.975650, 5.975650}),
-    NewVector(RealType, []float64{1.15626248, 1.15626248, 1.15626248, 3.074001, 3.074001, 3.074001}),
-    NewVector(RealType, []float64{0.39937995, 0.39937995, 0.39937995, 3.806467, 3.806467, 3.806467}),
-    NewVector(RealType, []float64{0.51252240, 0.51252240, 0.51252240, 6.654319, 6.654319, 6.654319}),
-    NewVector(RealType, []float64{2.35671304, 2.35671304, 2.35671304, 2.904598, 2.904598, 2.904598}),
-    NewVector(RealType, []float64{0.18067285, 0.18067285, 0.18067285, 2.895080, 2.895080, 2.895080}),
-    NewVector(RealType, []float64{0.06068149, 0.06068149, 0.06068149, 3.088718, 3.088718, 3.088718}),
-    NewVector(RealType, []float64{1.71700325, 1.71700325, 1.71700325, 4.068132, 4.068132, 4.068132}),
-    NewVector(RealType, []float64{0.06229591, 0.06229591, 0.06229591, 4.466460, 4.466460, 4.466460}),
-    NewVector(RealType, []float64{0.43543498, 0.43543498, 0.43543498, 6.193897, 6.193897, 6.193897}) }
+    NewDenseFloat64Vector([]float64{0.23092451, 0.23092451, 0.23092451, 5.975650, 5.975650, 5.975650}),
+    NewDenseFloat64Vector([]float64{1.15626248, 1.15626248, 1.15626248, 3.074001, 3.074001, 3.074001}),
+    NewDenseFloat64Vector([]float64{0.39937995, 0.39937995, 0.39937995, 3.806467, 3.806467, 3.806467}),
+    NewDenseFloat64Vector([]float64{0.51252240, 0.51252240, 0.51252240, 6.654319, 6.654319, 6.654319}),
+    NewDenseFloat64Vector([]float64{2.35671304, 2.35671304, 2.35671304, 2.904598, 2.904598, 2.904598}),
+    NewDenseFloat64Vector([]float64{0.18067285, 0.18067285, 0.18067285, 2.895080, 2.895080, 2.895080}),
+    NewDenseFloat64Vector([]float64{0.06068149, 0.06068149, 0.06068149, 3.088718, 3.088718, 3.088718}),
+    NewDenseFloat64Vector([]float64{1.71700325, 1.71700325, 1.71700325, 4.068132, 4.068132, 4.068132}),
+    NewDenseFloat64Vector([]float64{0.06229591, 0.06229591, 0.06229591, 4.466460, 4.466460, 4.466460}),
+    NewDenseFloat64Vector([]float64{0.43543498, 0.43543498, 0.43543498, 6.193897, 6.193897, 6.193897}) }
 
   estimator, err := NewHmmEstimator(pi, tr, nil, nil, nil, []ScalarEstimator{e1, e2}, 1e-10, -1)
   if err != nil {
-    t.Error(err); return
+    test.Error(err); return
   }
   if err := estimator.EstimateOnData(x, nil, ThreadPool{}); err != nil {
-    t.Error(err); return
+    test.Error(err); return
   }
   hmt, _ := estimator.GetEstimate()
   hmm    := hmt.(*vectorDistribution.Hmm)
 
   // correct values
-  qi := NewVector(RealType, []float64{7.249908e-01, 2.750092e-01})
-  sr := NewMatrix(RealType, 2, 2, []float64{
+  qi := NewDenseFloat64Vector([]float64{7.249908e-01, 2.750092e-01})
+  sr := NewDenseFloat64Matrix([]float64{
     6.592349e-01, 3.407651e-01,
-    0.000000e+00, 1.000000e+00 })
+    0.000000e+00, 1.000000e+00 }, 2, 2)
 
   pi = hmm.Pi; pi.Map(func(a Scalar) { a.Exp(a) })
   tr = hmm.Tr; tr.Map(func(a Scalar) { a.Exp(a) })
+  t := NullFloat64()
 
-  if Vnorm(VsubV(pi, qi)).GetValue() > 1e-3 {
-    t.Error("Hmm test failed!")
+  if t.Vnorm(pi.VsubV(pi, qi)).GetFloat64() > 1e-3 {
+    test.Error("Hmm test failed!")
   }
-  if Mnorm(MsubM(tr, sr)).GetValue() > 1e-4 {
-    t.Error("Hmm test failed!")
+  if t.Mnorm(tr.MsubM(tr, sr)).GetFloat64() > 1e-4 {
+    test.Error("Hmm test failed!")
   }
-  if math.Abs(hmm.Edist[0].GetParameters().At(0).GetValue() - 1.792786e+00) > 1e-4 {
-    t.Error("Hmm test failed!")
+  if math.Abs(hmm.Edist[0].GetParameters().At(0).GetFloat64() - 1.792786e+00) > 1e-4 {
+    test.Error("Hmm test failed!")
   }
-  if math.Abs(hmm.Edist[0].GetParameters().At(1).GetValue() - 6.371870e+00) > 1e-4 {
-    t.Error("Hmm test failed!")
+  if math.Abs(hmm.Edist[0].GetParameters().At(1).GetFloat64() - 6.371870e+00) > 1e-4 {
+    test.Error("Hmm test failed!")
   }
-  if math.Abs(hmm.Edist[1].GetParameters().At(0).GetValue() - 4.855799e+00) > 1e-4 {
-    t.Error("Hmm test failed!")
+  if math.Abs(hmm.Edist[1].GetParameters().At(0).GetFloat64() - 4.855799e+00) > 1e-4 {
+    test.Error("Hmm test failed!")
   }
-  if math.Abs(hmm.Edist[1].GetParameters().At(1).GetValue() - 1.299225e+00) > 1e-4 {
-    t.Error("Hmm test failed!")
+  if math.Abs(hmm.Edist[1].GetParameters().At(1).GetFloat64() - 1.299225e+00) > 1e-4 {
+    test.Error("Hmm test failed!")
   }
 }
 
-func TestHmm6(t *testing.T) {
+func TestHmm6(test *testing.T) {
   var err error
 
-  pi := NewVector(RealType, []float64{0.6, 0.4})
+  pi := NewDenseFloat64Vector([]float64{0.6, 0.4})
 
-  var tr Matrix = NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  var tr Matrix = NewDenseFloat64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
-  c1, _ := scalarDistribution.NewGammaDistribution(NewReal( 0.5), NewReal(2.0))
+  c1, _ := scalarDistribution.NewGammaDistribution(NewFloat64( 0.5), NewFloat64(2.0))
   e1, _ := scalarEstimator.NewNumericEstimator(c1)
-  c2, _ := scalarDistribution.NewGammaDistribution(NewReal(10.0), NewReal(2.0))
+  c2, _ := scalarDistribution.NewGammaDistribution(NewFloat64(10.0), NewFloat64(2.0))
   e2, _ := scalarEstimator.NewNumericEstimator(c2)
-  c3, _ := scalarDistribution.NewGammaDistribution(NewReal( 1.5), NewReal(3.0))
+  c3, _ := scalarDistribution.NewGammaDistribution(NewFloat64( 1.5), NewFloat64(3.0))
   e3, _ := scalarEstimator.NewNumericEstimator(c3)
-  c4, _ := scalarDistribution.NewGammaDistribution(NewReal(10.0), NewReal(3.0))
+  c4, _ := scalarDistribution.NewGammaDistribution(NewFloat64(10.0), NewFloat64(3.0))
   e4, _ := scalarEstimator.NewNumericEstimator(c4)
 
   e1.Epsilon = 1e-6
@@ -448,7 +444,7 @@ func TestHmm6(t *testing.T) {
   f2, _ := scalarEstimator.NewMixtureEstimator([]float64{0.3, 0.7}, []ScalarEstimator{e3, e4}, 0, 0)
 
   x  := []ConstVector{
-    NewVector(RealType, []float64{
+    NewDenseFloat64Vector([]float64{
       // r1 <- rgamma(100,  1,  2)
       // r2 <- rgamma(100, 10, 10)
       0.287905493, 1.128806993, 0.340662837, 0.762040120, 0.895168827, 1.121907180,
@@ -513,7 +509,7 @@ func TestHmm6(t *testing.T) {
       52.53555, 36.78197, 51.54151, 39.34633, 42.58552, 36.37609, 52.56146, 37.34477,
       57.82587, 32.90822, 45.33739, 29.18969, 47.45135, 29.04017, 43.86988, 31.33080 })}
 
-  r := NewVector(RealType, []float64{
+  r := NewDenseFloat64Vector([]float64{
     -9.628283e+04,  0.000000e+00, 0.000000e+00, -2.811200e+03, -5.298317e+00, -5.012542e-03,   // Hmm
     -2.851585e+02,  0.000000e+00, 4.262817e+01,  4.718743e+01,  2.513352e+01,  5.887617e-01,   // Mixture component 1
     -6.486053e-01, -7.397659e-01, 9.793777e-01,  1.813242e+00,  1.139991e+01,  1.144401e+01 }) // Mixture component 2
@@ -522,17 +518,18 @@ func TestHmm6(t *testing.T) {
 
   estimator, err := NewHmmEstimator(pi, tr, nil, nil, nil, []ScalarEstimator{f1, f2}, 1e-8, -1)
   if err != nil {
-    t.Error(err); return
+    test.Error(err); return
   }
   if err := estimator.EstimateOnData(x, nil, ThreadPool{}); err != nil {
-    t.Error(err); return
+    test.Error(err); return
   }
   pt, _ := estimator.GetEstimate()
   p     := pt.GetParameters()
   p.Slice( 0, 6).Map(func(x Scalar) { x.Exp(x) })
   p.Slice(12,14).Map(func(x Scalar) { x.Exp(x) })
 
-  if Vnorm(VsubV(r, p)).GetValue() > 1e-4 {
-    t.Error("test failed")
+  t := NullFloat64()
+  if t.Vnorm(r.VsubV(r, p)).GetFloat64() > 1e-4 {
+    test.Error("test failed")
   }
 }

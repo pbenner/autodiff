@@ -1,4 +1,4 @@
-/* Copyright (C) 2019 Philipp Benner
+/* Copyright (C) 2019-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,29 +66,28 @@ type Seed struct {
 }
 
 type InSitu struct {
-  T1  DenseBareRealVector
-  T2 *BareReal
+  T1 DenseFloat64Vector
 }
 
 /* -------------------------------------------------------------------------- */
 
-func WrapperDense(f func(int, Vector, Scalar) error) Objective2Dense {
-  x := NullDenseRealVector(0)
-  y := NullReal()
-  f_ := func(i int, x_ DenseBareRealVector) (ConstReal, DenseConstRealVector, error) {
+func WrapperDense(f func(int, Vector, MagicScalar) error) Objective2Dense {
+  x := NullDenseReal64Vector(0)
+  y := NullReal64()
+  f_ := func(i int, x_ DenseFloat64Vector) (float64, DenseFloat64Vector, error) {
     if x.Dim() == 0 {
-      x = NullDenseRealVector(x_.Dim())
+      x = NullDenseReal64Vector(x_.Dim())
     }
     x.Set(x_)
     x.Variables(1)
     if err := f(i, x, y); err != nil {
-      return ConstReal(0.0), nil, err
+      return 0.0, nil, err
     }
     g := make([]float64, x.Dim())
     for i := 0; i < x.Dim(); i++ {
       g[i] = y.GetDerivative(i)
     }
-    return ConstReal(y.GetValue()), DenseConstRealVector(g), nil
+    return y.GetFloat64(), DenseFloat64Vector(g), nil
   }
   return f_
 }
@@ -98,13 +97,13 @@ func WrapperDense(f func(int, Vector, Scalar) error) Objective2Dense {
 type ProximalOperatorType interface {
   GetLambda(       ) float64
   SetLambda(float64)
-  Eval     (x, w DenseBareRealVector, t *BareReal)
+  Eval     (x, w DenseFloat64Vector)
 }
 
 type JitUpdateType interface {
   GetLambda(       ) float64
   SetLambda(float64)
-  Update   (x, y BareReal, k, n int) BareReal
+  Update   (x, y float64, k, n int) float64
 }
 
 /* -------------------------------------------------------------------------- */
@@ -121,20 +120,20 @@ func (obj *ProximalOperatorL1) SetLambda(lambda float64) {
   obj.Lambda = lambda
 }
 
-func (obj *ProximalOperatorL1) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+func (obj *ProximalOperatorL1) Eval(x DenseFloat64Vector, w DenseFloat64Vector) {
   for i := 0; i < x.Dim(); i++ {
     // sign(wi)*max{|wi| - n*lambda}
-    if wi := w[i].GetValue(); wi < 0.0 {
+    if wi := w[i]; wi < 0.0 {
       if -wi < obj.Lambda {
-        x[i].SetValue(0.0)
+        x[i] = 0.0
       } else {
-        x[i].SetValue(wi + obj.Lambda)
+        x[i] = wi + obj.Lambda
       }
     } else {
       if  wi < obj.Lambda {
-        x[i].SetValue(0.0)
+        x[i] = 0.0
       } else {
-        x[i].SetValue(wi - obj.Lambda)
+        x[i] = wi - obj.Lambda
       }
     }
   }
@@ -154,12 +153,13 @@ func (obj *ProximalOperatorL2) SetLambda(lambda float64) {
   obj.Lambda = lambda
 }
 
-func (obj *ProximalOperatorL2) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
+func (obj *ProximalOperatorL2) Eval(x DenseFloat64Vector, w DenseFloat64Vector) {
+  t := NullFloat64()
   t.Vnorm(w)
-  t.Div(ConstReal(obj.Lambda), t)
-  t.Sub(ConstReal(1.0), t)
-  t.Max(ConstReal(0.0), t)
-  x.VMULS(w, t)
+  t.Div(ConstFloat64(obj.Lambda), t)
+  t.Sub(ConstFloat64(1.0), t)
+  t.Max(ConstFloat64(0.0), t)
+  x.VmulS(w, t)
 }
 
 /* -------------------------------------------------------------------------- */
@@ -176,35 +176,34 @@ func (obj *ProximalOperatorTi) SetLambda(lambda float64) {
   obj.Lambda = lambda
 }
 
-func (obj *ProximalOperatorTi) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-  c := BareReal(1.0/(obj.Lambda + 1.0))
-  x.VMULS(w, &c)
+func (obj *ProximalOperatorTi) Eval(x DenseFloat64Vector, w DenseFloat64Vector) {
+  x.VmulS(w, ConstFloat64(1.0/(obj.Lambda + 1.0)))
 }
 
 /* -------------------------------------------------------------------------- */
 
 type JitUpdateL1 struct {
-  Lambda BareReal
+  Lambda float64
 }
 
 func (obj *JitUpdateL1) GetLambda() float64 {
-  return float64(obj.Lambda)
+  return obj.Lambda
 }
 
 func (obj *JitUpdateL1) SetLambda(lambda float64) {
-  obj.Lambda = BareReal(lambda)
+  obj.Lambda = lambda
 }
 
-func (obj *JitUpdateL1) update(w BareReal, k, n int) BareReal {
+func (obj *JitUpdateL1) update(w float64, k, n int) float64 {
   // sign(w)*max{|w| - n*lambda}
   if w < 0.0 {
-    if l := BareReal(n)*obj.Lambda; -w < l {
+    if l := float64(n)*obj.Lambda; -w < l {
       return 0.0
     } else {
       return w + l
     }
   } else {
-    if l := BareReal(n)*obj.Lambda;  w < l {
+    if l := float64(n)*obj.Lambda;  w < l {
       return 0.0
     } else {
       return w - l
@@ -212,9 +211,9 @@ func (obj *JitUpdateL1) update(w BareReal, k, n int) BareReal {
   }
 }
 
-func (obj *JitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
-  if float64(y) < obj.GetLambda() {
-    w := x - BareReal(m)*y
+func (obj *JitUpdateL1) Update(x, y float64, k, m int) float64 {
+  if y < obj.GetLambda() {
+    w := x - float64(m)*y
     x  = obj.update(w, k, m)
   } else {
     for j := 0; j < m; j++ {
@@ -227,19 +226,19 @@ func (obj *JitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
 
 /* -------------------------------------------------------------------------- */
 
-func EvalStopping(xs, x1 DenseBareRealVector, epsilon float64) (bool, float64, error) {
+func EvalStopping(xs, x1 DenseFloat64Vector, epsilon float64) (bool, float64, error) {
   // evaluate stopping criterion
   max_x     := 0.0
   max_delta := 0.0
   delta     := 0.0
-  for it := xs.JOINT_ITERATOR_(x1); it.Ok(); it.Next() {
-    s1, s2 := it.GET()
+  for it := xs.JOINT_ITERATOR(x1); it.Ok(); it.Next() {
+    s1, s2 := it.Get()
     v1, v2 := 0.0, 0.0
     if s1 != nil {
-      v1 = s1.GetValue()
+      v1 = s1.GetFloat64()
     }
     if s2 != nil {
-      v2 = s2.GetValue()
+      v2 = s2.GetFloat64()
     }
     if math.IsNaN(v2) {
       return true, math.NaN(), fmt.Errorf("NaN value detected")

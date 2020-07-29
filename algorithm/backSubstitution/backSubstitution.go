@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,15 +42,15 @@ func backSubstitution(inSitu *InSitu, b Vector) (Vector, error) {
 
   for i := n-1; i >= 0; i-- {
     if b == nil {
-      x.At(i).SetValue(0.0)
+      x.At(i).SetFloat64(0.0)
     } else {
-      x.At(i).Set(b.At(i))
+      x.At(i).Set(b.ConstAt(i))
     }
     for j := i+1; j < n; j++ {
-      t.Mul(A.At(i,j), x.At(j))
-      x.At(i).Sub(x.At(i), t)
+      t.Mul(A.ConstAt(i,j), x.ConstAt(j))
+      x.At(i).Sub(x.ConstAt(i), t)
     }
-    x.At(i).Div(x.At(i), A.At(i,i))
+    x.At(i).Div(x.ConstAt(i), A.ConstAt(i,i))
   }
   return x, nil
 }
@@ -86,7 +86,7 @@ func Run(A Matrix, b Vector, args ...interface{}) (Vector, error) {
     }
   }
   if inSitu.X == nil {
-    inSitu.X = NullVector(t, n)
+    inSitu.X = NullDenseVector(t, n)
   } else {
     if inSitu.X.Dim() != n {
       return nil, fmt.Errorf("x has invalid dimension")

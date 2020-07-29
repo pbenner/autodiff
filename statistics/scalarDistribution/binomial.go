@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ type BinomialDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewBinomialDistribution(theta Scalar, n int) (*BinomialDistribution, error) {
-  if theta.GetValue() < 0.0 || theta.GetValue() > 1.0 || n < 0 {
+  if theta.GetFloat64() < 0.0 || theta.GetFloat64() > 1.0 || n < 0 {
     return nil, fmt.Errorf("invalid parameters")
   }
   t := theta.Type()
@@ -72,7 +72,7 @@ func NewBinomialDistribution(theta Scalar, n int) (*BinomialDistribution, error)
 func (dist *BinomialDistribution) Clone() *BinomialDistribution {
   t := NewScalar(dist.ScalarType(), 0.0)
   t.Exp(dist.Theta)
-  r, _ := NewBinomialDistribution(t, int(dist.n.GetValue()))
+  r, _ := NewBinomialDistribution(t, int(dist.n.GetFloat64()))
   return r
 }
 
@@ -87,22 +87,22 @@ func (dist *BinomialDistribution) ScalarType() ScalarType {
 }
 
 func (dist *BinomialDistribution) GetN() int {
-  return int(dist.n.GetValue())
+  return int(dist.n.GetFloat64())
 }
 
 func (dist *BinomialDistribution) SetN(n int) error {
   if n < 0 {
     return fmt.Errorf("invalid parameter")
   }
-  dist.n  .SetValue(float64(n+0))
-  dist.np1.SetValue(float64(n+1))
+  dist.n  .SetFloat64(float64(n+0))
+  dist.np1.SetFloat64(float64(n+1))
   dist.z  .Lgamma(dist.np1)
   return nil
 }
 
 func (dist *BinomialDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); v < 0.0 || math.Floor(v) != v {
-    r.SetValue(math.Inf(-1))
+  if v := x.GetFloat64(); v < 0.0 || math.Floor(v) != v {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   t1 := dist.t1
@@ -145,7 +145,7 @@ func (dist *BinomialDistribution) Pdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *BinomialDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 2)
+  p := NullDenseVector(dist.ScalarType(), 2)
   p.At(0).Set(dist.Theta)
   p.At(1).Set(dist.n)
   return p
@@ -155,7 +155,7 @@ func (dist *BinomialDistribution) SetParameters(parameters Vector) error {
   t := parameters.At(0)
   t.Exp(t)
   n := parameters.At(1)
-  if tmp, err := NewBinomialDistribution(t, int(n.GetValue())); err != nil {
+  if tmp, err := NewBinomialDistribution(t, int(n.GetFloat64())); err != nil {
     return err
   } else {
     *dist = *tmp

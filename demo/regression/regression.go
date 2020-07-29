@@ -22,19 +22,20 @@ import   "fmt"
 import   "math/rand"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func sumOfSquares(x, y Vector, l *Line) Scalar {
+func sumOfSquares(x, y Vector, l *Line) MagicScalar {
 
-  s := NewScalar(RealType, 0)
-  n := NewScalar(RealType, float64(x.Dim()))
+  s := NewReal64(0.0)
+  t := NewReal64(0.0)
+  n := NewReal64(float64(x.Dim()))
 
   for i := 0; i < x.Dim(); i++ {
-    s = Add(s, Pow(Sub(l.Eval(x.At(i)), y.At(i)), NewBareReal(2)))
+    s.Add(s, t.Pow(t.Sub(l.Eval(x.At(i)), y.At(i)), ConstFloat64(2)))
   }
-  return Div(s, n)
+  s.Div(s, n)
+  return s
 }
 
 func gradientDescent(x, y Vector, l *Line) *Line {
@@ -45,14 +46,14 @@ func gradientDescent(x, y Vector, l *Line) *Line {
   const step    = 0.1
 
   // get a vector of variables
-  variables := NullVector(RealType, 2)
+  variables := NullDenseReal64Vector(2)
   variables.At(0).Set(l.Slope())
   variables.At(1).Set(l.Intercept())
 
   // create the objective function
-  f := func(v Vector) (Scalar, error) {
-    l.SetSlope    (v.At(0))
-    l.SetIntercept(v.At(1))
+  f := func(v ConstVector) (MagicScalar, error) {
+    l.SetSlope    (v.ConstAt(0))
+    l.SetIntercept(v.ConstAt(1))
     return sumOfSquares(x, y, l), nil
   }
 //  GradientDescent(f, variables, step, epsilon)
@@ -67,19 +68,19 @@ func gradientDescent(x, y Vector, l *Line) *Line {
 func main() {
 
   const n = 1000
-  x := NullVector(RealType, n)
-  y := NullVector(RealType, n)
+  x := NullDenseReal64Vector(n)
+  y := NullDenseReal64Vector(n)
 
   // random number generator
   r := rand.New(rand.NewSource(42))
 
   for i := 0; i < n; i++ {
-    x.At(i).SetValue(r.NormFloat64() + 0)
-    y.At(i).SetValue(r.NormFloat64() + 2*x.At(i).GetValue()+1)
+    x.At(i).SetFloat64(r.NormFloat64() + 0)
+    y.At(i).SetFloat64(r.NormFloat64() + 2*x.At(i).GetFloat64()+1)
   }
 
-  l := NewLine(NewScalar(RealType, -1.23), NewScalar(RealType, 1));
+  l := NewLine(NewReal64(-1.23), NewReal64(1.0));
   l  = gradientDescent(x, y, l)
 
-  fmt.Println("slope: ", l.Slope().GetValue(), "intercept: ", l.Intercept().GetValue())
+  fmt.Println("slope: ", l.Slope().GetFloat64(), "intercept: ", l.Intercept().GetFloat64())
 }

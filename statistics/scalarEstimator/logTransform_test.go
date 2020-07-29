@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,25 +26,24 @@ import   "github.com/pbenner/autodiff/statistics/vectorEstimator"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/threadpool"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func Test2(t *testing.T) {
+func Test2(test *testing.T) {
   // Hmm definition
   //////////////////////////////////////////////////////////////////////////////
-  pi := NewVector(RealType, []float64{0.6, 0.4})
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  pi := NewDenseFloat64Vector([]float64{0.6, 0.4})
+  tr := NewDenseFloat64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
   d1, _ := NewNormalEstimator(1.0, 2.0, 1e-6)
   d2, _ := NewNormalEstimator(1.0, 3.0, 1e-6)
   e1, _ := NewLogTransformEstimator(d1, 0.0)
   e2, _ := NewLogTransformEstimator(d2, 0.0)
+  t     := NewFloat64(0.0)
 
   // observations
   //////////////////////////////////////////////////////////////////////////////
-  x := NewVector(RealType, []float64{
+  x := NewDenseFloat64Vector([]float64{
     //> rlnorm(25, 1, 2)
     03.7046313, 15.2576178,  0.6321346,    2.4182017,  1.3459458,
     27.4053370,  1.6910290,  2.5277558,    5.1212931, 11.9720053,
@@ -57,22 +56,22 @@ func Test2(t *testing.T) {
     14.517041,  8.380483, 19.718602, 13.069624,  7.223624,  1.635017,  2.081164,
     07.086723, 12.181270,  7.472553, 10.356920 })
 
-  r := NewVector(RealType, []float64{
+  r := NewDenseFloat64Vector([]float64{
     -1.655838e+02, -1.224244e-72, -1.196199e-11, -2.514928e+01, -3.236638e+00,
     -4.008872e-02,  2.086974e+00,  7.035202e-01,  1.891452e+00,  1.992563e+00 })
 
   // Baum-Welch
   //////////////////////////////////////////////////////////////////////////////
   if estimator, err := vectorEstimator.NewHmmEstimator(pi, tr, nil, nil, nil, []ScalarEstimator{e1, e2}, 1e-8, -1); err != nil {
-    t.Error(err)
+    test.Error(err)
   } else {
     if err = estimator.EstimateOnData([]ConstVector{x}, nil, threadpool.New(2, 100)); err != nil {
-      t.Error(err); return
+      test.Error(err); return
     }
     hmm, _ := estimator.GetEstimate()
 
-    if Vnorm(VsubV(r, hmm.GetParameters())).GetValue() > 1e-2 {
-      t.Error("test failed")
+    if t.Vnorm(r.VsubV(r, hmm.GetParameters())).GetFloat64() > 1e-2 {
+      test.Error("test failed")
     }
   }
 }

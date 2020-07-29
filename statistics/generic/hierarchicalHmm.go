@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,7 +130,7 @@ func (node HmmNode) StdInit(tr Matrix, v []float64) error {
   }
   for i := node.States[0]; i < node.States[1]; i++ {
     for j := node.States[0]; j < node.States[1]; j++ {
-      tr.At(i,j).SetValue(v[0])
+      tr.At(i,j).SetFloat64(v[0])
     }
   }
   for k := 0; k < len(node.Children); k++ {
@@ -204,7 +204,7 @@ func (obj HhmmTransitionMatrix) normalizeInt(rfrom, rto, cfrom, cto int, lambda 
   r.Sub(t1, r)
   // divide by the number of columns
   // t1 = (sum xi)/(n sum lambda)
-  t1.Sub(r, ConstReal(math.Log(float64(cto-cfrom))))
+  t1.Sub(r, ConstFloat64(math.Log(float64(cto-cfrom))))
   for i := rfrom; i < rto; i++ {
     for j := cfrom; j < cto; j++ {
       tr.At(i, j).Set(t1)
@@ -224,7 +224,7 @@ func (obj HhmmTransitionMatrix) normalizeLeaf(node HmmNode) Scalar {
   to   := node.States[1]
   // loop over rows
   for i := from; i < to; i++ {
-    t1.SetValue(math.Inf(-1))
+    t1.SetFloat64(math.Inf(-1))
     // sum over values in row i
     for j := from; j < to; j++ {
       t1.LogAdd(t1, tr.At(i, j), t2)
@@ -253,7 +253,7 @@ func (obj HhmmTransitionMatrix) normalize(node HmmNode) Scalar {
     to   := node.Children[n-1].States[1]
     // this is an internal node
     for i := 0; i < n; i++ {
-      c.SetValue(0.0)
+      c.SetFloat64(0.0)
       // normalize children first
       // t1 = sum lambda
       t1 := obj.normalize(node.Children[i])

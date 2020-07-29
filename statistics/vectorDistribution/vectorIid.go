@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-2017 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,7 +119,7 @@ func (obj *VectorIid) ImportConfig(config ConfigDistribution, t ScalarType) erro
 
 func (obj *VectorIid) ExportConfig() (config ConfigDistribution) {
 
-  parameters := NewVector(BareRealType, []float64{float64(obj.n)})
+  parameters := NewDenseFloat64Vector([]float64{float64(obj.n)})
 
   return NewConfigDistribution("vector:vector iid", parameters, obj.Distribution.ExportConfig())
 }

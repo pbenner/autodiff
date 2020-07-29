@@ -25,7 +25,6 @@ import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
 import   "github.com/pbenner/autodiff/algorithm/bfgs"
 import   "github.com/pbenner/autodiff/algorithm/newton"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
@@ -49,18 +48,22 @@ func main() {
   }
   defer fp3.Close()
 
-  f := func(x Vector) (Scalar, error) {
+  f := func(x ConstVector) (MagicScalar, error) {
     // f(x1, x2) = (a - x1)^2 + b(x2 - x1^2)^2
     // a = 1
     // b = 100
     // minimum: (x1,x2) = (a, a^2)
-    a := NewReal(  1.0)
-    b := NewReal(100.0)
-    s := Pow(Sub(a, x.At(0)), NewReal(2.0))
-    t := Mul(b, Pow(Sub(x.At(1), Mul(x.At(0), x.At(0))), NewReal(2.0)))
-    return Add(s, t), nil
+    a := ConstFloat64(  1.0)
+    b := ConstFloat64(100.0)
+    c := ConstFloat64(  2.0)
+    s := NullReal64()
+    t := NullReal64()
+    s.Pow(s.Sub(a, x.ConstAt(0)), c)
+    t.Mul(b, t.Pow(t.Sub(x.ConstAt(1), t.Mul(x.ConstAt(0), x.ConstAt(0))), c))
+    s.Add(s, t)
+    return s, nil
   }
-  hook_rprop := func(gradient, step []float64, x ConstVector, y Scalar) bool {
+  hook_rprop := func(gradient, step []float64, x ConstVector, y ConstScalar) bool {
     fmt.Fprintf(fp1, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
@@ -68,7 +71,7 @@ func main() {
     fmt.Println()
     return false
   }
-  hook_bfgs := func(x, gradient Vector, y Scalar) bool {
+  hook_bfgs := func(x, gradient ConstVector, y ConstScalar) bool {
     fmt.Fprintf(fp2, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
@@ -76,7 +79,7 @@ func main() {
     fmt.Println()
     return false
   }
-  hook_newton := func(x, gradient Vector, hessian Matrix, y Scalar) bool {
+  hook_newton := func(x, gradient ConstVector, hessian ConstMatrix, y ConstScalar) bool {
     fmt.Fprintf(fp3, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
@@ -85,7 +88,7 @@ func main() {
     return false
   }
 
-  x0 := NewVector(RealType, []float64{-0.5, 2})
+  x0 := NewDenseFloat64Vector([]float64{-0.5, 2})
 
   rprop.Run(f, x0, 0.05, []float64{1.2, 0.8},
     rprop.Hook{hook_rprop},

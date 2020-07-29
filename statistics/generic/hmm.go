@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -153,7 +153,7 @@ func (obj *Hmm) normalizePi(t1, t2 Scalar) error {
       if _, ok := obj.startStates[i]; !ok {
         // set probability for every state to zero
         // if it is not a start state
-        obj.Pi.At(i).SetValue(math.Inf(-1))
+        obj.Pi.At(i).SetFloat64(math.Inf(-1))
       }
     }
   }
@@ -171,7 +171,7 @@ func (obj *Hmm) normalizeTf(t1, t2 Scalar) error {
         if _, ok := obj.finalStates[j]; !ok {
           // set probability for every state to zero
           // if it is not an end state
-          obj.Tf.At(i,j).SetValue(math.Inf(-1))
+          obj.Tf.At(i,j).SetFloat64(math.Inf(-1))
         } else {
           // copy value from Tr
           obj.Tf.At(i,j).Set(obj.Tr.At(i,j))
@@ -201,11 +201,11 @@ func (obj *Hmm) normalize(t1, t2 Scalar) error {
 func (hmm1 *Hmm) distance(hmm2 *Hmm) float64 {
   r    := math.Inf(-1)
   for i := 0; i < hmm1.M; i++ {
-    if t := math.Abs(math.Exp(hmm1.Pi.At(i).GetValue()) - math.Exp(hmm2.Pi.At(i).GetValue())); t > r {
+    if t := math.Abs(math.Exp(hmm1.Pi.At(i).GetFloat64()) - math.Exp(hmm2.Pi.At(i).GetFloat64())); t > r {
       r = t
     }
     for j := 0; j < hmm1.M; j++ {
-      if t := math.Abs(math.Exp(hmm1.Tr.At(i, j).GetValue()) - math.Exp(hmm2.Tr.At(i, j).GetValue())); t > r {
+      if t := math.Abs(math.Exp(hmm1.Tr.At(i, j).GetFloat64()) - math.Exp(hmm2.Tr.At(i, j).GetFloat64())); t > r {
         r = t
       }
     }
@@ -226,8 +226,8 @@ func (obj *Hmm) SetStartStates(states []int) error {
     for _, i := range states {
       obj.startStates[i] = true
     }
-    t1 := NewReal(math.Inf(-1))
-    t2 := NewReal(math.Inf(-1))
+    t1 := NewFloat64(math.Inf(-1))
+    t2 := NewFloat64(math.Inf(-1))
     obj.normalizePi(t1,t2)
   }
   return nil
@@ -246,8 +246,8 @@ func (obj *Hmm) SetFinalStates(states []int) error {
     }
     // clone transition matrix and renormalize
     obj.Tf = obj.Tr.CloneTransitionMatrix()
-    t1 := NewReal(math.Inf(-1))
-    t2 := NewReal(math.Inf(-1))
+    t1 := NewFloat64(math.Inf(-1))
+    t2 := NewFloat64(math.Inf(-1))
     obj.normalizeTf(t1, t2)
   }
   return nil
@@ -274,13 +274,13 @@ func (obj *Hmm) LogPdf(r Scalar, data HmmDataRecord) error {
   m := obj.M
   // test length of x
   if n == 0 {
-    r.SetValue(0.0)
+    r.SetFloat64(0.0)
     return nil
   }
   // result at time t-1
-  alpha_s := NullVector(obj.ScalarType(), m)
+  alpha_s := NullDenseVector(obj.ScalarType(), m)
   // result at time t
-  alpha_t := NullVector(obj.ScalarType(), m)
+  alpha_t := NullDenseVector(obj.ScalarType(), m)
   // some temporary variables
   t1 := r
   t2 := NullScalar(obj.ScalarType())
@@ -295,7 +295,7 @@ func (obj *Hmm) LogPdf(r Scalar, data HmmDataRecord) error {
   for k := 1; k < n-1; k++ {
     // transition to state j
     for j := 0; j < m; j++ {
-      alpha_t.At(j).SetValue(math.Inf(-1))
+      alpha_t.At(j).SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_{x_i} p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -316,7 +316,7 @@ func (obj *Hmm) LogPdf(r Scalar, data HmmDataRecord) error {
     // last step from x(N-2) to x(N-1)
     // transition to state j
     for j := 0; j < m; j++ {
-      alpha_t.At(j).SetValue(math.Inf(-1))
+      alpha_t.At(j).SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_{x_i} p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -334,7 +334,7 @@ func (obj *Hmm) LogPdf(r Scalar, data HmmDataRecord) error {
     alpha_s, alpha_t = alpha_t, alpha_s
   }
   // sum up alpha, which gives the final result
-  r.SetValue(math.Inf(-1))
+  r.SetFloat64(math.Inf(-1))
   for j := 0; j < m; j++ {
     r.LogAdd(r, alpha_s.At(j), t2)
   }
@@ -354,17 +354,17 @@ func (obj *Hmm) Posterior(r Scalar, data HmmDataRecord, states [][]int) error {
     return fmt.Errorf("number of states does not match number of observations")
   }
   if n == 0 {
-    r.SetValue(0.0)
+    r.SetFloat64(0.0)
     return nil
   }
   // result at time t-1 (restricted to given states)
-  alpha_s := NullVector(obj.ScalarType(), m)
+  alpha_s := NullDenseVector(obj.ScalarType(), m)
   // result at time t   (restricted to given states)
-  alpha_t := NullVector(obj.ScalarType(), m)
+  alpha_t := NullDenseVector(obj.ScalarType(), m)
   // result at time t-1
-  beta_s := NullVector(obj.ScalarType(), m)
+  beta_s := NullDenseVector(obj.ScalarType(), m)
   // result at time t
-  beta_t := NullVector(obj.ScalarType(), m)
+  beta_t := NullDenseVector(obj.ScalarType(), m)
   // some temporary variables
   t1 := NullScalar(obj.ScalarType())
   t2 := NullScalar(obj.ScalarType())
@@ -385,7 +385,7 @@ func (obj *Hmm) Posterior(r Scalar, data HmmDataRecord, states [][]int) error {
   for k := 1; k < n-1; k++ {
     // transition to state j
     for _, j := range states[k] {
-      alpha_t.At(j).SetValue(math.Inf(-1))
+      alpha_t.At(j).SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_{x_i} p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -403,7 +403,7 @@ func (obj *Hmm) Posterior(r Scalar, data HmmDataRecord, states [][]int) error {
     alpha_s, alpha_t = alpha_t, alpha_s
     // transition to state j
     for j := 0; j < m; j++ {
-      beta_t.At(j).SetValue(math.Inf(-1))
+      beta_t.At(j).SetFloat64(math.Inf(-1))
       // compute:
       // beta_t(x_j) = sum_{x_i} p(x_j | x_i) beta_s(x_i)
       // transitions from state i
@@ -424,7 +424,7 @@ func (obj *Hmm) Posterior(r Scalar, data HmmDataRecord, states [][]int) error {
     // last step from x(N-2) to x(N-1)
     // transition to state j
     for _, j := range states[n-1] {
-      alpha_t.At(j).SetValue(math.Inf(-1))
+      alpha_t.At(j).SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_{x_i} p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -442,7 +442,7 @@ func (obj *Hmm) Posterior(r Scalar, data HmmDataRecord, states [][]int) error {
     alpha_s, alpha_t = alpha_t, alpha_s
     // transition to state j
     for j := 0; j < m; j++ {
-      beta_t.At(j).SetValue(math.Inf(-1))
+      beta_t.At(j).SetFloat64(math.Inf(-1))
       // compute:
       // beta_t(x_j) = sum_{x_i} p(x_j | x_i) beta_s(x_i)
       // transitions from state i
@@ -460,12 +460,12 @@ func (obj *Hmm) Posterior(r Scalar, data HmmDataRecord, states [][]int) error {
     beta_s, beta_t = beta_t, beta_s
   }
   // sum up alpha
-  r.SetValue(math.Inf(-1))
+  r.SetFloat64(math.Inf(-1))
   for _, j := range states[n-1] {
     r.LogAdd(r, alpha_s.At(j), t2)
   }
   // sum up beta
-  t1.SetValue(math.Inf(-1))
+  t1.SetFloat64(math.Inf(-1))
   for j := 0; j < m; j++ {
     t1.LogAdd(t1, beta_s.At(j), t2)
   }
@@ -492,7 +492,7 @@ func (obj *Hmm) forward(data HmmDataRecord, alpha Matrix, t1, t2 Scalar, n, m in
     for j := 0; j < m; j++ {
       at := alpha.At(j, k)
       // initialize alpha
-      at.SetValue(math.Inf(-1))
+      at.SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_i p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -513,7 +513,7 @@ func (obj *Hmm) forward(data HmmDataRecord, alpha Matrix, t1, t2 Scalar, n, m in
     for j := 0; j < m; j++ {
       at := alpha.At(j, n-1)
       // initialize alpha
-      at.SetValue(math.Inf(-1))
+      at.SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_i p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -537,7 +537,7 @@ func (obj *Hmm) backward(data HmmDataRecord, beta Matrix, t1, t2 Scalar, n, m in
   // initialize last position
   if n > 0 {
     for i := 0; i < m; i++ {
-      beta.At(i, n-1).SetValue(0.0)
+      beta.At(i, n-1).SetFloat64(0.0)
     }
   }
   if n > 1 {
@@ -546,7 +546,7 @@ func (obj *Hmm) backward(data HmmDataRecord, beta Matrix, t1, t2 Scalar, n, m in
     for i := 0; i < m; i++ {
       bs := beta.At(i, n-2)
       // initialize beta
-      bs.SetValue(math.Inf(-1))
+      bs.SetFloat64(math.Inf(-1))
       // compute:
       // beta_s(x_i) = sum_j p(y_{k+1} | x_j) p(x_j | x_i) beta_t(x_j)
       // transition to state j
@@ -565,7 +565,7 @@ func (obj *Hmm) backward(data HmmDataRecord, beta Matrix, t1, t2 Scalar, n, m in
     for i := 0; i < m; i++ {
       bs := beta.At(i, k)
       // initialize beta
-      bs.SetValue(math.Inf(-1))
+      bs.SetFloat64(math.Inf(-1))
       // compute:
       // beta_s(x_i) = sum_j p(y_{k+1} | x_j) p(x_j | x_i) beta_t(x_j)
       // transition to state j
@@ -605,8 +605,8 @@ func (obj *Hmm) ForwardBackward(data HmmDataRecord) (Matrix, Matrix, error) {
   // number of states
   m := obj.M
   // forward and backward probabilities
-  alpha := NullMatrix(t, m, n)
-  beta  := NullMatrix(t, m, n)
+  alpha := NullDenseMatrix(t, m, n)
+  beta  := NullDenseMatrix(t, m, n)
   // allocate memory
   t1 := NewScalar(t, 0.0)
   t2 := NewScalar(t, 0.0)
@@ -614,29 +614,29 @@ func (obj *Hmm) ForwardBackward(data HmmDataRecord) (Matrix, Matrix, error) {
 }
 
 func (obj *Hmm) PosteriorMarginals(data HmmDataRecord) ([]Vector, error) {
-  t := BareRealType
+  t := Float64Type
   n := data.GetN()
   m := obj.M
   // allocate memory
   t1 := NewScalar(t, 0.0)
   t2 := NewScalar(t, 0.0)
-  alpha := NullMatrix(t, m, n)
-  beta  := NullMatrix(t, m, n)
+  alpha := NullDenseMatrix(t, m, n)
+  beta  := NullDenseMatrix(t, m, n)
   gamma := make([]Vector, m)
   for c := 0; c < m; c++ {
-    gamma[c] = NullVector(t, data.GetN())
+    gamma[c] = NullDenseVector(t, data.GetN())
   }
   // execute forward-backward algorithm
   obj.forwardBackward(data, alpha, beta, t1, t2)
   // compute marginals
   for k := 0; k < n; k++ {
     // normalization constant
-    t1.SetValue(math.Inf(-1))
+    t1.SetFloat64(math.Inf(-1))
     for i := 0; i < m; i++ {
       gamma[i].At(k).Add(alpha.At(i, k), beta.At(i, k))
       t1.LogAdd(t1, gamma[i].At(k), t2)
     }
-    if math.IsInf(t1.GetValue(), -1) {
+    if math.IsInf(t1.GetFloat64(), -1) {
       return nil, fmt.Errorf("all paths have zero probability")
     }
     // normalize gamma
@@ -664,8 +664,8 @@ func (obj *Hmm) SetParameters(parameters Vector) error {
   } else {
     obj.Tr.Set(parameters.Slice(0, m*m).AsMatrix(m,m)); parameters = parameters.Slice(m*m, parameters.Dim())
     obj.Tf = obj.Tr.CloneTransitionMatrix()
-    t1 := NewReal(0.0)
-    t2 := NewReal(0.0)
+    t1 := NewFloat64(0.0)
+    t2 := NewFloat64(0.0)
     obj.normalizeTf(t1, t2)
   }
   return nil
@@ -746,8 +746,8 @@ func (obj *Hmm) ExportConfig() ConfigDistribution {
     N             int
     StartStates []int
     FinalStates []int }{}
-  parameters.Pi       = obj.Pi.GetValues()
-  parameters.Tr       = obj.Tr.GetValues()
+  parameters.Pi       = AsDenseFloat64Vector(obj.Pi)
+  parameters.Tr       = AsDenseFloat64Vector(obj.Tr.AsVector())
   parameters.StateMap = obj.StateMap
   parameters.N        = n
 

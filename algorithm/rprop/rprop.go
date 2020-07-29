@@ -35,7 +35,7 @@ type MaxIterations struct {
 }
 
 type Hook struct {
-  Value func([]float64, []float64, ConstVector, Scalar) bool
+  Value func([]float64, []float64, ConstVector, ConstScalar) bool
 }
 
 type Constraints struct {
@@ -53,7 +53,7 @@ type ConstConstraints struct {
  * Proceedings of the International Symposium on Computer and Information Science VII, 1992
  */
 
-func rprop(f func(Vector) (Scalar, error), x0 ConstVector, step_init float64 , eta []float64,
+func rprop(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_init float64 , eta []float64,
   epsilon Epsilon,
   maxIterations MaxIterations,
   hook Hook,
@@ -62,8 +62,8 @@ func rprop(f func(Vector) (Scalar, error), x0 ConstVector, step_init float64 , e
   n := x0.Dim()
   t := x0.ElementType()
   // copy variables
-  x1 := AsDenseRealVector(x0)
-  x2 := AsDenseRealVector(x0)
+  x1 := AsDenseReal64Vector(x0)
+  x2 := AsDenseReal64Vector(x0)
   // step size for each variable
   step := make([]float64, n)
   // gradients
@@ -136,7 +136,7 @@ func rprop(f func(Vector) (Scalar, error), x0 ConstVector, step_init float64 , e
             x2.At(i).Add(x1.At(i), NewScalar(t, step[i]))
           }
         }
-        if math.IsNaN(x2.At(i).GetValue()) {
+        if math.IsNaN(x2.At(i).GetFloat64()) {
           return x2, fmt.Errorf("NaN value detected")
         }
       }
@@ -187,7 +187,7 @@ func Run(f interface{}, x0 Vector, step_init float64, eta []float64, args ...int
     }
   }
   switch a := f.(type) {
-  case func(Vector) (Scalar, error):
+  case func(ConstVector) (MagicScalar, error):
     return rprop(a, x0, step_init, eta, epsilon, maxIterations, hook, constraints)
   default:
     panic("invalid objective function")
@@ -220,7 +220,7 @@ func RunGradient(f interface{}, x0 ConstVector, step_init float64, eta []float64
   }
   switch a := f.(type) {
   case DenseGradientF:
-    return rprop_dense_with_gradient(a, x0.(DenseConstRealVector), step_init, eta, epsilon, maxIterations, hook, constraints)
+    return rprop_dense_with_gradient(a, x0.(DenseFloat64Vector), step_init, eta, epsilon, maxIterations, hook, constraints)
   default:
     panic("invalid objective function")
   }

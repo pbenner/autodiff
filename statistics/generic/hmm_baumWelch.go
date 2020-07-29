@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,37 +33,36 @@ func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta ConstV
   alpha    := tmp.alpha
   beta     := tmp.beta
   xi       := tmp.xi
-  xiz      := tmp.xiz
   gamma    := tmp.gamma
   gamma0   := tmp.gamma0
   gammaTmp := tmp.gammaTmp
-  t1       := tmp.t1
-  t2       := tmp.t2
-  t3       := tmp.t3
   pi       := tmp.pi
   tr       := tmp.tr
+  t1       := NullFloat64()
+  t3       := NullFloat64()
+  xiz      := NullFloat64()
   // reset variables if this is the first time this
   // thread is executed
   if tmp.init == false {
-    pi.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
-    tr.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+    pi.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
+    tr.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
     for c := 0; c < len(gamma); c++ {
-      gamma[c].Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+      gamma[c].Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
     }
     tmp.likelihood = 0.0
     tmp.init = true
   }
   // execute forward-backward algorithm
-  hmm2.bareRealForwardBackward(data, alpha, beta, t1, t2)
+  hmm2.float64ForwardBackward(data, alpha, beta)
   // compute gamma at position 0
   {
     // normalization constant
-    t1.SetValue(math.Inf(-1))
+    t1.SetFloat64(math.Inf(-1))
     for i := 0; i < m; i++ {
       gamma0.AT(i).ADD(alpha.AT(i, 0), beta.AT(i, 0))
       t1.LOGADD(t1, gamma0.AT(i), t3)
     }
-    if math.IsInf(t1.GetValue(), -1) {
+    if math.IsInf(t1.GetFloat64(), -1) {
       return fmt.Errorf("all paths have zero probability")
     }
     // normalize gamma0
@@ -79,12 +78,12 @@ func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta ConstV
   if gamma != nil {
     for k := 0; k < n; k++ {
       // normalization constant
-      t1.SetValue(math.Inf(-1))
+      t1.SetFloat64(math.Inf(-1))
       for i := 0; i < m; i++ {
         gammaTmp.AT(i).ADD(alpha.AT(i, k), beta.AT(i, k))
         t1.LOGADD(t1, gammaTmp.AT(i), t3)
       }
-      if math.IsInf(t1.GetValue(), -1) {
+      if math.IsInf(t1.GetFloat64(), -1) {
         return fmt.Errorf("all paths have zero probability")
       }
       for i := 0; i < m; i++ {
@@ -108,7 +107,7 @@ func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta ConstV
         break
       }
       // reset normalization constant for xi
-      xiz.SetValue(math.Inf(-1))
+      xiz.SetFloat64(math.Inf(-1))
       // compute xi temporaries and update parameters
       for i := 0; i < m; i++ {
       // compute xi temporaries (to save memory xi is not fully evaluated)
@@ -139,11 +138,11 @@ func (obj *Hmm) baumWelchThread(hmm1, hmm2 *Hmm, data HmmDataRecord, meta ConstV
     }
   }
   // compute log-likelihood
-  t1.SetValue(math.Inf(-1))
+  t1.SetFloat64(math.Inf(-1))
   for i := 0; i < m; i++ {
     t1.LOGADD(t1, alpha.AT(i, n-1), t3)
   }
-  tmp.likelihood += t1.GetValue()
+  tmp.likelihood += t1.GetFloat64()
   return nil
 }
 
@@ -172,18 +171,18 @@ func (obj *Hmm) BaumWelchStep(hmm1, hmm2 *Hmm, data HmmDataSet, meta ConstVector
     }
   }
   // set pi and the transition matrix to zero
-  hmm1.Pi.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+  hmm1.Pi.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
   if tmp[0].tr != nil {
-    hmm1.Tr.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+    hmm1.Tr.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
   }
   // wait for all threads to finish
   if err := p.Wait(g); err != nil {
     return math.Inf(-1), nil
   }
   // get some temporary variables
-  t1 := tmp[0].t1
-  t2 := tmp[0].t2
-  t3 := tmp[0].t3
+  t1 := NullFloat64()
+  t2 := NullFloat64()
+  t3 := NullFloat64()
   // merge contributions from all threads
   for threadIdx := 0; threadIdx < len(tmp); threadIdx++ {
     if tmp[threadIdx].init == false {
@@ -210,7 +209,7 @@ func (obj *Hmm) BaumWelchStep(hmm1, hmm2 *Hmm, data HmmDataSet, meta ConstVector
   }
   if tmp[0].init == false {
     for c := 0; c < len(tmp[0].gamma); c++ {
-      tmp[0].gamma[c].Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+      tmp[0].gamma[c].Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
     }
     tmp[0].likelihood = 0.0
     tmp[0].init       = true

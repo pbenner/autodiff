@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,21 +62,21 @@ func Run(x Vector, beta Scalar, nu Vector, t1, t2, t3 Scalar) {
   sigma := t1
   mu    := t2
   t     := t3
-  sigma.SetValue(0.0)
-  nu   .At(0).SetValue(1.0)
+  sigma.SetFloat64(0.0)
+  nu   .At(0).SetFloat64(1.0)
   for i := 1; i < x.Dim(); i++ {
     nu.At(i).Set(x.At(i))
     t.Mul(x.At(i), x.At(i))
     sigma.Add(sigma, t)
   }
-  if sigma.GetValue() == 0.0 {
-    beta.SetValue(0.0)
+  if sigma.GetFloat64() == 0.0 {
+    beta.SetFloat64(0.0)
   } else {
     nu0 := nu.At(0)
     mu.Mul(x.At(0), x.At(0))
     mu.Add(mu, sigma)
     mu.Sqrt(mu)
-    if x.At(0).GetValue() <= 0.0 {
+    if x.At(0).GetFloat64() <= 0.0 {
       nu0.Sub(x.At(0), mu)
     } else {
       nu0.Add(x.At(0), mu)

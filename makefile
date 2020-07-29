@@ -26,7 +26,6 @@ SUBDIRS = \
 	demo/example1 \
 	demo/regression \
 	demo/rosenbrock \
-	simple \
 	special \
 	statistics \
 	statistics/generic \

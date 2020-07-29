@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,18 +40,14 @@ type BaumWelchOptimizeTransitions struct {
 }
 
 type BaumWelchTmp struct {
-  alpha     *DenseBareRealMatrix
-  beta      *DenseBareRealMatrix
-  xi        *DenseBareRealMatrix
-  xiz       *BareReal
-  gamma    []DenseBareRealVector
-  gamma0     DenseBareRealVector
-  gammaTmp   DenseBareRealVector
-  t1        *BareReal
-  t2        *BareReal
-  t3        *BareReal
-  tr        *DenseBareRealMatrix
-  pi         DenseBareRealVector
+  alpha     *DenseFloat64Matrix
+  beta      *DenseFloat64Matrix
+  xi        *DenseFloat64Matrix
+  gamma    []DenseFloat64Vector
+  gamma0     DenseFloat64Vector
+  gammaTmp   DenseFloat64Vector
+  tr        *DenseFloat64Matrix
+  pi         DenseFloat64Vector
   likelihood float64
   init       bool
 }
@@ -96,7 +92,7 @@ type baumWelchCore interface {
   GetBasicHmm   () BasicHmm
   Swap          ()
   Step          (meta    ConstVector, tmp []BaumWelchTmp, p ThreadPool) (float64, error)
-  Emissions     (gamma []DenseBareRealVector,             p ThreadPool) error
+  Emissions     (gamma []DenseFloat64Vector,             p ThreadPool) error
 }
 
 /* -------------------------------------------------------------------------- */
@@ -171,28 +167,23 @@ func BaumWelchAlgorithm(obj baumWelchCore, meta ConstVector, nRecords, nData, nM
   tmp := make([]BaumWelchTmp, threads)
   for threadIdx := 0; threadIdx < threads; threadIdx++ {
     // forward and backward probabilities
-    tmp[threadIdx].alpha  = NullDenseBareRealMatrix(m1, nData)
-    tmp[threadIdx].beta   = NullDenseBareRealMatrix(m1, nData)
+    tmp[threadIdx].alpha  = NullDenseFloat64Matrix(m1, nData)
+    tmp[threadIdx].beta   = NullDenseFloat64Matrix(m1, nData)
     // initial probabilities
-    tmp[threadIdx].pi = NullDenseBareRealVector(m1)
+    tmp[threadIdx].pi = NullDenseFloat64Vector(m1)
     // transition matrix
     if optimizeTransitions {
-      tmp[threadIdx].tr   = NullDenseBareRealMatrix(m1, m1)
-      tmp[threadIdx].xi   = NullDenseBareRealMatrix(m1, m1)
-      tmp[threadIdx].xiz  = NullBareReal()
+      tmp[threadIdx].tr   = NullDenseFloat64Matrix(m1, m1)
+      tmp[threadIdx].xi   = NullDenseFloat64Matrix(m1, m1)
     }
     if optimizeEmissions {
-      tmp[threadIdx].gamma  = make([]DenseBareRealVector, m2)
+      tmp[threadIdx].gamma  = make([]DenseFloat64Vector, m2)
       for c := 0; c < m2; c++ {
-        tmp[threadIdx].gamma[c] = NullDenseBareRealVector(nMapped)
+        tmp[threadIdx].gamma[c] = NullDenseFloat64Vector(nMapped)
       }
-      tmp[threadIdx].gammaTmp = NullDenseBareRealVector(m1)
+      tmp[threadIdx].gammaTmp = NullDenseFloat64Vector(m1)
     }
-    tmp[threadIdx].gamma0 = NullDenseBareRealVector(m1)
-    // some temporary variables
-    tmp[threadIdx].t1 = NewBareReal(0.0)
-    tmp[threadIdx].t2 = NewBareReal(0.0)
-    tmp[threadIdx].t3 = NewBareReal(0.0)
+    tmp[threadIdx].gamma0 = NullDenseFloat64Vector(m1)
   }
   return baumWelchAlgorithm(obj, meta, tmp, epsilon, maxSteps, hooks, p)
 }

@@ -1,6 +1,6 @@
 /* -*- mode: go; -*-
  *
- * Copyright (C) 2015-2017 Philipp Benner
+ * Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ func CHOLESKY(A CONST_MATRIX_TYPE, L MATRIX_TYPE, s, t SCALAR_TYPE) (MATRIX_TYPE
       }
       t.SUB(A.CONSTAT(i, j), s)
       if i == j {
-        if t.GetValue() < 0.0 {
+        if t.GetFloat64() < 0.0 {
           return nil, nil, fmt.Errorf("matrix is not positive definite")
         }
         L.AT(i, j).SQRT(t)
@@ -66,10 +66,10 @@ func CHOLESKY_LDL(A CONST_MATRIX_TYPE, L, D MATRIX_TYPE, s, t SCALAR_TYPE) (MATR
     }
     c.SUB(A.CONSTAT(j, j), s)
     D.AT(j,j).Set(c)
-    if D.AT(j,j).GetValue() <= 0.0 {
+    if D.AT(j,j).GetFloat64() <= 0.0 {
       return nil, nil, fmt.Errorf("matrix is not positive definite")
     }
-    L.AT(j,j).SetValue(1.0)
+    L.AT(j,j).SetFloat64(1.0)
     // compute remaining entries
     for i := j+1; i < n; i++ {
       s.Reset()
@@ -99,11 +99,11 @@ func CHOLESKY_LDL_FORCEPD(A CONST_MATRIX_TYPE, L, D MATRIX_TYPE, s, t SCALAR_TYP
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
       if i == j {
-        if r := math.Abs(A.CONSTAT(i, i).GetValue()); r > gamma {
+        if r := math.Abs(A.CONSTAT(i, i).GetFloat64()); r > gamma {
           gamma = r
         }
       } else {
-        if r := math.Abs(A.CONSTAT(i, j).GetValue()); r > xi {
+        if r := math.Abs(A.CONSTAT(i, j).GetFloat64()); r > xi {
           xi = r
         }
       }
@@ -115,7 +115,7 @@ func CHOLESKY_LDL_FORCEPD(A CONST_MATRIX_TYPE, L, D MATRIX_TYPE, s, t SCALAR_TYP
 
   // loop over columns
   for j := 0; j < n; j++ {
-    L.AT(j,j).SetValue(1.0)
+    L.AT(j,j).SetFloat64(1.0)
     // compute c_jj (stored temporarily in d_j)
     s.Reset()
     for k := 0; k < j; k++ {
@@ -138,17 +138,17 @@ func CHOLESKY_LDL_FORCEPD(A CONST_MATRIX_TYPE, L, D MATRIX_TYPE, s, t SCALAR_TYP
       // result: L(i,j) <- c_ij
       L.AT(i,j).SUB(A.CONSTAT(i,j), s)
       // update theta_j
-      if r := math.Abs(L.AT(i,j).GetValue()); r > theta {
+      if r := math.Abs(L.AT(i,j).GetFloat64()); r > theta {
         theta = r
       }
     }
     // compute d_j = max(|c_jj|, (theta_j/beta)^2, delta)
     if j != n-1 {
-      D.AT(j,j).SetValue(
-        math.Max(math.Max(math.Abs(c_jj.GetValue()), math.Pow((theta/beta), 2.0)), delta))
+      D.AT(j,j).SetFloat64(
+        math.Max(math.Max(math.Abs(c_jj.GetFloat64()), math.Pow((theta/beta), 2.0)), delta))
     } else {
-      D.AT(j,j).SetValue(
-        math.Max(math.Abs(c_jj.GetValue()), delta))
+      D.AT(j,j).SetFloat64(
+        math.Max(math.Abs(c_jj.GetFloat64()), delta))
     }
     // compute l_ij = c_ij/d_j
     for i := j+1; i < n; i++ {

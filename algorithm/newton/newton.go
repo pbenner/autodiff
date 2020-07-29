@@ -1,4 +1,4 @@
-/* Copyright (C) 2015, 2017 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,23 +29,23 @@ import   "github.com/pbenner/autodiff/algorithm/qrAlgorithm"
 
 /* -------------------------------------------------------------------------- */
 
-type objective_root func(Vector) (Vector, Matrix, error)
-type objective_crit func(Vector) (Vector, Matrix, error)
-type objective_min  func(Vector) (Scalar, Vector, Matrix, error)
-type objective_line func(Scalar) (Scalar, error)
+type objective_root func(ConstVector) (Vector, Matrix, error)
+type objective_crit func(ConstVector) (Vector, Matrix, error)
+type objective_min  func(ConstVector) (Scalar, Vector, Matrix, error)
+type objective_line func(ConstScalar) (MagicScalar, error)
 
 type Epsilon struct {
   Value float64
 }
 
 type HookRoot struct {
-  Value func(Vector, Matrix, Vector) bool
+  Value func(ConstVector, ConstMatrix, ConstVector) bool
 }
 
 type HookCrit HookRoot
 
 type HookMin struct {
-  Value func(Vector, Vector, Matrix, Scalar) bool
+  Value func(ConstVector, ConstVector, ConstMatrix, ConstScalar) bool
 }
 
 type HessianModification struct {
@@ -72,7 +72,7 @@ type InSitu struct {
 
 func Vequals(x1, x2 Vector) bool {
   for i := 0; i < x1.Dim(); i++ {
-    if x1.At(i).GetValue() != x2.At(i).GetValue() {
+    if x1.At(i).GetFloat64() != x2.At(i).GetFloat64() {
       return false
     }
   }
@@ -90,8 +90,8 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
         r := h.At(i, i)
       // elements on the diagonal are the eigenvalues, force them
       // to be positive
-      if r.GetValue() < delta {
-        r.SetValue(delta - r.GetValue())
+      if r.GetFloat64() < delta {
+        r.SetFloat64(delta - r.GetFloat64())
       }
     }
     H.MdotM(u, h)
@@ -112,7 +112,7 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
     if err != nil {
       return fmt.Errorf("inverting Hessian failed: %v", err)
     }
-    c1 := NewBareReal(1.0)
+    c1 := ConstFloat64(1.0)
     // invert D
     for i := 0; i < g.Dim(); i++ {
       D.At(i, i).Div(c1, D.At(i, i))
@@ -139,7 +139,7 @@ func getDirection(r, g Vector, H Matrix, hessianModification HessianModification
 // nomenclature:
 // f(x) = y
 // J: Jacobian
-func newton_root(f objective_root, x Vector,
+func newton_root(f objective_root, x ConstVector,
   epsilon Epsilon,
   maxIterations MaxIterations,
   hook HookRoot,
@@ -147,10 +147,10 @@ func newton_root(f objective_root, x Vector,
   hessianModification HessianModification,
   inSitu *InSitu,
   options []interface{}) (Vector, error) {
-  x1 := x.CloneVector()
-  x2 := x.CloneVector()
+  x1 := AsDenseFloat64Vector(x)
+  x2 := AsDenseFloat64Vector(x)
   // variables for lineSearch
-  c  := NewBareReal(0.9)
+  c  := ConstFloat64(0.9)
 
   // check initial value
   if constraints.Value != nil && !constraints.Value(x1) {
@@ -163,7 +163,7 @@ func newton_root(f objective_root, x Vector,
   }
   // allocate temporary memory
   if inSitu.T1 == nil {
-    inSitu.T1 = NullVector(y.ElementType(), y.Dim())
+    inSitu.T1 = NullDenseVector(y.ElementType(), y.Dim())
   }
   if inSitu.T2 == nil {
     inSitu.T2 = NullScalar(y.ElementType())
@@ -179,10 +179,10 @@ func newton_root(f objective_root, x Vector,
     }
     // evaluate stop criterion
     t2.Vnorm(y)
-    if t2.GetValue() < epsilon.Value {
+    if t2.GetFloat64() < epsilon.Value {
       break
     }
-    if math.IsNaN(t2.GetValue()) {
+    if math.IsNaN(t2.GetFloat64()) {
       return x1, fmt.Errorf("NaN value detected")
     }
     if err := getDirection(t1, y, J, hessianModification, inSitu); err != nil {
@@ -224,8 +224,8 @@ func newton_root(f objective_root, x Vector,
 // H: Hessian
 func newton_min(
   f  objective_min,
-  x Vector,
-  getPhi func(x, p Vector) objective_line,
+  x ConstVector,
+  getPhi func(x, p ConstVector) objective_line,
   epsilon Epsilon,
   maxIterations MaxIterations,
   hook HookMin,
@@ -233,10 +233,10 @@ func newton_min(
   hessianModification HessianModification,
   inSitu *InSitu,
   options []interface{}) (Vector, error) {
-  x1 := x.CloneVector()
-  x2 := x.CloneVector()
+  x1 := AsDenseFloat64Vector(x)
+  x2 := AsDenseFloat64Vector(x)
   // variables for lineSearch
-  c  := NewBareReal(0.9)
+  c  := ConstFloat64(0.9)
   var y1 Scalar
   var y2 Scalar
 
@@ -255,7 +255,7 @@ func newton_min(
   }
   // allocate temporary memory
   if inSitu.T1 == nil {
-    inSitu.T1 = NullVector(g.ElementType(), g.Dim())
+    inSitu.T1 = NullDenseVector(g.ElementType(), g.Dim())
   }
   if inSitu.T2 == nil {
     inSitu.T2 = NullScalar(g.ElementType())
@@ -264,10 +264,10 @@ func newton_min(
   t1 := inSitu.T1
   t2 := inSitu.T2
   // constraints function for the line search algorithm
-  var constraints_line func(alpha Scalar) bool
+  var constraints_line func(alpha ConstScalar) bool
 
   if constraints.Value != nil {
-    constraints_line = func(alpha Scalar) bool {
+    constraints_line = func(alpha ConstScalar) bool {
       t1.VmulS(t1, alpha)
       x2.VsubV(x1, t1)
       return constraints.Value(x2)
@@ -281,10 +281,10 @@ func newton_min(
     }
     // evaluate stop criterion
     t2.Vnorm(g)
-    if t2.GetValue() < epsilon.Value {
+    if t2.GetFloat64() < epsilon.Value {
       break
     }
-    if math.IsNaN(t2.GetValue()) {
+    if math.IsNaN(t2.GetFloat64()) {
       return x1, fmt.Errorf("NaN value detected")
     }
     if err := getDirection(t1, g, H, hessianModification, inSitu); err != nil {
@@ -295,7 +295,7 @@ func newton_min(
       // get line search objective function
       phi := getPhi(x1, t1)
       // execute line search and update x
-      if alpha, err := lineSearch.Run(phi, BareRealType,
+      if alpha, err := lineSearch.Run(phi, Float64Type,
           lineSearch.Constraints{constraints_line},
           lineSearch.Parameters {1, 20}); err != nil {
         return x1, err
@@ -331,7 +331,7 @@ func newton_min(
 
 /* -------------------------------------------------------------------------- */
 
-func run_root(f objective_root, x Vector, args ...interface{}) (Vector, error) {
+func run_root(f objective_root, x ConstVector, args ...interface{}) (Vector, error) {
 
   hook                := HookRoot           {   nil}
   epsilon             := Epsilon            {  1e-8}
@@ -367,7 +367,7 @@ func run_root(f objective_root, x Vector, args ...interface{}) (Vector, error) {
   return newton_root(f, x, epsilon, maxIterations, hook, constraints, hessianModification, inSitu, options)
 }
 
-func run_min(f objective_min, x Vector, getPhi func(x, p Vector) objective_line, args ...interface{}) (Vector, error) {
+func run_min(f objective_min, x ConstVector, getPhi func(x, p ConstVector) objective_line, args ...interface{}) (Vector, error) {
 
   hook                := HookMin            {   nil}
   epsilon             := Epsilon            {  1e-8}
@@ -403,15 +403,15 @@ func run_min(f objective_min, x Vector, getPhi func(x, p Vector) objective_line,
 
 /* -------------------------------------------------------------------------- */
 
-func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Vector, error) {
+func RunRoot(f_ func(ConstVector) (MagicVector, error), x ConstVector, args ...interface{}) (Vector, error) {
 
   // Jacobian matrix
   var J Matrix
   var y Vector
   // copy of x for computing derivatives
-  X := x.CloneVector()
+  X := AsDenseReal64Vector(x)
   // objective function
-  f := func(x Vector) (Vector, Matrix, error) {
+  f := func(x ConstVector) (Vector, Matrix, error) {
     X.Set(x)
     if err := X.Variables(1); err != nil {
       return nil, nil, err
@@ -422,19 +422,19 @@ func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Ve
       return nil, nil, err
     }
     if y == nil {
-      y = NullVector(BareRealType, Y.Dim())
+      y = NullDenseFloat64Vector(Y.Dim())
     }
     if J == nil {
-      J = NullMatrix(BareRealType, y.Dim(), x.Dim())
+      J = NullDenseFloat64Matrix(y.Dim(), x.Dim())
     }
     // copy values to y
     for i := 0; i < y.Dim(); i++ {
-      y.At(i).SetValue(Y.At(i).GetValue())
+      y.At(i).SetFloat64(Y.At(i).GetFloat64())
     }
     // copy derivatives to J
     for i := 0; i < y.Dim(); i++ {
       for j := 0; j < x.Dim(); j++ {
-        J.At(i, j).SetValue(Y.At(i).GetDerivative(j))
+        J.At(i, j).SetFloat64(Y.At(i).GetDerivative(j))
       }
     }
     return y, J, nil
@@ -442,16 +442,16 @@ func RunRoot(f_ func(Vector) (Vector, error), x Vector, args ...interface{}) (Ve
   return run_root(f, x, args...)
 }
 
-func RunCrit(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vector, error) {
+func RunCrit(f_ func(ConstVector) (MagicScalar, error), x ConstVector, args ...interface{}) (Vector, error) {
 
   n := x.Dim()
-  y := NullBareReal()
-  g :=      NullVector(BareRealType, n)
-  H := NullMatrix(BareRealType, n, n)
+  y := NullFloat64()
+  g := NullDenseFloat64Vector(n)
+  H := NullDenseFloat64Matrix(n, n)
   // copy of x for computing derivatives
-  X := x.CloneVector()
+  X := AsDenseReal64Vector(x)
   // objective function
-  f := func(x Vector) (Vector, Matrix, error) {
+  f := func(x ConstVector) (Vector, Matrix, error) {
     X.Set(x)
     if err := X.Variables(2); err != nil {
       return nil, nil, err
@@ -462,33 +462,26 @@ func RunCrit(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Ve
       return nil, nil, err
     }
     // copy function value to y
-    y.SetValue(Y.GetValue())
-    // copy derivatives to g
-    for i := 0; i < n; i++ {
-      g.At(i).SetValue(Y.GetDerivative(i))
-    }
-    // copy Hessian to H
-    for i := 0; i < n; i++ {
-      for j := 0; j < n; j++ {
-        H.At(i, j).SetValue(Y.GetHessian(i, j))
-      }
-    }
+    y.SetFloat64(Y.GetFloat64())
+    // copy gradient and hessian
+    CopyGradient(g, Y)
+    CopyHessian (H, Y)
     return g, H, nil
   }
   return run_root(f, x, args...)
 }
 
-func RunMin(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vector, error) {
+func RunMin(f_ func(ConstVector) (MagicScalar, error), x ConstVector, args ...interface{}) (Vector, error) {
 
   n := x.Dim()
-  y := NullBareReal()
-  g :=      NullVector(BareRealType, n)
-  H := NullMatrix(BareRealType, n, n)
+  y := NullFloat64()
+  g := NullDenseFloat64Vector(n)
+  H := NullDenseFloat64Matrix(n, n)
   // copy of x for computing derivatives
-  X := x.CloneVector()
-  P := x.CloneVector()
+  X := AsDenseReal64Vector(x)
+  P := AsDenseReal64Vector(x)
   // objective function
-  f := func(x Vector) (Scalar, Vector, Matrix, error) {
+  f := func(x ConstVector) (Scalar, Vector, Matrix, error) {
     X.Set(x)
     if err := X.Variables(2); err != nil {
       return nil, nil, nil, err
@@ -499,22 +492,15 @@ func RunMin(f_ func(Vector) (Scalar, error), x Vector, args ...interface{}) (Vec
       return nil, nil, nil, err
     }
     // copy function value to y
-    y.SetValue(Y.GetValue())
-    // copy derivatives to g
-    for i := 0; i < n; i++ {
-      g.At(i).SetValue(Y.GetDerivative(i))
-    }
-    // copy Hessian to H
-    for i := 0; i < n; i++ {
-      for j := 0; j < n; j++ {
-        H.At(i, j).SetValue(Y.GetHessian(i, j))
-      }
-    }
+    y.SetFloat64(Y.GetFloat64())
+    // copy gradient and hessian
+    CopyGradient(g, Y)
+    CopyHessian (H, Y)
     return y, g, H, nil
   }
   // objective function for line-search
-  getPhi := func(x, p Vector) objective_line {
-    phi := func(alpha Scalar) (Scalar, error) {
+  getPhi := func(x, p ConstVector) objective_line {
+    phi := func(alpha ConstScalar) (MagicScalar, error) {
       P.VmulS(p, alpha)
       X.VsubV(x, P)
       return f_(X)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,9 +53,9 @@ func (obj HmmPosterior) Eval(r Vector, x ConstMatrix) error {
   if p, err := obj.PosteriorMarginals(x); err != nil {
     return err
   } else {
-    t := NewBareReal(0.0)
+    t := NewFloat64(0.0)
     for i := 0; i < m; i++ {
-      r.At(i).SetValue(math.Inf(-1))
+      r.At(i).SetFloat64(math.Inf(-1))
       for j := 0; j < len(obj.States); j++ {
         r.At(i).LogAdd(r.At(i), p[obj.States[j]].At(i), t)
       }

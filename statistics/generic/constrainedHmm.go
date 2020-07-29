@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Philipp Benner
+/* Copyright (C) 2018-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,16 +81,16 @@ func (obj ChmmTransitionMatrix) GetConstraints() []EqualityConstraint {
 }
 
 func (obj ChmmTransitionMatrix) Normalize() error {
-  t1 := NullBareReal()
-  t2 := NullBareReal()
+  t1 := NullFloat64()
+  t2 := NullFloat64()
   n, m := obj.Dims()
   for i := 0; i < n; i++ {
-    t1.SetValue(math.Inf(-1))
+    t1.SetFloat64(math.Inf(-1))
     for j := 0; j < m; j++ {
       t1.LogAdd(t1, obj.At(i, j), t2)
     }
-    if math.IsInf(t1.GetValue(), -1) {
-      obj.At(i, i).SetValue(0.0)
+    if math.IsInf(t1.GetFloat64(), -1) {
+      obj.At(i, i).SetFloat64(0.0)
     }
   }
   if lambda, err := obj.computeLambda(); err != nil {
@@ -124,7 +124,7 @@ func (obj *ChmmTransitionMatrix) complementConstraints() error {
   }
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
-      if math.IsInf(obj.ConstAt(i,j).GetValue(), -1) {
+      if math.IsInf(obj.ConstAt(i,j).GetFloat64(), -1) {
         continue
       }
       if _, ok := cmap[[2]int{i,j}]; !ok {
@@ -153,10 +153,10 @@ func (obj ChmmTransitionMatrix) computeLambda() (Vector, error) {
   tr   := obj.Matrix
   n, _ := tr.Dims()
   // lambda
-  l := NullVector(RealType, n)
-  x := NullVector(RealType, n)
+  l := NullDenseFloat64Vector(n)
+  x := NullDenseReal64Vector (n)
   // objective function
-  f := func(lambda Vector) (Vector, error) {
+  f := func(lambda ConstVector) (MagicVector, error) {
     obj.EvalConstraints(lambda, x)
     return x, nil
   }
@@ -172,12 +172,12 @@ func (obj ChmmTransitionMatrix) computeLambda() (Vector, error) {
 func (obj ChmmTransitionMatrix) normalize(lambda ConstVector) {
   n, _ := obj.Dims()
 
-  s  := NewScalar(RealType, math.Inf(-1))
-  t1 := NewScalar(RealType, math.Inf(-1))
-  t2 := NewScalar(RealType, math.Inf(-1))
+  s  := NewFloat64(math.Inf(-1))
+  t1 := NewFloat64(math.Inf(-1))
+  t2 := NewFloat64(math.Inf(-1))
   // sum up xi
-  sumXi := NullVector(BareRealType, len(obj.constraints))
-  sumXi.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+  sumXi := NullDenseFloat64Vector(len(obj.constraints))
+  sumXi.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
   for k := 0; k < len(obj.constraints); k++ {
     for _, cell := range obj.constraints[k] {
       sumXi.At(k).LogAdd(sumXi.ConstAt(k), obj.ConstAt(cell[0], cell[1]), t2)
@@ -186,14 +186,14 @@ func (obj ChmmTransitionMatrix) normalize(lambda ConstVector) {
   // loop over constraints
   for k := 0; k < len(obj.constraints); k++ {
     // s = sum_j |sigma_q|_j lambda_j
-    s.SetValue(math.Inf(-1))
+    s.SetFloat64(math.Inf(-1))
     for j := 0; j < n; j++ {
       // counts[k][j]: number of times a variable appears in
       // row j constrained by k
       if obj.counts[k][j] == 0 {
         continue
       }
-      t1.Add(ConstReal(math.Log(float64(obj.counts[k][j]))), lambda.ConstAt(j))
+      t1.Add(ConstFloat64(math.Log(float64(obj.counts[k][j]))), lambda.ConstAt(j))
       s.LogAdd(s, t1, t2)
     }
     for _, cell := range obj.constraints[k] {
@@ -208,14 +208,14 @@ func (obj ChmmTransitionMatrix) normalize(lambda ConstVector) {
 func (obj ChmmTransitionMatrix) evalConstraints(lambda ConstVector, x Vector) {
   n, _ := obj.Dims()
 
-  s  := NewScalar(RealType, math.Inf(-1))
-  t1 := NewScalar(RealType, math.Inf(-1))
-  t2 := NewScalar(RealType, math.Inf(-1))
+  s  := NewReal64(math.Inf(-1))
+  t1 := NewReal64(math.Inf(-1))
+  t2 := NewReal64(math.Inf(-1))
   // reset x
-  x.Map(func(xi Scalar) { xi.SetValue(math.Inf(-1)) })
+  x.Map(func(xi Scalar) { xi.SetFloat64(math.Inf(-1)) })
   // sum up xi
-  sumXi := NullVector(BareRealType, len(obj.constraints))
-  sumXi.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+  sumXi := NullDenseReal64Vector(len(obj.constraints))
+  sumXi.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
   for k := 0; k < len(obj.constraints); k++ {
     for _, cell := range obj.constraints[k] {
       sumXi.At(k).LogAdd(sumXi.ConstAt(k), obj.ConstAt(cell[0], cell[1]), t2)
@@ -231,18 +231,18 @@ func (obj ChmmTransitionMatrix) evalConstraints(lambda ConstVector, x Vector) {
         continue
       }
       // s = sum_j |sigma_q|_j lambda_j
-      s.SetValue(math.Inf(-1))
+      s.SetFloat64(math.Inf(-1))
       for j := 0; j < n; j++ {
         // counts[k][j]: number of times a variable appears in
         // row j constrained by k
         if obj.counts[k][j] == 0 {
           continue
         }
-        t1.Add(ConstReal(math.Log(float64(obj.counts[k][j]))), lambda.ConstAt(j))
+        t1.Add(ConstFloat64(math.Log(float64(obj.counts[k][j]))), lambda.ConstAt(j))
         s.LogAdd(s, t1, t2)
       }
       // t1 = |sigma_q|_i xi_q
-      t1.Add(ConstReal(math.Log(float64(obj.counts[k][i]))), sumXi.ConstAt(k))
+      t1.Add(ConstFloat64(math.Log(float64(obj.counts[k][i]))), sumXi.ConstAt(k))
       // t1 = |sigma_q|_i xi_q / (sum_j |sigma_q|_j lambda_j)
       t1.Sub(t1, s)
       // add result to x
@@ -251,7 +251,7 @@ func (obj ChmmTransitionMatrix) evalConstraints(lambda ConstVector, x Vector) {
   }
 }
 
-func (obj ChmmTransitionMatrix) EvalConstraints(lambda ConstVector, x Vector) error {
+func (obj ChmmTransitionMatrix) EvalConstraints(lambda ConstVector, x MagicVector) error {
   tr   := obj.Matrix
   n, m := tr.Dims()
   if n != m {
@@ -267,7 +267,7 @@ func (obj ChmmTransitionMatrix) EvalConstraints(lambda ConstVector, x Vector) er
 
   x.Map(func(xi Scalar) {
     xi.Exp(xi)
-    xi.Sub(xi, ConstReal(1.0))
+    xi.Sub(xi, ConstFloat64(1.0))
   })
 
   return nil

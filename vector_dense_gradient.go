@@ -1,4 +1,4 @@
-/* Copyright (C) 2019 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ package autodiff
 
 //import "fmt"
 import "bytes"
+import "encoding/json"
 
 /* vector type declaration
  * -------------------------------------------------------------------------- */
@@ -46,16 +47,40 @@ func (obj DenseGradient) CloneConstVector() ConstVector {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj DenseGradient) ValueAt(i int) float64 {
-  return obj.S.GetDerivative(i)
+func (obj DenseGradient) Int8At(i int) int8 {
+  return int8(obj.S.GetDerivative(i))
+}
+
+func (obj DenseGradient) Int16At(i int) int16 {
+  return int16(obj.S.GetDerivative(i))
+}
+
+func (obj DenseGradient) Int32At(i int) int32 {
+  return int32(obj.S.GetDerivative(i))
+}
+
+func (obj DenseGradient) Int64At(i int) int64 {
+  return int64(obj.S.GetDerivative(i))
+}
+
+func (obj DenseGradient) IntAt(i int) int {
+  return int(obj.S.GetDerivative(i))
+}
+
+func (obj DenseGradient) Float32At(i int) float32 {
+  return float32(obj.S.GetDerivative(i))
+}
+
+func (obj DenseGradient) Float64At(i int) float64 {
+  return float64(obj.S.GetDerivative(i))
 }
 
 func (obj DenseGradient) ConstAt(i int) ConstScalar {
-  return ConstReal(obj.S.GetDerivative(i))
+  return ConstFloat64(obj.S.GetDerivative(i))
 }
 
-func (obj DenseGradient) AT(i int) ConstReal {
-  return ConstReal(obj.S.GetDerivative(i))
+func (obj DenseGradient) AT(i int) ConstFloat64 {
+  return ConstFloat64(obj.S.GetDerivative(i))
 }
 
 func (obj DenseGradient) ConstSlice(i, j int) ConstVector {
@@ -63,15 +88,7 @@ func (obj DenseGradient) ConstSlice(i, j int) ConstVector {
   for k := i; k < j; k++ {
     x[k] = obj.S.GetDerivative(k)
   }
-  return NewDenseConstRealVector(x)
-}
-
-func (obj DenseGradient) GetValues() []float64 {
-  x := make([]float64, obj.Dim())
-  for i := 0; i < obj.Dim(); i++ {
-    x[i] = obj.S.GetDerivative(i)
-  }
-  return x
+  return NewDenseFloat64Vector(x)
 }
 
 func (obj DenseGradient) ConstIterator() VectorConstIterator {
@@ -108,7 +125,7 @@ func (obj DenseGradient) JOINT_ITERATOR(b ConstVector) *DenseGradientJointIterat
 }
 
 func (obj DenseGradient) ElementType() ScalarType {
-  return BareRealType
+  return ConstFloat64Type
 }
 
 /* -------------------------------------------------------------------------- */
@@ -141,6 +158,14 @@ func (obj DenseGradient) Table() string {
   return buffer.String()
 }
 
+func (obj DenseGradient) MarshalJSON() ([]byte, error) {
+  r := make([]float64, obj.Dim())
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
+    r[it.Index()] = it.GetConst().GetFloat64()
+  }
+  return json.MarshalIndent(r, "", "  ")
+}
+
 /* const iterator
  * -------------------------------------------------------------------------- */
 
@@ -153,11 +178,7 @@ func (obj *DenseGradientIterator) GetConst() ConstScalar {
   return obj.v.ConstAt(obj.i)
 }
 
-func (obj *DenseGradientIterator) GetValue() float64 {
-  return obj.v.ValueAt(obj.i)
-}
-
-func (obj *DenseGradientIterator) GET() ConstReal {
+func (obj *DenseGradientIterator) GET() ConstFloat64 {
   return obj.v.AT(obj.i)
 }
 
@@ -188,8 +209,8 @@ type DenseGradientJointIterator struct {
   it1 *DenseGradientIterator
   it2  VectorConstIterator
   idx  int
-  s1   ConstReal
-  s2   ConstReal
+  s1   ConstFloat64
+  s2   ConstScalar
 }
 
 func (obj *DenseGradientJointIterator) Index() int {
@@ -197,14 +218,14 @@ func (obj *DenseGradientJointIterator) Index() int {
 }
 
 func (obj *DenseGradientJointIterator) Ok() bool {
-  return obj.s1.GetValue() != 0.0 || obj.s2.GetValue() != 0.0
+  return obj.s1.GetFloat64() != 0.0 || !(obj.s2 == nil || obj.s2.GetFloat64() == 0.0)
 }
 
 func (obj *DenseGradientJointIterator) Next() {
   ok1 := obj.it1.Ok()
   ok2 := obj.it2.Ok()
   obj.s1 = 0.0
-  obj.s2 = 0.0
+  obj.s2 = nil
   if ok1 {
     obj.idx = obj.it1.Index()
     obj.s1  = obj.it1.GET()
@@ -214,9 +235,9 @@ func (obj *DenseGradientJointIterator) Next() {
     case obj.idx >  obj.it2.Index() || !ok1:
       obj.idx = obj.it2.Index()
       obj.s1  = 0.0
-      obj.s2  = ConstReal(obj.it2.GetValue())
+      obj.s2  = obj.it2.GetConst()
     case obj.idx == obj.it2.Index():
-      obj.s2  = ConstReal(obj.it2.GetValue())
+      obj.s2  = obj.it2.GetConst()
     }
   }
 }
@@ -225,11 +246,7 @@ func (obj *DenseGradientJointIterator) GetConst() (ConstScalar, ConstScalar) {
   return obj.s1, obj.s2
 }
 
-func (obj *DenseGradientJointIterator) GetValue() (float64, float64) {
-  return obj.s1.GetValue(), obj.s2.GetValue()
-}
-
-func (obj *DenseGradientJointIterator) GET() (ConstReal, ConstScalar) {
+func (obj *DenseGradientJointIterator) GET() (ConstFloat64, ConstScalar) {
   return obj.s1, obj.s2
 }
 

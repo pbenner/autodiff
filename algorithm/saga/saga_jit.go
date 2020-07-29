@@ -28,26 +28,26 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 type GradientJit struct {
-  G SparseConstRealVector
-  W ConstReal
+  G SparseConstFloat64Vector
+  W float64
 }
 
-func (obj GradientJit) Update(g2 GradientJit, v DenseBareRealVector) {
+func (obj GradientJit) Update(g2 GradientJit, v DenseFloat64Vector) {
   g := obj.G.GetSparseValues()
   c := g2.W - obj.W
   for i, k := range obj.G.GetSparseIndices() {
-    v[k] = v[k] + BareReal(c.GetValue()*g[i])
+    v[k] = v[k] + c*g[i]
   }
 }
 
-func (obj GradientJit) Add(v DenseBareRealVector) {
+func (obj GradientJit) Add(v DenseFloat64Vector) {
   g := obj.G.GetSparseValues()
   for i, k := range obj.G.GetSparseIndices() {
-    v[k] = v[k] + BareReal(obj.W.GetValue()*g[i])
+    v[k] = v[k] + obj.W*g[i]
   }
 }
 
-func (obj *GradientJit) Set(w ConstReal, g SparseConstRealVector) {
+func (obj *GradientJit) Set(w float64, g SparseConstFloat64Vector) {
   obj.G = g
   obj.W = w
 }
@@ -66,8 +66,8 @@ func sagaJit(
   seed Seed,
   inSitu *InSitu) (Vector, int64, error) {
 
-  xs := AsDenseBareRealVector(x)
-  x1 := AsDenseBareRealVector(x)
+  xs := AsDenseFloat64Vector(x)
+  x1 := AsDenseFloat64Vector(x)
   xk := make([]int, x.Dim())
 
   // length of gradient
@@ -77,11 +77,11 @@ func sagaJit(
   var g2 GradientJit
 
   // some constants
-  t_n := BareReal(n)
-  t_g := BareReal(gamma.Value)
+  t_n := float64(n)
+  t_g := gamma.Value
 
   // sum of gradients
-  s := NullDenseBareRealVector(d)
+  s := NullDenseFloat64Vector(d)
   // initialize s and d
   dict := make([]GradientJit, n)
   for i := 0; i < n; i++ {
@@ -111,10 +111,10 @@ func sagaJit(
       } else {
         g2.Set(w, gt)
       }
-      c := BareReal(g2.W - g1.W)
+      c := g2.W - g1.W
       v := g1.G.GetSparseValues()
       for i, k := range g1.G.GetSparseIndices() {
-        x1[k] = x1[k] - t_g*(1.0 - 1.0/t_n)*c*BareReal(v[i])
+        x1[k] = x1[k] - t_g*(1.0 - 1.0/t_n)*c*v[i]
         xk[k] = i_
       }
       // update gradient avarage
@@ -135,11 +135,11 @@ func sagaJit(
       return x1, g.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*jit.GetLambda()/gamma.Value), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstFloat64(delta), ConstFloat64(float64(n)*jit.GetLambda()/gamma.Value), epoch) {
         break
       }
     }
-    xs.SET(x1)
+    xs.Set(x1)
   }
   return x1, g.Int63(), nil
 }

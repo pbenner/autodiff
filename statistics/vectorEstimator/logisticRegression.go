@@ -1,4 +1,4 @@
-/* Copyright (C) 2019 Philipp Benner
+/* Copyright (C) 2019-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import . "github.com/pbenner/threadpool"
 /* -------------------------------------------------------------------------- */
 
 type logisticRegression struct {
-  Theta DenseBareRealVector
+  Theta DenseFloat64Vector
 }
 
 /* -------------------------------------------------------------------------- */
@@ -43,7 +43,7 @@ func (obj logisticRegression) Dim() int {
   return len(obj.Theta)-1
 }
 
-func (obj logisticRegression) LogPdfDense(x DenseConstRealVector) float64 {
+func (obj logisticRegression) LogPdfDense(x DenseFloat64Vector) float64 {
   // set r to first element of theta
   r := float64(obj.Theta[0])
   n := x.Dim()
@@ -53,7 +53,7 @@ func (obj logisticRegression) LogPdfDense(x DenseConstRealVector) float64 {
   return -LogAdd(0.0, -r)
 }
 
-func (obj logisticRegression) LogPdfSparse(v SparseConstRealVector) float64 {
+func (obj logisticRegression) LogPdfSparse(v SparseConstFloat64Vector) float64 {
   x     := v.GetSparseValues ()
   index := v.GetSparseIndices()
   // set r to first element of theta
@@ -77,8 +77,8 @@ type LogisticRegression struct {
   logisticRegression
   sparse     bool
   n          int
-  x_sparse []SparseConstRealVector
-  x_dense  [] DenseConstRealVector
+  x_sparse []SparseConstFloat64Vector
+  x_dense  []DenseFloat64Vector
   x        []ConstVector
   c        []bool
   stepSize   float64
@@ -100,7 +100,7 @@ type LogisticRegression struct {
 
 func NewLogisticRegression(n int, sparse bool) (*LogisticRegression, error) {
   r := LogisticRegression{}
-  r.logisticRegression.Theta = NullDenseBareRealVector(n)
+  r.logisticRegression.Theta = NullDenseFloat64Vector(n)
   r.Epsilon         = 1e-5
   r.MaxIterations   = int(^uint(0) >> 1)
   r.ClassWeights[0] = 1.0
@@ -127,7 +127,7 @@ func (obj *LogisticRegression) CloneVectorEstimator() VectorEstimator {
 /* -------------------------------------------------------------------------- */
 
 func (obj *LogisticRegression) ScalarType() ScalarType {
-  return BareRealType
+  return Float64Type
 }
 
 func (obj *LogisticRegression) GetParameters() Vector {
@@ -135,7 +135,7 @@ func (obj *LogisticRegression) GetParameters() Vector {
 }
 
 func (obj *LogisticRegression) SetParameters(x Vector) error {
-  obj.Theta = AsDenseBareRealVector(x)
+  obj.Theta = AsDenseFloat64Vector(x)
   return nil
 }
 
@@ -157,7 +157,7 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
   obj.x = make([]ConstVector, len(x))
   for i, _ := range x {
     switch a := x[i].(type) {
-    case SparseConstRealVector:
+    case SparseConstFloat64Vector:
       // do not use ValueAt to prevent that an index
       // for the sparse vector is constructed
       if j, v := a.First(); j != 0 || v != 1.0 {
@@ -175,10 +175,10 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
         }
       }
     default:
-      if x[i].ValueAt(0) != 1.0 {
+      if x[i].Float64At(0) != 1.0 {
         return fmt.Errorf("first element of data vector must be set to one")
       }
-      v := x[i].ValueAt(x[i].Dim()-1)
+      v := x[i].Float64At(x[i].Dim()-1)
       switch v {
       case 1.0: obj.c[i] = true
       case 0.0: obj.c[i] = false
@@ -195,10 +195,10 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       }
       t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
-      case SparseConstRealVector:
+      case SparseConstFloat64Vector:
         x_sparse[i] = a
       default:
-        x_sparse[i] = AsSparseConstRealVector(t)
+        x_sparse[i] = AsSparseConstFloat64Vector(t)
       }
     }
     obj.SetSparseData(x_sparse, obj.c, n)
@@ -210,10 +210,10 @@ func (obj *LogisticRegression) SetData(x []ConstVector, n int) error {
       }
       t := x[i].ConstSlice(0, x[i].Dim()-1)
       switch a := t.(type) {
-      case DenseConstRealVector:
+      case DenseFloat64Vector:
         x_dense[i] = a
       default:
-        x_dense[i] = AsDenseConstRealVector(t)
+        x_dense[i] = AsDenseFloat64Vector(t)
       }
     }
     obj.SetDenseData(x_dense, obj.c, n)
@@ -241,7 +241,7 @@ func (obj *LogisticRegression) SetLabels(c []bool) {
 func (obj *LogisticRegression) SetSparseData(x []ConstVector, c []bool, n int) error {
   obj.n        = n
   obj.x        = nil
-  obj.x_sparse = make([]SparseConstRealVector, len(x))
+  obj.x_sparse = make([]SparseConstFloat64Vector, len(x))
   obj.x_dense  = nil
   obj.sparse   = true
   for i, _ := range x {
@@ -249,10 +249,10 @@ func (obj *LogisticRegression) SetSparseData(x []ConstVector, c []bool, n int) e
       return fmt.Errorf("LogisticRegression.SetSparseData: data has invalid dimension: got data of dimension `%d' but expected dimension `%d'", x[i].Dim(), k)
     }
     switch a := x[i].(type) {
-    case SparseConstRealVector:
+    case SparseConstFloat64Vector:
       obj.x_sparse[i] = a
     default:
-      return fmt.Errorf("data is not of type SparseConstRealVector")
+      return fmt.Errorf("data is not of type SparseConstFloat64Vector")
     }
   }
   obj.SetLabels(c)
@@ -264,14 +264,14 @@ func (obj *LogisticRegression) SetDenseData(x []ConstVector, c []bool, n int) er
   obj.n        = n
   obj.x        = nil
   obj.x_sparse = nil
-  obj.x_dense  = make([]DenseConstRealVector, len(x))
+  obj.x_dense  = make([]DenseFloat64Vector, len(x))
   obj.sparse   = false
   for i, _ := range x {
     switch a := x[i].(type) {
-    case DenseConstRealVector:
+    case DenseFloat64Vector:
       obj.x_dense[i] = a
     default:
-      return fmt.Errorf("data is not of type DenseConstRealVector")
+      return fmt.Errorf("data is not of type DenseFloat64Vector")
     }
   }
   obj.SetLabels(c)
@@ -375,7 +375,7 @@ func (obj *LogisticRegression) estimateStepSize() {
         it.Next()
       }
       for ; it.Ok(); it.Next() {
-        r += it.GetValue()*it.GetValue()
+        r += it.GetConst().GetFloat64()*it.GetConst().GetFloat64()
       }
       if r > max_squared_sum {
         max_squared_sum = r
@@ -390,7 +390,7 @@ func (obj *LogisticRegression) estimateStepSize() {
         it.Next()
       }
       for ; it.Ok(); it.Next() {
-        r += it.GetValue()*it.GetValue()
+        r += it.GetConst().GetFloat64()*it.GetConst().GetFloat64()
       }
       if r > max_squared_sum {
         max_squared_sum = r
@@ -414,8 +414,8 @@ type proximalWrapper struct {
   saga.ProximalOperatorType
 }
 
-func (obj proximalWrapper) Eval(x DenseBareRealVector, w DenseBareRealVector, t *BareReal) {
-  obj.ProximalOperatorType.Eval(x, w, t)
+func (obj proximalWrapper) Eval(x DenseFloat64Vector, w DenseFloat64Vector) {
+  obj.ProximalOperatorType.Eval(x, w)
   // do not regularize intercept
   x.AT(0).SET(w.AT(0))
 }
@@ -426,10 +426,10 @@ type jitUpdateWrapper struct {
   saga.JitUpdateType
 }
 
-func (obj jitUpdateWrapper) Update(x, y BareReal, k, m int) BareReal {
+func (obj jitUpdateWrapper) Update(x, y float64, k, m int) float64 {
   // do not regularize intercept
   if k == 0 {
-    return x - BareReal(m)*y
+    return x - float64(m)*y
   } else {
     return obj.JitUpdateType.Update(x, y, k, m)
   }
@@ -437,10 +437,10 @@ func (obj jitUpdateWrapper) Update(x, y BareReal, k, m int) BareReal {
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstReal, ConstReal, DenseConstRealVector, error) {
+func (obj *LogisticRegression) f_dense(i int, theta DenseFloat64Vector) (float64, float64, DenseFloat64Vector, error) {
   x := obj.x_dense
-  y := ConstReal(0.0)
-  w := ConstReal(0.0)
+  y := 0.0
+  w := 0.0
   if i >= len(x) {
     return y, w, x[i], fmt.Errorf("index out of bounds")
   }
@@ -451,19 +451,19 @@ func (obj *LogisticRegression) f_dense(i int, theta DenseBareRealVector) (ConstR
   if math.IsNaN(r) {
     return y, w, x[i], fmt.Errorf("NaN value detected")
   }
-  y = ConstReal(r)
+  y = r
   if obj.c[i] {
-    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
+    w = obj.ClassWeights[1]*(math.Exp(r) - 1.0)
   } else {
-    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
+    w = obj.ClassWeights[0]*(math.Exp(r))
   }
   return y, w, x[i], nil
 }
 
-func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error) {
+func (obj *LogisticRegression) f_sparse(i int, theta DenseFloat64Vector) (float64, float64, SparseConstFloat64Vector, error) {
   x := obj.x_sparse
-  y := ConstReal(0.0)
-  w := ConstReal(0.0)
+  y := 0.0
+  w := 0.0
   if len(theta) == 0 {
     return y, w, x[i], nil
   }
@@ -477,11 +477,11 @@ func (obj *LogisticRegression) f_sparse(i int, theta DenseBareRealVector) (Const
   if math.IsNaN(r) {
     return y, w, x[i], fmt.Errorf("NaN value detected")
   }
-  y = ConstReal(r)
+  y = r
   if obj.c[i] {
-    w = ConstReal(obj.ClassWeights[1]*(math.Exp(r) - 1.0))
+    w = obj.ClassWeights[1]*(math.Exp(r) - 1.0)
   } else {
-    w = ConstReal(obj.ClassWeights[0]*(math.Exp(r)))
+    w = obj.ClassWeights[0]*(math.Exp(r))
   }
   return y, w, x[i], nil
 }
@@ -492,10 +492,10 @@ type sagaJitUpdateL1 struct {
   saga.JitUpdateL1
 }
 
-func (obj sagaJitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
+func (obj sagaJitUpdateL1) Update(x, y float64, k, m int) float64 {
   // do not regularize intercept
   if k == 0 {
-    return x - BareReal(m)*y
+    return x - float64(m)*y
   } else {
     return obj.JitUpdateL1.Update(x, y, k, m)
   }
@@ -504,35 +504,35 @@ func (obj sagaJitUpdateL1) Update(x, y BareReal, k, m int) BareReal {
 /* -------------------------------------------------------------------------- */
 
 type gradientJit struct {
-  G SparseConstRealVector
-  W ConstReal
+  G SparseConstFloat64Vector
+  W float64
 }
 
-func (obj gradientJit) Add(v DenseBareRealVector) {
+func (obj gradientJit) Add(v DenseFloat64Vector) {
   g := obj.G.GetSparseValues()
   for i, k := range obj.G.GetSparseIndices() {
-    v[k] = v[k] + BareReal(obj.W.GetValue()*g[i])
+    v[k] = v[k] + obj.W*g[i]
   }
 }
 
-func (obj *gradientJit) Set(w ConstReal, g SparseConstRealVector) {
+func (obj *gradientJit) Set(w float64, g SparseConstFloat64Vector) {
   obj.G = g
   obj.W = w
 }
 
-func (g1 gradientJit) Update(g2 gradientJit, v DenseBareRealVector) {
+func (g1 gradientJit) Update(g2 gradientJit, v DenseFloat64Vector) {
   v1 := g1.G.GetSparseValues()
   v2 := g2.G.GetSparseValues()
   if v1 != nil && &v1[0] == &v2[0] {
     for i, k := range g1.G.GetSparseIndices() {
-      v[k] += (g2.W - g1.W)*ConstReal(v1[i])
+      v[k] += (g2.W - g1.W)*v1[i]
     }
   } else {
     for i, k := range g1.G.GetSparseIndices() {
-      v[k] -= g1.W*ConstReal(v1[i])
+      v[k] -= g1.W*v1[i]
     }
     for i, k := range g2.G.GetSparseIndices() {
-      v[k] += g2.W*ConstReal(v2[i])
+      v[k] += g2.W*v2[i]
     }
   }
 }
@@ -542,15 +542,15 @@ func (g1 gradientJit) Update(g2 gradientJit, v DenseBareRealVector) {
 type sagaLogisticRegressionL1worker struct {
   indices       []int
   f               saga.Objective1Sparse
-  x1              DenseBareRealVector
+  x1              DenseFloat64Vector
   xs            []bool
   xk            []int
   ns              int
   dict          []gradientJit
-  s               DenseBareRealVector
-  cumulative_sums DenseBareRealVector
-  t_n             BareReal
-  t_g             BareReal
+  s               DenseFloat64Vector
+  cumulative_sums DenseFloat64Vector
+  t_n             float64
+  t_g             float64
   jit             sagaJitUpdateL1
 }
 
@@ -558,28 +558,28 @@ func (obj *sagaLogisticRegressionL1worker) Initialize(
   f saga.Objective1Sparse,
   indices []int,
   n int,
-  x DenseBareRealVector,
+  x DenseFloat64Vector,
   l1reg  saga.L1Regularization,
   gamma saga.Gamma) error {
 
   m := len(indices)
 
   obj.f  = f
-  obj.x1 = AsDenseBareRealVector(x)
+  obj.x1 = AsDenseFloat64Vector(x)
   obj.xk = make([]int , x.Dim())
   obj.xs = make([]bool, n)
   obj.ns = 0
-  obj.cumulative_sums = NullDenseBareRealVector(m)
+  obj.cumulative_sums = NullDenseFloat64Vector(m)
   obj.indices         = indices
 
   // some constants
-  obj.t_n = BareReal(0.0)
-  obj.t_g = BareReal(gamma.Value)
+  obj.t_n = 0.0
+  obj.t_g = gamma.Value
 
   obj.jit.SetLambda(l1reg.Value*gamma.Value/float64(n))
 
   // sum of gradients
-  obj.s = NullDenseBareRealVector(x.Dim())
+  obj.s = NullDenseFloat64Vector(x.Dim())
   // initialize s and d
   obj.dict = make([]gradientJit, n)
   return nil
@@ -589,9 +589,9 @@ func (obj *sagaLogisticRegressionL1worker) reset() {
   obj.xk   = make([]int , len(obj.xk))
   obj.xs   = make([]bool, len(obj.xs))
   obj.ns   = 0
-  obj.cumulative_sums = NullDenseBareRealVector(obj.cumulative_sums.Dim())
-  obj.t_n  = BareReal(0.0)
-  obj.s    = NullDenseBareRealVector(obj.s.Dim())
+  obj.cumulative_sums = NullDenseFloat64Vector(obj.cumulative_sums.Dim())
+  obj.t_n  = 0.0
+  obj.s    = NullDenseFloat64Vector(obj.s.Dim())
   obj.dict = make([]gradientJit, len(obj.dict))
 }
 
@@ -605,7 +605,7 @@ func (obj *sagaLogisticRegressionL1worker) jitUpdates(i_, j int) error {
         if obj.xk[k] != 0 {
           cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
         }
-        obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
+        obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/float64(m), k, m)
       }
     }
   }
@@ -619,7 +619,7 @@ func (obj *sagaLogisticRegressionL1worker) jitUpdatesMissing(n int) {
       if obj.xk[k] != 0 {
         cum_sum -= obj.cumulative_sums[obj.xk[k]-1]
       }
-      obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/BareReal(m), k, m)
+      obj.x1[k] = obj.jit.Update(obj.x1[k], cum_sum*obj.s[k]/float64(m), k, m)
     }
     // reset xk
     obj.xk[k] = 0
@@ -632,18 +632,18 @@ func (obj *sagaLogisticRegressionL1worker) gradientUpdates(i_ int, g1, g2 gradie
   if v1 == nil || &v1[0] != &v2[0] {
     // data vectors are different
     for i, k := range g1.G.GetSparseIndices() {
-      obj.x1[k] = obj.x1[k] + obj.t_g*(1.0 - 1.0/obj.t_n)*g1.W*BareReal(v1[i])
+      obj.x1[k] = obj.x1[k] + obj.t_g*(1.0 - 1.0/obj.t_n)*g1.W*v1[i]
       obj.xk[k] = i_
     }
     for i, k := range g2.G.GetSparseIndices() {
-      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*g2.W*BareReal(v2[i])
+      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*g2.W*v2[i]
       obj.xk[k] = i_
     }
   } else {
     // data vectors are identical
-    c := BareReal(g2.W - g1.W)
+    c := g2.W - g1.W
     for i, k := range g2.G.GetSparseIndices() {
-      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*BareReal(v2[i])
+      obj.x1[k] = obj.x1[k] - obj.t_g*(1.0 - 1.0/obj.t_n)*c*v2[i]
       obj.xk[k] = i_
     }
   }
@@ -658,7 +658,7 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
     if !obj.xs[j] {
       obj.xs[j] = true
       obj.ns   += 1
-      obj.t_n   = BareReal(obj.ns)
+      obj.t_n   = float64(obj.ns)
     }
     if i_ == 0 {
       obj.cumulative_sums[0 ] = obj.t_g/obj.t_n
@@ -690,11 +690,11 @@ func (obj *sagaLogisticRegressionL1worker) Iterate(epoch int) error {
 }
 
 func (obj *sagaLogisticRegressionL1worker) GetLambda() float64 {
-  return float64(len(obj.xs))*obj.jit.GetLambda()/obj.t_g.GetValue()
+  return float64(len(obj.xs))*obj.jit.GetLambda()/obj.t_g
 }
 
 func (obj *sagaLogisticRegressionL1worker) SetLambda(lambda float64) {
-  obj.jit.SetLambda(obj.t_g.GetValue()*lambda/float64(len(obj.xs)))
+  obj.jit.SetLambda(obj.t_g*lambda/float64(len(obj.xs)))
 }
 
 /* -------------------------------------------------------------------------- */
@@ -711,7 +711,7 @@ type sagaLogisticRegressionL1 struct {
 func (obj *sagaLogisticRegressionL1) Initialize(
   f saga.Objective1Sparse,
   n int,
-  x DenseBareRealVector,
+  x DenseFloat64Vector,
   l1reg  saga.L1Regularization,
   gamma saga.Gamma,
   seed saga.Seed,
@@ -756,18 +756,18 @@ func (obj *sagaLogisticRegressionL1) average() {
     t := make([]float64, len(obj.Workers))
     for i := 0; i < x1.Dim(); i++ {
       for j := 0; j < len(obj.Workers); j++ {
-        t[j] = obj.Workers[j].x1[i].GetValue()
+        t[j] = obj.Workers[j].x1[i]
       }
       sort.Float64s(t)
-      x1[i].SetValue(t[len(t)/2])
+      x1[i] = t[len(t)/2]
     }
   case 1:
-    t := ConstReal(len(obj.Workers))
+    t := float64(len(obj.Workers))
     // compute mean
     for i := 1; i < len(obj.Workers); i++ {
-      x1.VADDV(x1, obj.Workers[i].x1)
+      x1.VaddV(x1, obj.Workers[i].x1)
     }
-    x1.VDIVS(x1, &t)
+    x1.VdivS(x1, ConstFloat64(t))
   default:
     panic("internal error")
   }
@@ -776,14 +776,14 @@ func (obj *sagaLogisticRegressionL1) average() {
 func (obj *sagaLogisticRegressionL1) Execute(
   epsilon saga.Epsilon,
   maxIterations saga.MaxIterations,
-  hook saga.Hook) (DenseBareRealVector, int64, error) {
+  hook saga.Hook) (DenseFloat64Vector, int64, error) {
 
   x0 := obj.Workers[0].x1.Clone()
   x1 := obj.Workers[0].x1
   for epoch := 0; epoch < maxIterations.Value; epoch++ {
     // copy initial value
     for i := 1; i < len(obj.Workers); i++ {
-      obj.Workers[i].x1.SET(x1)
+      obj.Workers[i].x1.Set(x1)
     }
     // generate new random sample
     for i := 0; i < len(obj.Indices); i++ {
@@ -800,11 +800,11 @@ func (obj *sagaLogisticRegressionL1) Execute(
       return x1, obj.rand.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(obj.Workers[0].GetLambda()), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstFloat64(delta), ConstFloat64(obj.Workers[0].GetLambda()), epoch) {
         break
       }
     }
-    x0.SET(x1)
+    x0.Set(x1)
   }
   return x1, obj.rand.Int63(), nil
 }
@@ -818,7 +818,7 @@ func (obj *sagaLogisticRegressionL1) SetStepSize(gamma float64) {
   // propagate step size to all workers
   for i, _ := range obj.Workers {
     lambda := obj.Workers[i].GetLambda()
-    obj.Workers[i].t_g.SetValue(gamma)
+    obj.Workers[i].t_g = gamma
     obj.Workers[i].SetLambda(lambda)
   }
 }

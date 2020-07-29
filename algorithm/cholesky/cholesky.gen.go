@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
  */
 
 //go:generate cpp -P -C -include cholesky_generic.h -nostdinc cholesky.gen.in -o cholesky_generic.go
-//go:generate cpp -P -C -include cholesky_real.h -nostdinc cholesky.gen.in -o cholesky_real.go
-//go:generate cpp -P -C -include cholesky_barereal.h -nostdinc cholesky.gen.in -o cholesky_barereal.go
+//go:generate cpp -P -C -include cholesky_float32.h -nostdinc cholesky.gen.in -o cholesky_float32.go
+//go:generate cpp -P -C -include cholesky_float64.h -nostdinc cholesky.gen.in -o cholesky_float64.go
 
 /* -------------------------------------------------------------------------- */
 

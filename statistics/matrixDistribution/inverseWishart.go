@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,6 @@ type InverseWishartDistribution struct {
   SDet Scalar
   d    Scalar
   z    Scalar
-  c1   Scalar
-  c2   Scalar
   // state
   t    Scalar
   inSituDet   determinant.InSitu
@@ -48,8 +46,8 @@ type InverseWishartDistribution struct {
 func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribution, error) {
 
   t  := nu.Type()
-  t1 := NewScalar(t, 0.0)
-  t2 := NewScalar(t, 0.0)
+  t1 := NullScalar(t)
+  t2 := NullScalar(t)
 
   n, m := s.Dims()
 
@@ -60,22 +58,18 @@ func NewInverseWishartDistribution(nu Scalar, s Matrix) (*InverseWishartDistribu
   if err != nil {
     return nil, err
   }
-  d  := NewScalar(t, float64(n))
-  c1 := NewBareReal(1.0)
-  c2 := NewBareReal(2.0)
+  d := NewScalar(t, float64(n))
   // negative log partition function
   z := NewScalar(t, 0.0)
-  z.Mul(t1.Div(nu, c2), t2.Log(sDet))                     // |S|^(nu/2)
-  z.Sub(z, t1.Mul(t1.Mul(nu, t1.Div(d, c2)), t2.Log(c2))) // 2^(nu n/2)
-  z.Sub(z, t1.Mlgamma(t1.Div(nu, c2), n))                 // Gamma_n(nu/2)
+  z.Mul(t1.Div(nu, ConstFloat64(2.0)), t2.Log(sDet))                                    // |S|^(nu/2)
+  z.Sub(z, t1.Mul(t1.Mul(nu, t1.Div(d, ConstFloat64(2.0))), t2.Log(ConstFloat64(2.0)))) // 2^(nu n/2)
+  z.Sub(z, t1.Mlgamma(t1.Div(nu, ConstFloat64(2.0)), n))                                // Gamma_n(nu/2)
 
   result := InverseWishartDistribution{
     Nu  : nu,
     S   : s,
     SDet: sDet,
     d   : d,
-    c1  : c1,
-    c2  : c2,
     z   : z,
     t   : NewScalar(t, 0.0) }
 
@@ -91,8 +85,6 @@ func (obj *InverseWishartDistribution) Clone() *InverseWishartDistribution {
     S   : obj.S   .CloneMatrix(),
     SDet: obj.SDet.CloneScalar(),
     d   : obj.d   .CloneScalar(),
-    c1  : obj.c1  .CloneScalar(),
-    c2  : obj.c2  .CloneScalar(),
     z   : obj.z   .CloneScalar(),
     t   : obj.t   .CloneScalar() }
 }
@@ -118,32 +110,32 @@ func (obj *InverseWishartDistribution) Dims() (int, int) {
 
 func (obj *InverseWishartDistribution) Mean() (Matrix, error) {
   n := obj.dim()
-  if obj.Nu.GetValue() <= float64(n) - 1.0 {
+  if obj.Nu.GetFloat64() <= float64(n) - 1.0 {
     return nil, fmt.Errorf("mean is not defined for the given parameters")
   }
   t1 := NullScalar(obj.ScalarType())
-  t2 := NullMatrix(obj.ScalarType(), n, n)
-  return t2.MdivS(obj.S, t1.Sub(t1.Sub(obj.Nu, obj.d), ConstReal(1.0))), nil
+  t2 := NullDenseMatrix(obj.ScalarType(), n, n)
+  return t2.MdivS(obj.S, t1.Sub(t1.Sub(obj.Nu, obj.d), ConstFloat64(1.0))), nil
 }
 
 func (obj *InverseWishartDistribution) Variance() (Matrix, error) {
   n := obj.dim()
-  if obj.Nu.GetValue() <= float64(n) - 1.0 {
+  if obj.Nu.GetFloat64() <= float64(n) - 1.0 {
     return nil, fmt.Errorf("variance is not defined for the given parameters")
   }
-  m := NullMatrix(RealType, n, n)
+  m := NullDenseMatrix(obj.ScalarType(), n, n)
   // some constants
-  t1 := NewScalar(obj.ScalarType(), 0.0)
-  t2 := NewScalar(obj.ScalarType(), 0.0)
-  c1 := NewScalar(obj.ScalarType(), 0.0)
-  c2 := NewScalar(obj.ScalarType(), 0.0)
-  c3 := NewScalar(obj.ScalarType(), 0.0)
-  c4 := NewScalar(obj.ScalarType(), 0.0)
-  c5 := NewScalar(obj.ScalarType(), 0.0)
+  t1 := NullScalar(obj.ScalarType())
+  t2 := NullScalar(obj.ScalarType())
+  c1 := NullScalar(obj.ScalarType())
+  c2 := NullScalar(obj.ScalarType())
+  c3 := NullScalar(obj.ScalarType())
+  c4 := NullScalar(obj.ScalarType())
+  c5 := NullScalar(obj.ScalarType())
   c1.Sub(obj.Nu, obj.d)           // (nu - d)
-  c2.Add(c1, ConstReal(1.0))          // (nu - d + 1)
-  c3.Sub(c1, ConstReal(1.0))          // (nu - d - 1)
-  c4.Sub(c1, ConstReal(3.0))          // (nu - d - 3)
+  c2.Add(c1, ConstFloat64(1.0))          // (nu - d + 1)
+  c3.Sub(c1, ConstFloat64(1.0))          // (nu - d - 1)
+  c4.Sub(c1, ConstFloat64(3.0))          // (nu - d - 3)
   c5.Mul(t1.Mul(c1, t1.Mul(c3, c3)), c4)  // (nu - d)(nu - d - 1)^2 (nu - d - 3)
 
   for i := 0; i < n; i++ {
@@ -167,11 +159,11 @@ func (obj *InverseWishartDistribution) LogPdf(r Scalar, x ConstMatrix) error {
   xInv.MmulM(obj.S, xInv)
   t := obj.t
   t.Mtrace(xInv)
-  t.Div(t, obj.c2)
+  t.Div(t, ConstFloat64(2.0))
   // density
   r.Add(obj.Nu, obj.d)
-  r.Add(r, obj.c1)
-  r.Div(r, obj.c2)
+  r.Add(r, ConstFloat64(1.0))
+  r.Div(r, ConstFloat64(2.0))
   r.Mul(r, xDet)
   r.Neg(r)
   r.Sub(r, t)
@@ -238,8 +230,8 @@ func (obj *InverseWishartDistribution) ExportConfig() ConfigDistribution {
     Nu      float64
     Sigma []float64
     N       int }{}
-  config.Nu    = obj.Nu.GetValue ()
-  config.Sigma = obj.S .GetValues()
+  config.Nu    = obj.Nu.GetFloat64()
+  config.Sigma = AsDenseFloat64Vector(obj.S.AsVector())
   config.N     = n
 
   return NewConfigDistribution("matrix:inverse wishart distribtion", config)

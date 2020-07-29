@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ type NegativeBinomialEstimator struct {
 /* -------------------------------------------------------------------------- */
 
 func NewNegativeBinomialEstimator(r, p float64) (*NegativeBinomialEstimator, error) {
-  if dist, err := scalarDistribution.NewNegativeBinomialDistribution(NewBareReal(r), NewBareReal(p)); err != nil {
+  if dist, err := scalarDistribution.NewNegativeBinomialDistribution(NewFloat64(r), NewFloat64(p)); err != nil {
     return nil, err
   } else {
     r := NegativeBinomialEstimator{}
@@ -83,14 +83,14 @@ func (obj *NegativeBinomialEstimator) Initialize(p ThreadPool) error {
 func (obj *NegativeBinomialEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
   if gamma == nil {
-    x := x.GetValue()
-    r := obj.R.GetValue()
+    x := x.GetFloat64()
+    r := obj.R.GetFloat64()
     obj.sum_k[id] = LogAdd(obj.sum_k[id], math.Log(x))
     obj.sum_r[id] = LogAdd(obj.sum_r[id], math.Log(r))
   } else {
-    x := x.GetValue()
-    g := gamma.GetValue()
-    r := obj.R.GetValue()
+    x := x.GetFloat64()
+    g := gamma.GetFloat64()
+    r := obj.R.GetFloat64()
     obj.sum_k[id] = LogAdd(obj.sum_k[id], g + math.Log(x))
     obj.sum_r[id] = LogAdd(obj.sum_r[id], g + math.Log(r))
   }
@@ -113,7 +113,7 @@ func (obj *NegativeBinomialEstimator) updateEstimate() error {
   }
   t := obj.ScalarType()
   q := NewScalar(t, 0.0)
-  q.SetValue(math.Exp(sum_k - LogAdd(sum_r, sum_k)))
+  q.SetFloat64(math.Exp(sum_k - LogAdd(sum_r, sum_k)))
   if t, err := scalarDistribution.NewNegativeBinomialDistribution(obj.R, q); err != nil {
     return err
   } else {

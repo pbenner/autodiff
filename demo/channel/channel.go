@@ -24,7 +24,6 @@ import   "math"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/newton"
 import   "github.com/pbenner/autodiff/algorithm/blahut"
-import . "github.com/pbenner/autodiff/simple"
 
 import   "gonum.org/v1/plot"
 import   "gonum.org/v1/plot/plotter"
@@ -98,12 +97,12 @@ func distance(v1, v2 []float64) float64 {
 /* hooks for keeping track of convergence speed
  * -------------------------------------------------------------------------- */
 
-func hook_f(trace *[]float64, pxstar []float64, gradient Matrix, variables Vector, s Vector) bool {
+func hook_f(trace *[]float64, pxstar []float64, gradient ConstMatrix, variables ConstVector, s ConstVector) bool {
   n  := (variables.Dim() - 1)/2
   px := make([]float64, n)
   // convert variables to probabilities
   for i := 0; i < n; i++ {
-    px[i] = math.Exp(variables.At(i).GetValue())
+    px[i] = math.Exp(variables.ConstAt(i).GetFloat64())
   }
   // distance to optimum
   d := distance(px, pxstar)
@@ -125,38 +124,41 @@ func hook_b(trace *[]float64, pxstar []float64, px []float64) bool {
 /* objective functions for gradient based maximization
  * -------------------------------------------------------------------------- */
 
-func objective_f(channel Matrix, variables Vector) Scalar {
+func objective_f(channel ConstMatrix, variables ConstVector) MagicScalar {
   n, m := channel.Dims()
   if variables.Dim() != n+1 {
     panic("Input vector has invalid dimension!")
   }
-  lambda := variables.At(n)
-  result := NewReal(0.0)
-  sum := NewReal(0.0)
-  px  := NullVector(RealType, n)
-  py  := NullVector(RealType, m)
+  lambda := variables.ConstAt(n)
+  result := NewReal64(0.0)
+  sum := NewReal64(0.0)
+  t   := NewReal64(0.0)
+  pxy := NewReal64(0.0)
+  px  := NullDenseReal64Vector(n)
+  py  := NullDenseReal64Vector(m)
   // convert variables to probabilities
   for i := 0; i < n; i++ {
-    px.At(i).Exp(variables.At(i))
+    px.At(i).Exp(variables.ConstAt(i))
   }
   // compute p(y) from p(y|x)*p(x)
   for j := 0; j < m; j++ {
-    py.At(j).SetValue(0.0)
+    py.At(j).SetFloat64(0.0)
     for i := 0; i < n; i++ {
-      py.At(j).Add(py.At(j), Mul(channel.At(i, j), px.At(i)))
+      py.At(j).Add(py.ConstAt(j), t.Mul(channel.ConstAt(i, j), px.ConstAt(i)))
     }
   }
   for j := 0; j < m; j++ {
     for i := 0; i < n; i++ {
       // compute joint probability
-      pxy := Mul(channel.At(i, j), px.At(i))
+      pxy.Mul(channel.ConstAt(i, j), px.ConstAt(i))
       // check if p(x) is zero
-      if px.At(i).GetValue() == 0.0 {
+      if px.At(i).GetFloat64() == 0.0 {
         result.Add(result, pxy)
       } else {
         // compute p(x,y) log p(x,y)/(p(x)p(y))
+        t.Mul(px.ConstAt(i), py.ConstAt(j))
         result.Add(result,
-          Mul(pxy, Log(Div(pxy, Mul(px.At(i), py.At(j))))))
+          t.Mul(pxy, t.Log(t.Div(pxy, t))))
       }
     }
   }
@@ -166,7 +168,7 @@ func objective_f(channel Matrix, variables Vector) Scalar {
   for i := 0; i < n; i++ {
     sum.Add(sum, px.At(i))
   }
-  result.Add(result, Mul(lambda, Sub(sum, NewReal(1.0))))
+  result.Add(result, t.Mul(lambda, t.Sub(sum, ConstFloat64(1.0))))
 
   return result
 }
@@ -183,9 +185,9 @@ func channel_capacity(channel [][]float64, pxstar, px0 []float64) ([][]float64) 
   const step    = 0.001
 
   // copy variables for automatic differentation
-  channelm := NewMatrix(RealType, n, m, flatten(channel))
+  channelm := NewDenseFloat64Matrix(flatten(channel), n, m)
   // add 1 lagrange multipliers
-  px0m     := NewVector(RealType, append(px0, 1.0))
+  px0m     := NewDenseFloat64Vector(append(px0, 1.0))
 
   // keep track of the path of an algorithm
   trace := make([][]float64, 3)
@@ -194,7 +196,7 @@ func channel_capacity(channel [][]float64, pxstar, px0 []float64) ([][]float64) 
   trace[2] = []float64{distance(px0, pxstar)}
 
   // hooks
-  hook1 := func(variables Vector, gradient Matrix, s Vector) bool {
+  hook1 := func(variables ConstVector, gradient ConstMatrix, s ConstVector) bool {
     return hook_f(&trace[0], pxstar, gradient, variables, s)
   }
   hook2 := func(px []float64, J float64) bool {
@@ -205,7 +207,7 @@ func channel_capacity(channel [][]float64, pxstar, px0 []float64) ([][]float64) 
   }
 
   // objective function
-  f := func(px Vector) (Scalar, error) { return objective_f(channelm, px), nil }
+  f := func(px ConstVector) (MagicScalar, error) { return objective_f(channelm, px), nil }
 
   // execute algorithms
   _, err := newton.RunCrit(f, px0m,

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016, 2017 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import   "github.com/pbenner/autodiff/algorithm/matrixInverse"
 
 /* -------------------------------------------------------------------------- */
 
-type Objective func(Vector) (Scalar, error)
+type Objective func(ConstVector) (MagicScalar, error)
 
 type Hessian struct {
   Value Matrix
@@ -48,7 +48,7 @@ type MaxIterations struct {
 }
 
 type Hook struct {
-  Value func(x, gradient Vector, y Scalar) bool
+  Value func(x, gradient ConstVector, y ConstScalar) bool
 }
 
 type Constraints struct {
@@ -59,7 +59,7 @@ type Constraints struct {
 
 type ObjectiveInSitu struct {
   Eval func(x, g Vector, y Scalar) error
-  X Vector
+  X MagicVector
 }
 
 func newObjectiveInSitu(f Objective) ObjectiveInSitu {
@@ -72,7 +72,7 @@ func newObjectiveInSitu(f Objective) ObjectiveInSitu {
     y.Set(z)
     // copy gradient
     for i := 0; i < z.GetN(); i++ {
-      g.At(i).SetValue(z.GetDerivative(i))
+      g.At(i).SetFloat64(z.GetDerivative(i))
     }
     return nil
   }
@@ -81,7 +81,7 @@ func newObjectiveInSitu(f Objective) ObjectiveInSitu {
 
 func (f ObjectiveInSitu) Differentiate(x, g Vector, y Scalar) error {
   if f.X == nil {
-    f.X = NullVector(RealType, x.Dim())
+    f.X = NullDenseReal64Vector(x.Dim())
   }
   f.X.Set(x)
   f.X.Variables(1)
@@ -112,7 +112,7 @@ func bfgs_updateB(g1, g2, p2 Vector, B1, B2 Matrix, t1, t2 Scalar, t3, t4 Vector
   // s.y
   t2.VdotV(s, y)
   // check if value is zero
-  if math.Abs(t2.GetValue()) < 1e-16 {
+  if math.Abs(t2.GetFloat64()) < 1e-16 {
     B2.Set(B1)
     return false
   }
@@ -158,7 +158,7 @@ func bfgs_updateH(g1, g2, p2 Vector, H1, H2, I Matrix, t1, t2 Scalar, t3, t4 Vec
   // y^T s
   t1.VdotV(s, y)
   // check if value is zero
-  if math.Abs(t1.GetValue()) == 0.0 {
+  if math.Abs(t1.GetFloat64()) == 0.0 {
     return false
   }
   // s y^T
@@ -185,32 +185,35 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
   // B: Hessian
   // H: inverse Hessian
   n := x0.Dim()
-  t := BareRealType
+  t := Float64Type
 
-  p1 := NullVector(t, n)
-  p2 := NullVector(t, n)
-  P2 := NullVector(RealType, n)
+  p1 := NullDenseVector(t, n)
+  p2 := NullDenseVector(t, n)
   x1 := x0.CloneVector()
   x2 := x1.CloneVector()
-  X2 := x1.CloneVector()
   y1 := NullScalar(t)
   y2 := NullScalar(t)
-  g1 := NullVector(t, n)
-  g2 := NullVector(t, n)
+  g1 := NullDenseVector(t, n)
+  g2 := NullDenseVector(t, n)
   H1 := H0.CloneMatrix()
-  H2 := NullMatrix(t, n, n)
+  H2 := NullDenseMatrix(t, n, n)
   // some temporary variables
   t1 := NullScalar(t)
   t2 := NullScalar(t)
-  t3 := NullVector(t, n)
-  t4 := NullVector(t, n)
-  t5 := NullMatrix(t, n, n)
-  t6 := NullMatrix(t, n, n)
-  I  := IdentityMatrix(t, n)
+  t3 := NullDenseVector(t, n)
+  t4 := NullDenseVector(t, n)
+  t5 := NullDenseMatrix(t, n, n)
+  t6 := NullDenseMatrix(t, n, n)
+  I  := NullDenseMatrix(t, n, n)
+  I.SetIdentity()
+
+  // here comes the magic!
+  P2 := NullDenseReal64Vector(n)
+  X2 := AsDenseReal64Vector(x1)
 
   equals := func(x1, x2 Vector) bool {
     for i := 0; i < x1.Dim(); i++ {
-      if x1.At(i).GetValue() != x2.At(i).GetValue() {
+      if x1.At(i).GetFloat64() != x2.At(i).GetFloat64() {
         return false
       }
     }
@@ -225,7 +228,7 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
     return x1, fmt.Errorf("invalid initial value: %s", err)
   }
   // evaluate stop criterion
-  if t1.Vnorm(g1).GetValue() < epsilon.Value {
+  if t1.Vnorm(g1).GetFloat64() < epsilon.Value {
     return x1, nil
   }
   // execute hook if available
@@ -238,13 +241,13 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
   for i := 0; i < maxIterations.Value; i++ {
     bgfs_computeDirection(x1, y1, g1, H1, p1)
     // line search objective
-    phi := func(alpha Scalar) (Scalar, error) {
+    phi := func(alpha ConstScalar) (MagicScalar, error) {
       P2.VmulS(p1, alpha)
       X2.VaddV(x1, P2)
       return f_(X2)
     }
     // perform line search to find a new point x2
-    alpha, err := lineSearch.Run(phi, BareRealType, lineSearch.Parameters{1, 100})
+    alpha, err := lineSearch.Run(phi, Float64Type, lineSearch.Parameters{1, 100})
     // compute new position
     p2.VmulS(p1, alpha)
     x2.VaddV(x1, p2)
@@ -268,7 +271,7 @@ func bfgs(f_ Objective, f ObjectiveInSitu, x0 Vector, H0 Matrix, epsilon Epsilon
         break
       }
       // evaluate stop criterion
-      if t1.Vnorm(g2).GetValue() < epsilon.Value {
+      if t1.Vnorm(g2).GetFloat64() < epsilon.Value {
         break
       }
       if first_update {
@@ -331,7 +334,8 @@ func Run(f Objective, x0 Vector, args ...interface{}) (Vector, error) {
     }
   }
   if hessian.Value == nil {
-    hessian.Value = IdentityMatrix(x0.ElementType(), n)
+    hessian.Value = NullDenseFloat64Matrix(n, n)
+    hessian.Value.SetIdentity()
   } else {
     r, c := hessian.Value.Dims()
     if n != r || n != c {

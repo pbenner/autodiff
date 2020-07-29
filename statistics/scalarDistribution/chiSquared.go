@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ func NewChiSquaredDistribution(t ScalarType, k_ float64) (*ChiSquaredDistributio
 /* -------------------------------------------------------------------------- */
 
 func (dist *ChiSquaredDistribution) Clone() *ChiSquaredDistribution {
-  r, _ := NewChiSquaredDistribution(dist.ScalarType(), dist.K.GetValue())
+  r, _ := NewChiSquaredDistribution(dist.ScalarType(), dist.K.GetFloat64())
   return r
 }
 
@@ -95,21 +95,21 @@ func (dist *ChiSquaredDistribution) LogCdf(r Scalar, x ConstScalar) error {
 
 func (dist *ChiSquaredDistribution) Cdf(r Scalar, x ConstScalar) error {
   r.Div(x, dist.C)
-  r.GammaP(dist.L.GetValue(), r)
+  r.GammaP(dist.L.GetFloat64(), r)
   return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *ChiSquaredDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 1)
+  p := NullDenseVector(dist.ScalarType(), 1)
   p.At(0).Set(dist.K)
   return p
 }
 
 func (dist *ChiSquaredDistribution) SetParameters(parameters Vector) error {
   k := parameters.At(0)
-  if tmp, err := NewChiSquaredDistribution(dist.ScalarType(), k.GetValue()); err != nil {
+  if tmp, err := NewChiSquaredDistribution(dist.ScalarType(), k.GetFloat64()); err != nil {
     return err
   } else {
     *dist = *tmp

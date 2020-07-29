@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,14 +34,14 @@ func wilkinsonShift(mu, t11, t12, t22, t1, t2 Scalar) {
   d := t1
   t := t2
   d.Sub(t11, t22)
-  d.Div(d, ConstReal(2.0)) // d = (t11 - t22)/2
+  d.Div(d, ConstFloat64(2.0)) // d = (t11 - t22)/2
 
   t .Mul(t12, t12)
   mu.Mul(d, d)
   mu.Add(mu, t)    // mu = d^2 + t12^2
   mu.Sqrt(mu)      // mu = sqrt(d^2 + t12^2)
 
-  if d.GetValue() < 0.0 {
+  if d.GetFloat64() < 0.0 {
     mu.Neg(mu)
   }
   mu.Add(d, mu)    // mu = d + sign(d) sqrt(d^2 + t12^2)
@@ -98,7 +98,7 @@ func splitMatrixSymmetric(T Matrix, q int) (int, int) {
     // fix a column
     k := n-q-1
     // check if T33 is diagonal
-    if T.At(k-1,k).GetValue() == 0.0 {
+    if T.At(k-1,k).GetFloat64() == 0.0 {
       q += 1
     } else {
       break
@@ -111,7 +111,7 @@ func splitMatrixSymmetric(T Matrix, q int) (int, int) {
   // try decreasing p
   for p > 0 {
     k := p
-    if T.At(k-1,k).GetValue() == 0.0 {
+    if T.At(k-1,k).GetFloat64() == 0.0 {
       break
     } else {
       p -= 1
@@ -138,12 +138,12 @@ func qrAlgorithmSymmetric(inSitu *InSitu, epsilon float64) (Matrix, Matrix, erro
   for p, q := 0, 0; q < n; {
 
     for i := 0; i < n-1; i++ {
-      t11 := T.At(i  ,i  ).GetValue()
-      t21 := T.At(i+1,i  ).GetValue()
-      t22 := T.At(i+1,i+1).GetValue()
+      t11 := T.At(i  ,i  ).GetFloat64()
+      t21 := T.At(i+1,i  ).GetFloat64()
+      t22 := T.At(i+1,i+1).GetFloat64()
       if math.Abs(t21) <= epsilon*(math.Abs(t11) + math.Abs(t22)) {
-        T.At(i+1,i  ).SetValue(0.0)
-        T.At(i  ,i+1).SetValue(0.0)
+        T.At(i+1,i  ).SetFloat64(0.0)
+        T.At(i  ,i+1).SetFloat64(0.0)
       }
     }
     // p: number of rows/cols in H11

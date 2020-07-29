@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,11 +60,11 @@ func (obj HmmProbabilityVector) GetVector() Vector {
 func (obj HmmProbabilityVector) Normalize() error {
   t1 := obj.t1
   t2 := obj.t2
-  t1.SetValue(math.Inf(-1))
+  t1.SetFloat64(math.Inf(-1))
   for i := 0; i < obj.Dim(); i++ {
     t1.LogAdd(t1, obj.At(i), t2)
   }
-  if math.IsInf(t1.GetValue(), -1) {
+  if math.IsInf(t1.GetFloat64(), -1) {
     return fmt.Errorf("normalization failed")
   }
   for i := 0; i < obj.Dim(); i++ {
@@ -119,12 +119,12 @@ func (obj HmmTransitionMatrix) Normalize() error {
   t2 := obj.t2
   n, m := obj.Dims()
   for i := 0; i < n; i++ {
-    t1.SetValue(math.Inf(-1))
+    t1.SetFloat64(math.Inf(-1))
     for j := 0; j < m; j++ {
       t1.LogAdd(t1, obj.At(i, j), t2)
     }
-    if math.IsInf(t1.GetValue(), -1) {
-      obj.At(i, i).SetValue(0.0)
+    if math.IsInf(t1.GetFloat64(), -1) {
+      obj.At(i, i).SetFloat64(0.0)
     } else {
       for j := 0; j < m; j++ {
         obj.At(i, j).Sub(obj.At(i, j), t1)

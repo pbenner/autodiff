@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ func (classifier *LikelihoodClassifier) Linearize() error {
   // to get a linear classifier, both covariance matrices must
   // be the same
   sigma := sigma1.CloneMatrix()
-  sigma.MdivS(sigma.MaddM(sigma1, sigma2), NewBareReal(2.0))
+  sigma.MdivS(sigma.MaddM(sigma1, sigma2), ConstFloat64(2.0))
 
   // copy new parameters back to distribution
   if tmp, err := vectorDistribution.NewNormalDistribution(mu1, sigma.CloneMatrix()); err != nil {
@@ -142,7 +142,7 @@ func NewSymmetricClassifier(fgDist VectorPdf, bgDist VectorPdf) (*SymmetricClass
   if classifier, err := NewLikelihoodClassifier(fgDist, bgDist); err != nil {
     return nil, err
   } else {
-    v := NullVector(classifier.r1.Type(), classifier.Dim())
+    v := NullDenseVector(classifier.r1.Type(), classifier.Dim())
     t := NewScalar(classifier.r1.Type(), 0.0)
     z := NewScalar(classifier.r1.Type(), math.Log(0.5))
     return &SymmetricClassifier{*classifier, v, t, z}, nil

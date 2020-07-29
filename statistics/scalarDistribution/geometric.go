@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ type GeometricDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewGeometricDistribution(p Scalar) (*GeometricDistribution, error) {
-  if p.GetValue() <= 0.0 || p.GetValue() > 1.0 {
-    return nil, fmt.Errorf("invalid value for parameter p: %f", p.GetValue())
+  if p.GetFloat64() <= 0.0 || p.GetFloat64() > 1.0 {
+    return nil, fmt.Errorf("invalid value for parameter p: %f", p.GetFloat64())
   }
 
   t  := p.Type()
@@ -44,7 +44,7 @@ func NewGeometricDistribution(p Scalar) (*GeometricDistribution, error) {
   p2 := NewScalar(t, 0.0)
 
   p1.Log(p)
-  p2.Sub(ConstReal(1.0), p)
+  p2.Sub(ConstFloat64(1.0), p)
   p2.Log(p2)
 
   result := GeometricDistribution{
@@ -75,7 +75,7 @@ func (dist *GeometricDistribution) ScalarType() ScalarType {
 }
 
 func (dist *GeometricDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); math.Floor(v) != v {
+  if v := x.GetFloat64(); math.Floor(v) != v {
     return fmt.Errorf("value `%f' is not an integer", v)
   }
 
@@ -96,7 +96,7 @@ func (dist *GeometricDistribution) Pdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist GeometricDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 1)
+  p := NullDenseVector(dist.ScalarType(), 1)
   p.At(0).Set(dist.p)
   return p
 }

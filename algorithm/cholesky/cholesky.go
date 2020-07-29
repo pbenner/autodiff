@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,13 +70,13 @@ func Run(a ConstMatrix, args ...interface{}) (Matrix, Matrix, error) {
   }
   // allocate memory
   if inSitu.L == nil {
-    inSitu.L = NullMatrix(t, n, n)
+    inSitu.L = NullDenseMatrix(t, n, n)
   }
   if ldl {
     if inSitu.D == nil {
-      inSitu.D = NullMatrix(t, n, n)
+      inSitu.D = NullDenseMatrix(t, n, n)
     } else {
-      inSitu.D.Map(func(x Scalar) { x.SetValue(0.0) })
+      inSitu.D.Map(func(x Scalar) { x.SetFloat64(0.0) })
     }
   }
   if inSitu.S == nil {
@@ -86,31 +86,31 @@ func Run(a ConstMatrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.T = NewScalar(t, 0.0)
   }
   if ldl {
-    { // Real
-      A, ok1 :=        a.(*DenseRealMatrix)
-      L, ok2 := inSitu.L.(*DenseRealMatrix)
-      D, ok3 := inSitu.D.(*DenseRealMatrix)
-      s, ok4 := inSitu.S.(*Real)
-      t, ok5 := inSitu.T.(*Real)
+    { // Float32
+      A, ok1 :=        a.(*DenseFloat32Matrix)
+      L, ok2 := inSitu.L.(*DenseFloat32Matrix)
+      D, ok3 := inSitu.D.(*DenseFloat32Matrix)
+      s, ok4 := inSitu.S.( Float32)
+      t, ok5 := inSitu.T.( Float32)
       if ok1 && ok2 && ok3 && ok4 && ok5 {
         if forcePD {
-          return cholesky_ldl_forcepd_real(A, L, D, s, t)
+          return cholesky_ldl_forcepd_float32(A, L, D, s, t)
         } else {
-          return cholesky_ldl_real(A, L, D, s, t)
+          return cholesky_ldl_float32(A, L, D, s, t)
         }
       }
     }
-    { // BareReal
-      A, ok1 :=        a.(*DenseBareRealMatrix)
-      L, ok2 := inSitu.L.(*DenseBareRealMatrix)
-      D, ok3 := inSitu.D.(*DenseBareRealMatrix)
-      s, ok4 := inSitu.S.(*BareReal)
-      t, ok5 := inSitu.T.(*BareReal)
+    { // Float64
+      A, ok1 :=        a.(*DenseFloat64Matrix)
+      L, ok2 := inSitu.L.(*DenseFloat64Matrix)
+      D, ok3 := inSitu.D.(*DenseFloat64Matrix)
+      s, ok4 := inSitu.S.( Float64)
+      t, ok5 := inSitu.T.( Float64)
       if ok1 && ok2 && ok3 && ok4 && ok5 {
         if forcePD {
-          return cholesky_ldl_forcepd_barereal(A, L, D, s, t)
+          return cholesky_ldl_forcepd_float64(A, L, D, s, t)
         } else {
-          return cholesky_ldl_barereal(A, L, D, s, t)
+          return cholesky_ldl_float64(A, L, D, s, t)
         }
       }
     }
@@ -122,21 +122,21 @@ func Run(a ConstMatrix, args ...interface{}) (Matrix, Matrix, error) {
     }
   } else {
     {
-      A, ok1 :=        a.(*DenseRealMatrix)
-      L, ok2 := inSitu.L.(*DenseRealMatrix)
-      s, ok3 := inSitu.S.(*Real)
-      t, ok4 := inSitu.T.(*Real)
+      A, ok1 :=        a.(*DenseFloat32Matrix)
+      L, ok2 := inSitu.L.(*DenseFloat32Matrix)
+      s, ok3 := inSitu.S.( Float32)
+      t, ok4 := inSitu.T.( Float32)
       if ok1 && ok2 && ok3 && ok4 {
-        return cholesky_real(A, L, s, t)
+        return cholesky_float32(A, L, s, t)
       }
     }
     {
-      A, ok1 :=        a.(*DenseBareRealMatrix)
-      L, ok2 := inSitu.L.(*DenseBareRealMatrix)
-      s, ok3 := inSitu.S.(*BareReal)
-      t, ok4 := inSitu.T.(*BareReal)
+      A, ok1 :=        a.(*DenseFloat64Matrix)
+      L, ok2 := inSitu.L.(*DenseFloat64Matrix)
+      s, ok3 := inSitu.S.( Float64)
+      t, ok4 := inSitu.T.( Float64)
       if ok1 && ok2 && ok3 && ok4 {
-        return cholesky_barereal(A, L, s, t)
+        return cholesky_float64(A, L, s, t)
       }
     }
     return cholesky(a, inSitu.L, inSitu.S, inSitu.T)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Philipp Benner
+/* Copyright (C) 2018-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,17 +28,17 @@ import . "github.com/pbenner/autodiff"
 
 func TestCauchy1(t *testing.T) {
 
-  mu    := NewReal(2.0)
-  sigma := NewReal(3.0)
+  mu    := NewFloat64(2.0)
+  sigma := NewFloat64(3.0)
 
   d, _ := NewCauchyDistribution(mu, sigma)
 
-  x := NewReal(2.3)
-  r := NewReal(0.0)
+  x := NewFloat64(2.3)
+  r := NewFloat64(0.0)
 
   d.LogPdf(r, x)
 
-  if math.Abs(r.GetValue() - -2.253293) > 1e-4 {
+  if math.Abs(r.GetFloat64() - -2.253293) > 1e-4 {
     t.Error("test failed")
   }
 }

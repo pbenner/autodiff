@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ type NormalEstimator struct {
 /* -------------------------------------------------------------------------- */
 
 func NewNormalEstimator(mu, sigma, sigmaMin float64) (*NormalEstimator, error) {
-  if dist, err := scalarDistribution.NewNormalDistribution(NewBareReal(mu), NewBareReal(sigma)); err != nil {
+  if dist, err := scalarDistribution.NewNormalDistribution(NewFloat64(mu), NewFloat64(sigma)); err != nil {
     return nil, err
   } else {
     r := NormalEstimator{}
@@ -91,13 +91,13 @@ func (obj *NormalEstimator) Initialize(p ThreadPool) error {
 func (obj *NormalEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
   if gamma == nil {
-    x := x.GetValue()
+    x := x.GetFloat64()
     obj.sum_m[id] += x
     obj.sum_s[id] += x*x
     obj.sum_g[id] += 1.0
   } else {
-    x := x.GetValue()
-    g := math.Exp(gamma.GetValue() - obj.gamma_max)
+    x := x.GetFloat64()
+    g := math.Exp(gamma.GetFloat64() - obj.gamma_max)
     obj.sum_m[id] += g*x
     obj.sum_s[id] += g*x*x
     obj.sum_g[id] += g
@@ -123,8 +123,8 @@ func (obj *NormalEstimator) updateEstimate() error {
   mu    := NewScalar(obj.ScalarType(), s1)
   sigma := NewScalar(obj.ScalarType(), math.Sqrt(s2 - s1*s1))
 
-  if math.IsNaN(sigma.GetValue()) || sigma.GetValue() < obj.SigmaMin {
-    sigma.SetValue(obj.SigmaMin)
+  if math.IsNaN(sigma.GetFloat64()) || sigma.GetFloat64() < obj.SigmaMin {
+    sigma.SetFloat64(obj.SigmaMin)
   }
 
   if t, err := scalarDistribution.NewNormalDistribution(mu, sigma); err != nil {
@@ -150,7 +150,7 @@ func (obj *NormalEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   if gamma != nil {
     obj.gamma_max = math.Inf(-1)
     for i := 0; i < gamma.Dim(); i++ {
-      if g := gamma.ConstAt(i).GetValue(); obj.gamma_max < g {
+      if g := gamma.ConstAt(i).GetFloat64(); obj.gamma_max < g {
         obj.gamma_max = g
       }
     }

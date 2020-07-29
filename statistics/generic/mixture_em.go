@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,19 +39,19 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
     gammaTmp   := tmp[p.GetThreadId()].gammaTmp
     gamma      := tmp[p.GetThreadId()].gamma
     logWeights := tmp[p.GetThreadId()].logWeights
-    t1         := tmp[p.GetThreadId()].t1
-    t2         := tmp[p.GetThreadId()].t2
+    t1         := NullFloat64()
+    t2         := NullFloat64()
     // check init
     if tmp[p.GetThreadId()].init == false {
-      logWeights.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+      logWeights.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
       for i := 0; i < len(gamma); i++ {
-        gamma[i].Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+        gamma[i].Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
       }
       tmp[p.GetThreadId()].likelihood = 0.0
       tmp[p.GetThreadId()].init       = true
     }
     // normalization constant
-    t1.SetValue(math.Inf(-1))
+    t1.SetFloat64(math.Inf(-1))
     for i := 0; i < m; i++ {
       if err := data.LogPdf(t2, i, l); err != nil {
         return err
@@ -66,14 +66,14 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
         gammaTmp.AT(i).Add(gammaTmp.AT(i), meta.ConstAt(l))
       }
       if counts != nil {
-        gammaTmp.AT(i).Add(gammaTmp.AT(i), ConstReal(math.Log(float64(counts[l]))))
+        gammaTmp.AT(i).Add(gammaTmp.AT(i), ConstFloat64(math.Log(float64(counts[l]))))
       }
     }
     // update log-likelihood
     if counts != nil {
-      t1.Mul(t1, ConstReal(float64(counts[l])))
+      t1.Mul(t1, ConstFloat64(float64(counts[l])))
     }
-    tmp[p.GetThreadId()].likelihood += t1.GetValue()
+    tmp[p.GetThreadId()].likelihood += t1.GetFloat64()
     // save gamma
     if gamma != nil {
       for i := 0; i < m; i++ {
@@ -96,15 +96,16 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
   }
   if tmp[0].logWeights != nil {
     // set weights to zero
-    mixture1.LogWeights.Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+    mixture1.LogWeights.Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
     // compute posterior weights
     for threadIdx := 0; threadIdx < p.NumberOfThreads(); threadIdx++ {
       if tmp[threadIdx].init == false {
         // this thread was never used
         continue
       }
+      t2 := NullFloat64()
       for i := 0; i < m; i++ {
-        mixture1.LogWeights.At(i).LogAdd(mixture1.LogWeights.At(i), tmp[threadIdx].logWeights.At(i), tmp[0].t2)
+        mixture1.LogWeights.At(i).LogAdd(mixture1.LogWeights.At(i), tmp[threadIdx].logWeights.At(i), t2)
       }
     }
     // normalize weights
@@ -113,7 +114,7 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
   // initialize gamma for thread 0 if necessary
   if tmp[0].init == false {
     for i := 0; i < len(tmp[0].gamma); i++ {
-      tmp[0].gamma[i].Map(func(x Scalar) { x.SetValue(math.Inf(-1)) })
+      tmp[0].gamma[i].Map(func(x Scalar) { x.SetFloat64(math.Inf(-1)) })
     }
     tmp[0].likelihood = 0.0
     tmp[0].init       = true
@@ -124,11 +125,12 @@ func (obj *Mixture) EmStep(mixture1, mixture2 *Mixture, data MixtureDataSet, met
       // this thread was never used
       continue
     }
+    t2 := NullFloat64()
     for i := 0; i < len(tmp[0].gamma); i++ {
       for j := 0; j < tmp[0].gamma[i].Dim(); j++ {
         tmp[0].gamma[i].AT(j).LOGADD(
           tmp[        0].gamma[i].AT(j),
-          tmp[threadIdx].gamma[i].AT(j), tmp[0].t2)
+          tmp[threadIdx].gamma[i].AT(j), t2)
       }
     }
     tmp[0].likelihood += tmp[threadIdx].likelihood

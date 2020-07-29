@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ type GevDistribution struct {
   Mu    Scalar
   Sigma Scalar
   Xi    Scalar
-  c1    Scalar
   cx    Scalar
   cy    Scalar
   t     Scalar
@@ -39,23 +38,21 @@ type GevDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewGevDistribution(mu, sigma, xi Scalar) (*GevDistribution, error) {
-  if sigma.GetValue() <= 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter sigma: %f", sigma.GetValue())
+  if sigma.GetFloat64() <= 0.0 {
+    return nil, fmt.Errorf("invalid value for parameter sigma: %f", sigma.GetFloat64())
   }
   // some constants
-  c1 := NewBareReal(1.0)
   cx := NewScalar(xi.Type(), 1.0)
   cx.Div(cx, xi)
   cx.Neg(cx)
   cy := NewScalar(xi.Type(), 1.0)
   cy.Div(cy, xi)
-  cy.Add(cy, c1)
+  cy.Add(cy, ConstFloat64(1.0))
 
   result := GevDistribution{
     Mu    : mu   .CloneScalar(),
     Sigma : sigma.CloneScalar(),
     Xi    : xi   .CloneScalar(),
-    c1    : c1,
     cx    : cx,
     cy    : cy,
     t     : NewScalar(xi.Type(), 0.0) }
@@ -71,7 +68,6 @@ func (dist *GevDistribution) Clone() *GevDistribution {
     Mu    : dist.Mu   .CloneScalar(),
     Sigma : dist.Sigma.CloneScalar(),
     Xi    : dist.Xi   .CloneScalar(),
-    c1    : dist.c1   .CloneScalar(),
     cx    : dist.cx   .CloneScalar(),
     cy    : dist.cy   .CloneScalar(),
     t     : dist.t    .CloneScalar() }
@@ -89,15 +85,15 @@ func (dist *GevDistribution) ScalarType() ScalarType {
 
 func (dist *GevDistribution) LogPdf(r Scalar, x ConstScalar) error {
 
-  if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
-    r.SetValue(math.Inf(-1))
+  if dist.Xi.GetFloat64()*(x.GetFloat64() - dist.Mu.GetFloat64())/dist.Sigma.GetFloat64() <= -1 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   t := dist.t
   t.Sub(x, dist.Mu)
   t.Div(t, dist.Sigma)
 
-  if dist.Xi.GetValue() == 0.0 {
+  if dist.Xi.GetFloat64() == 0.0 {
     t.Neg(t)
     // r = - (x-mu)/sigma
     r.Set(t)
@@ -107,7 +103,7 @@ func (dist *GevDistribution) LogPdf(r Scalar, x ConstScalar) error {
 
   } else {
     t.Mul(t, dist.Xi)
-    t.Add(t, dist.c1)
+    t.Add(t, ConstFloat64(1.0))
     r.Pow(t, dist.cx)
     // r = - (1 + xi(x-mu)/sigma)^(-1/xi)
     r.Neg(r)
@@ -132,21 +128,21 @@ func (dist *GevDistribution) Pdf(r Scalar, x ConstScalar) error {
 }
 
 func (dist *GevDistribution) LogCdf(r Scalar, x ConstScalar) error {
-  if dist.Xi.GetValue()*(x.GetValue() - dist.Mu.GetValue())/dist.Sigma.GetValue() <= -1 {
-    r.SetValue(math.Inf(-1))
+  if dist.Xi.GetFloat64()*(x.GetFloat64() - dist.Mu.GetFloat64())/dist.Sigma.GetFloat64() <= -1 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   r.Set(x)
   r.Sub(r, dist.Mu)
   r.Div(r, dist.Sigma)
 
-  if dist.Xi.GetValue() == 0.0 {
+  if dist.Xi.GetFloat64() == 0.0 {
     r.Neg(r)
     r.Exp(r)
     r.Neg(r)
   } else {
     r.Mul(r, dist.Xi)
-    r.Add(r, dist.c1)
+    r.Add(r, ConstFloat64(1.0))
     r.Pow(r, dist.cx)
     r.Neg(r)
   }
@@ -165,7 +161,7 @@ func (dist *GevDistribution) Cdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GevDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 3)
+  p := NullDenseVector(dist.ScalarType(), 3)
   p.At(0).Set(dist.Mu)
   p.At(1).Set(dist.Sigma)
   p.At(2).Set(dist.Xi)

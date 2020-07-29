@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Philipp Benner
+/* Copyright (C) 2018-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,12 +56,12 @@ func (obj *PdfLogTransform) CloneScalarPdf() ScalarPdf {
 /* -------------------------------------------------------------------------- */
 
 func (obj *PdfLogTransform) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); v < 0.0 {
-    r.SetValue(math.Inf(-1))
+  if v := x.GetFloat64(); v < 0.0 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   y := obj.x
-  y.Add(x, ConstReal(obj.c))
+  y.Add(x, ConstFloat64(obj.c))
   y.Log(y)
 
   if err := obj.ScalarPdf.LogPdf(r, y); err != nil {

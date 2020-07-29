@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,12 @@ package givensRotation
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func Test1(t *testing.T) {
+func Test1(test *testing.T) {
 
-  a := NewMatrix(RealType, 12, 10, []float64{
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     0, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -41,13 +40,13 @@ func Test1(t *testing.T) {
     0, 0, 0, 0, 0, 0, 0, 9, 9, 9,
     0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 12, 10)
   _, n := a.Dims()
 
-  c  := NewReal(3.0)
-  s  := NewReal(2.0)
-  t1 := NewReal(0.0)
-  t2 := NewReal(0.0)
+  c  := NewFloat64(3.0)
+  s  := NewFloat64(2.0)
+  t1 := NewFloat64(0.0)
+  t2 := NewFloat64(0.0)
 
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
@@ -60,8 +59,8 @@ func Test1(t *testing.T) {
       ApplyHessenbergLeft(a1, c, s, i, j, t1, t2)
       ApplyLeft          (a2, c, s, i, j, t1, t2)
 
-      if Mnorm(MsubM(a1,a2)).GetValue() > 1e-8 {
-        t.Errorf("test failed for (i,j) = (%d,%d)", i,j)
+      if t1.Mnorm(a1.MsubM(a1,a2)).GetFloat64() > 1e-8 {
+        test.Errorf("test failed for (i,j) = (%d,%d)", i,j)
       }
     }
   }
@@ -76,16 +75,16 @@ func Test1(t *testing.T) {
       ApplyHessenbergRight(a1, c, s, i, j, t1, t2)
       ApplyRight          (a2, c, s, i, j, t1, t2)
 
-      if Mnorm(MsubM(a1,a2)).GetValue() > 1e-8 {
-        t.Errorf("test failed for (i,j) = (%d,%d)", i,j)
+      if t1.Mnorm(a1.MsubM(a1,a2)).GetFloat64() > 1e-8 {
+        test.Errorf("test failed for (i,j) = (%d,%d)", i,j)
       }
     }
   }
 }
 
-func Test2(t *testing.T) {
+func Test2(test *testing.T) {
 
-  a := NewMatrix(RealType, 12, 10, []float64{
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 2, 2, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 3, 3, 0, 0, 0, 0, 0, 0,
@@ -97,13 +96,13 @@ func Test2(t *testing.T) {
     0, 0, 0, 0, 0, 0, 0, 0, 9, 9,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 12, 10)
   _, n := a.Dims()
 
-  c  := NewReal(3.0)
-  s  := NewReal(2.0)
-  t1 := NewReal(0.0)
-  t2 := NewReal(0.0)
+  c  := NewFloat64(3.0)
+  s  := NewFloat64(2.0)
+  t1 := NewFloat64(0.0)
+  t2 := NewFloat64(0.0)
 
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
@@ -116,8 +115,8 @@ func Test2(t *testing.T) {
       ApplyBidiagLeft(a1, c, s, i, j, t1, t2)
       ApplyLeft      (a2, c, s, i, j, t1, t2)
 
-      if Mnorm(MsubM(a1,a2)).GetValue() > 1e-8 {
-        t.Errorf("test failed for (i,j) = (%d,%d)", i,j)
+      if t1.Mnorm(a1.MsubM(a1,a2)).GetFloat64() > 1e-8 {
+        test.Errorf("test failed for (i,j) = (%d,%d)", i,j)
       }
     }
   }
@@ -132,16 +131,16 @@ func Test2(t *testing.T) {
       ApplyBidiagRight(a1, c, s, i, j, t1, t2)
       ApplyRight      (a2, c, s, i, j, t1, t2)
 
-      if Mnorm(MsubM(a1,a2)).GetValue() > 1e-8 {
-        t.Errorf("test failed for (i,j) = (%d,%d)", i,j)
+      if t1.Mnorm(a1.MsubM(a1,a2)).GetFloat64() > 1e-8 {
+        test.Errorf("test failed for (i,j) = (%d,%d)", i,j)
       }
     }
   }
 }
 
-func Test3(t *testing.T) {
+func Test3(test *testing.T) {
 
-  a := NewMatrix(RealType, 12, 10, []float64{
+  a := NewDenseFloat64Matrix([]float64{
     1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
     2, 2, 2, 0, 0, 0, 0, 0, 0, 0,
     0, 3, 3, 3, 0, 0, 0, 0, 0, 0,
@@ -153,13 +152,13 @@ func Test3(t *testing.T) {
     0, 0, 0, 0, 0, 0, 0, 9, 9, 9,
     0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 12, 10)
   _, n := a.Dims()
 
-  c  := NewReal(3.0)
-  s  := NewReal(2.0)
-  t1 := NewReal(0.0)
-  t2 := NewReal(0.0)
+  c  := NewFloat64(3.0)
+  s  := NewFloat64(2.0)
+  t1 := NewFloat64(0.0)
+  t2 := NewFloat64(0.0)
 
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
@@ -172,8 +171,8 @@ func Test3(t *testing.T) {
       ApplyTridiagLeft(a1, c, s, i, j, t1, t2)
       ApplyLeft       (a2, c, s, i, j, t1, t2)
 
-      if Mnorm(MsubM(a1,a2)).GetValue() > 1e-8 {
-        t.Errorf("test failed for (i,j) = (%d,%d)", i,j)
+      if t1.Mnorm(a1.MsubM(a1,a2)).GetFloat64() > 1e-8 {
+        test.Errorf("test failed for (i,j) = (%d,%d)", i,j)
       }
     }
   }
@@ -188,8 +187,8 @@ func Test3(t *testing.T) {
       ApplyTridiagRight(a1, c, s, i, j, t1, t2)
       ApplyRight       (a2, c, s, i, j, t1, t2)
 
-      if Mnorm(MsubM(a1,a2)).GetValue() > 1e-8 {
-        t.Errorf("test failed for (i,j) = (%d,%d)", i,j)
+      if t1.Mnorm(a1.MsubM(a1,a2)).GetFloat64() > 1e-8 {
+        test.Errorf("test failed for (i,j) = (%d,%d)", i,j)
       }
     }
   }

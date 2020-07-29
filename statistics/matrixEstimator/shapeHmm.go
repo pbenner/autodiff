@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ func (obj *ShapeHmmEstimator) Swap() {
   obj.hmm1, obj.hmm2, obj.hmm3 = obj.hmm3, obj.hmm1, obj.hmm2
 }
 
-func (obj *ShapeHmmEstimator) Emissions(gamma []DenseBareRealVector, p ThreadPool) error {
+func (obj *ShapeHmmEstimator) Emissions(gamma []DenseFloat64Vector, p ThreadPool) error {
   hmm1 := obj.hmm1
   hmm2 := obj.hmm2
   // estimate emission parameters

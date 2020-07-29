@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
       if !submatrix[j] {
         continue
       }
-      if math.Abs(a.At(p[j], i).GetValue()) > math.Abs(a.At(p[maxrow], i).GetValue()) {
+      if math.Abs(a.At(p[j], i).GetFloat64()) > math.Abs(a.At(p[maxrow], i).GetFloat64()) {
         maxrow = j
       }
     }
@@ -114,7 +114,7 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
       t.Mul(a.At(p[j], i), b.At(p[i]))
       t.Div(t, c)
       b.At(p[j]).Sub(b.At(p[j]), t)
-      if math.IsNaN(b.At(p[j]).GetValue()) {
+      if math.IsNaN(b.At(p[j]).GetFloat64()) {
         goto singular
       }
       // loop over colums in x
@@ -126,7 +126,7 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
         t.Mul(a.At(p[j], i), x.At(p[i], k))
         t.Div(t, c)
         x.At(p[j], k).Sub(x.At(p[j], k), t)
-        if math.IsNaN(x.At(p[j], k).GetValue()) {
+        if math.IsNaN(x.At(p[j], k).GetFloat64()) {
           goto singular
         }
       }
@@ -139,13 +139,13 @@ func gaussJordan(a, x Matrix, b Vector, submatrix []bool) error {
         t.Mul(a.At(p[j], i), a.At(p[i], k))
         t.Div(t, c)
         a.At(p[j], k).Sub(a.At(p[j], k), t)
-        if math.IsNaN(a.At(p[j], k).GetValue()) {
+        if math.IsNaN(a.At(p[j], k).GetFloat64()) {
           goto singular
         }
       }
     }
     a.At(p[i], i).Div(a.At(p[i], i), c)
-    if math.IsNaN(a.At(p[i], i).GetValue()) {
+    if math.IsNaN(a.At(p[i], i).GetFloat64()) {
       goto singular
     }
     // normalize ith row in x
@@ -198,7 +198,7 @@ func gaussJordanUpperTriangular(a, x Matrix, b Vector, submatrix []bool) error {
       t.Mul(a.At(j, i), b.At(i))
       t.Div(t, c)
       b.At(j).Sub(b.At(j), t)
-      if math.IsNaN(b.At(j).GetValue()) {
+      if math.IsNaN(b.At(j).GetFloat64()) {
         goto singular
       }
       // loop over colums in x
@@ -210,7 +210,7 @@ func gaussJordanUpperTriangular(a, x Matrix, b Vector, submatrix []bool) error {
         t.Mul(a.At(j, i), x.At(i, k))
         t.Div(t, c)
         x.At(j, k).Sub(x.At(j, k), t)
-        if math.IsNaN(x.At(j, k).GetValue()) {
+        if math.IsNaN(x.At(j, k).GetFloat64()) {
           goto singular
         }
       }
@@ -223,13 +223,13 @@ func gaussJordanUpperTriangular(a, x Matrix, b Vector, submatrix []bool) error {
         t.Mul(a.At(j, i), a.At(i, k))
         t.Div(t, c)
         a.At(j, k).Sub(a.At(j, k),t)
-        if math.IsNaN(a.At(j, k).GetValue()) {
+        if math.IsNaN(a.At(j, k).GetFloat64()) {
           goto singular
         }
       }
     }
     a.At(i, i).Div(a.At(i, i), c)
-    if math.IsNaN(a.At(i, i).GetValue()) {
+    if math.IsNaN(a.At(i, i).GetFloat64()) {
       goto singular
     }
     // normalize ith row in x
@@ -273,14 +273,14 @@ func Run(a, x Matrix, b Vector, args ...interface{}) error {
       submatrix[i] = true
     }
   }
-  ad, ok1 := a.(*DenseBareRealMatrix)
-  bd, ok2 := b.( DenseBareRealVector)
-  xd, ok3 := x.(*DenseBareRealMatrix)
+  ad, ok1 := a.(*DenseFloat64Matrix)
+  bd, ok2 := b.( DenseFloat64Vector)
+  xd, ok3 := x.(*DenseFloat64Matrix)
   if ok1 && ok2 && ok3 {
     if triangular == true {
-      return gaussJordanUpperTriangular_DenseBareReal(ad, xd, bd, submatrix)
+      return gaussJordanUpperTriangular_DenseFloat64(ad, xd, bd, submatrix)
     } else {
-      return gaussJordan_DenseBareReal(ad, xd, bd, submatrix)
+      return gaussJordan_DenseFloat64(ad, xd, bd, submatrix)
     }
   }
   // call generic gaussJordan

@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ func determinantNaive(a ConstMatrix) Scalar {
     t2.Mul(a.ConstAt(1, 0), a.ConstAt(0, 1))
     det.Sub(t1, t2)
   } else {
-    m := NullMatrix(a.ElementType(), n-1, n-1)
+    m := NullDenseMatrix(a.ElementType(), n-1, n-1)
     for j1 := 0; j1 < n; j1++ {
       for i := 1; i < n; i++ {
         j2 := 0
@@ -91,14 +91,14 @@ func determinantPD(a ConstMatrix, logScale bool, inSitu *InSitu) (Scalar, error)
   r := NullScalar(L.ElementType())
   t := NullScalar(L.ElementType())
   if logScale {
-    r.SetValue(0.0)
+    r.SetFloat64(0.0)
     for i := 0; i < n; i++ {
       t.Log(L.At(i, i))
       r.Add(r, t)
     }
     r.Add(r, r)
   } else {
-    r.SetValue(1.0)
+    r.SetFloat64(1.0)
     for i := 0; i < n; i++ {
       r.Mul(r, L.At(i, i))
     }

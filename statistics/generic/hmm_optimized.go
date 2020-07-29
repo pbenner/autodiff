@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,9 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func (obj *Hmm) bareRealForward(data HmmDataRecord, alpha *DenseBareRealMatrix, t1, t2 *BareReal, n, m int) (*DenseBareRealMatrix, error) {
+func (obj *Hmm) float64Forward(data HmmDataRecord, alpha *DenseFloat64Matrix, n, m int) (*DenseFloat64Matrix, error) {
+  t1 := NullFloat64()
+  t2 := NullFloat64()
   // initialize first position
   if n > 0 {
     for i := 0; i < m; i++ {
@@ -41,7 +43,7 @@ func (obj *Hmm) bareRealForward(data HmmDataRecord, alpha *DenseBareRealMatrix, 
     for j := 0; j < m; j++ {
       at := alpha.AT(j, k)
       // initialize alpha
-      at.SetValue(math.Inf(-1))
+      at.SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_i p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -62,7 +64,7 @@ func (obj *Hmm) bareRealForward(data HmmDataRecord, alpha *DenseBareRealMatrix, 
     for j := 0; j < m; j++ {
       at := alpha.AT(j, n-1)
       // initialize alpha
-      at.SetValue(math.Inf(-1))
+      at.SetFloat64(math.Inf(-1))
       // compute:
       // alpha_t(x_j) = sum_i p(x_j | x_i) alpha_s(x_i)
       // transitions from state i
@@ -82,11 +84,13 @@ func (obj *Hmm) bareRealForward(data HmmDataRecord, alpha *DenseBareRealMatrix, 
   return alpha, nil
 }
 
-func (obj *Hmm) bareRealBackward(data HmmDataRecord, beta *DenseBareRealMatrix, t1, t2 *BareReal, n, m int) (*DenseBareRealMatrix, error) {
+func (obj *Hmm) float64Backward(data HmmDataRecord, beta *DenseFloat64Matrix, n, m int) (*DenseFloat64Matrix, error) {
+  t1 := NullFloat64()
+  t2 := NullFloat64()
   // initialize last position
   if n > 0 {
     for i := 0; i < m; i++ {
-      beta.AT(i, n-1).SetValue(0.0)
+      beta.AT(i, n-1).SetFloat64(0.0)
     }
   }
   if n > 1 {
@@ -95,7 +99,7 @@ func (obj *Hmm) bareRealBackward(data HmmDataRecord, beta *DenseBareRealMatrix, 
     for i := 0; i < m; i++ {
       bs := beta.AT(i, n-2)
       // initialize beta
-      bs.SetValue(math.Inf(-1))
+      bs.SetFloat64(math.Inf(-1))
       // compute:
       // beta_s(x_i) = sum_j p(y_{k+1} | x_j) p(x_j | x_i) beta_t(x_j)
       // transition to state j
@@ -114,7 +118,7 @@ func (obj *Hmm) bareRealBackward(data HmmDataRecord, beta *DenseBareRealMatrix, 
     for i := 0; i < m; i++ {
       bs := beta.AT(i, k)
       // initialize beta
-      bs.SetValue(math.Inf(-1))
+      bs.SetFloat64(math.Inf(-1))
       // compute:
       // beta_s(x_i) = sum_j p(y_{k+1} | x_j) p(x_j | x_i) beta_t(x_j)
       // transition to state j
@@ -131,17 +135,17 @@ func (obj *Hmm) bareRealBackward(data HmmDataRecord, beta *DenseBareRealMatrix, 
   return beta, nil
 }
 
-func (obj *Hmm) bareRealForwardBackward(data HmmDataRecord, alpha, beta *DenseBareRealMatrix, t1, t2 *BareReal) (*DenseBareRealMatrix, *DenseBareRealMatrix, error) {
+func (obj *Hmm) float64ForwardBackward(data HmmDataRecord, alpha, beta *DenseFloat64Matrix) (*DenseFloat64Matrix, *DenseFloat64Matrix, error) {
   var err error
   // length of the sequence
   n := data.GetN()
   // number of states
   m := obj.M
   // execute forward and backward algorithms
-  alpha, err = obj.bareRealForward (data, alpha, t1, t2, n, m); if err != nil {
+  alpha, err = obj.float64Forward (data, alpha, n, m); if err != nil {
     return nil, nil, err
   }
-  beta,  err = obj.bareRealBackward(data,  beta, t1, t2, n, m); if err != nil {
+  beta,  err = obj.float64Backward(data,  beta, n, m); if err != nil {
     return nil, nil, err
   }
   return alpha, beta, nil

@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ type PoissonEstimator struct {
 /* -------------------------------------------------------------------------- */
 
 func NewPoissonEstimator(lambda float64) (*PoissonEstimator, error) {
-  if dist, err := scalarDistribution.NewPoissonDistribution(NewBareReal(lambda)); err != nil {
+  if dist, err := scalarDistribution.NewPoissonDistribution(NewFloat64(lambda)); err != nil {
     return nil, err
   } else {
     r := PoissonEstimator{}
@@ -85,16 +85,16 @@ func (obj *PoissonEstimator) Initialize(p ThreadPool) error {
 
 func (obj *PoissonEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
-  if x.GetValue() < 0.0 {
+  if x.GetFloat64() < 0.0 {
     return nil
   }
   if gamma == nil {
-    x := math.Log(x.GetValue())
+    x := math.Log(x.GetFloat64())
     obj.sum_m[id] = LogAdd(obj.sum_m[id], x)
     obj.sum_c[id]++
   } else {
-    x := math.Log(x.GetValue())
-    g := gamma.GetValue()
+    x := math.Log(x.GetFloat64())
+    g := gamma.GetFloat64()
     obj.sum_m[id] = LogAdd(obj.sum_m[id], g + x)
     obj.sum_g[id] = LogAdd(obj.sum_g[id], g)
   }

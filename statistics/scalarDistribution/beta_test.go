@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,50 +27,50 @@ import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 
 func TestBeta1(t *testing.T) {
-  d, _ := NewBetaDistribution(NewReal(3), NewReal(5), false)
-  x := NewReal(0.8)
-  r := NewReal(0.0)
+  d, _ := NewBetaDistribution(NewFloat64(3), NewFloat64(5), false)
+  x := NewFloat64(0.8)
+  r := NewFloat64(0.0)
 
   if err := d.LogPdf(r, x); err != nil {
     t.Error(err)
   }
-  if math.Abs(r.GetValue() - -2.230078e+00) > 1e-4 {
+  if math.Abs(r.GetFloat64() - -2.230078e+00) > 1e-4 {
     t.Error("test failed")
   }
 }
 
 func TestBeta2(t *testing.T) {
-  d, _ := NewBetaDistribution(NewReal(3), NewReal(5), true)
-  x := NewReal(math.Log(0.8))
-  r := NewReal(0.0)
+  d, _ := NewBetaDistribution(NewFloat64(3), NewFloat64(5), true)
+  x := NewFloat64(math.Log(0.8))
+  r := NewFloat64(0.0)
 
   if err := d.LogPdf(r, x); err != nil {
     t.Error(err)
   }
-  if math.Abs(r.GetValue() - -2.230078e+00) > 1e-4 {
+  if math.Abs(r.GetFloat64() - -2.230078e+00) > 1e-4 {
     t.Error("test failed")
   }
 }
 
 func TestBeta3(t *testing.T) {
-  d, _ := NewBetaDistribution(NewReal(1), NewReal(1), true)
-  x := NewReal(0.0)
-  r := NewReal(0.0)
+  d, _ := NewBetaDistribution(NewFloat64(1), NewFloat64(1), true)
+  x := NewFloat64(0.0)
+  r := NewFloat64(0.0)
 
   if err := d.LogPdf(r, x); err != nil {
     t.Error(err)
   }
-  if math.Abs(r.GetValue() - 0.0) > 1e-4 {
+  if math.Abs(r.GetFloat64() - 0.0) > 1e-4 {
     t.Error("test failed")
   }
 }
 
 func TestBeta4(t *testing.T) {
-  d, _ := NewBetaDistribution(NewReal(0.5), NewReal(0.6), false)
-  x1 := NewReal(0.0)
-  x2 := NewReal(1.0)
-  r1 := NewReal(0.0)
-  r2 := NewReal(0.0)
+  d, _ := NewBetaDistribution(NewFloat64(0.5), NewFloat64(0.6), false)
+  x1 := NewFloat64(0.0)
+  x2 := NewFloat64(1.0)
+  r1 := NewFloat64(0.0)
+  r2 := NewFloat64(0.0)
 
   if err := d.LogPdf(r1, x1); err != nil {
     t.Error(err)
@@ -78,10 +78,10 @@ func TestBeta4(t *testing.T) {
   if err := d.LogPdf(r2, x2); err != nil {
     t.Error(err)
   }
-  if !math.IsInf(r1.GetValue(), 1) {
+  if !math.IsInf(r1.GetFloat64(), 1) {
     t.Error("test failed")
   }
-  if !math.IsInf(r2.GetValue(), 1) {
+  if !math.IsInf(r2.GetFloat64(), 1) {
     t.Error("test failed")
   }
 }

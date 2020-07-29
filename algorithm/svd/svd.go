@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,14 +79,14 @@ func wilkinsonShift(mu, t11, t12, t22, t1, t2 Scalar) {
   d := t1
   t := t2
   d.Sub(t11, t22)
-  d.Div(d, ConstReal(2)) // d = (t11 - t22)/2
+  d.Div(d, ConstFloat64(2)) // d = (t11 - t22)/2
 
   t .Mul(t12, t12)
   mu.Mul(d, d)
   mu.Add(mu, t)    // mu = d^2 + t12^2
   mu.Sqrt(mu)      // mu = sqrt(d^2 + t12^2)
 
-  if d.GetValue() < 0.0 {
+  if d.GetFloat64() < 0.0 {
     mu.Neg(mu)
   }
   mu.Add(d, mu)    // mu = d + sign(d) sqrt(d^2 + t12^2)
@@ -121,7 +121,7 @@ func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) {
   for k := 0; k < n-1; k++ {
     givensRotation.Run(y, z, c, s)
     givensRotation.ApplyBidiagRight(B, c, s, k, k+1, t1, t2)
-    z.SetValue(0.0)
+    z.SetFloat64(0.0)
     if V != nil {
       givensRotation.ApplyRight(V, c, s, p+k, p+k+1, t1, t2)
     }
@@ -129,7 +129,7 @@ func golubKahanSVDstep(B, U, V Matrix, p int, inSitu *InSitu, epsilon float64) {
     z.Set(B.At(k+1, k))
     givensRotation.Run(y, z, c, s)
     givensRotation.ApplyBidiagLeft(B, c, s, k, k+1, t1, t2)
-    z.SetValue(0.0)
+    z.SetFloat64(0.0)
     if U != nil {
       givensRotation.ApplyLeft(U, c, s, p+k, p+k+1, t1, t2)
     }
@@ -159,7 +159,7 @@ func zeroRow(B, U, V Matrix, k int, inSitu *InSitu) {
     if U != nil {
       givensRotation.ApplyLeft(U, c, s, i, k, t1, t2)
     }
-    z.SetValue(0.0)
+    z.SetFloat64(0.0)
   }
 }
 
@@ -172,7 +172,7 @@ func splitMatrix(B Matrix, q int) (int, int) {
     // fix a column
     k := n-q-1
     // check if B33 is diagonal
-    if B.At(k-1,k).GetValue() == 0.0 {
+    if B.At(k-1,k).GetFloat64() == 0.0 {
       q += 1
     } else {
       break
@@ -185,7 +185,7 @@ func splitMatrix(B Matrix, q int) (int, int) {
   // try decreasing p
   for p > 0 {
     k := p
-    if B.At(k-1,k).GetValue() == 0.0 {
+    if B.At(k-1,k).GetFloat64() == 0.0 {
       break
     } else {
       p -= 1
@@ -211,11 +211,11 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
   for p, q := 0, 0; q < n; {
 
     for i := 0; i < n-1; i++ {
-      b11 := B.At(i  ,i  ).GetValue()
-      b12 := B.At(i  ,i+1).GetValue()
-      b22 := B.At(i+1,i+1).GetValue()
+      b11 := B.At(i  ,i  ).GetFloat64()
+      b12 := B.At(i  ,i+1).GetFloat64()
+      b22 := B.At(i+1,i+1).GetFloat64()
       if math.Abs(b12) <= epsilon*(math.Abs(b11) + math.Abs(b22)) {
-        B.At(i,i+1).SetValue(0.0)
+        B.At(i,i+1).SetFloat64(0.0)
       }
     }
     p, q = splitMatrix(B, q)
@@ -224,7 +224,7 @@ func golubKahanSVD(inSitu *InSitu, epsilon float64) (Matrix, Matrix, Matrix, err
       // check diagonal elements in B22
       t := true
       for k := p; k < n-q-1; k++ {
-        if B.At(k,k).GetValue() == 0.0 {
+        if B.At(k,k).GetFloat64() == 0.0 {
           zeroRow(B, U, V, k, inSitu); t = false
         }
       }
@@ -281,7 +281,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
   }
   if computeU {
     if inSitu.U == nil {
-      inSitu.U = NullMatrix(t, m, m)
+      inSitu.U = NullDenseMatrix(t, m, m)
     }
     // initialized by householderBidiagonalization
   } else {
@@ -289,7 +289,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
   }
   if computeV {
     if inSitu.V == nil {
-      inSitu.V = NullMatrix(t, n, n)
+      inSitu.V = NullDenseMatrix(t, n, n)
     }
     // initialized by householderBidiagonalization
   } else {

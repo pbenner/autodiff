@@ -1,0 +1,217 @@
+/* -*- mode: go; -*-
+ *
+ * Copyright (C) 2015-2020 Philipp Benner
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "macros.h"
+
+/* -------------------------------------------------------------------------- */
+
+package autodiff
+
+/* -------------------------------------------------------------------------- */
+
+//import "fmt"
+import "math"
+
+//import "github.com/pbenner/autodiff/special"
+
+/* -------------------------------------------------------------------------- */
+
+func (a SCALAR_NAME) EQUALS(b SCALAR_NAME, epsilon float64) bool {
+#if SCALAR_TYPE == float32 || SCALAR_TYPE == float64
+  v1 := a.GetFloat64()
+  v2 := b.GetFloat64()
+  return math.Abs(v1 - v2) < epsilon               ||
+        (math.IsNaN(v1)     && math.IsNaN(v2))     ||
+        (math.IsInf(v1,  1) && math.IsInf(v2,  1)) ||
+        (math.IsInf(v1, -1) && math.IsInf(v2, -1))
+#else
+  return a.GET_METHOD_NAME() == b.GET_METHOD_NAME()
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (a SCALAR_NAME) GREATER(b SCALAR_NAME) bool {
+  return a.GET_METHOD_NAME() > b.GET_METHOD_NAME()
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (a SCALAR_NAME) SMALLER(b SCALAR_NAME) bool {
+  return a.GET_METHOD_NAME() < b.GET_METHOD_NAME()
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (a SCALAR_NAME) SIGN() int {
+  if a.GET_METHOD_NAME() < SCALAR_TYPE(0) {
+    return -1
+  }
+  if a.GET_METHOD_NAME() > SCALAR_TYPE(0) {
+    return  1
+  }
+  return 0
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (r SCALAR_NAME) MIN(a, b SCALAR_NAME) Scalar {
+  if a.GET_METHOD_NAME() < b.GET_METHOD_NAME() {
+    r.SET(a)
+  } else {
+    r.SET(b)
+  }
+  return r
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (r SCALAR_NAME) MAX(a, b SCALAR_NAME) Scalar {
+  if a.GET_METHOD_NAME() > b.GET_METHOD_NAME() {
+    r.SET(a)
+  } else {
+    r.SET(b)
+  }
+  return r
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) ABS(a SCALAR_NAME) Scalar {
+  if c.Sign() == -1 {
+    c.NEG(a)
+  } else {
+    c.SET(a)
+  }
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) NEG(a SCALAR_NAME) SCALAR_NAME {
+  x := a.GET_METHOD_NAME()
+  c.SET_METHOD_NAME(-x)
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) ADD(a, b SCALAR_NAME) SCALAR_NAME {
+  x := a.GET_METHOD_NAME()
+  y := b.GET_METHOD_NAME()
+  c.SET_METHOD_NAME(x+y)
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) SUB(a, b SCALAR_NAME) SCALAR_NAME {
+  x := a.GET_METHOD_NAME()
+  y := b.GET_METHOD_NAME()
+  c.SET_METHOD_NAME(x-y)
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) MUL(a, b SCALAR_NAME) SCALAR_NAME {
+  x := a.GET_METHOD_NAME()
+  y := b.GET_METHOD_NAME()
+  c.SET_METHOD_NAME(x*y)
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) DIV(a, b SCALAR_NAME) SCALAR_NAME {
+  x := a.GET_METHOD_NAME()
+  y := b.GET_METHOD_NAME()
+  c.SET_METHOD_NAME(x/y)
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) LOGADD(a, b, t SCALAR_NAME) SCALAR_NAME {
+  if a.GREATER(b) {
+    // swap
+    a, b = b, a
+  }
+  if math.IsInf(a.GetFloat64(), 0) {
+    // cases:
+    //  i) a = -Inf and b >= a    => c = b
+    // ii) a =  Inf and b  = Inf  => c = Inf
+    c.SET(b)
+    return c
+  }
+  t.SUB(a, b)
+  t.EXP(t)
+  t.LOG1P(t)
+  c.ADD(t, b)
+  return c
+}
+
+func (c SCALAR_NAME) LOGSUB(a, b, t SCALAR_NAME) SCALAR_NAME {
+  if math.IsInf(b.GetFloat64(), -1) {
+    c.SET(a)
+    return c
+  }
+  t.SUB(b, a)
+  t.EXP(t)
+  t.NEG(t)
+  t.LOG1P(t)
+  c.ADD(t, a)
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) POW(a, k SCALAR_NAME) SCALAR_NAME {
+  x := a.GetFloat64()
+  y := k.GetFloat64()
+  c.SetFloat64(math.Pow(x, y))
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) SQRT(a SCALAR_NAME) SCALAR_NAME {
+  x := a.GetFloat64()
+  c.SetFloat64(math.Sqrt(x))
+  return c
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (c SCALAR_NAME) EXP(a SCALAR_NAME) SCALAR_NAME {
+  x := a.GetFloat64()
+  c.SetFloat64(math.Exp(x))
+  return c
+}
+
+func (c SCALAR_NAME) LOG(a SCALAR_NAME) SCALAR_NAME {
+  x := a.GetFloat64()
+  c.SetFloat64(math.Log(x))
+  return c
+}
+
+func (c SCALAR_NAME) LOG1P(a SCALAR_NAME) SCALAR_NAME {
+  x := a.GetFloat64()
+  c.SetFloat64(math.Log1p(x))
+  return c
+}

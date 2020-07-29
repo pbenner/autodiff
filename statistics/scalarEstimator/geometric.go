@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ type GeometricEstimator struct {
 /* -------------------------------------------------------------------------- */
 
 func NewGeometricEstimator(p float64) (*GeometricEstimator, error) {
-  if dist, err := scalarDistribution.NewGeometricDistribution(NewBareReal(p)); err != nil {
+  if dist, err := scalarDistribution.NewGeometricDistribution(NewFloat64(p)); err != nil {
     return nil, err
   } else {
     r := GeometricEstimator{}
@@ -86,12 +86,12 @@ func (obj *GeometricEstimator) Initialize(p ThreadPool) error {
 func (obj *GeometricEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
   if gamma == nil {
-    x := math.Log(x.GetValue()+1.0)
+    x := math.Log(x.GetFloat64()+1.0)
     obj.sum_m[id] = LogAdd(obj.sum_m[id], x)
     obj.sum_c[id]++
   } else {
-    x := math.Log(x.GetValue()+1.0)
-    g := gamma.GetValue()
+    x := math.Log(x.GetFloat64()+1.0)
+    g := gamma.GetFloat64()
     obj.sum_m[id] = LogAdd(obj.sum_m[id], g + x)
     obj.sum_g[id] = LogAdd(obj.sum_g[id], g)
   }

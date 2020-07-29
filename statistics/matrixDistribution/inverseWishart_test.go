@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,15 +28,15 @@ import . "github.com/pbenner/autodiff"
 
 func TestInverseWishartDistribution1(t *testing.T) {
 
-  x  := NewMatrix(RealType, 2, 2, []float64{2, -0.3, -0.3, 4})
-  nu := NewReal(3.0)
-  s  := NewMatrix(RealType, 2, 2, []float64{1, +0.3, +0.3, 1})
-  r  := NewReal(0.0)
+  x  := NewDenseFloat64Matrix([]float64{2, -0.3, -0.3, 4}, 2, 2)
+  nu := NewFloat64(3.0)
+  s  := NewDenseFloat64Matrix([]float64{1, +0.3, +0.3, 1}, 2, 2)
+  r  := NewFloat64(0.0)
 
   wishart, _ := NewInverseWishartDistribution(nu, s)
   wishart.LogPdf(r, x)
 
-  if math.Abs(r.GetValue() - -9.25614036) > 1e-4 {
+  if math.Abs(r.GetFloat64() - -9.25614036) > 1e-4 {
     t.Error("Inverse Wishart LogPdf failed!")
   }
 }

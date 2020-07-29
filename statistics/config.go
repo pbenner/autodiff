@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ func NewConfigDistribution(name string, parameters interface{}, distributions ..
   case Vector:
     s := make([]float64, parameters.Dim())
     for i := 0; i < len(s); i++ {
-      s[i] = parameters.At(i).GetValue()
+      s[i] = parameters.ConstAt(i).GetFloat64()
     }
     p = s
   default:
@@ -190,7 +190,7 @@ func (config ConfigDistribution) GetParametersAsVector(t ScalarType) (Vector, bo
   if v, ok := config.getFloats(config.Parameters); !ok {
     return nil, false
   } else {
-    return NewVector(t, v), true
+    return AsDenseVector(t, NewDenseFloat64Vector(v)), true
   }
 }
 
@@ -198,7 +198,7 @@ func (config ConfigDistribution) GetParametersAsMatrix(t ScalarType, n, m int) (
   if v, ok := config.getFloats(config.Parameters); !ok {
     return nil, false
   } else {
-    return NewMatrix(t, n, m, v), true
+    return AsDenseMatrix(t, NewDenseFloat64Matrix(v, n, m)), true
   }
 }
 
@@ -275,7 +275,7 @@ func (config ConfigDistribution) GetNamedParametersAsVector(name string, t Scala
   if v, ok := config.GetNamedParametersAsFloats(name); !ok {
     return nil, false
   } else {
-    return NewVector(t, v), true
+    return AsDenseVector(t, NewDenseFloat64Vector(v)), true
   }
 }
 
@@ -283,7 +283,7 @@ func (config ConfigDistribution) GetNamedParametersAsMatrix(name string, t Scala
   if v, ok := config.GetNamedParametersAsFloats(name); !ok {
     return nil, false
   } else {
-    return NewMatrix(t, n, m, v), true
+    return AsDenseMatrix(t, NewDenseFloat64Matrix(v, n, m)), true
   }
 }
 

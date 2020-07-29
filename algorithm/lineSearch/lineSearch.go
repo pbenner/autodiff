@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,19 +39,17 @@ type Parameters struct {
 }
 
 type Constraints struct {
-  Value func(x Scalar) bool
+  Value func(x ConstScalar) bool
 }
 
 type Hook struct {
-  Value func(Scalar, Scalar, Scalar) bool
+  Value func(ConstScalar, ConstScalar, ConstScalar) bool
 }
 
 func newConstraints(constraints Constraints) constraints {
-  a := NewBareReal(0.0)
   r := func(alpha float64) bool {
     if constraints.Value != nil {
-      a.SetValue(alpha)
-      return constraints.Value(a)
+      return constraints.Value(ConstFloat64(alpha))
     }
     return true
   }
@@ -98,7 +96,7 @@ func zoom(f objective, alpha_lo, alpha_hi, y0, ylo, yhi, g0, glo float64, maxEva
       return 0.0, err
     }
     // execute hook if available
-    if hook.Value != nil && hook.Value(NewBareReal(alpha_j), NewBareReal(yj), NewBareReal(gj)) {
+    if hook.Value != nil && hook.Value(ConstFloat64(alpha_j), ConstFloat64(yj), ConstFloat64(gj)) {
       return alpha_j, nil
     }
 
@@ -155,7 +153,7 @@ func lineSearch(f objective,
       return 0.0, err
     }
     // execute hook if available
-    if hook.Value != nil && hook.Value(NewBareReal(alpha_j), NewBareReal(yj), NewBareReal(gj)) {
+    if hook.Value != nil && hook.Value(ConstFloat64(alpha_j), ConstFloat64(yj), ConstFloat64(gj)) {
       return alpha_j, nil
     }
 
@@ -201,13 +199,13 @@ func run(f objective, args ...interface{}) (float64, error) {
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f_ func(Scalar) (Scalar, error), t ScalarType, args ...interface{}) (Scalar, error) {
+func Run(f_ func(ConstScalar) (MagicScalar, error), t ScalarType, args ...interface{}) (Scalar, error) {
   // copy of x for computing derivatives
-  X := NewReal(0.0)
+  X := NewReal64(0.0)
   // objective function
   f := func(x float64) (float64, float64, error) {
     X.Reset()
-    X.SetValue(x)
+    X.SetFloat64(x)
     if err := Variables(1, X); err != nil {
       return 0, 0, err
     }
@@ -216,7 +214,7 @@ func Run(f_ func(Scalar) (Scalar, error), t ScalarType, args ...interface{}) (Sc
     if err != nil {
       return 0.0, 0.0, err
     } else {
-      return Y.GetValue(), Y.GetDerivative(0), nil
+      return Y.GetFloat64(), Y.GetDerivative(0), nil
     }
   }
   if alpha, err := run(f, args...); err != nil {

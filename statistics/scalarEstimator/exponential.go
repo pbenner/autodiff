@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ type ExponentialEstimator struct {
 /* -------------------------------------------------------------------------- */
 
 func NewExponentialEstimator(lambda, lambdaMax float64) (*ExponentialEstimator, error) {
-  if dist, err := scalarDistribution.NewExponentialDistribution(NewBareReal(lambda)); err != nil {
+  if dist, err := scalarDistribution.NewExponentialDistribution(NewFloat64(lambda)); err != nil {
     return nil, err
   } else {
     r := ExponentialEstimator{}
@@ -88,12 +88,12 @@ func (obj *ExponentialEstimator) Initialize(p ThreadPool) error {
 func (obj *ExponentialEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
   if gamma == nil {
-    x := math.Log(x.GetValue())
+    x := math.Log(x.GetFloat64())
     obj.sum_m[id] = LogAdd(obj.sum_m[id], x)
     obj.sum_c[id]++
   } else {
-    x := math.Log(x.GetValue())
-    g := gamma.GetValue()
+    x := math.Log(x.GetFloat64())
+    g := gamma.GetFloat64()
     obj.sum_m[id] = LogAdd(obj.sum_m[id], g + x)
     obj.sum_g[id] = LogAdd(obj.sum_g[id], g)
   }
@@ -116,8 +116,8 @@ func (obj *ExponentialEstimator) updateEstimate() error {
   //////////////////////////////////////////////////////////////////////////////
   lambda := NewScalar(obj.ScalarType(), math.Exp(sum_g - sum_m))
 
-  if lambda.GetValue() > obj.LambdaMax {
-    lambda.SetValue(obj.LambdaMax)
+  if lambda.GetFloat64() > obj.LambdaMax {
+    lambda.SetFloat64(obj.LambdaMax)
   }
   //////////////////////////////////////////////////////////////////////////////
   if t, err := scalarDistribution.NewExponentialDistribution(lambda); err != nil {

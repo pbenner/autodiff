@@ -19,7 +19,6 @@ package main
 /* -------------------------------------------------------------------------- */
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
@@ -45,15 +44,16 @@ func (l *Line) Intercept() Scalar {
   return l.intercept
 }
 
-func (l *Line) SetSlope(s Scalar) {
-  l.slope = s
+func (l *Line) SetSlope(s ConstScalar) {
+  l.slope.Set(s)
 }
 
-func (l *Line) SetIntercept(i Scalar) {
-  l.intercept = i
+func (l *Line) SetIntercept(i ConstScalar) {
+  l.intercept.Set(i)
 }
 
 func (l *Line) Eval(x Scalar) Scalar {
-
-  return Add(Mul(l.slope, x), l.intercept)
+  t := x.CloneScalar()
+  t.Add(t.Mul(l.slope, x), l.intercept)
+  return t
 }

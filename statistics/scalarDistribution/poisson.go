@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ type PoissonDistribution struct {
 
 func NewPoissonDistribution(lambda Scalar) (*PoissonDistribution, error) {
 
-  if lambda.GetValue() <= 0.0 {
+  if lambda.GetFloat64() <= 0.0 {
     return nil, fmt.Errorf("invalid parameter")
   }
 
@@ -66,17 +66,17 @@ func (dist *PoissonDistribution) ScalarType() ScalarType {
 }
 
 func (dist *PoissonDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); math.Floor(v) != v {
+  if v := x.GetFloat64(); math.Floor(v) != v {
     return fmt.Errorf("value `%f' is not an integer", v)
   }
-  if v := x.GetValue(); v < 0.0 {
-    r.SetValue(math.Inf(-1))
+  if v := x.GetFloat64(); v < 0.0 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
 
   t := dist.t
   // k! = Gamma(k+1)
-  t.Add(x, ConstReal(1.0))
+  t.Add(x, ConstFloat64(1.0))
   t.Lgamma(t)
 
   // lambda^k
@@ -102,7 +102,7 @@ func (dist *PoissonDistribution) Pdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *PoissonDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 1)
+  p := NullDenseVector(dist.ScalarType(), 1)
   p.At(0).Set(dist.Lambda)
   return p
 }

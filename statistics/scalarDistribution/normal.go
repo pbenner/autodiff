@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ type NormalDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewNormalDistribution(mu, sigma Scalar) (*NormalDistribution, error) {
-  if sigma.GetValue() <= 0.0 {
+  if sigma.GetFloat64() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
   dist := NormalDistribution{}
@@ -78,7 +78,7 @@ func (obj *NormalDistribution) LogPdf(r Scalar, x ConstScalar) error {
   t2 := obj.Mu.CloneScalar()
   t2.Sub(x , t2)
   t2.Mul(t2, t2)
-  t2.Div(t2, NewBareReal(2.0))
+  t2.Div(t2, ConstFloat64(2.0))
   t2.Div(t2, obj.Sigma)
   t2.Div(t2, obj.Sigma)
 
@@ -89,19 +89,40 @@ func (obj *NormalDistribution) LogPdf(r Scalar, x ConstScalar) error {
 
 func (dist *NormalDistribution) LogCdf(r Scalar, x ConstScalar) error {
   t := dist.Sigma.CloneScalar()
-  t.Mul(t, ConstReal(math.Sqrt(2.0)))
+  t.Mul(t, ConstFloat64(math.Sqrt(2.0)))
 
   r.Sub(x, dist.Mu)
   r.Div(r, t)
   r.Neg(r)
   r.LogErfc(r)
-  r.Sub(r, ConstReal(math.Log(2.0)))
+  r.Sub(r, ConstFloat64(math.Log(2.0)))
 
   // if computation of derivatives failed, return an approximation
   if r.GetOrder() >= 1 {
     for i := 0; i < r.GetN(); i++ {
-      if math.IsNaN(r.GetDerivative(i)) && x.GetValue() < 0.0 {
-        r.SetDerivative(i, -x.GetValue()*x.GetDerivative(i))
+      if math.IsNaN(r.GetDerivative(i)) && x.GetFloat64() < 0.0 {
+        panic("computation of derivative failed; try using MagicLogCdf()")
+      }
+    }
+  }
+  return nil
+}
+
+func (dist *NormalDistribution) MagicLogCdf(r MagicScalar, x ConstScalar) error {
+  t := dist.Sigma.CloneScalar()
+  t.Mul(t, ConstFloat64(math.Sqrt(2.0)))
+
+  r.Sub(x, dist.Mu)
+  r.Div(r, t)
+  r.Neg(r)
+  r.LogErfc(r)
+  r.Sub(r, ConstFloat64(math.Log(2.0)))
+
+  // if computation of derivatives failed, return an approximation
+  if r.GetOrder() >= 1 {
+    for i := 0; i < r.GetN(); i++ {
+      if math.IsNaN(r.GetDerivative(i)) && x.GetFloat64() < 0.0 {
+        r.SetDerivative(i, -x.GetFloat64()*x.GetDerivative(i))
       }
     }
   }
@@ -119,7 +140,7 @@ func (dist *NormalDistribution) Cdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (obj *NormalDistribution) GetParameters() Vector {
-  p := NullVector(obj.ScalarType(), 2)
+  p := NullDenseVector(obj.ScalarType(), 2)
   p.At(0).Set(obj.Mu)
   p.At(1).Set(obj.Sigma)
   return p

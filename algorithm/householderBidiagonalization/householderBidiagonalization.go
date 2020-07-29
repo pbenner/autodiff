@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ func houseCol(j int, inSitu *InSitu) (Vector, Scalar) {
 
   n, _ := A.Dims()
   for k := j; k < n; k++ {
-    x.At(k).Set(A.At(k, j))
+    x.At(k).Set(A.ConstAt(k, j))
   }
   householder.Run(x.Slice(j,n), beta, nu.Slice(j,n), t1, t2, t3)
   return nu.Slice(j,n), beta
@@ -113,7 +113,7 @@ func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Matr
     if U != nil {
       nu := inSitu.Nu
       if j > 0 {
-        nu.At(j-1).SetValue(0.0)
+        nu.At(j-1).SetFloat64(0.0)
       }
       householder.ApplyRight(U, beta, nu, t.Slice(0,m), inSitu.T1)
     }
@@ -129,7 +129,7 @@ func householderBidiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Matr
       // accumulate V
       if V != nil {
         nu := inSitu.Nu
-        nu.At(j).SetValue(0.0)
+        nu.At(j).SetFloat64(0.0)
         householder.ApplyLeft(V, beta, nu.Slice(0,n), t.Slice(0,n), inSitu.T1)
       }
     }
@@ -176,7 +176,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
   }
   if computeU {
     if inSitu.U == nil {
-      inSitu.U = NullMatrix(t, m, m)
+      inSitu.U = NullDenseMatrix(t, m, m)
     }
     inSitu.U.SetIdentity()
   } else {
@@ -184,20 +184,20 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
   }
   if computeV {
     if inSitu.V == nil {
-      inSitu.V = NullMatrix(t, n, n)
+      inSitu.V = NullDenseMatrix(t, n, n)
     }
     inSitu.V.SetIdentity()
   } else {
     inSitu.V = nil
   }
   if inSitu.X == nil {
-    inSitu.X = NullVector(t, m)
+    inSitu.X = NullDenseVector(t, m)
   }
   if inSitu.Beta == nil {
     inSitu.Beta = NullScalar(t)
   }
   if inSitu.Nu == nil {
-    inSitu.Nu = NullVector(t, m)
+    inSitu.Nu = NullDenseVector(t, m)
   }
   if inSitu.C1 == nil {
     inSitu.C1 = NewScalar(t, 1.0)
@@ -212,7 +212,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullVector(t, m)
+    inSitu.T4 = NullDenseVector(t, m)
   }
   return householderBidiagonalization(inSitu, epsilon)
 }

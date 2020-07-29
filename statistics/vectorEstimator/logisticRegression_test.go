@@ -1,4 +1,4 @@
-/* Copyright (C) 2019 Philipp Benner
+/* Copyright (C) 2019-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,17 +46,17 @@ func rprop_hook(gradient []float64, step, lambda []float64, x Vector, value Scal
 
 /* -------------------------------------------------------------------------- */
 
-func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
-  v := AsDenseRealVector(theta)
+func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) MagicScalar {
+  v := AsDenseReal64Vector(theta)
   v.Variables(1)
-  t := NewReal(0.0)
-  s := NewReal(0.0)
-  l := ConstReal(1.0/C)
+  t := NewReal64(0.0)
+  s := NewReal64(0.0)
+  l := ConstFloat64(1.0/C)
   if r, err := vectorDistribution.NewLogisticRegression(v); err != nil {
     panic(err)
   } else {
     for i, _ := range x {
-      if err := r.ClassLogPdf(t, x[i].ConstSlice(0,x[i].Dim()-1), x[i].ValueAt(x[i].Dim()-1) == 1.0); err != nil {
+      if err := r.ClassLogPdf(t, x[i].ConstSlice(0,x[i].Dim()-1), x[i].Float64At(x[i].Dim()-1) == 1.0); err != nil {
         panic(err)
       }
       s.Add(s, t)
@@ -71,18 +71,18 @@ func eval_l1_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
   return s
 }
 
-func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
+func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) MagicScalar {
   n := theta.Dim()
-  v := AsDenseRealVector(theta)
+  v := AsDenseReal64Vector(theta)
   v.Variables(1)
-  t := NewReal(0.0)
-  s := NewReal(0.0)
-  l := ConstReal(1.0/C)
+  t := NewReal64(0.0)
+  s := NewReal64(0.0)
+  l := ConstFloat64(1.0/C)
   if r, err := vectorDistribution.NewLogisticRegression(v); err != nil {
     panic(err)
   } else {
     for i, _ := range x {
-      if err := r.ClassLogPdf(t, x[i].ConstSlice(0,x[i].Dim()-1), x[i].ValueAt(x[i].Dim()-1) == 1.0); err != nil {
+      if err := r.ClassLogPdf(t, x[i].ConstSlice(0,x[i].Dim()-1), x[i].Float64At(x[i].Dim()-1) == 1.0); err != nil {
         panic(err)
       }
       s.Add(s, t)
@@ -91,7 +91,7 @@ func eval_l2_solution(x []ConstVector, theta ConstVector, C float64) Scalar {
     t.Vnorm(v[1:n])
     t.Mul(t, t)
     t.Mul(t, l)
-    t.Mul(t, ConstReal(0.5))
+    t.Mul(t, ConstFloat64(0.5))
     s.Add(s, t)
   }
   return s
@@ -111,7 +111,7 @@ func TestLogistic1(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -126,10 +126,10 @@ func TestLogistic1(test *testing.T) {
   }
   // result and target
   r := estimator.GetParameters()
-  z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
-  t := NullReal()
+  z := DenseFloat64Vector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
+  t := NullFloat64()
 
-  if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+  if t.Vnorm(r.VsubV(r, z)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
 }
@@ -146,7 +146,7 @@ func TestLogistic2(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewSparseBareRealVector([]int{0, 1, 2, 3}, []float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]}, 4)
+    x[i] = NewSparseFloat64Vector([]int{0, 1, 2, 3}, []float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]}, 4)
   }
 
   estimator, err := NewLogisticRegression(3, true)
@@ -162,10 +162,10 @@ func TestLogistic2(test *testing.T) {
   }
   // result and target
   r := estimator.GetParameters()
-  z := DenseConstRealVector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
-  t := NullReal()
+  z := DenseFloat64Vector([]float64{-2.858321e+00, 1.840900e-01, 5.067086e-01})
+  t := NullFloat64()
 
-  if t.Vnorm(r.VsubV(r, z)); t.GetValue() > 1e-4 {
+  if t.Vnorm(r.VsubV(r, z)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
 }
@@ -184,7 +184,7 @@ func TestLogistic3(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -201,20 +201,20 @@ func TestLogistic3(test *testing.T) {
   // result and target
   r_saga := estimator.GetParameters()
 
-  objective := func(r Vector) (Scalar, error) {
+  objective := func(r ConstVector) (MagicScalar, error) {
     return eval_l2_solution(x, r, C), nil
   }
-  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+  r_rprop, err := rprop.Run(objective, NewDenseFloat64Vector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
   }
-  r_sklearn := DenseConstRealVector([]float64{-2.77092384, 0.25099466, 0.40914467})
+  r_sklearn := DenseFloat64Vector([]float64{-2.77092384, 0.25099466, 0.40914467})
 
-  t := NullReal()
-  s := NullDenseBareRealVector(r_saga.Dim())
-  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+  t := NullFloat64()
+  s := NullDenseFloat64Vector(r_saga.Dim())
+  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
-  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetValue() > 1e-4 {
+  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
 }
@@ -233,7 +233,7 @@ func TestLogistic4(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -250,20 +250,20 @@ func TestLogistic4(test *testing.T) {
   // result and target
   r_saga := estimator.GetParameters()
 
-  objective := func(r Vector) (Scalar, error) {
+  objective := func(r ConstVector) (MagicScalar, error) {
     return eval_l1_solution(x, r, C), nil
   }
-  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+  r_rprop, err := rprop.Run(objective, NewDenseFloat64Vector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
   }
-  r_sklearn := DenseConstRealVector([]float64{-2.63837871, 0.16460826, 0.44788412})
+  r_sklearn := DenseFloat64Vector([]float64{-2.63837871, 0.16460826, 0.44788412})
 
-  t := NullReal()
-  s := NullDenseBareRealVector(r_saga.Dim())
-  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+  t := NullFloat64()
+  s := NullDenseFloat64Vector(r_saga.Dim())
+  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
-  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetValue() > 1e-4 {
+  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
 }
@@ -282,7 +282,7 @@ func TestLogistic5(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -299,20 +299,20 @@ func TestLogistic5(test *testing.T) {
   // result and target
   r_saga := estimator.GetParameters()
 
-  objective := func(r Vector) (Scalar, error) {
+  objective := func(r ConstVector) (MagicScalar, error) {
     return eval_l2_solution(x, r, C), nil
   }
-  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+  r_rprop, err := rprop.Run(objective, NewDenseFloat64Vector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
   }
-  r_sklearn := DenseConstRealVector([]float64{-2.81978662, 0.22409962, 0.45325202})
+  r_sklearn := DenseFloat64Vector([]float64{-2.81978662, 0.22409962, 0.45325202})
 
-  t := NullReal()
-  s := NullDenseBareRealVector(r_saga.Dim())
-  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+  t := NullFloat64()
+  s := NullDenseFloat64Vector(r_saga.Dim())
+  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
-  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetValue() > 1e-4 {
+  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
 }
@@ -331,7 +331,7 @@ func TestLogistic6(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, false)
@@ -348,20 +348,20 @@ func TestLogistic6(test *testing.T) {
   // result and target
   r_saga := estimator.GetParameters()
 
-  objective := func(r Vector) (Scalar, error) {
+  objective := func(r ConstVector) (MagicScalar, error) {
     return eval_l1_solution(x, r, C), nil
   }
-  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+  r_rprop, err := rprop.Run(objective, NewDenseFloat64Vector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
   }
-  r_sklearn := DenseConstRealVector([]float64{-2.76467776, 0.17584927, 0.48174453})
+  r_sklearn := DenseFloat64Vector([]float64{-2.76467776, 0.17584927, 0.48174453})
 
-  t := NullReal()
-  s := NullDenseBareRealVector(r_saga.Dim())
-  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+  t := NullFloat64()
+  s := NullDenseFloat64Vector(r_saga.Dim())
+  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
-  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetValue() > 1e-4 {
+  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
 }
@@ -380,7 +380,7 @@ func TestLogistic7(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   estimator, err := NewLogisticRegression(3, true)
@@ -398,20 +398,20 @@ func TestLogistic7(test *testing.T) {
   // result and target
   r_saga := estimator.GetParameters()
 
-  objective := func(r Vector) (Scalar, error) {
+  objective := func(r ConstVector) (MagicScalar, error) {
     return eval_l1_solution(x, r, C), nil
   }
-  r_rprop, err := rprop.Run(objective, NewDenseRealVector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
+  r_rprop, err := rprop.Run(objective, NewDenseFloat64Vector([]float64{1, 1, 1}), 0.01, []float64{2, 0.1}, rprop.Epsilon{1e-12}); if err != nil {
     panic(err)
   }
-  r_sklearn := DenseConstRealVector([]float64{-2.63837871, 0.16460826, 0.44788412})
+  r_sklearn := DenseFloat64Vector([]float64{-2.63837871, 0.16460826, 0.44788412})
 
-  t := NullReal()
-  s := NullDenseBareRealVector(r_saga.Dim())
-  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetValue() > 1e-4 {
+  t := NullFloat64()
+  s := NullDenseFloat64Vector(r_saga.Dim())
+  if t.Vnorm(s.VsubV(r_saga, r_rprop)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
-  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetValue() > 1e-4 {
+  if t.Vnorm(s.VsubV(r_saga, r_sklearn)); t.GetFloat64() > 1e-4 {
     test.Error("test failed")
   }
 }
@@ -430,12 +430,12 @@ func TestLogistic8(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   trace1 := []ConstVector{}
   // result from sklearn
-  trace2 := NewDenseBareRealMatrix(10, 3, []float64{
+  trace2 := NewDenseFloat64Matrix([]float64{
     -7.656644e-02, 8.506265e-02, 9.060131e-02,
     -1.423653e-01, 5.056287e-02, 5.386971e-02,
     -1.951594e-01, 5.957177e-02, 6.109813e-02,
@@ -445,10 +445,10 @@ func TestLogistic8(test *testing.T) {
     -4.222260e-01, 5.004562e-02, 5.936789e-02,
     -4.686855e-01, 5.620630e-02, 6.600405e-02,
     -5.135289e-01, 5.841420e-02, 6.871803e-02,
-    -5.571380e-01, 6.193702e-02, 7.279218e-02 })
+    -5.571380e-01, 6.193702e-02, 7.279218e-02 }, 10, 3)
   hook_record := func(x ConstVector, step, lambda ConstScalar, i int) bool {
     // clone vector!
-    trace1 = append(trace1, AsDenseBareRealVector(x))
+    trace1 = append(trace1, AsDenseFloat64Vector(x))
     return false
   }
   estimator, err := NewLogisticRegression(3, true)
@@ -468,10 +468,10 @@ func TestLogistic8(test *testing.T) {
   if nr, _ := trace2.Dims(); len(trace1) == 0 || len(trace1) != nr {
     test.Error("test failed")
   } else {
-    t1 := NullReal()
-    t2 := NullDenseBareRealVector(3)
+    t1 := NullFloat64()
+    t2 := NullDenseFloat64Vector(3)
     for i := 0; i < len(trace1); i++ {
-      if t1.Vnorm(t2.VsubV(trace1[i], trace2.Row(i))); t1.GetValue() > 1e-4 {
+      if t1.Vnorm(t2.VsubV(trace1[i], trace2.Row(i))); t1.GetFloat64() > 1e-4 {
         test.Error("test failed")
       }
     }
@@ -492,12 +492,12 @@ func TestLogistic9(test *testing.T) {
   // x
   x := make([]ConstVector, len(cellSize))
   for i := 0; i < len(cellSize); i++ {
-    x[i] = NewDenseBareRealVector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
+    x[i] = NewDenseFloat64Vector([]float64{1.0, cellSize[i]-1.0, cellShape[i]-1.0, class[i]})
   }
 
   trace1 := []ConstVector{}
   // result from sklearn
-  trace2 := NewDenseBareRealMatrix(100, 3, []float64{
+  trace2 := NewDenseFloat64Matrix([]float64{
     -1.098232e-01, 1.085653e-01, 8.986232e-02,
     -1.867656e-01, 9.044017e-02, 8.480379e-02,
     -2.662775e-01, 5.905653e-02, 5.416249e-02,
@@ -597,10 +597,10 @@ func TestLogistic9(test *testing.T) {
     -1.839572e+00, 1.326031e-01, 2.274872e-01,
     -1.843573e+00, 1.323689e-01, 2.281278e-01,
     -1.847517e+00, 1.323090e-01, 2.289377e-01,
-    -1.851317e+00, 1.322393e-01, 2.297577e-01 })
+    -1.851317e+00, 1.322393e-01, 2.297577e-01 }, 100, 3)
   hook_record := func(x ConstVector, step, lambda ConstScalar, i int) bool {
     // clone vector!
-    trace1 = append(trace1, AsDenseBareRealVector(x))
+    trace1 = append(trace1, AsDenseFloat64Vector(x))
     return false
   }
   estimator, err := NewLogisticRegression(3, true)
@@ -620,10 +620,10 @@ func TestLogistic9(test *testing.T) {
   if nr, _ := trace2.Dims(); len(trace1) == 0 || len(trace1) != nr {
     test.Error("test failed")
   } else {
-    t1 := NullReal()
-    t2 := NullDenseBareRealVector(3)
+    t1 := NullFloat64()
+    t2 := NullDenseFloat64Vector(3)
     for i := 0; i < len(trace1); i++ {
-      if t1.Vnorm(t2.VsubV(trace1[i], trace2.Row(i))); t1.GetValue() > 1e-4 {
+      if t1.Vnorm(t2.VsubV(trace1[i], trace2.Row(i))); t1.GetFloat64() > 1e-4 {
         test.Error("test failed")
       }
     }

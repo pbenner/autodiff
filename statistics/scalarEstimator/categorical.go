@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ type CategoricalEstimator struct {
 /* -------------------------------------------------------------------------- */
 
 func NewCategoricalEstimator(theta []float64) (*CategoricalEstimator, error) {
-  t := NewVector(BareRealType, theta)
+  t := NewDenseFloat64Vector(theta)
   if dist, err := scalarDistribution.NewCategoricalDistribution(t); err != nil {
     return nil, err
   } else {
@@ -87,11 +87,11 @@ func (obj *CategoricalEstimator) Initialize(p ThreadPool) error {
 
 func (obj *CategoricalEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   id := p.GetThreadId()
-  i  := int(x.GetValue())
+  i  := int(x.GetFloat64())
   if gamma == nil {
     obj.sum_c[id][i]++
   } else {
-    obj.sum_t[id][i] = LogAdd(obj.sum_t[id][i], gamma.GetValue())
+    obj.sum_t[id][i] = LogAdd(obj.sum_t[id][i], gamma.GetFloat64())
   }
   return nil
 }
@@ -122,7 +122,7 @@ func (obj *CategoricalEstimator) updateEstimate() error {
   for j := 0; j < len(sum_t); j++ {
     sum_t[j] = math.Exp(sum_t[j] - sum)
   }
-  theta := NewVector(obj.ScalarType(), sum_t)
+  theta := NewDenseFloat64Vector(sum_t)
 
   if t, err := scalarDistribution.NewCategoricalDistribution(theta); err != nil {
     return err

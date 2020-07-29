@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,30 +23,32 @@ package householderTridiagonalization
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func Test1(t *testing.T) {
-  a := NewMatrix(RealType, 4, 4, []float64{
+func Test1(test *testing.T) {
+  a := NewDenseFloat64Matrix([]float64{
     4,  2,  2, 1,
     2, -3,  1, 1,
     2,  1,  3, 1,
-    1,  1,  1, 2 })
+    1,  1,  1, 2 }, 4, 4)
 
   b, u, _ := Run(a, ComputeU{true})
 
-  r1 := NewMatrix(RealType, 4, 4, []float64{
+  t  := NewFloat64(0.0)
+  r1 := NewDenseFloat64Matrix([]float64{
     4.000000e+00, 3.000000e+00,  0.000000e+00, 0.000000e+00,
     3.000000e+00, 2.000000e+00,  3.162278e+00, 0.000000e+00,
     0.000000e+00, 3.162278e+00, -1.400000e+00, 2.000000e-01,
-    0.000000e+00, 0.000000e+00,  2.000000e-01, 1.400000e+00})
-  r2 := MdotM(u.T(),MdotM(a,u))
+    0.000000e+00, 0.000000e+00,  2.000000e-01, 1.400000e+00}, 4, 4)
+  r2 := NullDenseFloat64Matrix(4, 4)
+  r2.MdotM(a,u)
+  r2.MdotM(u.T(), r2)
 
-  if Mnorm(MsubM(r1, b)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(r1.MsubM(r1, b)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
-  if Mnorm(MsubM(r2, b)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Mnorm(r2.MsubM(r2, b)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
 }

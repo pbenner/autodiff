@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,19 +46,30 @@ type InSitu struct {
  * -------------------------------------------------------------------------- */
 
 type sortEigenvaluesType struct {
-  Vector
+  v Vector
+  p []int
 }
 
-func (v sortEigenvaluesType) Len() int {
-  return v.Dim()
+func (obj sortEigenvaluesType) Len() int {
+  return obj.v.Dim()
 }
 
-func (v sortEigenvaluesType) Less(i, j int) bool {
-  return math.Abs(v.At(i).GetValue()) < math.Abs(v.At(j).GetValue())
+func (obj sortEigenvaluesType) Less(i, j int) bool {
+  return math.Abs(obj.v.ConstAt(i).GetFloat64()) < math.Abs(obj.v.ConstAt(j).GetFloat64())
 }
 
-func sortEigenvalues(v Vector) {
-  sort.Sort(sort.Reverse(sortEigenvaluesType{v}))
+func (obj sortEigenvaluesType) Swap(i, j int) {
+  obj.v.Swap(i, j)
+  obj.p[i], obj.p[j] = obj.p[j], obj.p[i]
+}
+
+func sortEigenvalues(v Vector) []int {
+  p := make([]int, v.Dim())
+  for i := 0; i < len(p); i++ {
+    p[i] = i
+  }
+  sort.Sort(sort.Reverse(sortEigenvaluesType{v, p}))
+  return p
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,26 +77,26 @@ func sortEigenvalues(v Vector) {
 func getEigenvalues(eigenvalues Vector, h Matrix) {
   n, _ := h.Dims()
   for i := 0; i < n-1; i++ {
-    if h.At(i+1,i).GetValue() == 0.0 {
+    if h.At(i+1,i).GetFloat64() == 0.0 {
       // real eigenvalue
       eigenvalues.At(i).Set(h.At(i,i))
     } else {
-      c2 := BareReal(2.0)
+      c2 := ConstFloat64(2.0)
       // complex eigenvalues, drop complex part
       h11 := h.At(i+0,i+0)
       h22 := h.At(i+1,i+1)
       eigenvalues.At(i+0).Add(h11, h22)
-      eigenvalues.At(i+0).Div(eigenvalues.At(i+0), &c2)
-      eigenvalues.At(i+1).Set(eigenvalues.At(i+0))
+      eigenvalues.At(i+0).Div(eigenvalues.ConstAt(i+0), &c2)
+      eigenvalues.At(i+1).Set(eigenvalues.ConstAt(i+0))
       i++
     }
   }
-  if h.At(n-1,n-2).GetValue() == 0.0 {
-    eigenvalues.At(n-1).Set(h.At(n-1, n-1))
+  if h.At(n-1,n-2).GetFloat64() == 0.0 {
+    eigenvalues.At(n-1).Set(h.ConstAt(n-1, n-1))
   }
 }
 
-func getEigenvector(eigenvector Vector, eigenvalue Scalar, h, u Matrix, b Vector, k int) {
+func getEigenvector(eigenvector Vector, eigenvalue ConstScalar, h, u Matrix, b Vector, k int) Vector {
   inSitu := backSubstitution.InSitu{}
   // substract eigenvalue from diagonal
   for i := 0; i < k; i++ {
@@ -100,15 +111,16 @@ func getEigenvector(eigenvector Vector, eigenvalue Scalar, h, u Matrix, b Vector
     inSitu.X = eigenvector.Slice(0,k)
     backSubstitution.Run(h.Slice(0,k,0,k), b.Slice(0,k), &inSitu)
   }
-  eigenvector.At(k).SetValue(1.0)
+  eigenvector.At(k).SetFloat64(1.0)
   // add eigenvalue to diagonal
   for i := 0; i < k; i++ {
-    h.At(i,i).Add(h.At(i,i), eigenvalue)
+    h.At(i,i).Add(h.ConstAt(i,i), eigenvalue)
   }
   b.Set(eigenvector)
   eigenvector.MdotV(u, b)
   b.At(0).Vnorm(eigenvector)
-  eigenvector.VdivS(eigenvector, b.At(0))
+  eigenvector.VdivS(eigenvector, b.ConstAt(0))
+  return eigenvector
 }
 
 func getEigenvectors(eigenvectors Matrix, eigenvalues Vector, h, u Matrix, b Vector) {
@@ -117,8 +129,11 @@ func getEigenvectors(eigenvectors Matrix, eigenvalues Vector, h, u Matrix, b Vec
   }
   n := eigenvalues.Dim()
 
-  for i := 0; i < n; i++ {
-    getEigenvector(eigenvectors.Col(i), eigenvalues.At(i), h, u, b, i)
+  for j := 0; j < n; j++ {
+    r := getEigenvector(eigenvectors.Col(j), eigenvalues.At(j), h, u, b, j)
+    for i := 0; i < n; i++ {
+      eigenvectors.At(i, j).Set(r.ConstAt(i))
+    }
   }
 }
 
@@ -126,17 +141,7 @@ func sortEigensystem(eigenvectors Matrix, eigenvalues Vector) {
   if eigenvectors == nil {
     sortEigenvalues(eigenvalues)
   } else {
-    m := make(map[Scalar]int)
-    // permutation
-    p := make([]int, eigenvalues.Dim())
-    for i := 0; i < eigenvalues.Dim(); i++ {
-      m[eigenvalues.At(i)] = i
-    }
-    sortEigenvalues(eigenvalues)
-
-    for i := 0; i < eigenvalues.Dim(); i++ {
-      p[i] = m[eigenvalues.At(i)]
-    }
+    p := sortEigenvalues(eigenvalues)
     eigenvectors.PermuteColumns(p)
   }
 }
@@ -159,7 +164,7 @@ func eigensystem(a Matrix, inSitu *InSitu, computeEigenvectors, symmetric bool, 
     // eigenvalues are real, copy them from the
     // main diagonal of h
     for i := 0; i < n; i++ {
-      eigenvalues.At(i).Set(h.At(i,i))
+      eigenvalues.At(i).Set(h.ConstAt(i,i))
     }
     // no need to copy eigenvectors in this case
 
@@ -199,10 +204,10 @@ func Run(a Matrix, args_ ...interface{}) (Vector, Matrix, error) {
     }
   }
   if inSitu.Eigenvalues == nil {
-    inSitu.Eigenvalues = NullVector(t, n)
+    inSitu.Eigenvalues = NullDenseVector(t, n)
   }
   if inSitu.Eigenvectors == nil && computeEigenvectors {
-    inSitu.Eigenvectors = NullMatrix(t, n, n)
+    inSitu.Eigenvectors = NullDenseMatrix(t, n, n)
     if symmetric {
       inSitu.QrAlgorithm.U = inSitu.Eigenvectors
     }

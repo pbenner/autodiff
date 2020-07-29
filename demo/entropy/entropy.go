@@ -35,45 +35,47 @@ import   "errors"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/newton"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
-import . "github.com/pbenner/autodiff/simple"
 
 /* gradient based optimization
  * -------------------------------------------------------------------------- */
 
-func hook_g(gradient, step []float64, px ConstVector, s Scalar) bool {
+func hook_g(gradient, step []float64, px ConstVector, s ConstScalar) bool {
   fmt.Println("px: ", px)
   return false
 }
 
-func hook_f(px Vector, gradient Matrix, s Vector) bool {
+func hook_f(px ConstVector, gradient ConstMatrix, s ConstVector) bool {
   fmt.Println("px: ", px)
   return false
 }
 
 /* Gradient of L(p) */
-func objective_f(px Vector) (Vector, error) {
+func objective_f(px ConstVector) (MagicVector, error) {
   n := px.Dim() - 1
+  t := NullReal64()
   if px.Dim() != n+1 {
     return nil, errors.New("Input vector has invalid dimension!")
   }
-  gradient := NullVector(RealType, n+1)
+  gradient := NullDenseReal64Vector(n+1)
   // derivative with respect to px[i]
   for i := 0; i < n; i++ {
-    gradient.At(i).Sub(NewReal(-1), Log(px.At(i)))
-    gradient.At(i).Sub(gradient.At(i), px.At(n))
+    gradient.At(i).Sub(ConstFloat64(-1), t.Log(px.ConstAt(i)))
+    gradient.At(i).Sub(gradient.ConstAt(i), px.ConstAt(n))
   }
   // derivative with respect to lambda
-  gradient.At(n).SetValue(-1.0)
+  gradient.At(n).SetFloat64(-1.0)
   for i := 0; i < n; i++ {
-    gradient.At(n).Add(gradient.At(n), px.At(i))
+    gradient.At(n).Add(gradient.ConstAt(n), px.ConstAt(i))
   }
   return gradient, nil
 }
 
 /* Norm of the gradient of L(p) */
-func objective_g(px Vector) (Scalar, error) {
+func objective_g(px ConstVector) (MagicScalar, error) {
   x, err := objective_f(px)
-  return Pow(Vnorm(x), NewBareReal(2.0)), err
+  t      := NullReal64()
+  t.Pow(t.Vnorm(x), ConstFloat64(2.0))
+  return t, err
 }
 
 func main() {
@@ -85,7 +87,7 @@ func main() {
   // initial value for px
   px0v := []float64{0.5, 0.2, 0.3}
   // append initial value for lambda
-  px0m := NewVector(RealType, append(px0v, 1))
+  px0m := NewDenseReal64Vector(append(px0v, 1))
 
   fmt.Println("Rprop optimization:")
   pxn1, err1 := rprop.Run (objective_g, px0m, step, []float64{1.2, 0.8},

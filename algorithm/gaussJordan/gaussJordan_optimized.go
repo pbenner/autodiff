@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func gaussJordan_DenseBareReal(a, x *DenseBareRealMatrix, b DenseBareRealVector, submatrix []bool) error {
-  t := NewBareReal(0.0)
-  c := NewBareReal(0.0)
+func gaussJordan_DenseFloat64(a, x *DenseFloat64Matrix, b DenseFloat64Vector, submatrix []bool) error {
+  t := NewFloat64(0.0)
+  c := NewFloat64(0.0)
   // number of rows
   n, _ := a.Dims()
   // permutation of the rows
@@ -54,7 +54,7 @@ func gaussJordan_DenseBareReal(a, x *DenseBareRealMatrix, b DenseBareRealVector,
       if !submatrix[j] {
         continue
       }
-      if math.Abs(a.AT(p[j], i).GetValue()) > math.Abs(a.AT(p[maxrow], i).GetValue()) {
+      if math.Abs(a.AT(p[j], i).GetFloat64()) > math.Abs(a.AT(p[maxrow], i).GetFloat64()) {
         maxrow = j
       }
     }
@@ -104,7 +104,7 @@ func gaussJordan_DenseBareReal(a, x *DenseBareRealMatrix, b DenseBareRealVector,
       t.MUL(a.AT(p[j], i), b.AT(p[i]))
       t.DIV(t, c)
       b.AT(p[j]).SUB(b.AT(p[j]), t)
-      if math.IsNaN(b.AT(p[j]).GetValue()) {
+      if math.IsNaN(b.AT(p[j]).GetFloat64()) {
         goto singular
       }
       // loop over colums in x
@@ -116,7 +116,7 @@ func gaussJordan_DenseBareReal(a, x *DenseBareRealMatrix, b DenseBareRealVector,
         t.MUL(a.AT(p[j], i), x.AT(p[i], k))
         t.DIV(t, c)
         x.AT(p[j], k).SUB(x.AT(p[j], k), t)
-        if math.IsNaN(x.AT(p[j], k).GetValue()) {
+        if math.IsNaN(x.AT(p[j], k).GetFloat64()) {
           goto singular
         }
       }
@@ -129,13 +129,13 @@ func gaussJordan_DenseBareReal(a, x *DenseBareRealMatrix, b DenseBareRealVector,
         t.MUL(a.AT(p[j], i), a.AT(p[i], k))
         t.DIV(t, c)
         a.AT(p[j], k).SUB(a.AT(p[j], k), t)
-        if math.IsNaN(a.AT(p[j], k).GetValue()) {
+        if math.IsNaN(a.AT(p[j], k).GetFloat64()) {
           goto singular
         }
       }
     }
     a.AT(p[i], i).DIV(a.AT(p[i], i), c)
-    if math.IsNaN(a.AT(p[i], i).GetValue()) {
+    if math.IsNaN(a.AT(p[i], i).GetFloat64()) {
       goto singular
     }
     // normalize ith row in x
@@ -162,9 +162,9 @@ singular:
   return errors.New("system is computationally singular")
 }
 
-func gaussJordanUpperTriangular_DenseBareReal(a, x *DenseBareRealMatrix, b DenseBareRealVector, submatrix []bool) error {
-  t := NewBareReal(0.0)
-  c := NewBareReal(0.0)
+func gaussJordanUpperTriangular_DenseFloat64(a, x *DenseFloat64Matrix, b DenseFloat64Vector, submatrix []bool) error {
+  t := NewFloat64(0.0)
+  c := NewFloat64(0.0)
   // number of rows
   n, _ := a.Dims()
   // x and b should have the same number of rows
@@ -188,7 +188,7 @@ func gaussJordanUpperTriangular_DenseBareReal(a, x *DenseBareRealMatrix, b Dense
       t.MUL(a.AT(j, i), b.AT(i))
       t.DIV(t, c)
       b.AT(j).SUB(b.AT(j), t)
-      if math.IsNaN(b.AT(j).GetValue()) {
+      if math.IsNaN(b.AT(j).GetFloat64()) {
         goto singular
       }
       // loop over colums in x
@@ -200,7 +200,7 @@ func gaussJordanUpperTriangular_DenseBareReal(a, x *DenseBareRealMatrix, b Dense
         t.MUL(a.AT(j, i), x.AT(i, k))
         t.DIV(t, c)
         x.AT(j, k).SUB(x.AT(j, k), t)
-        if math.IsNaN(x.AT(j, k).GetValue()) {
+        if math.IsNaN(x.AT(j, k).GetFloat64()) {
           goto singular
         }
       }
@@ -213,13 +213,13 @@ func gaussJordanUpperTriangular_DenseBareReal(a, x *DenseBareRealMatrix, b Dense
         t.MUL(a.AT(j, i), a.AT(i, k))
         t.DIV(t, c)
         a.AT(j, k).SUB(a.AT(j, k),t)
-        if math.IsNaN(a.AT(j, k).GetValue()) {
+        if math.IsNaN(a.AT(j, k).GetFloat64()) {
           goto singular
         }
       }
     }
     a.AT(i, i).DIV(a.AT(i, i), c)
-    if math.IsNaN(a.AT(i, i).GetValue()) {
+    if math.IsNaN(a.AT(i, i).GetFloat64()) {
       goto singular
     }
     // normalize ith row in x

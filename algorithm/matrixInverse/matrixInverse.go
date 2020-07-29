@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,8 +51,9 @@ func mInverseGradient(matrix ConstMatrix) (Matrix, error) {
   if rows != cols {
     panic("MInverse(): Not a square matrix!")
   }
-  I := IdentityMatrix(matrix.ElementType(), rows)
-  r := NullMatrix(BareRealType, rows, cols)
+  I := NullDenseReal64Matrix(rows, rows)
+  I.SetIdentity()
+  r := NullDenseReal64Matrix(rows, cols)
   r.Set(matrix)
   s := NewScalar(matrix.ElementType(), 0.0)
   // objective function
@@ -74,7 +75,7 @@ func mInverse(matrix ConstMatrix, inSitu *InSitu, args ...interface{}) (Matrix, 
   a.Set(matrix)
   // initialize b with ones
   for i := 0; i < b.Dim(); i++ {
-    b.At(i).SetValue(1.0)
+    b.At(i).SetFloat64(1.0)
   }
   // call Gauss-Jordan algorithm
   if err := gaussJordan.Run(a, x, b, args...); err != nil {
@@ -94,7 +95,7 @@ func mInversePositiveDefinite(matrix ConstMatrix, inSitu *InSitu, args ...interf
   b := inSitu.B
   // initialize b with ones
   for i := 0; i < b.Dim(); i++ {
-    b.At(i).SetValue(1.0)
+    b.At(i).SetFloat64(1.0)
   }
   args = append(args, gaussJordan.UpperTriangular{true})
   // call Gauss-Jordan algorithm
@@ -114,7 +115,7 @@ func mInverseUpperTriangular(matrix ConstMatrix, inSitu *InSitu, args ...interfa
   a.Set(matrix)
   // initialize b with ones
   for i := 0; i < b.Dim(); i++ {
-    b.At(i).SetValue(1.0)
+    b.At(i).SetFloat64(1.0)
   }
   args = append(args, gaussJordan.UpperTriangular{true})
   // call Gauss-Jordan algorithm
@@ -159,23 +160,24 @@ func Run(matrix ConstMatrix, args ...interface{}) (Matrix, error) {
     }
   }
   if inSitu.Id == nil {
-    inSitu.Id = IdentityMatrix(matrix.ElementType(), rows)
+    inSitu.Id = NullDenseMatrix(matrix.ElementType(), rows, rows)
+    inSitu.Id.SetIdentity()
   } else {
     for i := 0; i < rows; i++ {
       for j := 0; j < cols; j++ {
         if i == j {
-          inSitu.Id.At(i, j).SetValue(1.0)
+          inSitu.Id.At(i, j).SetFloat64(1.0)
         } else {
-          inSitu.Id.At(i, j).SetValue(0.0)
+          inSitu.Id.At(i, j).SetFloat64(0.0)
         }
       }
     }
   }
   if inSitu.A == nil && positiveDefinite == false {
-    inSitu.A = NullMatrix(matrix.ElementType(), rows, rows)
+    inSitu.A = NullDenseMatrix(matrix.ElementType(), rows, rows)
   }
   if inSitu.B == nil {
-    inSitu.B = NullVector(matrix.ElementType(), rows)
+    inSitu.B = NullDenseVector(matrix.ElementType(), rows)
   }
   if positiveDefinite {
     return mInversePositiveDefinite(matrix, inSitu, gArgs...)

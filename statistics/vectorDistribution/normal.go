@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,16 +61,16 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
   sigmaDet, err := determinant  .Run(sigma, determinant  .PositiveDefinite{true})
   if err != nil { return nil, err }
 
-  if sigmaDet.GetValue() == 0.0 {
+  if sigmaDet.GetFloat64() == 0.0 {
     return nil, fmt.Errorf("NewNormalDistribution(): covariance matrix is singular")
   }
 
   t1 := NewScalar(t, 0.0)
 
   // -1/2 [ p log(2pi) + log|Sigma| ]
-  c := ConstReal(float64(n)*math.Log(2*math.Pi))
+  c := ConstFloat64(float64(n)*math.Log(2*math.Pi))
   h := NewScalar(t, 0.0)
-  h.Mul(ConstReal(-0.5), t1.Add(c, t1.Log(t1.Abs(sigmaDet))))
+  h.Mul(ConstFloat64(-0.5), t1.Add(c, t1.Log(t1.Abs(sigmaDet))))
 
   result := NormalDistribution{
     Mu      : mu,
@@ -78,10 +78,9 @@ func NewNormalDistribution(mu Vector, sigma Matrix) (*NormalDistribution, error)
     SigmaInv: sigmaInv,
     SigmaDet: sigmaDet,
     logH    : h,
-    cl      : ConstReal(math.Log(2.0)),
-    t1      : NullVector(t, n),
-    t2      : NullVector(t, n),
-    t3      : NullVector(t, 1) }
+    t1      : NullDenseVector(t, n),
+    t2      : NullDenseVector(t, n),
+    t3      : NullDenseVector(t, 1) }
 
   return &result, nil
 
@@ -96,7 +95,6 @@ func (dist *NormalDistribution) Clone() *NormalDistribution {
     SigmaInv: dist.SigmaInv.CloneMatrix(),
     SigmaDet: dist.SigmaDet.CloneScalar(),
     logH    : dist.logH    .CloneScalar(),
-    cl      : dist.cl,
     t1      : dist.t1      .CloneVector(),
     t2      : dist.t2      .CloneVector(),
     t3      : dist.t3      .CloneVector() }
@@ -140,7 +138,7 @@ func (dist *NormalDistribution) LogPdf(r Scalar, x ConstVector) error {
   y.VsubV(x, dist.Mu)
   s.VdotM(y, dist.SigmaInv)
   r.VdotV(s, y)
-  r.Div(r, ConstReal(2.0))
+  r.Div(r, ConstFloat64(2.0))
   r.Sub(h, r)
 
   return nil
@@ -217,8 +215,8 @@ func (obj *NormalDistribution) ExportConfig() ConfigDistribution {
     Mu    []float64
     Sigma []float64
     N       int }{}
-  config.Mu    = obj.Mu   .GetValues()
-  config.Sigma = obj.Sigma.GetValues()
+  config.Mu    = AsDenseFloat64Vector(obj.Mu)
+  config.Sigma = AsDenseFloat64Vector(obj.Sigma.AsVector())
   config.N     = n
 
   return NewConfigDistribution("vector:normal distribtion", config)

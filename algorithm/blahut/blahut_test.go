@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,14 +27,14 @@ import . "github.com/pbenner/autodiff"
 
 func TestBlahut(t *testing.T) {
 
-  channel := NewMatrix(RealType, 3, 3,
+  channel := NewDenseFloat64Matrix(
     flatten([][]float64{
       {0.60, 0.30, 0.10},
       {0.70, 0.10, 0.20},
-      {0.50, 0.05, 0.45}}))
+      {0.50, 0.05, 0.45}}), 3, 3)
 
   // initial value
-  px0 := NewVector(RealType,
+  px0 := NewDenseFloat64Vector(
     []float64{1.0/3.0, 1.0/3.0, 1.0/3.0})
   // fixed point
   pxstar := []float64{0.501735, 0.0, 0.498265}
@@ -42,7 +42,7 @@ func TestBlahut(t *testing.T) {
   pxn := Run(channel, px0, 1000)
 
   for i := 0; i < px0.Dim(); i++ {
-    if math.Abs(pxn.At(i).GetValue() - pxstar[i]) > 1e-5 {
+    if math.Abs(pxn.At(i).GetFloat64() - pxstar[i]) > 1e-5 {
       t.Error("Blahut test failed!")
     }
   }

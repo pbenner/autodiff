@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,33 +23,38 @@ import   "math"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func TestLineSearch(t *testing.T) {
+func TestLineSearch(test *testing.T) {
 
-  f := func(x Scalar) Scalar {
-    a := Sub(x, NewReal(3.0))
-    b := Pow(x, NewReal(3.0))
-    c := Pow(Sub(x, NewReal(6.0)), NewReal(4.0))
-    return Mul(Mul(a, b), c)
+  f := func(x ConstScalar) MagicScalar {
+    a := NullReal64()
+    b := NullReal64()
+    c := NullReal64()
+    t := NullReal64()
+    a.Sub(x, ConstFloat64(3.0))
+    b.Pow(x, ConstFloat64(3.0))
+    c.Pow(t.Sub(x, ConstFloat64(6.0)), ConstFloat64(4.0))
+    t.Mul(t.Mul(a, b), c)
+    return t
   }
-  g := func(alpha Scalar) (Scalar, error) {
-    return f(Add(NewReal(1.7), alpha)), nil
+  g := func(alpha ConstScalar) (MagicScalar, error) {
+    t := NullReal64()
+    return f(t.Add(ConstFloat64(1.7), alpha)), nil
   }
   // hook := func(x, y, g Scalar) bool {
   //   fmt.Println("x:", x)
   //   fmt.Println("y:", y)
   //   return false
   // }
-  x, err := Run(g, RealType)
+  x, err := Run(g, Float64Type)
 
   if err != nil {
-    t.Error(err)
+    test.Error(err)
   } else {
-    if math.Abs(x.GetValue() - 4.381409e-02) > 1e-6 {
-      t.Error("TestLineSearch failed")
+    if math.Abs(x.GetFloat64() - 4.381409e-02) > 1e-6 {
+      test.Error("TestLineSearch failed")
     }
   }
 }

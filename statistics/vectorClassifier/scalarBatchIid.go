@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ func (obj ScalarBatchIid) Eval(r Scalar, x ConstVector) error {
     return obj.Classifier.Eval(r, x.ConstAt(0))
   } else {
     t := r.CloneScalar()
-    r.SetValue(math.Inf(-1))
+    r.SetFloat64(math.Inf(-1))
     for i := 0; i < x.Dim(); i++ {
       if err := obj.Classifier.Eval(t, x.ConstAt(i)); err != nil {
         return err

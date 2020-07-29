@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,23 +23,23 @@ package backSubstitution
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func Test1(t *testing.T) {
-  a := NewMatrix(RealType, 3, 3, []float64{
+func Test1(test *testing.T) {
+  a := NewDenseFloat64Matrix([]float64{
     1, -2,  1,
     0,  1,  6,
-    0,  0,  1 })
-  b := NewVector(RealType, []float64{
+    0,  0,  1 }, 3, 3)
+  b := NewDenseFloat64Vector([]float64{
     4, -1, 2 })
-  r := NewVector(RealType, []float64{
+  r := NewDenseFloat64Vector([]float64{
     -24, -13, 2 })
+  t := NewFloat64(0.0)
 
   x, _ := Run(a, b)
 
-  if Vnorm(VsubV(r, x)).GetValue() > 1e-8 {
-    t.Error("test failed")
+  if t.Vnorm(r.VsubV(r, x)).GetFloat64() > 1e-8 {
+    test.Error("test failed")
   }
 }

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,69 +28,69 @@ import . "github.com/pbenner/autodiff"
 
 func TestGevDistribution1(t *testing.T) {
 
-  mu    := NewReal(1.0)
-  sigma := NewReal(1.0)
-  xi    := NewReal(0.0)
+  mu    := NewFloat64(1.0)
+  sigma := NewFloat64(1.0)
+  xi    := NewFloat64(0.0)
 
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewReal(100)
-  y := NewReal(0.0)
-  z := NewReal(0.0)
+  x := NewFloat64(100)
+  y := NewFloat64(0.0)
+  z := NewFloat64(0.0)
 
   gev.LogPdf(y, x)
   gev.Cdf(z, x)
 
-  if math.Abs(y.GetValue() - -99.0) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -99.0) > 1e-4 {
     t.Error("Gev LogPdf failed!")
   }
-  if math.Abs(z.GetValue() - 1.0) > 1e-4 {
+  if math.Abs(z.GetFloat64() - 1.0) > 1e-4 {
     t.Error("Gev LogPdf failed!")
   }
 }
 
 func TestGevDistribution2(t *testing.T) {
 
-  mu    := NewReal(1.0)
-  sigma := NewReal(1.0)
-  xi    := NewReal(0.0)
+  mu    := NewFloat64(1.0)
+  sigma := NewFloat64(1.0)
+  xi    := NewFloat64(0.0)
 
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewReal(10)
-  y := NewReal(0.0)
-  z := NewReal(0.0)
+  x := NewFloat64(10)
+  y := NewFloat64(0.0)
+  z := NewFloat64(0.0)
 
   gev.LogPdf(y, x)
   gev.Cdf(z, x)
 
-  if math.Abs(y.GetValue() - -9.000123) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -9.000123) > 1e-4 {
     t.Error("Gev LogPdf failed!")
   }
-  if math.Abs(z.GetValue() - 0.9998766) > 1e-4 {
+  if math.Abs(z.GetFloat64() - 0.9998766) > 1e-4 {
     t.Error("Gev LogPdf failed!")
   }
 }
 
 func TestGevDistribution3(t *testing.T) {
 
-  mu    := NewReal(1.0)
-  sigma := NewReal(1.0)
-  xi    := NewReal(2.0)
+  mu    := NewFloat64(1.0)
+  sigma := NewFloat64(1.0)
+  xi    := NewFloat64(2.0)
 
   gev, _ := NewGevDistribution(mu, sigma, xi)
 
-  x := NewReal(100)
-  y := NewReal(0.0)
-  z := NewReal(0.0)
+  x := NewFloat64(100)
+  y := NewFloat64(0.0)
+  z := NewFloat64(0.0)
 
   gev.LogPdf(y, x)
   gev.Cdf(z, x)
 
-  if math.Abs(y.GetValue() - -8.010845) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -8.010845) > 1e-4 {
     t.Error("Gev LogPdf failed!")
   }
-  if math.Abs(z.GetValue() - 0.9315661) > 1e-4 {
+  if math.Abs(z.GetFloat64() - 0.9315661) > 1e-4 {
     t.Error("Gev LogPdf failed!")
   }
 }

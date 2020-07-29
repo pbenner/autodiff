@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ func (obj *HmmEstimator) Swap() {
   obj.hmm1, obj.hmm2, obj.hmm3 = obj.hmm3, obj.hmm1, obj.hmm2
 }
 
-func (obj *HmmEstimator) Emissions(gamma []DenseBareRealVector, p ThreadPool) error {
+func (obj *HmmEstimator) Emissions(gamma []DenseFloat64Vector, p ThreadPool) error {
   hmm1 := obj.hmm1
   hmm2 := obj.hmm2
   // estimate emission parameters
@@ -224,7 +224,7 @@ func (obj *HmmEstimator) Estimate(gamma ConstVector, p ThreadPool) error {
   hook_save    := generic.BaumWelchHook{}
   hook_trace   := generic.BaumWelchHook{}
   hook_verbose := generic.BaumWelchHook{}
-  trace := NullVector(obj.ScalarType(), 0)
+  trace := NullDenseVector(obj.ScalarType(), 0)
   if obj.SaveFile != "" && obj.SaveInterval > 0 {
     hook_save.Value = func(hmm generic.BasicHmm, i int, likelihood, epsilon float64) {
       if i % obj.SaveInterval == 0 {

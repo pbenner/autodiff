@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,18 +36,17 @@ type PowerLawDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewPowerLawDistribution(alpha, xmin Scalar) (*PowerLawDistribution, error) {
-  if alpha.GetValue() <= 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter alpha: %f", alpha.GetValue())
+  if alpha.GetFloat64() <= 0.0 {
+    return nil, fmt.Errorf("invalid value for parameter alpha: %f", alpha.GetFloat64())
   }
-  if xmin.GetValue() == 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter x_min: %f", xmin.GetValue())
+  if xmin.GetFloat64() == 0.0 {
+    return nil, fmt.Errorf("invalid value for parameter x_min: %f", xmin.GetFloat64())
   }
-  c1 := NewBareReal(1.0)
   // some constants
   ca := alpha.CloneScalar()
-  ca.Sub(c1, alpha)
+  ca.Sub(ConstFloat64(1.0), alpha)
   cz := alpha.CloneScalar()
-  cz.Sub(alpha, c1)
+  cz.Sub(alpha, ConstFloat64(1.0))
   cz.Div(cz, xmin)
   cz.Log(cz)
 
@@ -81,8 +80,8 @@ func (dist *PowerLawDistribution) ScalarType() ScalarType {
 }
 
 func (dist *PowerLawDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() < dist.Xmin.GetValue() {
-    r.SetValue(math.Inf(-1))
+  if x.GetFloat64() < dist.Xmin.GetFloat64() {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   r.Div(x, dist.Xmin)
@@ -103,8 +102,8 @@ func (dist *PowerLawDistribution) Pdf(r Scalar, x ConstScalar) error {
 }
 
 func (dist *PowerLawDistribution) LogCdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() <= 0 {
-    r.SetValue(math.Inf(-1))
+  if x.GetFloat64() <= 0 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   r.Div(x, dist.Xmin)
@@ -125,7 +124,7 @@ func (dist *PowerLawDistribution) Cdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *PowerLawDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 2)
+  p := NullDenseVector(dist.ScalarType(), 2)
   p.At(0).Set(dist.Alpha)
   p.At(1).Set(dist.Xmin)
   return p

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,20 +88,20 @@ func (dist *LogisticRegression) ClassLogPdf(r Scalar, x ConstVector, y bool) err
   }
   if y {
     r.Neg(r)
-    r.LogAdd(ConstReal(0.0), r, t)
+    r.LogAdd(ConstFloat64(0.0), r, t)
   } else {
-    r.LogAdd(ConstReal(0.0), r, t)
+    r.LogAdd(ConstFloat64(0.0), r, t)
   }
   r.Neg(r)
   return nil
 }
 
-func (dist *LogisticRegression) ClassLogPdf_(r *BareReal, x SparseConstRealVector, y bool) error {
-  theta := dist.Theta.(DenseBareRealVector)
+func (dist *LogisticRegression) ClassLogPdf_(r Float64, x SparseConstFloat64Vector, y bool) error {
+  theta := dist.Theta.(DenseFloat64Vector)
   if x.Dim() != dist.Dim() && x.Dim() != dist.Dim()+1 {
     return fmt.Errorf("input vector has invalid dimension")
   }
-  t := BareReal(0.0)
+  t := NullFloat64()
   // set r to first element of theta
   r.Set(theta.ConstAt(0))
   // loop over theta
@@ -109,9 +109,9 @@ func (dist *LogisticRegression) ClassLogPdf_(r *BareReal, x SparseConstRealVecto
   if x.Dim() == dist.Dim() {
     // dim(x) == dim(theta)-1 => add 1 to index
     for ; it.Ok(); it.Next() {
-      y := BareReal(it.GET())
-      t.MUL(&y, theta.AT(it.Index()+1))
-      r.ADD( r, &t)
+      y := it.GET()
+      t.Mul(y, theta.AT(it.Index()+1))
+      r.ADD(r, t)
     }
   } else {
     // dim(x) == dim(theta) => ignore first element of x
@@ -119,16 +119,16 @@ func (dist *LogisticRegression) ClassLogPdf_(r *BareReal, x SparseConstRealVecto
       it.Next()
     }
     for ; it.Ok(); it.Next() {
-      y := BareReal(it.GET())
-      t.MUL(&y, theta.AT(it.Index()+0))
-      r.ADD( r, &t)
+      y := it.GET()
+      t.Mul(y, theta.AT(it.Index()+0))
+      r.ADD(r, t)
     }
   }
   if y {
     r.NEG(r)
-    r.LogAdd(ConstReal(0.0), r, &t)
+    r.LogAdd(ConstFloat64(0.0), r, &t)
   } else {
-    r.LogAdd(ConstReal(0.0), r, &t)
+    r.LogAdd(ConstFloat64(0.0), r, &t)
   }
   r.NEG(r)
   return nil
@@ -180,7 +180,7 @@ func (obj *LogisticRegression) ExportConfig() ConfigDistribution {
   config := struct{
     Theta []float64
   }{}
-  config.Theta = obj.Theta.GetValues()
+  config.Theta = AsDenseFloat64Vector(obj.Theta)
 
   return NewConfigDistribution("vector:logistic regression", config)
 }

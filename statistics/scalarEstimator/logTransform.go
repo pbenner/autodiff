@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,13 +65,13 @@ func (obj *LogTransformEstimator) CloneScalarBatchEstimator() ScalarBatchEstimat
  * -------------------------------------------------------------------------- */
 
 func (obj *LogTransformEstimator) Initialize(p ThreadPool) error {
-  obj.y = NullVector(BareRealType, p.NumberOfThreads())
+  obj.y = NullDenseFloat64Vector(p.NumberOfThreads())
   return obj.ScalarBatchEstimator.Initialize(p)
 }
 
 func (obj *LogTransformEstimator) NewObservation(x, gamma ConstScalar, p ThreadPool) error {
   y := obj.y.At(p.GetThreadId())
-  y.Add(x, ConstReal(obj.c))
+  y.Add(x, ConstFloat64(obj.c))
   y.Log(y)
   return obj.ScalarBatchEstimator.NewObservation(y, gamma, p)
 }

@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ func TestMatrixPerformance(t *testing.T) {
   n := 1000
 
   {
-    a := NullDenseRealMatrix(n, n)
-    a.Map(func(x Scalar) { x.SetValue(2.0) })
+    a := NullDenseReal64Matrix(n, n)
+    a.Map(func(x Scalar) { x.SetFloat64(2.0) })
 
     start := time.Now()
     for i := 0; i < n; i++ {
@@ -42,7 +42,7 @@ func TestMatrixPerformance(t *testing.T) {
       }
     }
     elapsed := time.Since(start)
-    fmt.Printf("Operations on DenseRealMatrix took %s.\n", elapsed)
+    fmt.Printf("Operations on DenseReal64Matrix took %s.\n", elapsed)
 
     start = time.Now()
     for i := 0; i < n; i++ {
@@ -54,12 +54,12 @@ func TestMatrixPerformance(t *testing.T) {
       }
     }
     elapsed = time.Since(start)
-    fmt.Printf("Operations on DenseRealMatrix with concrete types took %s.\n", elapsed)
+    fmt.Printf("Operations on DenseReal64Matrix with concrete types took %s.\n", elapsed)
   }
 
   {
-    a := NullDenseBareRealMatrix(n, n)
-    a.Map(func(x Scalar) { x.SetValue(2.0) })
+    a := NullDenseFloat64Matrix(n, n)
+    a.Map(func(x Scalar) { x.SetFloat64(2.0) })
 
     start := time.Now()
     for i := 0; i < n; i++ {
@@ -71,9 +71,13 @@ func TestMatrixPerformance(t *testing.T) {
       }
     }
     elapsed := time.Since(start)
-    fmt.Printf("Operations on DenseBareRealMatrix took %s.\n", elapsed)
+    fmt.Printf("Operations on DenseFloat64Matrix took %s.\n", elapsed)
+  }
+  {
+    a := NullDenseFloat64Matrix(n, n)
+    a.Map(func(x Scalar) { x.SetFloat64(2.0) })
 
-    start = time.Now()
+    start := time.Now()
     for i := 0; i < n; i++ {
       for j := 0; j < n; j++ {
         a.AT(i,j).ADD(a.AT(i,j), a.AT(0,0))
@@ -82,8 +86,8 @@ func TestMatrixPerformance(t *testing.T) {
         a.AT(i,j).DIV(a.AT(i,j), a.AT(0,0))
       }
     }
-    elapsed = time.Since(start)
-    fmt.Printf("Operations on DenseBareRealMatrix with concrete types took %s.\n", elapsed)
+    elapsed := time.Since(start)
+    fmt.Printf("Operations on DenseFloat64Matrix with concrete types took %s.\n", elapsed)
   }
 
 }

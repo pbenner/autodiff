@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package gramSchmidt
 import   "fmt"
 
 import . "github.com/pbenner/autodiff"
-//import . "github.com/pbenner/autodiff/algorithm"
 
 /* -------------------------------------------------------------------------- */
 
@@ -39,16 +38,16 @@ func gramSchmidt(a, q, r Matrix, t ScalarType, n, m int) (Matrix, Matrix, error)
 
   for i := 0; i < m; i++ {
     // r_ii = ||v_i||
-    r.At(i, i).Vnorm(v.Col(i))
+    r.At(i, i).Vnorm(v.ConstCol(i))
     for k := 0; k < n; k++ {
-      q.At(k, i).Div(v.At(k, i), r.At(i, i))
+      q.At(k, i).Div(v.ConstAt(k, i), r.ConstAt(i, i))
     }
     for j := i+1; j < m; j++ {
-      w := v.Col(j)
-      r.At(i, j).VdotV(q.Col(i), w)
+      w := v.ConstCol(j)
+      r.At(i, j).VdotV(q.ConstCol(i), w)
       for k := 0; k < n; k++ {
-        s.Mul(r.At(i, j), q.At(k, i))
-        w.At(k).Sub(w.At(k), s)
+        s.Mul(r.ConstAt(i, j), q.ConstAt(k, i))
+        v.At(k, j).Sub(w.ConstAt(k), s)
       }
     }
   }
@@ -74,14 +73,14 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     }
   }
   if q == nil {
-    q = NullMatrix(t, n, m)
+    q = NullDenseMatrix(t, n, m)
   } else {
     if u, v := q.Dims(); u != n || v != m {
       return nil, nil, fmt.Errorf("q has invalid dimension (%dx%d instead of %dx%d)", u, v, n, m)
     }
   }
   if r == nil {
-    r = NullMatrix(t, n, m)
+    r = NullDenseMatrix(t, n, m)
   } else {
     if u, v := r.Dims(); u != n || v != m {
       return nil, nil, fmt.Errorf("r has invalid dimension (%dx%d instead of %dx%d)", u, v, n, m)

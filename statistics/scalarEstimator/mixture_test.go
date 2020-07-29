@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ func Test1(t *testing.T) {
     t.Error(err); return
   }
 
-  x := NewVector(BareRealType, []float64{
+  x := NewDenseFloat64Vector([]float64{
     // > rnorm(100, -2, 1)
     -1.12431376, -2.20795920, -1.92180583, -3.83095994, -0.29385167, -1.48853995,
     -4.19290038, -2.19522679, -1.60687622, -3.04262028, -1.35188740, -3.41378977,

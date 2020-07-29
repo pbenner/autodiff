@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,59 +29,59 @@ import "testing"
 
 func TestVector(t *testing.T) {
 
-  v := NewVector(RealType, []float64{1,2,3,4,5,6})
+  v := NewDenseFloat64Vector([]float64{1,2,3,4,5,6})
 
-  if v.At(1).GetValue() != 2.0 {
+  if v.At(1).GetFloat64() != 2.0 {
     t.Error("Vector initialization failed!")
   }
 }
 
 func TestVectorSort(t *testing.T) {
 
-  v1 := NewVector(RealType, []float64{4,3,7,4,1,29,6})
-  v2 := NewVector(RealType, []float64{4,3,7,4,1,29,6})
+  v1 := NewDenseFloat64Vector([]float64{4,3,7,4,1,29,6})
+  v2 := NewDenseFloat64Vector([]float64{4,3,7,4,1,29,6})
 
   v1.Sort(false)
   v2.Sort(true)
 
-  if v1.At(6).GetValue() != 29.0 {
+  if v1.At(6).GetFloat64() != 29.0 {
     t.Error("Vector sorting failed!")
   }
-  if v2.At(6).GetValue() != 1.0 {
+  if v2.At(6).GetFloat64() != 1.0 {
     t.Error("Vector sorting failed!")
   }
 }
 
 func TestVectorAsMatrix(t *testing.T) {
 
-  v := NewVector(RealType, []float64{1,2,3,4,5,6})
+  v := NewDenseFloat64Vector([]float64{1,2,3,4,5,6})
   m := v.AsMatrix(2, 3)
 
-  if m.At(1,0).GetValue() != 4 {
+  if m.At(1,0).GetFloat64() != 4 {
     t.Error("Vector to matrix conversion failed!")
   }
 }
 
 func TestVdotV(t *testing.T) {
 
-  a := NewVector(RealType, []float64{1, 2,3,4})
-  b := NewVector(RealType, []float64{2,-1,1,7})
-  r := NullReal()
+  a := NewDenseFloat64Vector([]float64{1, 2,3,4})
+  b := NewDenseFloat64Vector([]float64{2,-1,1,7})
+  r := NullFloat64()
   r.VdotV(a, b)
 
-  if r.GetValue() != 31 {
+  if r.GetFloat64() != 31 {
     t.Error("VmulV() failed!")
   }
 }
 
 func TestVmulV(t *testing.T) {
 
-  a := NewVector(RealType, []float64{1, 2,3,4})
-  b := NewVector(RealType, []float64{2,-1,1,7})
+  a := NewDenseFloat64Vector([]float64{1, 2,3,4})
+  b := NewDenseFloat64Vector([]float64{2,-1,1,7})
   r := a.CloneVector()
   r.VmulV(a, b)
 
-  if r.At(1).GetValue() != -2 {
+  if r.At(1).GetFloat64() != -2 {
     t.Error("VmulV() failed!")
   }
 }
@@ -90,33 +90,33 @@ func TestReadVector(t *testing.T) {
 
   filename := "vector_dense_test.table"
 
-  v := DenseRealVector{}
+  v := DenseFloat64Vector{}
 
   if err := v.Import(filename); err != nil {
     panic(err)
   }
-  r := NewVector(RealType, []float64{1,2,3,4,5,6})
-  s := NullReal()
+  r := NewDenseFloat64Vector([]float64{1,2,3,4,5,6})
+  s := NullFloat64()
 
-  if s.Vnorm(v.VsubV(v, r)).GetValue() != 0.0 {
+  if s.Vnorm(v.VsubV(v, r)).GetFloat64() != 0.0 {
     t.Error("Read vector failed!")
   }
 }
 
 func TestVectorMapReduce(t *testing.T) {
 
-  r1 := NewVector(RealType, []float64{2.718282e+00, 7.389056e+00, 2.008554e+01, 5.459815e+01})
+  r1 := NewDenseFloat64Vector([]float64{2.718282e+00, 7.389056e+00, 2.008554e+01, 5.459815e+01})
   r2 := 84.79103
-  t1 := NewReal(0.0)
-  a := NewVector(RealType, []float64{1, 2,3,4})
+  t1 := NewFloat64(0.0)
+  a := NewDenseFloat64Vector([]float64{1, 2,3,4})
   a.Map(func(x Scalar) { x.Exp(x) })
-  b := a.Reduce(func(x Scalar, y ConstScalar) Scalar { return x.Add(x, y) }, t1)
-  s := NullReal()
+  b := a.Reduce(func(x Scalar, y ConstScalar) Scalar { x.Add(x, y); return x }, t1)
+  s := NullFloat64()
 
-  if s.Vnorm(a.VsubV(a,r1)).GetValue() > 1e-2 {
+  if s.Vnorm(a.VsubV(a,r1)).GetFloat64() > 1e-2 {
     t.Error("Vector map/reduce failed!")
   }
-  if math.Abs(b.GetValue() - r2) > 1e-2 {
+  if math.Abs(b.GetFloat64() - r2) > 1e-2 {
     t.Error("Vector map/reduce failed!")
   }
 }
@@ -154,8 +154,8 @@ func TestVectorJson(t *testing.T) {
   {
     filename := "vector_dense_test.1.json"
 
-    r1 := NewVector(RealType, []float64{1,2,3,4})
-    r2 := DenseRealVector{}
+    r1 := NewDenseFloat64Vector([]float64{1,2,3,4})
+    r2 := DenseFloat64Vector{}
 
     if err := writeJson(filename, r1); err != nil {
       t.Error(err); return
@@ -163,29 +163,7 @@ func TestVectorJson(t *testing.T) {
     if err := readJson(filename, &r2); err != nil {
       t.Error(err); return
     }
-    if r1.At(0).GetValue() != r2.At(0).GetValue() {
-      t.Error("test failed")
-    }
-    os.Remove(filename)
-  }
-  {
-    filename := "vector_dense_test.2.json"
-
-    r1 := NewVector(RealType, []float64{1,2,3,4})
-    r1.At(0).Alloc(1,2)
-    r1.At(0).SetDerivative(0, 2.3)
-    r2 := DenseRealVector{}
-
-    if err := writeJson(filename, r1); err != nil {
-      t.Error(err); return
-    }
-    if err := readJson(filename, &r2); err != nil {
-      t.Error(err); return
-    }
-    if r1.At(0).GetValue() != r2.At(0).GetValue() {
-      t.Error("test failed")
-    }
-    if r1.At(0).GetDerivative(0) != r2.At(0).GetDerivative(0) {
+    if r1.At(0).GetFloat64() != r2.At(0).GetFloat64() {
       t.Error("test failed")
     }
     os.Remove(filename)

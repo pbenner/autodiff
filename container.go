@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,11 +30,12 @@ type ConstScalarContainer interface {
 }
 
 type ScalarContainer interface {
+  ConstScalarContainer
   Map   (f func(     Scalar))
   MapSet(f func(ConstScalar)      Scalar)
-  Reduce(f func(     Scalar, ConstScalar) Scalar, r Scalar) Scalar
+}
+
+type MagicScalarContainer interface {
+  ScalarContainer
   Variables(int) error
-  ElementType() ScalarType
-  // nice printing
-  fmt.Stringer
 }

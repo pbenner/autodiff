@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,17 +28,17 @@ import . "github.com/pbenner/autodiff"
 
 func TestNormal1(t *testing.T) {
 
-  mu     := NewReal(3.0)
-  sigma  := NewReal(math.Sqrt(2.0))
+  mu     := NewFloat64(3.0)
+  sigma  := NewFloat64(math.Sqrt(2.0))
 
   normal, _ := NewNormalDistribution(mu, sigma)
 
-  x := NewReal(2.2)
-  y := NewReal(0.0)
+  x := NewFloat64(2.2)
+  y := NewFloat64(0.0)
 
   normal.LogCdf(y, x)
 
-  if math.Abs(y.GetValue() - -1.2524496) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -1.2524496) > 1e-4 {
     t.Error("Normal LogCdf failed!")
   }
 }

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,51 +24,50 @@ import   "testing"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
 func TestSkewNormalDistribution1(t *testing.T) {
 
-  xi     := NewVector(RealType, []float64{2,3})
-  omega  := NewMatrix(RealType, 2, 2, []float64{16,8,8,12})
-  alpha  := NewVector(RealType, []float64{2,6})
-  scale  := NewVector(RealType, []float64{3,4})
+  xi     := NewDenseFloat64Vector([]float64{2,3})
+  omega  := NewDenseFloat64Matrix([]float64{16,8,8,12}, 2, 2)
+  alpha  := NewDenseFloat64Vector([]float64{2,6})
+  scale  := NewDenseFloat64Vector([]float64{3,4})
 
   normal, _ := NewSkewNormalDistribution(xi, omega, alpha, scale)
 
-  x := NewVector(RealType, []float64{1,2})
-  y := NewReal(0.0)
+  x := NewDenseFloat64Vector([]float64{1,2})
+  y := NewFloat64(0.0)
 
   normal.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -1.025062e+01) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -1.025062e+01) > 1e-4 {
     t.Error("TestSkewNormalDistribution1 failed!")
   }
 }
 
 func TestSkewNormalDistribution2(t *testing.T) {
 
-  xi     := NewVector(RealType, []float64{4.906872e+00, 6.159821e+00})
-  omega  := NewMatrix(RealType, 2, 2, []float64{2.547269e+01, 3.171179e+00, 3.171179e+00, 2.547269e+01})
-  alpha  := NewVector(RealType, []float64{2.447269e+01, 2.447269e+01})
-  scale  := NewVector(RealType, []float64{3,4})
+  xi     := NewDenseFloat64Vector([]float64{4.906872e+00, 6.159821e+00})
+  omega  := NewDenseFloat64Matrix([]float64{2.547269e+01, 3.171179e+00, 3.171179e+00, 2.547269e+01}, 2, 2)
+  alpha  := NewDenseFloat64Vector([]float64{2.447269e+01, 2.447269e+01})
+  scale  := NewDenseFloat64Vector([]float64{3,4})
 
   normal, _ := NewSkewNormalDistribution(xi, omega, alpha, scale)
 
-  x := NewVector(RealType, []float64{2.75594661,  4.700348})
-  y := NewReal(0.0)
+  x := NewDenseFloat64Vector([]float64{2.75594661,  4.700348})
+  y := NewFloat64(0.0)
 
   normal.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -3.615468e+02) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -3.615468e+02) > 1e-4 {
     t.Error("TestSkewNormalDistribution2 failed!")
   }
 }
 
 func TestSkewNormalFit1(t *testing.T) {
   // define the observed data
-  x := NewMatrix(RealType, 100, 2, []float64{
+  x := NewDenseFloat64Matrix([]float64{
     2.75594661,  4.700348,
    -0.55700646,  4.045626,
     6.70045102,  3.674610,
@@ -168,36 +167,37 @@ func TestSkewNormalFit1(t *testing.T) {
     5.94438534,  2.761207,
     3.91245029,  6.756676,
     2.10852175,  5.465862,
-    9.47711202,  7.435752 })
-  y := NewReal(0.0)
+    9.47711202,  7.435752 }, 100, 2)
+  y := NewReal64(0.0)
   // number of data points
   n, _ := x.Dims()
   // define the (negative) likelihood function (here as a function of the
   // variables that we want to optimize)
-  objective := func(variables Vector) (Scalar, error) {
+  objective := func(variables ConstVector) (MagicScalar, error) {
     // create a new initial normal distribution
-    xi     := NullVector(RealType, 2)
-    omega  := NullMatrix(RealType, 2, 2)
-    alpha  := NullVector(RealType, 2)
-    scale  := NullVector(RealType, 2)
+    xi     := NullDenseReal64Vector(2)
+    omega  := NullDenseReal64Matrix(2, 2)
+    alpha  := NullDenseReal64Vector(2)
+    scale  := NullDenseReal64Vector(2)
     // copy the variables
-    xi   .At(  0).Set(variables.At(0))
-    xi   .At(  1).Set(variables.At(1))
-    omega.At(0,0).Set(variables.At(2))
-    omega.At(0,1).Set(variables.At(3))
-    omega.At(1,0).Set(variables.At(3))
-    omega.At(1,1).Set(variables.At(5))
-    alpha.At(  0).Set(variables.At(6))
-    alpha.At(  1).Set(variables.At(7))
-    scale.At(  0).Set(variables.At(8))
-    scale.At(  1).Set(variables.At(9))
+    xi   .At(  0).Set(variables.ConstAt(0))
+    xi   .At(  1).Set(variables.ConstAt(1))
+    omega.At(0,0).Set(variables.ConstAt(2))
+    omega.At(0,1).Set(variables.ConstAt(3))
+    omega.At(1,0).Set(variables.ConstAt(3))
+    omega.At(1,1).Set(variables.ConstAt(5))
+    alpha.At(  0).Set(variables.ConstAt(6))
+    alpha.At(  1).Set(variables.ConstAt(7))
+    scale.At(  0).Set(variables.ConstAt(8))
+    scale.At(  1).Set(variables.ConstAt(9))
     normal, _ := NewSkewNormalDistribution(xi, omega, alpha, scale)
-    result := NewScalar(RealType, 0.0)
+    result    := NewReal64(0.0)
     for i := 0; i < n; i++ {
       normal.LogPdf(y, x.Row(i))
       result.Add(result, y)
     }
-    return Neg(Sub(result, NewReal(math.Log(float64(n))))), nil
+    result.Neg(result.Sub(result, ConstFloat64(math.Log(float64(n)))))
+    return result, nil
   }
   // rprop hook
   // hook := func(gradient []float64, variables Vector, s Scalar) bool {
@@ -207,22 +207,22 @@ func TestSkewNormalFit1(t *testing.T) {
   //   return false
   // }
   // initial value
-  v0 := NewVector(RealType, []float64{1,1,2,1,1,2,1,1,1,1})
+  v0 := NewDenseFloat64Vector([]float64{1,1,2,1,1,2,1,1,1,1})
   // run rprop
   vn, _ := rprop.Run(objective, v0, 0.1, []float64{1.2, 0.2},
     //rprop.Hook{hook},
     rprop.Epsilon{1e-12})
   // check result
-  if math.Abs(vn.At(0).GetValue() - 2.583188e+00) > 1e-4 ||
-     math.Abs(vn.At(1).GetValue() - 2.920335e+00) > 1e-4 ||
-     math.Abs(vn.At(2).GetValue() - 2.948274e+00) > 1e-4 ||
-     math.Abs(vn.At(3).GetValue() - 1.646367e+00) > 1e-4 ||
-     math.Abs(vn.At(4).GetValue() - 1.0000000+00) > 1e-4 || // unused!
-     math.Abs(vn.At(5).GetValue() - 3.030302e+00) > 1e-4 ||
-     math.Abs(vn.At(6).GetValue() - 8.881898e-01) > 1e-4 ||
-     math.Abs(vn.At(7).GetValue() - 5.275696e+00) > 1e-4 ||
-     math.Abs(vn.At(8).GetValue() - 2.146501e+00) > 1e-4 ||
-     math.Abs(vn.At(9).GetValue() - 2.081685e+00) > 1e-4 {
+  if math.Abs(vn.At(0).GetFloat64() - 2.583188e+00) > 1e-4 ||
+     math.Abs(vn.At(1).GetFloat64() - 2.920335e+00) > 1e-4 ||
+     math.Abs(vn.At(2).GetFloat64() - 2.948274e+00) > 1e-4 ||
+     math.Abs(vn.At(3).GetFloat64() - 1.646367e+00) > 1e-4 ||
+     math.Abs(vn.At(4).GetFloat64() - 1.0000000+00) > 1e-4 || // unused!
+     math.Abs(vn.At(5).GetFloat64() - 3.030302e+00) > 1e-4 ||
+     math.Abs(vn.At(6).GetFloat64() - 8.881898e-01) > 1e-4 ||
+     math.Abs(vn.At(7).GetFloat64() - 5.275696e+00) > 1e-4 ||
+     math.Abs(vn.At(8).GetFloat64() - 2.146501e+00) > 1e-4 ||
+     math.Abs(vn.At(9).GetFloat64() - 2.081685e+00) > 1e-4 {
     t.Error("TestSkewNormalFit2 failed!")
   }
 }

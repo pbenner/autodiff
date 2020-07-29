@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@ type ParetoDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewParetoDistribution(lambda, kappa Scalar) (*ParetoDistribution, error) {
-  if lambda.GetValue() <= 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter lambda: %f", lambda.GetValue())
+  if lambda.GetFloat64() <= 0.0 {
+    return nil, fmt.Errorf("invalid value for parameter lambda: %f", lambda.GetFloat64())
   }
-  if kappa.GetValue() <= 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter kappa: %f", kappa.GetValue())
+  if kappa.GetFloat64() <= 0.0 {
+    return nil, fmt.Errorf("invalid value for parameter kappa: %f", kappa.GetFloat64())
   }
 
   t  := lambda.Type()
@@ -48,7 +48,7 @@ func NewParetoDistribution(lambda, kappa Scalar) (*ParetoDistribution, error) {
   t2 := NewScalar(t, 0.0)
 
   kappa1p  := kappa.CloneScalar()
-  kappa1p.Add(kappa1p, NewBareReal(1.0))
+  kappa1p.Add(kappa1p, ConstFloat64(1.0))
 
   z := t1.Add(t1.Log(kappa), t2.Mul(kappa, t2.Log(lambda)))
 
@@ -83,8 +83,8 @@ func (dist *ParetoDistribution) ScalarType() ScalarType {
 }
 
 func (dist *ParetoDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() < 0 {
-    r.SetValue(math.Inf(-1))
+  if x.GetFloat64() < 0 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
 
@@ -105,8 +105,8 @@ func (dist *ParetoDistribution) Pdf(r Scalar, x ConstScalar) error {
 }
 
 func (dist *ParetoDistribution) LogCdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() < 0 {
-    r.SetValue(math.Inf(-1))
+  if x.GetFloat64() < 0 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
 
@@ -129,7 +129,7 @@ func (dist *ParetoDistribution) Cdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist ParetoDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 2)
+  p := NullDenseVector(dist.ScalarType(), 2)
   p.At(0).Set(dist.Lambda)
   p.At(1).Set(dist.Kappa)
   return p

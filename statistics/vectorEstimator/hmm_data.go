@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,14 +78,14 @@ func NewHmmStdDataSet(t ScalarType, x []ConstVector, k int) (*HmmStdDataSet, err
     offsets[d] = n
     n         += x[d].Dim()
   }
-  values := NullVector(x[0].ElementType(), n)
+  values := NullDenseVector(x[0].ElementType(), n)
   for d := 0; d < len(x); d++ {
     values.Slice(offsets[d], offsets[d]+x[d].Dim()).Set(x[d])
   }
   r := HmmStdDataSet{}
   r.values  = values
   r.offsets = offsets
-  r.p       = NullMatrix(t, k, values.Dim())
+  r.p       = NullDenseMatrix(t, k, values.Dim())
   r.n       = n
   return &r, nil
 }
@@ -143,7 +143,7 @@ func (obj *HmmStdDataSet) EvaluateLogPdf(edist []ScalarPdf, pool ThreadPool) err
       if err := d[pool.GetThreadId()][j].LogPdf(p.At(j, i), x.At(i)); err != nil {
         return err
       }
-      s[pool.GetThreadId()] = LogAdd(s[pool.GetThreadId()], p.At(j, i).GetValue())
+      s[pool.GetThreadId()] = LogAdd(s[pool.GetThreadId()], p.At(j, i).GetFloat64())
     }
     if math.IsInf(s[pool.GetThreadId()], -1) {
       return fmt.Errorf("probability is zero for all models on observation `%v'", x.At(i))
@@ -195,7 +195,7 @@ type HmmSummarizedDataSet struct {
 func NewHmmSummarizedDataSet(t ScalarType, x []Vector, k int) (*HmmSummarizedDataSet, error) {
   xMap   := make(map[[1]float64]int)
   index  := make([][]int, len(x))
-  values := NullVector(x[0].ElementType(), 0)
+  values := NullDenseVector(x[0].ElementType(), 0)
   m      := 0
   // convert vector elements to arrays, which can be used
   // as keys for xMap
@@ -203,7 +203,7 @@ func NewHmmSummarizedDataSet(t ScalarType, x []Vector, k int) (*HmmSummarizedDat
   for d := 0; d < len(x); d++ {
     index[d] = make([]int, x[d].Dim())
     for i := 0; i < x[d].Dim(); i++ {
-      datum[0] = x[d].At(i).GetValue()
+      datum[0] = x[d].At(i).GetFloat64()
       if idx, ok := xMap[datum]; ok {
         index [d][i]  = idx
       } else {
@@ -218,7 +218,7 @@ func NewHmmSummarizedDataSet(t ScalarType, x []Vector, k int) (*HmmSummarizedDat
   r := HmmSummarizedDataSet{}
   r.values = values
   r.index  = index
-  r.p      = NullMatrix(t, k, values.Dim())
+  r.p      = NullDenseMatrix(t, k, values.Dim())
   r.n      = m
   return &r, nil
 }
@@ -272,7 +272,7 @@ func (obj *HmmSummarizedDataSet) EvaluateLogPdf(edist []ScalarPdf, pool ThreadPo
       if err := d[pool.GetThreadId()][j].LogPdf(p.At(j, i), x.At(i)); err != nil {
         return err
       }
-      s[pool.GetThreadId()] = LogAdd(s[pool.GetThreadId()], p.At(j, i).GetValue())
+      s[pool.GetThreadId()] = LogAdd(s[pool.GetThreadId()], p.At(j, i).GetFloat64())
     }
     if math.IsInf(s[pool.GetThreadId()], -1) {
       return fmt.Errorf("probability is zero for all models on observation `%v'", x.At(i))

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ type GammaDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewGammaDistribution(alpha, beta Scalar) (*GammaDistribution, error) {
-  if alpha.GetValue() <= 0.0 || beta.GetValue() <= 0.0 {
+  if alpha.GetFloat64() <= 0.0 || beta.GetFloat64() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
   t  := alpha.Type()
@@ -77,8 +77,8 @@ func (dist *GammaDistribution) Mean() Scalar {
 }
 
 func (dist *GammaDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); v <= 0.0 || math.IsInf(v, 1) {
-    r.SetValue(math.Inf(-1))
+  if v := x.GetFloat64(); v <= 0.0 || math.IsInf(v, 1) {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   t := dist.t
@@ -109,14 +109,14 @@ func (dist *GammaDistribution) LogCdf(r Scalar, x ConstScalar) error {
 
 func (dist *GammaDistribution) Cdf(r Scalar, x ConstScalar) error {
   r.Mul(x, dist.Beta)
-  r.GammaP(dist.Alpha.GetValue(), r)
+  r.GammaP(dist.Alpha.GetFloat64(), r)
   return nil
 }
 
 /* -------------------------------------------------------------------------- */
 
 func (dist *GammaDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 2)
+  p := NullDenseVector(dist.ScalarType(), 2)
   p.At(0).Set(dist.Alpha)
   p.At(1).Set(dist.Beta)
   return p

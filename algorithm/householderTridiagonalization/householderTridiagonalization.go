@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
   s := inSitu.T2
   p := inSitu.X
   w := inSitu.T4
-  c := BareReal(2.0)
+  c := ConstFloat64(2.0)
 
   _, n := A.Dims()
 
@@ -101,7 +101,7 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
     w.VsubV(p,  w)
 
     // compute ||A(k+1:n,k)||_2
-    s.SetValue(0.0)
+    s.SetFloat64(0.0)
     for j := k+1; j < n; j++ {
       t.Mul(A.At(j,k), A.At(j,k))
       s.Add(s, t)
@@ -121,8 +121,8 @@ func householderTridiagonalization(inSitu *InSitu, epsilon float64) (Matrix, Mat
       }
     }
     for j := k+2; j < n; j++ {
-      A.At(k,j).SetValue(0.0)
-      A.At(j,k).SetValue(0.0)
+      A.At(k,j).SetFloat64(0.0)
+      A.At(j,k).SetFloat64(0.0)
     }
 
     if U != nil {
@@ -169,20 +169,20 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
   }
   if computeU {
     if inSitu.U == nil {
-      inSitu.U = NullMatrix(t, m, m)
+      inSitu.U = NullDenseMatrix(t, m, m)
     }
     inSitu.U.SetIdentity()
   } else {
     inSitu.U = nil
   }
   if inSitu.X == nil {
-    inSitu.X = NullVector(t, m)
+    inSitu.X = NullDenseVector(t, m)
   }
   if inSitu.Beta == nil {
     inSitu.Beta = NullScalar(t)
   }
   if inSitu.Nu == nil {
-    inSitu.Nu = NullVector(t, m)
+    inSitu.Nu = NullDenseVector(t, m)
   }
   if inSitu.C1 == nil {
     inSitu.C1 = NewScalar(t, 1.0)
@@ -197,7 +197,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullVector(t, m)
+    inSitu.T4 = NullDenseVector(t, m)
   }
   return householderTridiagonalization(inSitu, epsilon)
 }

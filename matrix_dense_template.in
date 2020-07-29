@@ -1,6 +1,6 @@
 /* -*- mode: go; -*-
  *
- * Copyright (C) 2015-2017 Philipp Benner
+ * Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,15 +18,23 @@
 
 #include "macros.h"
 
+#define MATRIX_CONST_ITERATOR  STR_CONCAT(MATRIX_NAME, ConstIterator)
+#define MATRIX_JOINT_ITERATOR  STR_CONCAT(MATRIX_NAME, JointIterator)
+#define MATRIX_ITERATOR        STR_CONCAT(MATRIX_NAME, Iterator)
+#define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_NAME, ConstIterator)
+#define VECTOR_ITERATOR        STR_CONCAT(VECTOR_NAME, Iterator)
+
+/* -------------------------------------------------------------------------- */
+
 package autodiff
 
 /* -------------------------------------------------------------------------- */
 
+import "fmt"
 import "bytes"
 import "bufio"
 import "compress/gzip"
 import "encoding/json"
-import "fmt"
 import "strconv"
 import "strings"
 import "os"
@@ -34,23 +42,8 @@ import "unsafe"
 
 /* -------------------------------------------------------------------------- */
 
-#define MATRIX_CONST_ITERATOR  STR_CONCAT(MATRIX_NAME, ConstIterator)
-#define MATRIX_JOINT_ITERATOR  STR_CONCAT(MATRIX_NAME, JointIterator)
-#define MATRIX_ITERATOR        STR_CONCAT(MATRIX_NAME, Iterator)
-#define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_NAME, ConstIterator)
-#define VECTOR_ITERATOR        STR_CONCAT(VECTOR_NAME, Iterator)
-
-#ifdef STORE_PTR
-# define STORED_SCALAR_TYPE *SCALAR_NAME
-#else
-# define STORED_SCALAR_TYPE  SCALAR_NAME
-#endif
-
-/* matrix type declaration
- * -------------------------------------------------------------------------- */
-
 type MATRIX_NAME struct {
-  values     VECTOR_TYPE
+  values   []STORED_TYPE
   rows       int
   cols       int
   rowOffset  int
@@ -58,56 +51,26 @@ type MATRIX_NAME struct {
   colOffset  int
   colMax     int
   transposed bool
-  tmp1       VECTOR_TYPE
-  tmp2       VECTOR_TYPE
 }
 
 /* constructors
  * -------------------------------------------------------------------------- */
 
-func NEW_MATRIX(rows, cols int, values []float64) MATRIX_TYPE {
-  m := NIL_MATRIX(rows, cols)
-  v := m.values
-  if len(values) == 1 {
-    for i := 0; i < rows*cols; i++ {
-#ifdef STORE_PTR
-      v[i] =  NEW_SCALAR(values[0])
-#else
-      v[i] = *NEW_SCALAR(values[0])
-#endif
-    }
-  } else if len(values) == rows*cols {
-    for i := 0; i < rows*cols; i++ {
-#ifdef STORE_PTR
-      v[i] =  NEW_SCALAR(values[i])
-#else
-      v[i] = *NEW_SCALAR(values[i])
-#endif
-    }
-  } else {
-    panic("NewMatrix(): Matrix dimension does not fit input values!")
-  }
-  m.initTmp()
-
-  return m
-}
-
-func NULL_MATRIX(rows, cols int) MATRIX_TYPE {
+func NEW_MATRIX(values []STORED_TYPE, rows, cols int) MATRIX_TYPE {
   m := MATRIX_NAME{}
-  m.values    = NULL_VECTOR(rows*cols)
+  m.values    = values
   m.rows      = rows
   m.cols      = cols
   m.rowOffset = 0
   m.rowMax    = rows
   m.colOffset = 0
   m.colMax    = cols
-  m.initTmp()
   return &m
 }
 
-func NIL_MATRIX(rows, cols int) MATRIX_TYPE {
+func NULL_MATRIX(rows, cols int) MATRIX_TYPE {
   m := MATRIX_NAME{}
-  m.values    = NIL_VECTOR(rows*cols)
+  m.values    = make([]STORED_TYPE, rows*cols)
   m.rows      = rows
   m.cols      = cols
   m.rowOffset = 0
@@ -132,46 +95,19 @@ func AS_MATRIX(matrix ConstMatrix) MATRIX_TYPE {
   return r
 }
 
-func (matrix MATRIX_TYPE) initTmp() {
-  if len(matrix.tmp1) < matrix.rows {
-    matrix.tmp1 = NULL_VECTOR(matrix.rows)
-  } else {
-    matrix.tmp1 = matrix.tmp1[0:matrix.rows]
-  }
-  if len(matrix.tmp2) < matrix.cols {
-    matrix.tmp2 = NULL_VECTOR(matrix.cols)
-  } else {
-    matrix.tmp2 = matrix.tmp2[0:matrix.cols]
-  }
-}
-
 /* cloning
  * -------------------------------------------------------------------------- */
 
 // Clone matrix including data.
 func (matrix MATRIX_TYPE) Clone() MATRIX_TYPE {
-  return &MATRIX_NAME{
-    values    : matrix.values.Clone(),
-    rows      : matrix.rows,
-    cols      : matrix.cols,
-    transposed: matrix.transposed,
-    rowOffset : matrix.rowOffset,
-    rowMax    : matrix.rowMax,
-    colOffset : matrix.colOffset,
-    colMax    : matrix.colMax,
-    tmp1      : matrix.tmp1.Clone(),
-    tmp2      : matrix.tmp2.Clone() }
+  r := MATRIX_NAME{}
+  r  = *matrix
+  r.values = make([]STORED_TYPE, len(matrix.values))
+  copy(r.values, matrix.values)
+  return &r
 }
 
-func (matrix MATRIX_TYPE) CloneMatrix() Matrix {
-  return matrix.Clone()
-}
-
-func (matrix MATRIX_TYPE) CloneConstMatrix() ConstMatrix {
-  return matrix.Clone()
-}
-
-/* field access
+/* indexing
  * -------------------------------------------------------------------------- */
 
 func (matrix MATRIX_TYPE) index(i, j int) int {
@@ -187,62 +123,37 @@ func (matrix MATRIX_TYPE) index(i, j int) int {
 
 func (matrix MATRIX_TYPE) ij(k int) (int, int) {
   if matrix.transposed {
-    i := (k%matrix.colMax) - matrix.colOffset
-    j := (k/matrix.colMax) - matrix.rowOffset
+    i := (k%matrix.rowMax) - matrix.colOffset
+    j := (k/matrix.rowMax) - matrix.rowOffset
     return i, j
   } else {
-    i := (k/matrix.rowMax) - matrix.rowOffset
-    j := (k%matrix.rowMax) - matrix.colOffset
+    i := (k/matrix.colMax) - matrix.rowOffset
+    j := (k%matrix.colMax) - matrix.colOffset
     return i, j
   }
 }
 
-func (matrix MATRIX_TYPE) Dims() (int, int) {
-  if matrix == nil {
-    return 0, 0
-  } else {
-    return matrix.rows, matrix.cols
-  }
-}
+/* native matrix methods
+ * -------------------------------------------------------------------------- */
 
-func (matrix MATRIX_TYPE) Row(i int) Vector {
-  return matrix.ROW(i)
+func (matrix MATRIX_TYPE) AT(i, j int) SCALAR_TYPE {
+  return SCALAR_TYPE{&matrix.values[matrix.index(i, j)]}
 }
 
 func (matrix MATRIX_TYPE) ROW(i int) VECTOR_TYPE {
-  var v VECTOR_TYPE
-  if matrix.transposed {
-    v = NIL_VECTOR(matrix.cols)
-    for j := 0; j < matrix.cols; j++ {
-      v[j] = matrix.values[matrix.index(i, j)]
-    }
-  } else {
-    i = matrix.index(i, 0)
-    v = matrix.values[i:i + matrix.cols]
+  v := make([]STORED_TYPE, matrix.cols)
+  for j := 0; j < matrix.cols; j++ {
+    v[j] = matrix.values[matrix.index(i, j)]
   }
-  return v
-}
-
-func (matrix MATRIX_TYPE) Col(j int) Vector {
-  return matrix.COL(j)
+  return VECTOR_TYPE(v)
 }
 
 func (matrix MATRIX_TYPE) COL(j int) VECTOR_TYPE {
-  var v VECTOR_TYPE
-  if matrix.transposed {
-    j = matrix.index(0, j)
-    v = matrix.values[j:j + matrix.rows]
-  } else {
-    v = NIL_VECTOR(matrix.rows)
-    for i := 0; i < matrix.rows; i++ {
-      v[i] = matrix.values[matrix.index(i, j)]
-    }
+  v := make([]STORED_TYPE, matrix.rows)
+  for i := 0; i < matrix.rows; i++ {
+    v[i] = matrix.values[matrix.index(i, j)]
   }
-  return v
-}
-
-func (matrix MATRIX_TYPE) Diag() Vector {
-  return matrix.DIAG()
+  return VECTOR_TYPE(v)
 }
 
 func (matrix MATRIX_TYPE) DIAG() VECTOR_TYPE {
@@ -250,164 +161,31 @@ func (matrix MATRIX_TYPE) DIAG() VECTOR_TYPE {
   if n != m {
     panic("Diag(): not a square matrix!")
   }
-  v := NIL_VECTOR(n)
+  v := make([]STORED_TYPE, n)
   for i := 0; i < n; i++ {
     v[i] = matrix.values[matrix.index(i, i)]
   }
-  return v
+  return VECTOR_TYPE(v)
 }
 
-func (matrix MATRIX_TYPE) Slice(rfrom, rto, cfrom, cto int) Matrix {
+func (matrix MATRIX_TYPE) SLICE(rfrom, rto, cfrom, cto int) MATRIX_TYPE {
   m := *matrix
   m.rowOffset += rfrom
   m.rows       = rto - rfrom
   m.colOffset += cfrom
   m.cols       = cto - cfrom
-  // crop tmp vectors
-  m.initTmp()
   return &m
 }
 
-func (matrix MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
-  k1 := matrix.index(i1, j1)
-  k2 := matrix.index(i2, j2)
-  matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
+/* matrix interface
+ * -------------------------------------------------------------------------- */
+
+func (matrix MATRIX_TYPE) CloneMatrix() Matrix {
+  return matrix.Clone()
 }
-
-func (matrix MATRIX_TYPE) AsVector() Vector {
-  return matrix.STR_CONCAT(As, VECTOR_NAME)()
-}
-
-func (matrix MATRIX_TYPE) AsConstVector() ConstVector {
-  return matrix.AsVector()
-}
-
-func (matrix MATRIX_TYPE) STR_CONCAT(As, VECTOR_NAME)() VECTOR_TYPE {
-  if matrix.cols < matrix.colMax - matrix.colOffset ||
-    (matrix.rows < matrix.rowMax - matrix.rowOffset) {
-    n, m := matrix.Dims()
-    v := NIL_VECTOR(n*m)
-    for i := 0; i < n; i++ {
-      for j := 0; j < m; j++ {
-#ifdef STORE_PTR
-        v[i*matrix.cols + j] =  matrix.AT(i, j)
-#else
-        v[i*matrix.cols + j] = *matrix.AT(i, j)
-#endif
-      }
-    }
-    return v
-  } else {
-    return VECTOR_TYPE(matrix.values)
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (matrix MATRIX_TYPE) T() Matrix {
-  return &MATRIX_NAME{
-    values    :  matrix.values,
-    rows      :  matrix.cols,
-    cols      :  matrix.rows,
-    transposed: !matrix.transposed,
-    rowOffset :  matrix.colOffset,
-    rowMax    :  matrix.colMax,
-    colOffset :  matrix.rowOffset,
-    colMax    :  matrix.rowMax,
-    tmp1      :  matrix.tmp2,
-    tmp2      :  matrix.tmp1 }
-}
-
-func (matrix MATRIX_TYPE) Tip() {
-  mn      := len(matrix.values)
-  visited := make([]bool, mn)
-  k       := 0
-  for cycle := 1; cycle < mn; cycle++ {
-    if visited[cycle] {
-      continue
-    }
-    k = cycle
-
-    for {
-      if k != mn-1 {
-        k = matrix.rows*k % (mn-1)
-      }
-      visited[k] = true
-      // swap
-      matrix.values[k], matrix.values[cycle] = matrix.values[cycle], matrix.values[k]
-
-      if k == cycle {
-        break
-      }
-    }
-  }
-  matrix.rows,      matrix.cols      = matrix.cols,      matrix.rows
-  matrix.rowOffset, matrix.colOffset = matrix.colOffset, matrix.rowOffset
-  matrix.rowMax,    matrix.colMax    = matrix.colMax,    matrix.rowMax
-  matrix.tmp1,      matrix.tmp2      = matrix.tmp2,      matrix.tmp1
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (matrix MATRIX_TYPE) ValueAt(i, j int) float64 {
-  return matrix.values[matrix.index(i, j)].GetValue()
-}
-
-func (matrix MATRIX_TYPE) ConstAt(i, j int) ConstScalar {
-  return matrix.values[matrix.index(i, j)]
-}
-
-func (matrix MATRIX_TYPE) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
-  return matrix.Slice(rfrom, rto, cfrom, cto)
-}
-
-func (matrix MATRIX_TYPE) ConstRow(i int) ConstVector {
-  return matrix.ROW(i)
-}
-
-func (matrix MATRIX_TYPE) ConstCol(i int) ConstVector {
-  return matrix.COL(i)
-}
-
-func (matrix MATRIX_TYPE) ConstDiag() ConstVector {
-  return matrix.DIAG()
-}
-
-func (matrix MATRIX_TYPE) GetValues() []float64 {
-  n, m := matrix.Dims()
-  s := make([]float64, n*m)
-  for i := 0; i < n; i++ {
-    for j := 0; j < m; j++ {
-      s[i*m+j] = matrix.ConstAt(i,j).GetValue()
-    }
-  }
-  return s
-}
-
-/* -------------------------------------------------------------------------- */
 
 func (matrix MATRIX_TYPE) At(i, j int) Scalar {
   return matrix.AT(i, j)
-}
-
-func (matrix MATRIX_TYPE) AT(i, j int) SCALAR_TYPE {
-#ifdef STORE_PTR
-  return matrix.values[matrix.index(i, j)]
-#else
-  return &matrix.values[matrix.index(i, j)]
-#endif
-}
-
-func (matrix MATRIX_TYPE) Reset() {
-  for i := 0; i < len(matrix.values); i++ {
-    matrix.values[i].Reset()
-  }
-}
-
-func (matrix MATRIX_TYPE) ResetDerivatives() {
-  for i := 0; i < len(matrix.values); i++ {
-    matrix.values[i].ResetDerivatives()
-  }
 }
 
 func (a MATRIX_TYPE) Set(b ConstMatrix) {
@@ -437,6 +215,166 @@ func (matrix MATRIX_TYPE) SetIdentity() {
   }
 }
 
+func (matrix MATRIX_TYPE) Reset() {
+  for i := 0; i < len(matrix.values); i++ {
+    matrix.values[i] = 0.0
+  }
+}
+
+func (matrix MATRIX_TYPE) Row(i int) Vector {
+  return matrix.ROW(i)
+}
+
+func (matrix MATRIX_TYPE) Col(j int) Vector {
+  return matrix.COL(j)
+}
+
+func (matrix MATRIX_TYPE) Diag() Vector {
+  return matrix.DIAG()
+}
+
+func (matrix MATRIX_TYPE) Slice(rfrom, rto, cfrom, cto int) Matrix {
+  return matrix.SLICE(rfrom, rto, cfrom, cto)
+}
+
+func (matrix MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
+  k1 := matrix.index(i1, j1)
+  k2 := matrix.index(i2, j2)
+  matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
+}
+
+func (matrix MATRIX_TYPE) T() Matrix {
+  return &MATRIX_NAME{
+    values    :  matrix.values,
+    rows      :  matrix.cols,
+    cols      :  matrix.rows,
+    transposed: !matrix.transposed,
+    rowOffset :  matrix.colOffset,
+    rowMax    :  matrix.colMax,
+    colOffset :  matrix.rowOffset,
+    colMax    :  matrix.rowMax }
+}
+
+func (matrix MATRIX_TYPE) Tip() {
+  mn      := len(matrix.values)
+  visited := make([]bool, mn)
+  k       := 0
+  for cycle := 1; cycle < mn; cycle++ {
+    if visited[cycle] {
+      continue
+    }
+    k = cycle
+
+    for {
+      if k != mn-1 {
+        k = matrix.rows*k % (mn-1)
+      }
+      visited[k] = true
+      // swap
+      matrix.values[k], matrix.values[cycle] = matrix.values[cycle], matrix.values[k]
+
+      if k == cycle {
+        break
+      }
+    }
+  }
+  matrix.rows,      matrix.cols      = matrix.cols,      matrix.rows
+  matrix.rowOffset, matrix.colOffset = matrix.colOffset, matrix.rowOffset
+  matrix.rowMax,    matrix.colMax    = matrix.colMax,    matrix.rowMax
+}
+
+func (matrix MATRIX_TYPE) AsVector() Vector {
+  return VECTOR_TYPE(matrix.values)
+}
+
+func (matrix MATRIX_TYPE) storageLocation() uintptr {
+  return uintptr(unsafe.Pointer(&matrix.values[0]))
+}
+
+/* const interface
+ * -------------------------------------------------------------------------- */
+
+func (matrix MATRIX_TYPE) CloneConstMatrix() ConstMatrix {
+  return matrix.Clone()
+}
+
+func (matrix MATRIX_TYPE) Dims() (int, int) {
+  return matrix.rows, matrix.cols
+}
+
+func (matrix MATRIX_TYPE) Int8At(i, j int) int8 {
+  return int8(matrix.values[matrix.index(i, j)])
+}
+
+func (matrix MATRIX_TYPE) Int16At(i, j int) int16 {
+  return int16(matrix.values[matrix.index(i, j)])
+}
+
+func (matrix MATRIX_TYPE) Int32At(i, j int) int32 {
+  return int32(matrix.values[matrix.index(i, j)])
+}
+
+func (matrix MATRIX_TYPE) Int64At(i, j int) int64 {
+  return int64(matrix.values[matrix.index(i, j)])
+}
+
+func (matrix MATRIX_TYPE) IntAt(i, j int) int {
+  return int(matrix.values[matrix.index(i, j)])
+}
+
+func (matrix MATRIX_TYPE) Float32At(i, j int) float32 {
+  return float32(matrix.values[matrix.index(i, j)])
+}
+
+func (matrix MATRIX_TYPE) Float64At(i, j int) float64 {
+  return float64(matrix.values[matrix.index(i, j)])
+}
+
+func (matrix MATRIX_TYPE) ConstAt(i, j int) ConstScalar {
+  return SCALAR_TYPE{&matrix.values[matrix.index(i, j)]}
+}
+
+func (matrix MATRIX_TYPE) ConstSlice(rfrom, rto, cfrom, cto int) ConstMatrix {
+  m := *matrix
+  m.rowOffset += rfrom
+  m.rows       = rto - rfrom
+  m.colOffset += cfrom
+  m.cols       = cto - cfrom
+  return &m
+}
+
+func (matrix MATRIX_TYPE) ConstRow(i int) ConstVector {
+  var v []STORED_TYPE
+  if matrix.transposed {
+    v = make([]STORED_TYPE, matrix.cols)
+    for j := 0; j < matrix.cols; j++ {
+      v[j] = matrix.values[matrix.index(i, j)]
+    }
+  } else {
+    i = matrix.index(i, 0)
+    v = matrix.values[i:i + matrix.cols]
+  }
+  return VECTOR_TYPE(v)
+}
+
+func (matrix MATRIX_TYPE) ConstCol(j int) ConstVector {
+  var v []STORED_TYPE
+  if matrix.transposed {
+    j = matrix.index(0, j)
+    v = matrix.values[j:j + matrix.rows]
+  } else {
+    v = make([]STORED_TYPE, matrix.rows)
+    for i := 0; i < matrix.rows; i++ {
+      v[i] = matrix.values[matrix.index(i, j)]
+    }
+  }
+  return VECTOR_TYPE(v)
+}
+
+func (matrix MATRIX_TYPE) ConstDiag() ConstVector {
+  return matrix.DIAG()
+}
+
 func (matrix MATRIX_TYPE) IsSymmetric(epsilon float64) bool {
   n, m := matrix.Dims()
   if n != m {
@@ -444,7 +382,7 @@ func (matrix MATRIX_TYPE) IsSymmetric(epsilon float64) bool {
   }
   for i := 0; i < n; i++ {
     for j := i+1; j < m; j++ {
-      if !matrix.At(i,j).Equals(matrix.At(j,i), 1e-12) {
+      if !matrix.ConstAt(i,j).Equals(matrix.ConstAt(j,i), 1e-12) {
         return false
       }
     }
@@ -452,8 +390,8 @@ func (matrix MATRIX_TYPE) IsSymmetric(epsilon float64) bool {
   return true
 }
 
-func (matrix MATRIX_TYPE) storageLocation() uintptr {
-  return uintptr(unsafe.Pointer(&matrix.values[0]))
+func (matrix MATRIX_TYPE) AsConstVector() ConstVector {
+  return VECTOR_TYPE(matrix.values)
 }
 
 /* implement ScalarContainer
@@ -489,15 +427,6 @@ func (matrix MATRIX_TYPE) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) S
 
 func (matrix MATRIX_TYPE) ElementType() ScalarType {
   return SCALAR_REFLECT_TYPE
-}
-
-func (matrix MATRIX_TYPE) Variables(order int) error {
-  for i, _ := range matrix.values {
-    if err := matrix.values[i].SetVariable(i, len(matrix.values), order); err != nil {
-      return err
-    }
-  }
-  return nil
 }
 
 /* permutations
@@ -583,7 +512,6 @@ func (matrix MATRIX_TYPE) SymmetricPermutation(pi []int) error {
 
 func (m MATRIX_TYPE) String() string {
   var buffer bytes.Buffer
-
   buffer.WriteString("[")
   for i := 0; i < m.rows; i++ {
     if i != 0 {
@@ -599,15 +527,12 @@ func (m MATRIX_TYPE) String() string {
     buffer.WriteString("]")
   }
   buffer.WriteString("]")
-
   return buffer.String()
 }
 
 func (a MATRIX_TYPE) Table() string {
   var buffer bytes.Buffer
-
   n, m := a.Dims()
-
   for i := 0; i < n; i++ {
     if i != 0 {
       buffer.WriteString("\n")
@@ -619,7 +544,6 @@ func (a MATRIX_TYPE) Table() string {
       buffer.WriteString(a.ConstAt(i,j).String())
     }
   }
-
   return buffer.String()
 }
 
@@ -640,7 +564,7 @@ func (m MATRIX_TYPE) Export(filename string) error {
 }
 
 func (m MATRIX_TYPE) Import(filename string) error {
-  values := []float64{}
+  values := []STORED_TYPE{}
   rows   := 0
   cols   := 0
 
@@ -683,11 +607,11 @@ func (m MATRIX_TYPE) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-      values = append(values, value)
+      values = append(values, STORED_TYPE(value))
     }
     rows++
   }
-  *m = *NEW_MATRIX(rows, cols, values)
+  *m = *NEW_MATRIX(values, rows, cols)
 
   return nil
 }
@@ -695,103 +619,131 @@ func (m MATRIX_TYPE) Import(filename string) error {
 /* json
  * -------------------------------------------------------------------------- */
 
-func (obj MATRIX_TYPE) MarshalJSON() ([]byte, error) {
-  if obj.transposed || obj.rowMax > obj.rows || obj.colMax > obj.cols {
-    n, m := obj.Dims()
+func (a MATRIX_TYPE) MarshalJSON() ([]byte, error) {
+  if a.transposed || a.rowMax > a.rows || a.colMax > a.cols {
+    n, m := a.Dims()
     tmp  := NULL_MATRIX(n, m)
-    tmp.Set(obj)
-    obj = tmp
+    tmp.Set(a)
+    a = tmp
   }
-  r := struct{Values []STORED_SCALAR_TYPE; Rows int; Cols int}{}
-  r.Values = obj.values
-  r.Rows   = obj.rows
-  r.Cols   = obj.cols
+  r := struct{Values []STORED_TYPE; Rows int; Cols int}{}
+  r.Values = a.values
+  r.Rows   = a.rows
+  r.Cols   = a.cols
   return json.MarshalIndent(r, "", "  ")
 }
 
-func (obj MATRIX_TYPE) UnmarshalJSON(data []byte) error {
-  r := struct{Values []STORED_SCALAR_TYPE; Rows int; Cols int}{}
+func (a MATRIX_TYPE) UnmarshalJSON(data []byte) error {
+  r := struct{Values []STORED_TYPE; Rows int; Cols int}{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  obj.values = NIL_VECTOR(len(r.Values))
-  for i := 0; i < len(r.Values); i++ {
-    obj.values[i] = r.Values[i]
-  }
-  obj.rows       = r.Rows
-  obj.rowMax     = r.Rows
-  obj.rowOffset  = 0
-  obj.cols       = r.Cols
-  obj.colMax     = r.Cols
-  obj.colOffset  = 0
-  obj.transposed = false
-  obj.initTmp()
+  a.values     = r.Values
+  a.rows       = r.Rows
+  a.rowMax     = r.Rows
+  a.rowOffset  = 0
+  a.cols       = r.Cols
+  a.colMax     = r.Cols
+  a.colOffset  = 0
+  a.transposed = false
   return nil
 }
-
 
 /* iterator methods
  * -------------------------------------------------------------------------- */
 
-func (obj MATRIX_TYPE) ConstIterator() MatrixConstIterator {
-  return obj.ITERATOR()
+func (m MATRIX_TYPE) Iterator() MatrixIterator {
+  return m.ITERATOR()
 }
 
-func (obj MATRIX_TYPE) ConstIteratorFrom(i, j int) MatrixConstIterator {
-  return obj.ITERATOR_FROM(i, j)
+func (m MATRIX_TYPE) IteratorFrom(i, j int) MatrixIterator {
+  return m.ITERATOR_FROM(i, j)
 }
 
-func (obj MATRIX_TYPE) JointIterator(b ConstMatrix) MatrixJointIterator {
-  return obj.JOINT_ITERATOR(b)
+func (m MATRIX_TYPE) ConstIterator() MatrixConstIterator {
+  return m.ITERATOR()
 }
 
-func (obj MATRIX_TYPE) Iterator() MatrixIterator {
-  return obj.ITERATOR()
+func (m MATRIX_TYPE) ConstIteratorFrom(i, j int) MatrixConstIterator {
+  return m.ITERATOR_FROM(i, j)
 }
 
-func (obj MATRIX_TYPE) IteratorFrom(i, j int) MatrixIterator {
-  return obj.ITERATOR_FROM(i, j)
+func (m MATRIX_TYPE) JointIterator(b ConstMatrix) MatrixJointIterator {
+  return m.JOINT_ITERATOR(b)
 }
 
-func (obj MATRIX_TYPE) ITERATOR() *MATRIX_ITERATOR {
-  r := MATRIX_ITERATOR{*obj.values.ITERATOR(), obj}
-  return &r
-}
-
-func (obj MATRIX_TYPE) ITERATOR_FROM(i, j int) *MATRIX_ITERATOR {
-  k := obj.index(i, j)
-  r := MATRIX_ITERATOR{*obj.values.ITERATOR_FROM(k), obj}
-  return &r
-}
-
-func (obj MATRIX_TYPE) JOINT_ITERATOR(b ConstMatrix) *MATRIX_JOINT_ITERATOR {
-  r := MATRIX_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, -1, nil, nil}
+func (m MATRIX_TYPE) ITERATOR() *MATRIX_ITERATOR {
+  r := MATRIX_ITERATOR{m, 0, -1}
   r.Next()
   return &r
 }
 
-/* iterator
+func (m MATRIX_TYPE) ITERATOR_FROM(i, j int) *MATRIX_ITERATOR {
+  r := MATRIX_ITERATOR{m, i, j-1}
+  r.Next()
+  return &r
+}
+
+func (m MATRIX_TYPE) JOINT_ITERATOR(b ConstMatrix) *MATRIX_JOINT_ITERATOR {
+  r := MATRIX_JOINT_ITERATOR{m.ITERATOR(), b.ConstIterator(), -1, -1, SCALAR_TYPE{}, SCALAR_TYPE{}}
+  r.Next()
+  return &r
+}
+
+/* const iterator
  * -------------------------------------------------------------------------- */
 
 type MATRIX_ITERATOR struct {
-  VECTOR_ITERATOR
   m MATRIX_TYPE
+  i, j int
+}
+
+func (obj *MATRIX_ITERATOR) Get() Scalar {
+  return obj.GET()
+}
+
+func (obj *MATRIX_ITERATOR) GetConst() ConstScalar {
+  return obj.GET()
+}
+
+func (obj *MATRIX_ITERATOR) GET() SCALAR_TYPE {
+  return obj.m.AT(obj.i, obj.j)
+}
+
+func (obj *MATRIX_ITERATOR) Ok() bool {
+  return obj.i < obj.m.rowMax && obj.j < obj.m.colMax
+}
+
+func (obj *MATRIX_ITERATOR) next() {
+  if obj.j == obj.m.colMax-1 {
+    obj.i = obj.i + 1
+    obj.j = obj.m.colOffset
+  } else {
+    obj.j = obj.j + 1
+  }
+}
+
+func (obj *MATRIX_ITERATOR) Next() {
+  obj.next()
+  for obj.Ok() && obj.GET().nullScalar() {
+    obj.next()
+  }
 }
 
 func (obj *MATRIX_ITERATOR) Index() (int, int) {
-  return obj.m.ij(obj.VECTOR_ITERATOR.Index())
+  return obj.i, obj.j
 }
 
 func (obj *MATRIX_ITERATOR) Clone() *MATRIX_ITERATOR {
-  return &MATRIX_ITERATOR{*obj.VECTOR_ITERATOR.Clone(), obj.m}
-}
-
-func (obj *MATRIX_ITERATOR) CloneConstIterator() MatrixConstIterator {
-  return &MATRIX_ITERATOR{*obj.VECTOR_ITERATOR.Clone(), obj.m}
+  return &MATRIX_ITERATOR{obj.m, obj.i, obj.j}
 }
 
 func (obj *MATRIX_ITERATOR) CloneIterator() MatrixIterator {
-  return &MATRIX_ITERATOR{*obj.VECTOR_ITERATOR.Clone(), obj.m}
+  return &MATRIX_ITERATOR{obj.m, obj.i, obj.j}
+}
+
+func (obj *MATRIX_ITERATOR) CloneConstIterator() MatrixConstIterator {
+  return &MATRIX_ITERATOR{obj.m, obj.i, obj.j}
 }
 
 /* joint iterator
@@ -810,15 +762,15 @@ func (obj *MATRIX_JOINT_ITERATOR) Index() (int, int) {
 }
 
 func (obj *MATRIX_JOINT_ITERATOR) Ok() bool {
-  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
-         !(obj.s2 == nil || obj.s2.GetValue() == 0.0)
+  return !(obj.s1.ptr == nil || obj.s1.GET_METHOD_NAME() == STORED_TYPE(0)) ||
+         !(obj.s2     == nil || obj.s2.GET_METHOD_NAME() == STORED_TYPE(0))
 }
 
 func (obj *MATRIX_JOINT_ITERATOR) Next() {
   ok1 := obj.it1.Ok()
   ok2 := obj.it2.Ok()
-  obj.s1 = nil
-  obj.s2 = nil
+  obj.s1.ptr = nil
+  obj.s2     = nil
   if ok1 {
     obj.i, obj.j = obj.it1.Index()
     obj.s1       = obj.it1.GET()
@@ -828,13 +780,13 @@ func (obj *MATRIX_JOINT_ITERATOR) Next() {
     switch {
     case obj.i > i || (obj.i == i && obj.j > j) || !ok1:
       obj.i, obj.j = i, j
-      obj.s1       = nil
+      obj.s1.ptr   = nil
       obj.s2       = obj.it2.GetConst()
     case obj.i == i && obj.j == j:
       obj.s2       = obj.it2.GetConst()
     }
   }
-  if obj.s1 != nil {
+  if obj.s1.ptr != nil {
     obj.it1.Next()
   }
   if obj.s2 != nil {
@@ -845,7 +797,7 @@ func (obj *MATRIX_JOINT_ITERATOR) Next() {
 }
 
 func (obj *MATRIX_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {
-  if obj.s1 == nil {
+  if obj.s1.ptr == nil {
     return nil, obj.s2
   } else {
     return obj.s1, obj.s2
@@ -853,23 +805,11 @@ func (obj *MATRIX_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {
 }
 
 func (obj *MATRIX_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
-  if obj.s1 == nil {
+  if obj.s1.ptr == nil {
     return nil, obj.s2
   } else {
     return obj.s1, obj.s2
   }
-}
-
-func (obj *MATRIX_JOINT_ITERATOR) GetValue() (float64, float64) {
-  v1 := 0.0
-  v2 := 0.0
-  if obj.s1 != nil {
-    v1 = obj.s1.GetValue()
-  }
-  if obj.s2 != nil {
-    v2 = obj.s2.GetValue()
-  }
-  return v1, v2
 }
 
 func (obj *MATRIX_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {

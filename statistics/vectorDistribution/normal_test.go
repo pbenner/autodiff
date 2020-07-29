@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,25 +24,24 @@ import   "testing"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
 func TestNormalDistribution1(t *testing.T) {
 
-  mu     := NewVector(RealType, []float64{2,3})
-  sigma  := NewMatrix(RealType, 2, 2, []float64{2,1,1,2})
+  mu     := NewDenseReal64Vector([]float64{2,3})
+  sigma  := NewDenseReal64Matrix([]float64{2,1,1,2}, 2, 2)
 
   normal, _ := NewNormalDistribution(mu, sigma)
 
-  x := NewVector(RealType, []float64{1,2})
-  y := NewReal(0.0)
+  x := NewDenseReal64Vector([]float64{1,2})
+  y := NewReal64(0.0)
 
-  Variables(1,x.At(0),x.At(1))
+  Variables(1, x.MagicAt(0), x.MagicAt(1))
 
   normal.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -2.720517) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -2.720517) > 1e-4 {
     t.Error("Normal LogPdf failed!")
   }
   if math.Abs(y.GetDerivative(0) - 0.3333333) > 1e-4 {
@@ -55,32 +54,32 @@ func TestNormalDistribution1(t *testing.T) {
 
 func TestNormalDistribution2(t *testing.T) {
 
-  mu     := NewVector(RealType, []float64{2,3})
-  sigma  := NewMatrix(RealType, 2, 2, []float64{16,8,8,10})
+  mu     := NewDenseFloat64Vector([]float64{2,3})
+  sigma  := NewDenseFloat64Matrix([]float64{16,8,8,10}, 2, 2)
 
   normal, _ := NewNormalDistribution(mu, sigma)
 
-  x := NewVector(RealType, []float64{1,2})
-  y := NewReal(0.0)
+  x := NewDenseFloat64Vector([]float64{1,2})
+  y := NewFloat64(0.0)
 
   normal.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -4.172134e+00) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -4.172134e+00) > 1e-4 {
     t.Error("Normal LogPdf failed!")
   }
 }
 
 func TestNormalDistribution3(t *testing.T) {
 
-  mu     := NewVector(RealType, []float64{3})
-  sigma  := NewMatrix(RealType, 1, 1, []float64{2})
+  mu     := NewDenseReal64Vector([]float64{3})
+  sigma  := NewDenseReal64Matrix([]float64{2}, 1, 1)
 
   normal, _ := NewNormalDistribution(mu, sigma)
 
-  x := NewVector(RealType, []float64{2.2})
-  y := NewReal(0.0)
+  x := NewDenseReal64Vector([]float64{2.2})
+  y := NewReal64(0.0)
 
-  Variables(1,x.At(0))
+  Variables(1, x.MagicAt(0))
 
   normal.LogPdf(y, x)
 
@@ -91,21 +90,21 @@ func TestNormalDistribution3(t *testing.T) {
 
 func TestNormalDistribution4(t *testing.T) {
 
-  m := NewReal(3.0)
-  s := NewReal(4.0)
+  m := NewReal64(3.0)
+  s := NewReal64(4.0)
 
-  Variables(1,m,s)
+  Variables(1, m, s)
 
-  mu     := NewVector(RealType, []float64{3})
-  sigma  := NewMatrix(RealType, 1, 1, []float64{4})
+  mu     := NewDenseReal64Vector([]float64{3})
+  sigma  := NewDenseReal64Matrix([]float64{4}, 1, 1)
 
   mu   .At(  0).Set(m)
   sigma.At(0,0).Set(s)
 
   normal, _ := NewNormalDistribution(mu, sigma)
 
-  x := NewVector(RealType, []float64{0.32094})
-  y := NewReal(0.0)
+  x := NewDenseFloat64Vector([]float64{0.32094})
+  y := NewReal64(0.0)
 
   normal.LogPdf(y, x)
 
@@ -134,23 +133,24 @@ func TestNormalFit1(t *testing.T) {
     1.2257446,  3.3113684,  5.1801388,  2.2084823,  1.4010860,  3.7119648,
     6.1073776,  7.1421863,  1.0146286,  3.7467156,  1.4064666,  2.3686035,
     4.3714954,  4.0999415,  2.2389224,  6.1477621 }
-  y := NewReal(0.0)
+  y := NewReal64(0.0)
   // define the (negative) likelihood function (here as a function of the
   // variables that we want to optimize)
-  objective := func(variables Vector) (Scalar, error) {
+  objective := func(variables ConstVector) (MagicScalar, error) {
     // create a new initial normal distribution
-    mu     := NullVector(RealType, 1)
-    sigma  := NullMatrix(RealType, 1, 1)
+    mu     := NullDenseReal64Vector(1)
+    sigma  := NullDenseReal64Matrix(1, 1)
     // copy the variables
-    mu   .At(  0).Set(variables.At(0))
-    sigma.At(0,0).Set(variables.At(1))
+    mu   .At(  0).Set(variables.ConstAt(0))
+    sigma.At(0,0).Set(variables.ConstAt(1))
     normal, _ := NewNormalDistribution(mu, sigma)
-    result := NewScalar(RealType, 0.0)
+    result    := NewReal64(0.0)
     for i := 0; i < len(x); i++ {
-      normal.LogPdf(y, NewVector(RealType, []float64{x[i]}))
+      normal.LogPdf(y, NewDenseReal64Vector([]float64{x[i]}))
       result.Add(result, y)
     }
-    return Neg(result), nil
+    result.Neg(result)
+    return result, nil
   }
   // rprop hook
   // hook := func(gradient []float64, variables Vector, s Scalar) bool {
@@ -160,21 +160,21 @@ func TestNormalFit1(t *testing.T) {
   //   return false
   // }
   // initial value
-  v0 := NewVector(RealType, []float64{3,4})
+  v0 := NewDenseFloat64Vector([]float64{3,4})
   // run rprop
   vn, _ := rprop.Run(objective, v0, 0.01, []float64{1.1, 0.1},
     //rprop.Hook{hook},
     rprop.Epsilon{1e-8})
   // check result
-  if math.Abs(vn.At(0).GetValue() - 3.238471) > 1e-4 ||
-     math.Abs(vn.At(1).GetValue() - 4.502649) > 1e-4 {
+  if math.Abs(vn.At(0).GetFloat64() - 3.238471) > 1e-4 ||
+     math.Abs(vn.At(1).GetFloat64() - 4.502649) > 1e-4 {
     t.Error("TestNormalFit1 failed!")
   }
 }
 
 func TestNormalFit2(t *testing.T) {
   // define the observed data
-  x := NewMatrix(RealType, 100, 2, []float64{
+  x := NewDenseFloat64Matrix([]float64{
     3.1698655,  2.07178555,
     1.4084200,  1.61097261,
     3.6935883,  2.95324698,
@@ -274,30 +274,31 @@ func TestNormalFit2(t *testing.T) {
     0.5486213,  3.90771551,
     1.0723826,  2.14096739,
    -0.4872921, -0.07513201,
-    0.6451411,  3.54314968 })
-  y := NewReal(0.0)
+    0.6451411,  3.54314968 }, 100, 2)
+  y := NewReal64(0.0)
   // number of data points
   n, _ := x.Dims()
   // define the (negative) likelihood function (here as a function of the
   // variables that we want to optimize)
-  objective := func(variables Vector) (Scalar, error) {
+  objective := func(variables ConstVector) (MagicScalar, error) {
     // create a new initial normal distribution
-    mu     := NullVector(RealType, 2)
-    sigma  := NullMatrix(RealType, 2, 2)
+    mu     := NullDenseReal64Vector(2)
+    sigma  := NullDenseReal64Matrix(2, 2)
     // copy the variables
-    mu   .At(  0).Set(variables.At(0))
-    mu   .At(  1).Set(variables.At(1))
-    sigma.At(0,0).Set(variables.At(2))
-    sigma.At(0,1).Set(variables.At(3))
-    sigma.At(1,0).Set(variables.At(3))
-    sigma.At(1,1).Set(variables.At(4))
+    mu   .At(  0).Set(variables.ConstAt(0))
+    mu   .At(  1).Set(variables.ConstAt(1))
+    sigma.At(0,0).Set(variables.ConstAt(2))
+    sigma.At(0,1).Set(variables.ConstAt(3))
+    sigma.At(1,0).Set(variables.ConstAt(3))
+    sigma.At(1,1).Set(variables.ConstAt(4))
     normal, _ := NewNormalDistribution(mu, sigma)
-    result := NewScalar(RealType, 0.0)
+    result    := NewReal64(0.0)
     for i := 0; i < n; i++ {
       normal.LogPdf(y, x.Row(i))
       result.Add(result, y)
     }
-    return Neg(result), nil
+    result.Neg(result)
+    return result, nil
   }
   // rprop hook
   // hook := func(gradient []float64, variables Vector, s Scalar) bool {
@@ -306,17 +307,17 @@ func TestNormalFit2(t *testing.T) {
   //   return false
   // }
   // initial value
-  v0 := NewVector(RealType, []float64{1,1,2,1,2})
+  v0 := NewDenseFloat64Vector([]float64{1,1,2,1,2})
   // run rprop
   vn, _ := rprop.Run(objective, v0, 0.01, []float64{1.2, 0.2},
     //rprop.Hook{hook},
     rprop.Epsilon{1e-8})
   // check result
-  if math.Abs(vn.At(0).GetValue() - 2.069545e+00) > 1e-4 ||
-     math.Abs(vn.At(1).GetValue() - 3.100224e+00) > 1e-4 ||
-     math.Abs(vn.At(2).GetValue() - 1.969915e+00) > 1e-4 ||
-     math.Abs(vn.At(3).GetValue() - 7.598206e-01) > 1e-4 ||
-     math.Abs(vn.At(4).GetValue() - 2.089113e+00) > 1e-4 {
+  if math.Abs(vn.At(0).GetFloat64() - 2.069545e+00) > 1e-4 ||
+     math.Abs(vn.At(1).GetFloat64() - 3.100224e+00) > 1e-4 ||
+     math.Abs(vn.At(2).GetFloat64() - 1.969915e+00) > 1e-4 ||
+     math.Abs(vn.At(3).GetFloat64() - 7.598206e-01) > 1e-4 ||
+     math.Abs(vn.At(4).GetFloat64() - 2.089113e+00) > 1e-4 {
     t.Error("TestNormalFit2 failed!")
   }
 }

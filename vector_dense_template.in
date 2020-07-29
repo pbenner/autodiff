@@ -1,6 +1,6 @@
 /* -*- mode: go; -*-
  *
- * Copyright (C) 2015-2017 Philipp Benner
+ * Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,73 +18,40 @@
 
 #include "macros.h"
 
-package autodiff
-
-/* -------------------------------------------------------------------------- */
-
-import "fmt"
-import "bytes"
-import "bufio"
-import "encoding/json"
-import "errors"
-import "compress/gzip"
-import "sort"
-import "strconv"
-import "strings"
-import "os"
-
-/* -------------------------------------------------------------------------- */
-
 #define VECTOR_JOINT_ITERATOR_ STR_CONCAT(VECTOR_NAME, JointIterator_)
 #define VECTOR_JOINT_ITERATOR  STR_CONCAT(VECTOR_NAME, JointIterator)
 #define VECTOR_CONST_ITERATOR  STR_CONCAT(VECTOR_NAME, ConstIterator)
 #define VECTOR_ITERATOR        STR_CONCAT(VECTOR_NAME, Iterator)
 
-#ifdef STORE_PTR
-# define STORED_SCALAR_TYPE *SCALAR_NAME
-#else
-# define STORED_SCALAR_TYPE  SCALAR_NAME
-#endif
+/* -------------------------------------------------------------------------- */
 
-/* vector type declaration
- * -------------------------------------------------------------------------- */
+package autodiff
 
-type VECTOR_NAME []STORED_SCALAR_TYPE
+/* -------------------------------------------------------------------------- */
+
+import "fmt"
+import "bufio"
+import "bytes"
+import "compress/gzip"
+import "encoding/json"
+import "os"
+import "sort"
+import "strconv"
+import "strings"
+
+/* -------------------------------------------------------------------------- */
+
+type VECTOR_TYPE []STORED_TYPE
 
 /* constructors
  * -------------------------------------------------------------------------- */
 
-// Allocate a new vector. Scalars are set to the given values.
-func NEW_VECTOR(values []float64) VECTOR_TYPE {
-  v := NIL_VECTOR(len(values))
-  for i, _ := range values {
-#ifdef STORE_PTR
-    v[i] =  NEW_SCALAR(values[i])
-#else
-    v[i] = *NEW_SCALAR(values[i])
-#endif
-  }
-  return v
+func NEW_VECTOR(values []STORED_TYPE) VECTOR_TYPE {
+  return VECTOR_TYPE(values)
 }
 
-// Allocate a new vector. All scalars are set to zero.
-func NULL_VECTOR(length int) VECTOR_TYPE {
-  v := NIL_VECTOR(length)
-  if length > 0 {
-    for i := 0; i < length; i++ {
-#ifdef STORE_PTR
-      v[i] =  NEW_SCALAR(0.0)
-#else
-      v[i] = *NEW_SCALAR(0.0)
-#endif
-    }
-  }
-  return v
-}
-
-// Create a empty vector without allocating memory for the scalar variables.
-func NIL_VECTOR(length int) VECTOR_TYPE {
-  return make(VECTOR_NAME, length)
+func NULL_VECTOR(n int) VECTOR_TYPE {
+  return VECTOR_TYPE(make([]STORED_TYPE, n))
 }
 
 // Convert vector type.
@@ -93,167 +60,71 @@ func AS_VECTOR(v ConstVector) VECTOR_TYPE {
   case VECTOR_TYPE:
     return v_.Clone()
   }
-  r := NULL_VECTOR(v.Dim())
-  for i := 0; i < v.Dim(); i++ {
-    r.AT(i).Set(v.ConstAt(i))
+  values := make([]STORED_TYPE, v.Dim())
+  for it := v.ConstIterator(); it.Ok(); it.Next() {
+    values[it.Index()] = it.GetConst().GET_METHOD_NAME()
   }
+  return NEW_VECTOR(values)
+}
+
+/* cloning
+ * -------------------------------------------------------------------------- */
+
+func (v VECTOR_TYPE) Clone() VECTOR_TYPE {
+  r := make([]STORED_TYPE, v.Dim())
+  copy(r, v)
   return r
 }
 
-/* -------------------------------------------------------------------------- */
+/* native vector methods
+ * -------------------------------------------------------------------------- */
 
-// Create a deep copy of the vector.
-func (v VECTOR_TYPE) Clone() VECTOR_TYPE {
-  result := make(VECTOR_NAME, len(v))
-
-  for i, _ := range v {
-#ifdef STORE_PTR
-    result[i] = v[i].Clone()
-#else
-    result[i] = *v[i].Clone()
-#endif
-  }
-  return result
+func (v VECTOR_TYPE) AT(i int) SCALAR_TYPE {
+  return SCALAR_TYPE{&v[i]}
 }
+
+func (v VECTOR_TYPE) APPEND(w VECTOR_TYPE) VECTOR_TYPE {
+  return append(v, w...)
+}
+
+func (v VECTOR_TYPE) STR_CONCAT(To, MATRIX_NAME)(n, m int) MATRIX_TYPE {
+  if n*m != len(v) {
+    panic("Matrix dimension does not fit input vector!")
+  }
+  matrix := MATRIX_NAME{}
+  matrix.values    = v
+  matrix.rows      = n
+  matrix.cols      = m
+  matrix.rowOffset = 0
+  matrix.rowMax    = n
+  matrix.colOffset = 0
+  matrix.colMax    = m
+  return &matrix
+}
+
+/* vector interface
+ * -------------------------------------------------------------------------- */
 
 func (v VECTOR_TYPE) CloneVector() Vector {
   return v.Clone()
-}
-
-// Copy scalars from w into this vector. The lengths of both vectors must
-// match.
-func (v VECTOR_TYPE) Set(w ConstVector) {
-  if v.Dim() != w.Dim() {
-    panic("Set(): Vector dimensions do not match!")
-  }
-  for i := 0; i < w.Dim(); i++ {
-    v[i].Set(w.ConstAt(i))
-  }
-}
-
-func (v VECTOR_TYPE) SET(w VECTOR_TYPE) {
-  if v.IDEM(w) {
-    return
-  }
-  if v.Dim() != w.Dim() {
-    panic("Set(): Vector dimensions do not match!")
-  }
-  for i := 0; i < w.Dim(); i++ {
-    v[i].SET(w.AT(i))
-  }
-}
-
-func (v VECTOR_TYPE) IDEM(w VECTOR_TYPE) bool {
-  if len(v) != len(w) {
-    return false
-  }
-  if len(v) == 0 {
-    return false
-  }
-  return &v[0] == &w[0]
-}
-
-/* const vector methods
- * -------------------------------------------------------------------------- */
-
-func (v VECTOR_TYPE) ValueAt(i int) float64 {
-  return v[i].GetValue()
-}
-
-func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
-  return v[i]
-}
-
-func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
-  return v[i:j]
-}
-
-func (v VECTOR_TYPE) GetValues() []float64 {
-  s := make([]float64, v.Dim())
-  for i := 0; i < v.Dim(); i++ {
-    s[i] = v.ConstAt(i).GetValue()
-  }
-  return s
-}
-
-/* iterator methods
- * -------------------------------------------------------------------------- */
-
-func (obj VECTOR_TYPE) ConstIterator() VectorConstIterator {
-  return obj.ITERATOR()
-}
-
-func (obj VECTOR_TYPE) ConstIteratorFrom(i int) VectorConstIterator {
-  return obj.ITERATOR_FROM(i)
-}
-
-func (obj VECTOR_TYPE) Iterator() VectorIterator {
-  return obj.ITERATOR()
-}
-
-func (obj VECTOR_TYPE) IteratorFrom(i int) VectorIterator {
-  return obj.ITERATOR_FROM(i)
-}
-
-func (obj VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
-  return obj.JOINT_ITERATOR(b)
-}
-
-func (obj VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterator {
-  return obj.JOINT_ITERATOR(b)
-}
-
-func (obj VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
-  r := VECTOR_ITERATOR{obj, -1}
-  r.Next()
-  return &r
-}
-
-func (obj VECTOR_TYPE) ITERATOR_FROM(i int) *VECTOR_ITERATOR {
-  r := VECTOR_ITERATOR{obj, i-1}
-  r.Next()
-  return &r
-}
-
-func (obj VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
-  r := VECTOR_JOINT_ITERATOR{obj.ITERATOR(), b.ConstIterator(), -1, nil, nil}
-  r.Next()
-  return &r
-}
-
-func (obj VECTOR_TYPE) JOINT_ITERATOR_(b VECTOR_TYPE) *VECTOR_JOINT_ITERATOR_ {
-  r := VECTOR_JOINT_ITERATOR_{obj.ITERATOR(), b.ITERATOR(), -1, nil, nil}
-  r.Next()
-  return &r
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (v VECTOR_TYPE) Dim() int {
-  return len(v)
 }
 
 func (v VECTOR_TYPE) At(i int) Scalar {
   return v.AT(i)
 }
 
-func (v VECTOR_TYPE) AT(i int) SCALAR_TYPE {
-#ifdef STORE_PTR
-  return v[i]
-#else
-  return &v[i]
-#endif
+func (v VECTOR_TYPE) Set(w ConstVector) {
+  if v.Dim() != w.Dim() {
+    panic("Set(): Vector dimensions do not match!")
+  }
+  for i := 0; i < w.Dim(); i++ {
+    v[i] = w.ConstAt(i).GET_METHOD_NAME()
+  }
 }
 
 func (v VECTOR_TYPE) Reset() {
   for i := 0; i < len(v); i++ {
-    v[i].Reset()
-  }
-}
-
-func (v VECTOR_TYPE) ResetDerivatives() {
-  for i := 0; i < len(v); i++ {
-    v[i].ResetDerivatives()
+    v[i] = 0.0
   }
 }
 
@@ -268,48 +139,73 @@ func (v VECTOR_TYPE) Slice(i, j int) Vector {
   return v[i:j]
 }
 
-func (v VECTOR_TYPE) Append(w VECTOR_TYPE) VECTOR_TYPE {
-  return append(v, w...)
+func (v VECTOR_TYPE) Swap(i, j int) {
+  v[i], v[j] = v[j], v[i]
 }
 
 func (v VECTOR_TYPE) AppendScalar(scalars ...Scalar) Vector {
   for _, scalar := range scalars {
-    switch s := scalar.(type) {
-    case SCALAR_TYPE:
-#ifdef STORE_PTR
-      v = append(v,  s)
-#else
-      v = append(v, *s)
-#endif
-    default:
-#ifdef STORE_PTR
-      v = append(v,  s.ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
-#else
-      v = append(v, *s.ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
-#endif
-    }
+    v = append(v, scalar.GET_METHOD_NAME())
   }
   return v
 }
 
-func (v VECTOR_TYPE) AppendVector(w_ Vector) Vector {
-  switch w := w_.(type) {
-  case VECTOR_TYPE:
-    return append(v, w...)
-  default:
-    for i := 0; i < w.Dim(); i++ {
-#ifdef STORE_PTR
-      v = append(v,  w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
-#else
-      v = append(v, *w.At(i).ConvertType(SCALAR_REFLECT_TYPE).(SCALAR_TYPE))
-#endif
-    }
-    return v
+func (v VECTOR_TYPE) AppendVector(w Vector) Vector {
+  for i := 0; i < w.Dim(); i++ {
+    v = append(v, w.ConstAt(i).GET_METHOD_NAME())
   }
+  return v
 }
 
-func (v VECTOR_TYPE) Swap(i, j int) {
-  v[i], v[j] = v[j], v[i]
+func (v VECTOR_TYPE) AsMatrix(n, m int) Matrix {
+  return v.STR_CONCAT(To, MATRIX_NAME)(n, m)
+}
+
+/* const interface
+ * -------------------------------------------------------------------------- */
+
+func (v VECTOR_TYPE) CloneConstVector() ConstVector {
+  return v.Clone()
+}
+
+func (v VECTOR_TYPE) Dim() int {
+  return len(v)
+}
+
+func (v VECTOR_TYPE) Int8At(i int) int8 {
+  return int8(v[i])
+}
+
+func (v VECTOR_TYPE) Int16At(i int) int16 {
+  return int16(v[i])
+}
+
+func (v VECTOR_TYPE) Int32At(i int) int32 {
+  return int32(v[i])
+}
+
+func (v VECTOR_TYPE) Int64At(i int) int64 {
+  return int64(v[i])
+}
+
+func (v VECTOR_TYPE) IntAt(i int) int {
+  return int(v[i])
+}
+
+func (v VECTOR_TYPE) Float32At(i int) float32 {
+  return float32(v[i])
+}
+
+func (v VECTOR_TYPE) Float64At(i int) float64 {
+  return float64(v[i])
+}
+
+func (v VECTOR_TYPE) ConstAt(i int) ConstScalar {
+  return SCALAR_TYPE{&v[i]}
+}
+
+func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
+  return v[i:j]
 }
 
 /* imlement ScalarContainer
@@ -317,17 +213,13 @@ func (v VECTOR_TYPE) Swap(i, j int) {
 
 func (v VECTOR_TYPE) Map(f func(Scalar)) {
   for i := 0; i < len(v); i++ {
-#ifdef STORE_PTR
-    f( v[i])
-#else
-    f(&v[i])
-#endif
+    f(v.At(i))
   }
 }
 
 func (v VECTOR_TYPE) MapSet(f func(ConstScalar) Scalar) {
   for i := 0; i < len(v); i++ {
-    v[i].Set(f(v.ConstAt(i)))
+    v[i] = f(v.ConstAt(i)).GET_METHOD_NAME()
   }
 }
 
@@ -342,26 +234,17 @@ func (v VECTOR_TYPE) ElementType() ScalarType {
   return SCALAR_REFLECT_TYPE
 }
 
-func (v VECTOR_TYPE) Variables(order int) error {
-  for i, _ := range v {
-    if err := v[i].SetVariable(i, len(v), order); err != nil {
-      return err
-    }
-  }
-  return nil
-}
-
 /* permutations
  * -------------------------------------------------------------------------- */
 
 func (v VECTOR_TYPE) Permute(pi []int) error {
   if len(pi) != len(v) {
-    return errors.New("Permute(): permutation vector has invalid length!")
+    return fmt.Errorf("Permute(): permutation vector has invalid length!")
   }
   // permute vector
   for i := 0; i < len(v); i++ {
     if pi[i] < 0 || pi[i] >= len(v) {
-      return errors.New("Permute(): invalid permutation")
+      return fmt.Errorf("Permute(): invalid permutation")
     }
     if i != pi[i] && pi[i] > i {
       // permute elements
@@ -380,7 +263,7 @@ type SORT_TYPE VECTOR_TYPE
 
 func (v SORT_TYPE) Len() int           { return len(v) }
 func (v SORT_TYPE) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
-func (v SORT_TYPE) Less(i, j int) bool { return v[i].GetValue() < v[j].GetValue() }
+func (v SORT_TYPE) Less(i, j int) bool { return v[i] < v[j] }
 
 func (v VECTOR_TYPE) Sort(reverse bool) {
   if reverse {
@@ -393,51 +276,27 @@ func (v VECTOR_TYPE) Sort(reverse bool) {
 /* type conversion
  * -------------------------------------------------------------------------- */
 
-func (v VECTOR_TYPE) AsMatrix(n, m int) Matrix {
-  return v.STR_CONCAT(To, MATRIX_NAME)(n, m)
-}
-
-func (v VECTOR_TYPE) STR_CONCAT(To, MATRIX_NAME)(n, m int) MATRIX_TYPE {
-  if n*m != len(v) {
-    panic("Matrix dimension does not fit input vector!")
-  }
-  matrix := MATRIX_NAME{}
-  matrix.values    = v
-  matrix.rows      = n
-  matrix.cols      = m
-  matrix.rowOffset = 0
-  matrix.rowMax    = n
-  matrix.colOffset = 0
-  matrix.colMax    = m
-  matrix.initTmp()
-  return &matrix
-}
-
 func (v VECTOR_TYPE) String() string {
   var buffer bytes.Buffer
-
   buffer.WriteString("[")
   for i, _ := range v {
     if i != 0 {
       buffer.WriteString(", ")
     }
-    buffer.WriteString(v[i].String())
+    buffer.WriteString(v.ConstAt(i).String())
   }
   buffer.WriteString("]")
-
   return buffer.String()
 }
 
 func (v VECTOR_TYPE) Table() string {
   var buffer bytes.Buffer
-
   for i, _ := range v {
     if i != 0 {
       buffer.WriteString(" ")
     }
-    buffer.WriteString(v[i].String())
+    buffer.WriteString(v.ConstAt(i).String())
   }
-
   return buffer.String()
 }
 
@@ -481,7 +340,7 @@ func (v *VECTOR_TYPE) Import(filename string) error {
     scanner = bufio.NewScanner(f)
   }
   // reset vector
-  *v = VECTOR_NAME{}
+  *v = VECTOR_TYPE{}
 
   for scanner.Scan() {
     fields := strings.Fields(scanner.Text())
@@ -496,11 +355,7 @@ func (v *VECTOR_TYPE) Import(filename string) error {
       if err != nil {
         return fmt.Errorf("invalid table")
       }
-#ifdef STORE_PTR
-      *v = append(*v,  NEW_SCALAR(value))
-#else
-      *v = append(*v, *NEW_SCALAR(value))
-#endif
+      *v = append(*v, STORED_TYPE(value))
     }
   }
   return nil
@@ -509,25 +364,70 @@ func (v *VECTOR_TYPE) Import(filename string) error {
 /* json
  * -------------------------------------------------------------------------- */
 
-func (obj VECTOR_TYPE) MarshalJSON() ([]byte, error) {
-  r := []STORED_SCALAR_TYPE{}
-  r  = obj
+func (v VECTOR_TYPE) MarshalJSON() ([]byte, error) {
+  r := []STORED_TYPE{}
+  r  = v
   return json.MarshalIndent(r, "", "  ")
 }
 
-func (obj *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
-  r := []STORED_SCALAR_TYPE{}
+func (v *VECTOR_TYPE) UnmarshalJSON(data []byte) error {
+  r := []STORED_TYPE{}
   if err := json.Unmarshal(data, &r); err != nil {
     return err
   }
-  *obj = NIL_VECTOR(len(r))
-  for i := 0; i < len(r); i++ {
-    (*obj)[i] = r[i]
-  }
+  *v = r
   return nil
 }
 
-/* iterator
+/* iterator methods
+ * -------------------------------------------------------------------------- */
+
+func (v VECTOR_TYPE) ConstIterator() VectorConstIterator {
+  return v.ITERATOR()
+}
+
+func (v VECTOR_TYPE) ConstIteratorFrom(i int) VectorConstIterator {
+  return v.ITERATOR_FROM(i)
+}
+
+func (v VECTOR_TYPE) Iterator() VectorIterator {
+  return v.ITERATOR()
+}
+
+func (v VECTOR_TYPE) IteratorFrom(i int) VectorIterator {
+  return v.ITERATOR_FROM(i)
+}
+
+func (v VECTOR_TYPE) JointIterator(b ConstVector) VectorJointIterator {
+  return v.JOINT_ITERATOR(b)
+}
+
+func (v VECTOR_TYPE) ConstJointIterator(b ConstVector) VectorConstJointIterator {
+  return v.JOINT_ITERATOR(b)
+}
+
+func (v VECTOR_TYPE) ITERATOR() *VECTOR_ITERATOR {
+  r := VECTOR_ITERATOR{v, -1}
+  r.Next()
+  return &r
+}
+
+func (v VECTOR_TYPE) ITERATOR_FROM(i int) *VECTOR_ITERATOR {
+  r := VECTOR_ITERATOR{v, i-1}
+  r.Next()
+  return &r
+}
+
+func (v VECTOR_TYPE) JOINT_ITERATOR(b ConstVector) *VECTOR_JOINT_ITERATOR {
+  r := VECTOR_JOINT_ITERATOR{}
+  r.it1 = v.ITERATOR()
+  r.it2 = b.ConstIterator()
+  r.idx = -1
+  r.Next()
+  return &r
+}
+
+/* const iterator
  * -------------------------------------------------------------------------- */
 
 type VECTOR_ITERATOR struct {
@@ -535,24 +435,16 @@ type VECTOR_ITERATOR struct {
   i int
 }
 
-func (obj *VECTOR_ITERATOR) Get() Scalar {
-  return obj.GET()
-}
-
 func (obj *VECTOR_ITERATOR) GetConst() ConstScalar {
   return obj.GET()
 }
 
-func (obj *VECTOR_ITERATOR) GetValue() float64 {
-  return obj.GET().GetValue()
+func (obj *VECTOR_ITERATOR) Get() Scalar {
+  return obj.GET()
 }
 
 func (obj *VECTOR_ITERATOR) GET() SCALAR_TYPE {
-#ifdef STORE_PTR
-  return  obj.v[obj.i]
-#else
-  return &obj.v[obj.i]
-#endif
+  return SCALAR_TYPE{&obj.v[obj.i]}
 }
 
 func (obj *VECTOR_ITERATOR) Ok() bool {
@@ -571,11 +463,11 @@ func (obj *VECTOR_ITERATOR) Clone() *VECTOR_ITERATOR {
   return &VECTOR_ITERATOR{obj.v, obj.i}
 }
 
-func (obj *VECTOR_ITERATOR) CloneConstIterator() VectorConstIterator {
+func (obj *VECTOR_ITERATOR) CloneIterator() VectorIterator {
   return &VECTOR_ITERATOR{obj.v, obj.i}
 }
 
-func (obj *VECTOR_ITERATOR) CloneIterator() VectorIterator {
+func (obj *VECTOR_ITERATOR) CloneConstIterator() VectorConstIterator {
   return &VECTOR_ITERATOR{obj.v, obj.i}
 }
 
@@ -595,15 +487,15 @@ func (obj *VECTOR_JOINT_ITERATOR) Index() int {
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) Ok() bool {
-  return !(obj.s1 == nil || obj.s1.GetValue() == 0.0) ||
-         !(obj.s2 == nil || obj.s2.GetValue() == 0.0)
+  return !(obj.s1.ptr == nil || obj.s1.GetFloat64() == 0.0) ||
+         !(obj.s2     == nil || obj.s2.GetFloat64() == 0.0)
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) Next() {
   ok1 := obj.it1.Ok()
   ok2 := obj.it2.Ok()
-  obj.s1 = nil
-  obj.s2 = nil
+  obj.s1.ptr = nil
+  obj.s2     = nil
   if ok1 {
     obj.idx = obj.it1.Index()
     obj.s1  = obj.it1.GET()
@@ -611,14 +503,14 @@ func (obj *VECTOR_JOINT_ITERATOR) Next() {
   if ok2 {
     switch {
     case obj.idx >  obj.it2.Index() || !ok1:
-      obj.idx = obj.it2.Index()
-      obj.s1  = nil
-      obj.s2  = obj.it2.GetConst()
+      obj.idx    = obj.it2.Index()
+      obj.s1.ptr = nil
+      obj.s2     = obj.it2.GetConst()
     case obj.idx == obj.it2.Index():
-      obj.s2  = obj.it2.GetConst()
+      obj.s2     = obj.it2.GetConst()
     }
   }
-  if obj.s1 != nil {
+  if obj.s1.ptr != nil {
     obj.it1.Next()
   }
   if obj.s2 != nil {
@@ -628,25 +520,24 @@ func (obj *VECTOR_JOINT_ITERATOR) Next() {
   }
 }
 
-func (obj *VECTOR_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {
-  return obj.GET()
-}
-
 func (obj *VECTOR_JOINT_ITERATOR) GetConst() (ConstScalar, ConstScalar) {
-  return obj.GET()
-}
-
-func (obj *VECTOR_JOINT_ITERATOR) GetValue() (float64, float64) {
-  a, b := obj.GET()
-  return a.GetValue(), b.GetValue()
-}
-
-func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
-  if obj.s1 == nil {
+  if obj.s1.ptr == nil {
     return nil, obj.s2
   } else {
     return obj.s1, obj.s2
   }
+}
+
+func (obj *VECTOR_JOINT_ITERATOR) Get() (Scalar, ConstScalar) {
+  if obj.s1.ptr == nil {
+    return nil, obj.s2
+  } else {
+    return obj.s1, obj.s2
+  }
+}
+
+func (obj *VECTOR_JOINT_ITERATOR) GET() (SCALAR_TYPE, ConstScalar) {
+  return obj.s1, obj.s2
 }
 
 func (obj *VECTOR_JOINT_ITERATOR) Clone() *VECTOR_JOINT_ITERATOR {
@@ -659,60 +550,10 @@ func (obj *VECTOR_JOINT_ITERATOR) Clone() *VECTOR_JOINT_ITERATOR {
   return &r
 }
 
-func (obj *VECTOR_JOINT_ITERATOR) CloneConstJointIterator() VectorConstJointIterator {
-  return obj.Clone()
-}
-
 func (obj *VECTOR_JOINT_ITERATOR) CloneJointIterator() VectorJointIterator {
   return obj.Clone()
 }
 
-/* joint iterator
- * -------------------------------------------------------------------------- */
-
-type VECTOR_JOINT_ITERATOR_ struct {
-  it1 *VECTOR_ITERATOR
-  it2 *VECTOR_ITERATOR
-  idx  int
-  s1   SCALAR_TYPE
-  s2   SCALAR_TYPE
-}
-
-func (obj *VECTOR_JOINT_ITERATOR_) Index() int {
-  return obj.idx
-}
-
-func (obj *VECTOR_JOINT_ITERATOR_) Ok() bool {
-  return obj.s1 != nil || obj.s2 != nil
-}
-
-func (obj *VECTOR_JOINT_ITERATOR_) Next() {
-  ok1 := obj.it1.Ok()
-  ok2 := obj.it2.Ok()
-  obj.s1 = nil
-  obj.s2 = nil
-  if ok1 {
-    obj.idx = obj.it1.Index()
-    obj.s1  = obj.it1.GET()
-  }
-  if ok2 {
-    switch {
-    case obj.idx >  obj.it2.Index() || !ok1:
-      obj.idx = obj.it2.Index()
-      obj.s1  = nil
-      obj.s2  = obj.it2.GET()
-    case obj.idx == obj.it2.Index():
-      obj.s2  = obj.it2.GET()
-    }
-  }
-  if obj.s1 != nil {
-    obj.it1.Next()
-  }
-  if obj.s2 != nil {
-    obj.it2.Next()
-  }
-}
-
-func (obj *VECTOR_JOINT_ITERATOR_) GET() (SCALAR_TYPE, SCALAR_TYPE) {
-  return obj.s1, obj.s2
+func (obj *VECTOR_JOINT_ITERATOR) CloneConstJointIterator() VectorConstJointIterator {
+  return obj.Clone()
 }

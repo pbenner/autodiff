@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,17 +30,16 @@ type Epsilon struct {
 }
 
 type Hook struct {
-  Value func([]float64, Vector, Scalar) bool
+  Value func([]float64, ConstVector, ConstScalar) bool
 }
 
 /* -------------------------------------------------------------------------- */
 
-func gradientDescent(f func(Vector) (Scalar, error), x0 Vector, step, epsilon float64,
-  hook func([]float64, Vector, Scalar) bool) (Vector, error) {
+func gradientDescent(f func(ConstVector) (MagicScalar, error), x0 Vector, step, epsilon float64,
+  hook func([]float64, ConstVector, ConstScalar) bool) (Vector, error) {
 
-  t := x0.ElementType()
   // copy variables
-  x := x0.CloneVector()
+  x := AsDenseReal64Vector(x0)
   x.Variables(1)
   // slice containing the gradient
   gradient := make([]float64, x.Dim())
@@ -66,8 +65,8 @@ func gradientDescent(f func(Vector) (Scalar, error), x0 Vector, step, epsilon fl
     }
     // update variables
     for i := 0; i < x.Dim(); i++ {
-      x.At(i).Sub(x.At(i), NewScalar(t, step*s.GetDerivative(i)))
-      if math.IsNaN(x.At(i).GetValue()) {
+      x.At(i).Sub(x.At(i), ConstFloat64(step*s.GetDerivative(i)))
+      if math.IsNaN(x.ConstAt(i).GetFloat64()) {
         panic("Gradient descent diverged!")
       }
     }
@@ -77,7 +76,7 @@ func gradientDescent(f func(Vector) (Scalar, error), x0 Vector, step, epsilon fl
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f func(Vector) (Scalar, error), x0 Vector, step float64, args ...interface{}) (Vector, error) {
+func Run(f func(ConstVector) (MagicScalar, error), x0 Vector, step float64, args ...interface{}) (Vector, error) {
 
   hook    := Hook   { nil}.Value
   epsilon := Epsilon{1e-8}.Value

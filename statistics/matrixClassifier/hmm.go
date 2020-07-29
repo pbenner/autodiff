@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ func (obj HmmClassifier) Eval(r Vector, x ConstMatrix) error {
     return err
   } else {
     for i := 0; i < m; i++ {
-      r.At(i).SetValue(float64(p[i]))
+      r.At(i).SetFloat64(float64(p[i]))
     }
   }
   return nil

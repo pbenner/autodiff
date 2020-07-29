@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,13 +28,13 @@ import . "github.com/pbenner/autodiff"
 
 func TestChiSquaredDistribution1(t *testing.T) {
 
-  d, _ := NewChiSquaredDistribution(RealType, 2.0)
+  d, _ := NewChiSquaredDistribution(Real64Type, 2.0)
 
-  x := NewReal(10.214); Variables(2,x)
-  y := NewReal(0.0)
+  x := NewReal64(10.214); Variables(2,x)
+  y := NewReal64(0.0)
   d.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -5.800147) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -5.800147) > 1e-4 {
     t.Error("Chi-Squared LogPdf failed!")
   }
   if math.Abs(y.GetDerivative(0) - -0.500000) > 1e-4 {
@@ -47,13 +47,13 @@ func TestChiSquaredDistribution1(t *testing.T) {
 
 func TestChiSquaredDistribution2(t *testing.T) {
 
-  d, _ := NewChiSquaredDistribution(RealType, 2.0)
+  d, _ := NewChiSquaredDistribution(Real64Type, 2.0)
 
-  x := NewReal(4.817); Variables(2,x)
-  y := NewReal(0.0)
+  x := NewReal64(4.817); Variables(2,x)
+  y := NewReal64(0.0)
   d.Cdf(y, x)
 
-  if math.Abs(y.GetValue() - 0.91005) > 1e-4 {
+  if math.Abs(y.GetFloat64() - 0.91005) > 1e-4 {
     t.Error("Chi-Squared Cdf failed!")
   }
   if math.Abs(y.GetDerivative(0) - 0.0449751) > 1e-4 {

@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ type GeneralizedGammaDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewGeneralizedGammaDistribution(a, d, p Scalar) (*GeneralizedGammaDistribution, error) {
-  if a.GetValue() <= 0.0 || d.GetValue() <= 0.0 || p.GetValue() <= 0.0 {
+  if a.GetFloat64() <= 0.0 || d.GetFloat64() <= 0.0 || p.GetFloat64() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
   t  := a.Type()
@@ -75,8 +75,8 @@ func (dist *GeneralizedGammaDistribution) ScalarType() ScalarType {
 }
 
 func (dist *GeneralizedGammaDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if v := x.GetValue(); v <= 0.0 || math.IsInf(v, 1) {
-    r.SetValue(math.Inf(-1))
+  if v := x.GetFloat64(); v <= 0.0 || math.IsInf(v, 1) {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
   t := dist.t
@@ -101,7 +101,7 @@ func (dist *GeneralizedGammaDistribution) Pdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GeneralizedGammaDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 3)
+  p := NullDenseVector(dist.ScalarType(), 3)
   p.At(0).Set(dist.A)
   p.At(1).Set(dist.D)
   p.At(2).Set(dist.P)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Philipp Benner
+/* Copyright (C) 2018-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,18 +31,18 @@ func TestPdfLogTransform1(t *testing.T) {
 
   var d ScalarPdf
 
-  mu    := NewReal(2.0)
-  sigma := NewReal(3.0)
+  mu    := NewFloat64(2.0)
+  sigma := NewFloat64(3.0)
 
   d, _ = NewNormalDistribution(mu, sigma)
   d, _ = NewPdfLogTransform(d, 0.0)
 
-  x := NewReal(4.0)
-  r := NewReal(0.0)
+  x := NewFloat64(4.0)
+  r := NewFloat64(0.0)
 
   d.LogPdf(r, x)
 
-  if math.Abs(r.GetValue() - -3.424769) > 1e-4 {
+  if math.Abs(r.GetFloat64() - -3.424769) > 1e-4 {
     t.Error("test failed")
   }
 }

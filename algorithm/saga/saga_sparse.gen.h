@@ -1,9 +1,9 @@
 
 #define         SAGA_NAME Sparse
-#define CONST_SCALAR_NAME ConstReal
-#define       SCALAR_NAME BareReal
-#define       VECTOR_NAME DenseBareRealVector
-#define  DATA_VECTOR_NAME SparseConstRealVector
+#define CONST_SCALAR_NAME ConstFloat64
+#define       SCALAR_NAME Float64
+#define       VECTOR_NAME DenseFloat64Vector
+#define  DATA_VECTOR_NAME SparseConstFloat64Vector
 
 #define         SAGA_TYPE         SAGA_NAME
 #define CONST_SCALAR_TYPE CONST_SCALAR_NAME

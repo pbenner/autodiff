@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,17 +41,17 @@ type BetaDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewBetaDistribution(alpha, beta Scalar, logScale bool) (*BetaDistribution, error) {
-  if alpha.GetValue() <= 0.0 || beta.GetValue() <= 0.0 {
+  if alpha.GetFloat64() <= 0.0 || beta.GetFloat64() <= 0.0 {
     return nil, fmt.Errorf("invalid parameters")
   }
   t := alpha.Type()
   dist := BetaDistribution{}
   dist.Alpha = alpha.CloneScalar()
   dist.Beta  = beta .CloneScalar()
-  dist.as1 = alpha.CloneScalar()
-  dist.bs1 = beta .CloneScalar()
-  dist.as1.Sub(alpha, NewBareReal(1.0))
-  dist.bs1.Sub(beta,  NewBareReal(1.0))
+  dist.as1   = alpha.CloneScalar()
+  dist.bs1   = beta .CloneScalar()
+  dist.as1.Sub(alpha, ConstFloat64(1.0))
+  dist.bs1.Sub(beta,  ConstFloat64(1.0))
   dist.LogScale = logScale
 
   t1 := alpha.CloneScalar()
@@ -93,13 +93,13 @@ func (dist *BetaDistribution) ScalarType() ScalarType {
 
 func (dist *BetaDistribution) LogPdf(r Scalar, x ConstScalar) error {
   if dist.LogScale {
-    if v := x.GetValue(); v > 0.0 {
-      r.SetValue(math.Inf(-1))
+    if v := x.GetFloat64(); v > 0.0 {
+      r.SetFloat64(math.Inf(-1))
       return nil
     }
   } else {
-    if v := x.GetValue(); v < 0.0 || v > 1.0 {
-      r.SetValue(math.Inf(-1))
+    if v := x.GetFloat64(); v < 0.0 || v > 1.0 {
+      r.SetFloat64(math.Inf(-1))
       return nil
     }
   }
@@ -107,23 +107,23 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x ConstScalar) error {
   t2 := dist.t2
 
   if dist.LogScale {
-    if v := dist.bs1.GetValue(); v == 0.0 {
-      t2.SetValue(0.0)
+    if v := dist.bs1.GetFloat64(); v == 0.0 {
+      t2.SetFloat64(0.0)
     } else {
       // t2 = log(1-theta)
       t2.LogSub(dist.c1, x, t1)
       // t2 = beta*log(1-theta)
       t2.Mul(t2, dist.bs1)
     }
-    if v := dist.as1.GetValue(); v == 0.0 {
-      t1.SetValue(0.0)
+    if v := dist.as1.GetFloat64(); v == 0.0 {
+      t1.SetFloat64(0.0)
     } else {
       // t1 = alpha*log(theta)
       t1.Mul(dist.as1, x)
     }
   } else {
-    if v := dist.bs1.GetValue(); v == 0.0 {
-      t2.SetValue(0.0)
+    if v := dist.bs1.GetFloat64(); v == 0.0 {
+      t2.SetFloat64(0.0)
     } else {
       // t2 = 1-theta
       t2.Sub(dist.c1, x)
@@ -132,8 +132,8 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x ConstScalar) error {
       // t2 = beta*log(1-theta)
       t2.Mul(t2, dist.bs1)
     }
-    if v := dist.as1.GetValue(); v == 0.0 {
-      t1.SetValue(0.0)
+    if v := dist.as1.GetFloat64(); v == 0.0 {
+      t1.SetFloat64(0.0)
     } else {
       // t1 = log(theta)
       t1.Log(x)
@@ -145,7 +145,7 @@ func (dist *BetaDistribution) LogPdf(r Scalar, x ConstScalar) error {
   r.Add(t1, t2)
   r.Add(r, dist.z)
 
-  if math.IsNaN(r.GetValue()) {
+  if math.IsNaN(r.GetFloat64()) {
     return fmt.Errorf("NaN value detected for input value `%v' and parameters `%v'", x, dist.GetParameters())
   }
   return nil
@@ -162,19 +162,19 @@ func (dist *BetaDistribution) Pdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *BetaDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 3)
+  p := NullDenseVector(dist.ScalarType(), 3)
   p.At(0).Set(dist.Alpha)
   p.At(1).Set(dist.Beta)
   if dist.LogScale {
-    p.At(2).SetValue(1.0)
+    p.At(2).SetFloat64(1.0)
   } else {
-    p.At(2).SetValue(0.0)
+    p.At(2).SetFloat64(0.0)
   }
   return p
 }
 
 func (dist *BetaDistribution) SetParameters(parameters Vector) error {
-  if tmp, err := NewBetaDistribution(parameters.At(0), parameters.At(1), parameters.At(2).GetValue() == 1.0); err != nil {
+  if tmp, err := NewBetaDistribution(parameters.At(0), parameters.At(1), parameters.At(2).GetFloat64() == 1.0); err != nil {
     return err
   } else {
     *dist = *tmp

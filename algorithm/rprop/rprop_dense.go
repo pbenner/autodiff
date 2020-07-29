@@ -26,15 +26,15 @@ import . "github.com/pbenner/autodiff/algorithm"
 
 /* -------------------------------------------------------------------------- */
 
-type DenseGradientF func(x, gradient DenseConstRealVector) error
+type DenseGradientF func(x, gradient DenseFloat64Vector) error
 
 /* -------------------------------------------------------------------------- */
 
-func rprop_dense_with_gradient(evalGradient DenseGradientF, x0 DenseConstRealVector, step_init float64 , eta []float64,
+func rprop_dense_with_gradient(evalGradient DenseGradientF, x0 DenseFloat64Vector, step_init float64 , eta []float64,
   epsilon Epsilon,
   maxIterations MaxIterations,
   hook Hook,
-  constraints ConstConstraints) (DenseConstRealVector, error) {
+  constraints ConstConstraints) (DenseFloat64Vector, error) {
 
   n := x0.Dim()
   // copy variables
@@ -43,17 +43,17 @@ func rprop_dense_with_gradient(evalGradient DenseGradientF, x0 DenseConstRealVec
   // step size for each variable
   step := make([]float64, n)
   // gradients
-  gradient_new := NullDenseConstRealVector(n)
-  gradient_old := NullDenseConstRealVector(n)
+  gradient_new := NullDenseFloat64Vector(n)
+  gradient_old := NullDenseFloat64Vector(n)
   // initialize values
   for i := 0; i < x1.Dim(); i++ {
     step[i]         = step_init
     gradient_new[i] = 1
     gradient_old[i] = 1
   }
-  gradient_is_nan := func(gradient DenseConstRealVector) bool {
+  gradient_is_nan := func(gradient DenseFloat64Vector) bool {
     for i := 0; i < gradient.Dim(); i++ {
-      if math.IsNaN(gradient.ValueAt(i)) {
+      if math.IsNaN(gradient.ConstAt(i).GetFloat64()) {
         return true
       }
     }
@@ -81,7 +81,7 @@ func rprop_dense_with_gradient(evalGradient DenseGradientF, x0 DenseConstRealVec
             x2[i] = x1[i] + step[i]
           }
         }
-        if math.IsNaN(x2.ValueAt(i)) {
+        if math.IsNaN(x2.ConstAt(i).GetFloat64()) {
           return x2, fmt.Errorf("NaN value detected")
         }
       }

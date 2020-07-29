@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ func NewShapeHmmDataSet(t ScalarType, x []ConstMatrix, k int) (*ShapeHmmDataSet,
   r := ShapeHmmDataSet{}
   r.offsets = offsets
   r.x       = x
-  r.p       = NullMatrix(t, k, n)
+  r.p       = NullDenseMatrix(t, k, n)
   r.n       = n
   return &r, nil
 }
@@ -126,7 +126,7 @@ func (obj *ShapeHmmDataSet) EvaluateLogPdf(edist []MatrixPdf, pool ThreadPool) e
         if err := d[j].LogPdf(p.At(j, k), x); err != nil {
           return err
         }
-        s = LogAdd(s, p.At(j, k).GetValue())
+        s = LogAdd(s, p.At(j, k).GetFloat64())
       }
       if math.IsInf(s, -1) {
         return fmt.Errorf("probability is zero for all models on observation `%v'", x)

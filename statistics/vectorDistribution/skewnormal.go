@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,15 +61,15 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
   }
   // parameters for the multivariate normal
   // kappa = diag(s) omega diag(s)
-  kappa := NullMatrix(t, n, n)
+  kappa := NullDenseMatrix(t, n, n)
   for i := 0; i < n; i++ {
     for j := 0; j < n; j++ {
       kappa.At(i, j).Mul(t1.Mul(scale.At(i), scale.At(j)), omega.At(i,j))
     }
   }
   // parameters for the standard normal cdf
-  mu    := NewReal(0.0)
-  sigma := NewReal(1.0)
+  mu    := NullScalar(t); mu   .SetFloat64(0.0)
+  sigma := NullScalar(t); sigma.SetFloat64(1.0)
 
   normal1, err := NewNormalDistribution(xi, kappa)
   if err != nil { return nil, err }
@@ -87,7 +87,7 @@ func NewSkewNormalDistribution(xi Vector, omega Matrix, alpha Vector, scale Vect
     r1     : NewScalar(t, 0.0),
     r2     : NewScalar(t, 0.0),
     t      : NewScalar(t, 0.0),
-    z      : NullVector(t, n) }
+    z      : NullDenseVector(t, n) }
 
   return &result, nil
 
@@ -220,10 +220,10 @@ func (obj *SkewNormalDistribution) ExportConfig() ConfigDistribution {
     Alpha []float64
     Scale []float64
     N       int }{}
-  config.Xi    = obj.Xi   .GetValues()
-  config.Omega = obj.Omega.GetValues()
-  config.Alpha = obj.Alpha.GetValues()
-  config.Scale = obj.Scale.GetValues()
+  config.Xi    = AsDenseFloat64Vector(obj.Xi)
+  config.Omega = AsDenseFloat64Vector(obj.Omega.AsVector())
+  config.Alpha = AsDenseFloat64Vector(obj.Alpha)
+  config.Scale = AsDenseFloat64Vector(obj.Scale)
   config.N     = n
 
   return NewConfigDistribution("vector:skew normal distribtion", config)

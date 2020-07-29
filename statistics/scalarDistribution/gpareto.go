@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ type GParetoDistribution struct {
   Mu    Scalar
   Sigma Scalar
   Xi    Scalar
-  c1    Scalar
   cx1   Scalar
   cx2   Scalar
   cs    Scalar
@@ -39,18 +38,16 @@ type GParetoDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewGParetoDistribution(mu, sigma, xi Scalar) (*GParetoDistribution, error) {
-  if sigma.GetValue() <= 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter sigma: %f", sigma.GetValue())
+  if sigma.GetFloat64() <= 0.0 {
+    return nil, fmt.Errorf("invalid value for parameter sigma: %f", sigma.GetFloat64())
   }
-  // some constants
-  c1  := NewBareReal(1.0)
   // cx1 = -1/xi
   cx1 := NewScalar(xi.Type(), 1.0)
   cx1.Div(cx1, xi)
   cx1.Neg(cx1)
   // cx2 = -1/xi - 1
   cx2 := cx1.CloneScalar()
-  cx2.Sub(cx2, c1)
+  cx2.Sub(cx2, ConstFloat64(1.0))
   cs  := sigma.CloneScalar()
   cs.Log(sigma)
 
@@ -58,7 +55,6 @@ func NewGParetoDistribution(mu, sigma, xi Scalar) (*GParetoDistribution, error) 
     Mu    : mu   .CloneScalar(),
     Sigma : sigma.CloneScalar(),
     Xi    : xi   .CloneScalar(),
-    c1    : c1,
     cx1   : cx1,
     cx2   : cx2,
     cs    : cs }
@@ -73,7 +69,6 @@ func (dist *GParetoDistribution) Clone() *GParetoDistribution {
     Mu    : dist.Mu   .CloneScalar(),
     Sigma : dist.Sigma.CloneScalar(),
     Xi    : dist.Xi   .CloneScalar(),
-    c1    : dist.c1   .CloneScalar(),
     cx1   : dist.cx1  .CloneScalar(),
     cx2   : dist.cx2  .CloneScalar(),
     cs    : dist.cs   .CloneScalar() }
@@ -90,16 +85,16 @@ func (dist *GParetoDistribution) ScalarType() ScalarType {
 }
 
 func (dist *GParetoDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if dist.Xi.GetValue() >= 0 {
+  if dist.Xi.GetFloat64() >= 0 {
     // xi >= 0
-    if x.GetValue() < dist.Mu.GetValue() {
-      r.SetValue(math.Inf(-1))
+    if x.GetFloat64() < dist.Mu.GetFloat64() {
+      r.SetFloat64(math.Inf(-1))
       return nil
     }
   } else {
     // xi < 0
-    if x.GetValue() < dist.Mu.GetValue() || x.GetValue() > dist.Mu.GetValue() - dist.Sigma.GetValue()/dist.Xi.GetValue() {
-      r.SetValue(math.Inf(-1))
+    if x.GetFloat64() < dist.Mu.GetFloat64() || x.GetFloat64() > dist.Mu.GetFloat64() - dist.Sigma.GetFloat64()/dist.Xi.GetFloat64() {
+      r.SetFloat64(math.Inf(-1))
       return nil
     }
   }
@@ -107,7 +102,7 @@ func (dist *GParetoDistribution) LogPdf(r Scalar, x ConstScalar) error {
   r.Sub(r, dist.Mu)
   r.Div(r, dist.Sigma)
 
-  if dist.Xi.GetValue() == 0.0 {
+  if dist.Xi.GetFloat64() == 0.0 {
     r.Neg(r)
   } else {
     r.Mul(r, dist.Xi)
@@ -128,28 +123,28 @@ func (dist *GParetoDistribution) Pdf(r Scalar, x ConstScalar) error {
 }
 
 func (dist *GParetoDistribution) LogCdf(r Scalar, x ConstScalar) error {
-  if dist.Xi.GetValue() >= 0 {
+  if dist.Xi.GetFloat64() >= 0 {
     // xi >= 0
-    if x.GetValue() < dist.Mu.GetValue() {
-      r.SetValue(math.Inf(-1))
+    if x.GetFloat64() < dist.Mu.GetFloat64() {
+      r.SetFloat64(math.Inf(-1))
       return nil
     }
   } else {
     // xi < 0
-    if x.GetValue() < dist.Mu.GetValue() || x.GetValue() > dist.Mu.GetValue() - dist.Sigma.GetValue()/dist.Xi.GetValue() {
-      r.SetValue(math.Inf(-1))
+    if x.GetFloat64() < dist.Mu.GetFloat64() || x.GetFloat64() > dist.Mu.GetFloat64() - dist.Sigma.GetFloat64()/dist.Xi.GetFloat64() {
+      r.SetFloat64(math.Inf(-1))
       return nil
     }
   }
   r.Sub(r, dist.Mu)
   r.Div(r, dist.Sigma)
 
-  if dist.Xi.GetValue() == 0.0 {
+  if dist.Xi.GetFloat64() == 0.0 {
     r.Neg(r)
     r.Exp(r)
   } else {
     r.Mul(r, dist.Xi)
-    r.Add(r, dist.c1)
+    r.Add(r, ConstFloat64(1.0))
     r.Pow(r, dist.cx1)
   }
   r.Neg(r)
@@ -169,7 +164,7 @@ func (dist *GParetoDistribution) Cdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *GParetoDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 3)
+  p := NullDenseVector(dist.ScalarType(), 3)
   p.At(0).Set(dist.Mu)
   p.At(1).Set(dist.Sigma)
   p.At(2).Set(dist.Xi)

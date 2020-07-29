@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,9 +35,8 @@ func TestShapeHmm1(t *testing.T) {
 
   // ShapeHmm definition
   //////////////////////////////////////////////////////////////////////////////
-  pi := NewVector(RealType, []float64{0.6, 0.4})
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  pi := NewDenseFloat64Vector([]float64{0.6, 0.4})
+  tr := NewDenseFloat64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
   c1, _ := scalarEstimator.NewCategoricalEstimator(
     []float64{0.1, 0.9})
@@ -53,20 +52,20 @@ func TestShapeHmm1(t *testing.T) {
   if estimator, err := NewShapeHmmEstimator(pi, tr, nil, []MatrixBatchEstimator{e1, e2}, 1e-8, -1); err != nil {
     t.Error(err)
   } else {
-    x := NewMatrix(RealType, 10, 1, []float64{
+    x := NewDenseFloat64Matrix([]float64{
       1,1,1,1,1,
-      0,0,0,0,0})
+      0,0,0,0,0}, 10, 1)
 
     if err := estimator.EstimateOnData([]ConstMatrix{x}, nil, ThreadPool{}); err != nil {
       t.Error(err); return
     }
     d, _ := estimator.GetEstimate()
-    r    := NewReal(0.0)
+    r    := NewFloat64(0.0)
 
     if err := d.LogPdf(r, x); err != nil {
       t.Error(err); return
     }
-    if math.Abs(r.GetValue() - -1.550184e+01) > 1e-4 {
+    if math.Abs(r.GetFloat64() - -1.550184e+01) > 1e-4 {
       t.Errorf("test failed")
     }
   }
@@ -76,9 +75,8 @@ func TestShapeHmm2(t *testing.T) {
 
   // ShapeHmm definition
   //////////////////////////////////////////////////////////////////////////////
-  pi := NewVector(RealType, []float64{0.6, 0.4})
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  pi := NewDenseFloat64Vector([]float64{0.6, 0.4})
+  tr := NewDenseFloat64Matrix([]float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
   c11, _ := scalarEstimator.NewCategoricalEstimator(
     []float64{0.1, 0.9})
@@ -98,22 +96,22 @@ func TestShapeHmm2(t *testing.T) {
   if estimator, err := NewShapeHmmEstimator(pi, tr, nil, []MatrixBatchEstimator{d1, d2}, 1e-8, -1); err != nil {
     t.Error(err)
   } else {
-    x := NewMatrix(RealType, 100, 2, []float64{
+    x := NewDenseFloat64Matrix([]float64{
       1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,
       1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,
       1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,
-      1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0})
+      1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,0,1,1,0}, 100, 2)
 
     if err := estimator.EstimateOnData([]ConstMatrix{x}, nil, ThreadPool{}); err != nil {
       t.Error(err); return
     }
     d, _ := estimator.GetEstimate()
-    r    := NewReal(0.0)
+    r    := NewFloat64(0.0)
 
     if err := d.LogPdf(r, x); err != nil {
       t.Error(err); return
     }
-    if math.Abs(r.GetValue() - -4.891673e+02) > 1e-4 {
+    if math.Abs(r.GetFloat64() - -4.891673e+02) > 1e-4 {
       t.Errorf("test failed")
     }
   }

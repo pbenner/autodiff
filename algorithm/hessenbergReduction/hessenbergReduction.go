@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ func hessenbergReduction(inSitu *InSitu, setZero bool) (Matrix, Matrix, error) {
     // copy column below main diagonal from H to x,
     // x = (H[k+1,k], H[k+2,k], ..., H[n-1,k])
     for i := k+1; i < n; i++ {
-      x.At(i).Set(H.At(i, k))
+      x.At(i).Set(H.ConstAt(i, k))
     }
     householder.Run(x.Slice(k+1,n), beta, nu.Slice(k+1,n), t1, t2, t3)
     {
@@ -77,11 +77,11 @@ func hessenbergReduction(inSitu *InSitu, setZero bool) (Matrix, Matrix, error) {
     }
     if setZero {
       for i := k+2; i < n; i++ {
-        H.At(i,k).SetValue(0.0)
+        H.At(i,k).SetFloat64(0.0)
       }
     }
     if U != nil {
-      nu.At(k).SetValue(0.0)
+      nu.At(k).SetFloat64(0.0)
       householder.ApplyRight(U, beta, nu.Slice(0,n), t4.Slice(0,n), t1)
     }
   }
@@ -126,14 +126,14 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.Beta = NullScalar(t)
   }
   if inSitu.Nu == nil {
-    inSitu.Nu = NullVector(t, n)
+    inSitu.Nu = NullDenseVector(t, n)
   }
   if inSitu.X == nil {
-    inSitu.X = NullVector(t, n)
+    inSitu.X = NullDenseVector(t, n)
   }
   if computeU {
     if inSitu.U == nil {
-      inSitu.U = NullMatrix(t, n, n)
+      inSitu.U = NullDenseMatrix(t, n, n)
     }
     inSitu.U.SetIdentity()
   } else {
@@ -149,7 +149,7 @@ func Run(a Matrix, args ...interface{}) (Matrix, Matrix, error) {
     inSitu.T3 = NullScalar(t)
   }
   if inSitu.T4 == nil {
-    inSitu.T4 = NullVector(t, n)
+    inSitu.T4 = NullDenseVector(t, n)
   }
   return hessenbergReduction(inSitu, setZero)
 }

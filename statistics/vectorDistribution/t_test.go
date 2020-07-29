@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,18 +28,18 @@ import . "github.com/pbenner/autodiff"
 
 func TestTDistribution1(t *testing.T) {
 
-  nu     := NewReal(1.0)
-  mu     := NewVector(RealType, []float64{2,3})
-  sigma  := NewMatrix(RealType, 2, 2, []float64{2,1,1,2})
+  nu     := NewFloat64(1.0)
+  mu     := NewDenseFloat64Vector([]float64{2,3})
+  sigma  := NewDenseFloat64Matrix([]float64{2,1,1,2}, 2, 2)
 
   distribution, _ := NewTDistribution(nu, mu, sigma)
 
-  x := NewVector(RealType, []float64{1,2})
-  y := NewReal(0.0)
+  x := NewDenseFloat64Vector([]float64{1,2})
+  y := NewFloat64(0.0)
 
   distribution.LogPdf(y, x)
 
-  if math.Abs(y.GetValue() - -3.153422e+00) > 1e-4 {
+  if math.Abs(y.GetFloat64() - -3.153422e+00) > 1e-4 {
     t.Error("T LogPdf failed!")
   }
 }

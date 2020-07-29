@@ -23,7 +23,6 @@ import   "math"
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/gradientDescent"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
-import . "github.com/pbenner/autodiff/simple"
 
 import   "gonum.org/v1/plot"
 import   "gonum.org/v1/plot/plotter"
@@ -81,7 +80,7 @@ func norm(v []float64) float64 {
   return math.Sqrt(sum)
 }
 
-func hook(err *[]float64, gradient []float64, px ConstVector, s Scalar) bool {
+func hook(err *[]float64, gradient []float64, px ConstVector, s ConstScalar) bool {
   *err = append(*err, norm(gradient))
   return false
 }
@@ -89,20 +88,25 @@ func hook(err *[]float64, gradient []float64, px ConstVector, s Scalar) bool {
 /* -------------------------------------------------------------------------- */
 
 func main() {
-  f := func(x Vector) (Scalar, error) {
+  f := func(x ConstVector) (MagicScalar, error) {
     // x^4 - 3x^3 + 2
-    return Add(Sub(Pow(x.At(0), NewBareReal(4)), Mul(NewReal(3), Pow(x.At(0), NewBareReal(3)))), NewReal(2)), nil
+    t1 := NullReal64()
+    t2 := NullReal64()
+    t1.Pow(x.ConstAt(0), ConstFloat64(4))
+    t2.Pow(x.ConstAt(0), ConstFloat64(3))
+    t1.Add(t1.Sub(t1, t2.Mul(ConstFloat64(3), t2)), ConstFloat64(2))
+    return t1, nil
   }
   err1 := make([]float64, 0)
   err2 := make([]float64, 0)
-  x0 := NewVector(RealType, []float64{4})
+  x0 := NewDenseFloat64Vector([]float64{4})
   // vanilla gradient descent
   xn1, _ := gradientDescent.Run(f, x0, 0.0001,
-    gradientDescent.Hook{func(gradient []float64, px Vector, s Scalar) bool { return hook(&err1, gradient, px, s) }},
+    gradientDescent.Hook{func(gradient []float64, px ConstVector, s ConstScalar) bool { return hook(&err1, gradient, px, s) }},
     gradientDescent.Epsilon{1e-8})
   // resilient backpropagation
   xn2, _ := rprop.Run(f, x0, 0.0001, []float64{1.2, 0.8},
-    rprop.Hook{func(gradient, step []float64, px ConstVector, s Scalar) bool { return hook(&err2, gradient, px, s) }},
+    rprop.Hook{func(gradient, step []float64, px ConstVector, s ConstScalar) bool { return hook(&err2, gradient, px, s) }},
     rprop.Epsilon{1e-8})
 
   fmt.Println(xn1)

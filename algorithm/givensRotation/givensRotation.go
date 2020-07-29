@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -231,13 +231,13 @@ func ApplyRight(A Matrix, c, s Scalar, i, k int, t1, t2 Scalar) {
 //    s = -b / sqrt(a^2 + b^2)
 
 func Run(a, b, c, s Scalar) {
-  c1 := BareReal(1.0)
+  c1 := ConstFloat64(1.0)
 
-  if b.GetValue() == 0.0 {
-    c.SetValue(1.0)
-    s.SetValue(0.0)
+  if b.GetFloat64() == 0.0 {
+    c.SetFloat64(1.0)
+    s.SetFloat64(0.0)
   } else {
-    if math.Abs(b.GetValue()) > math.Abs(a.GetValue()) {
+    if math.Abs(b.GetFloat64()) > math.Abs(a.GetFloat64()) {
       c.Div(a, b)
       c.Neg(c)
 

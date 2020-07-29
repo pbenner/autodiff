@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,34 +22,37 @@ package hessenbergReduction
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func Test(t *testing.T) {
+func Test(test *testing.T) {
 
-  a := NewMatrix(RealType, 5, 5, []float64{
+  t := NewFloat64(0.0)
+
+  a := NewDenseFloat64Matrix([]float64{
      3.5,  3.0,  4.0,  32.5, 0.4,
      3.0,  8.6,  0.4,  25.4, 2.5,
      4.0,  0.4,  6.4,  38.0, 0.4,
     32.5, 25.4, 38.0, 304.0, 1.3,
-     0.4,  2.5,  0.4,   1.3, 3.6 })
+     0.4,  2.5,  0.4,   1.3, 3.6 }, 5, 5)
 
-  r := NewMatrix(RealType, 5, 5, []float64{
+  r := NewDenseFloat64Matrix([]float64{
       3.5,     32.8848,  0.0,      0.0,       0.0,
      32.8848, 310.857,   3.2874,   0.0,       0.0,
       0.0,      3.2874,  8.03978,  1.73313,   0.0,
       0.0,      0.0,     1.73313,  3.73586,  -0.400312,
-      0.0,      0.0,     0.0,     -0.400312, -0.0328116 })
+      0.0,      0.0,     0.0,     -0.400312, -0.0328116 }, 5, 5)
 
   b, u, _ := Run(a, ComputeU{true})
   // apply similarity transform
-  c := MdotM(MdotM(u.T(), a), u)
+  c := NullDenseFloat64Matrix(5, 5)
+  c.MdotM(u.T(), a)
+  c.MdotM(c, u)
 
-  if Mnorm(MsubM(b, r)).GetValue() > 1e-4 {
-    t.Error("test failed")
+  if t.Mnorm(r.MsubM(b, r)).GetFloat64() > 1e-4 {
+    test.Error("test failed")
   }
-  if Mnorm(MsubM(b, c)).GetValue() > 1e-4 {
-    t.Error("test failed")
+  if t.Mnorm(c.MsubM(b, c)).GetFloat64() > 1e-4 {
+    test.Error("test failed")
   }
 }

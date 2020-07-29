@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@ import "testing"
 /* -------------------------------------------------------------------------- */
 
 func TestMatrix1(t *testing.T) {
-  m1 := NewMatrix(RealType, 4, 7, []float64{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28})
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28}, 4, 7)
   m2 := m1.Slice(1,3,2,5)
-  r  := NewMatrix(RealType, 2, 3, []float64{10, 11, 12, 17, 18, 19})
+  r  := NewDenseFloat64Matrix([]float64{10, 11, 12, 17, 18, 19}, 2, 3)
 
   if !m2.Equals(r, 1e-12) {
     t.Error("test failed")
@@ -38,10 +38,10 @@ func TestMatrix1(t *testing.T) {
 }
 
 func TestMatrix2(t *testing.T) {
-  m1 := NewMatrix(RealType, 4, 7, []float64{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28})
-  m1  = m1.T()
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28}, 4, 7)
+  m1  = m1.T().(*DenseFloat64Matrix)
   m2 := m1.Slice(2,5,1,3)
-  r  := NewMatrix(RealType, 3, 2, []float64{10, 17, 11, 18, 12, 19})
+  r  := NewDenseFloat64Matrix([]float64{10, 17, 11, 18, 12, 19}, 3, 2)
 
   if !m2.Equals(r, 1e-12) {
     t.Error("test failed")
@@ -50,10 +50,10 @@ func TestMatrix2(t *testing.T) {
 
 func TestMatrix(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6}, 2, 3)
   m2 := m1.T()
 
-  if m1.At(1,2).GetValue() != m2.At(2,1).GetValue() {
+  if m1.At(1,2).GetFloat64() != m2.At(2,1).GetFloat64() {
     t.Error("Matrix transpose failed!")
   }
 }
@@ -62,244 +62,216 @@ func TestMatrixRowCol(t *testing.T) {
 
   var m Matrix
 
-  m = NewMatrix(RealType, 3, 3, []float64{
-    1, 2, 3,
-    4, 5, 6,
-    7, 8, 9 })
+  m = NewDenseFloat64Matrix([]float64{
+     1,  2,  3,
+     4,  5,  6,
+     7,  8,  9,
+    10, 11, 12}, 4, 3)
 
   r1 := m.Row(1)
+  c1 := m.ConstRow(1)
   m   = m.T()
   r2 := m.Col(1)
+  c2 := m.ConstCol(1)
 
   m   = m.T()
 
   s1 := m.Col(1)
+  d1 := m.ConstCol(1)
   m   = m.T()
   s2 := m.Row(1)
+  d2 := m.ConstRow(1)
 
-  r := NullReal()
+  r := NullFloat64()
 
-  if r.Vnorm(r1.VsubV(r1, r2)).GetValue() > 1e-8 {
+  if r.Vnorm(r1.VsubV(r1, r2)).GetFloat64() > 1e-8 {
     t.Error("Matrix Row/Col() test failed!")
   }
-  if r.Vnorm(s1.VsubV(s1, s2)).GetValue() > 1e-8 {
+  if r.Vnorm(r1.VsubV(c1, c2)).GetFloat64() > 1e-8 {
+    t.Error("Matrix Row/Col() test failed!")
+  }
+  if r.Vnorm(s1.VsubV(s1, s2)).GetFloat64() > 1e-8 {
+    t.Error("Matrix Row/Col() test failed!")
+  }
+  if r.Vnorm(s2.VsubV(d1, d2)).GetFloat64() > 1e-8 {
+    t.Error("Matrix Row/Col() test failed!")
+  }
+
+  m = NewDenseFloat64Matrix([]float64{
+     1,  2,  3,
+     4,  5,  6,
+     7,  8,  9,
+    10, 11, 12}, 4, 3)
+
+  r1 = m.Row(1)
+  r1.At(0).SetFloat64(100.0)
+  r2 = m.Col(1)
+  r2.At(0).SetFloat64(100.0)
+
+  if m.At(1, 0).GetFloat64() != 4.0 {
+    t.Error("Matrix Row/Col() test failed!")
+  }
+  if m.At(0, 1).GetFloat64() != 2.0 {
     t.Error("Matrix Row/Col() test failed!")
   }
 }
 
 func TestMatrixDiag(t *testing.T) {
 
-  m := NewMatrix(RealType, 3, 3, []float64{1,2,3,4,5,6,7,8,9})
+  m := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6,7,8,9}, 3, 3)
   v := m.Diag()
 
-  if v.At(0).GetValue() != 1 ||
-     v.At(1).GetValue() != 5 ||
-     v.At(2).GetValue() != 9 {
+  if v.At(0).GetFloat64() != 1 ||
+     v.At(1).GetFloat64() != 5 ||
+     v.At(2).GetFloat64() != 9 {
     t.Error("Matrix diag failed!")
   }
 }
 
 func TestMatrixReference(t *testing.T) {
 
-  m := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
-  c := NewReal(163)
+  m := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6}, 2, 3)
+  c := NewFloat64(163)
 
   m.At(0, 0).Set(c)
-  c.SetValue(400)
+  c.SetFloat64(400)
 
-  if m.At(0,0).GetValue() != 163 {
+  if m.At(0,0).GetFloat64() != 163 {
     t.Error("Matrix transpose failed!")
   }
 
-  r := NullReal()
+  r := NullFloat64()
 
   m.At(1, 2).Sub(m.At(1,2), r.Mul(m.At(1,1), m.At(1,2)))
 
-  if m.At(1,2).GetValue() != -24 {
+  if m.At(1,2).GetFloat64() != -24 {
     t.Error("Matrix transpose failed!")
   }
 }
 
 func TestMatrixTrace(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
-  s := NullReal()
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4}, 2, 2)
+  s := NullFloat64()
 
-  if s.Mtrace(m1).GetValue() != 5 {
+  if s.Mtrace(m1).GetFloat64() != 5 {
     t.Error("Wrong matrix trace!")
   }
 }
 
 func TestMatrixDot(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6}, 2, 3)
   m2 := m1.T()
-  m3 := NullMatrix(RealType, 2, 2)
+  m3 := NullDenseFloat64Matrix(2, 2)
   m3.MdotM(m1, m2)
 
-  if m3.At(0,0).GetValue() != 14 {
+  if m3.At(0,0).GetFloat64() != 14 {
     t.Error("Matrix multiplication failed!")
   }
 }
 
 func TestMatrixMul(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
-  m2 := NewMatrix(RealType, 2, 3, []float64{6,5,4,3,2,1})
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6}, 2, 3)
+  m2 := NewDenseFloat64Matrix([]float64{6,5,4,3,2,1}, 2, 3)
   m3 := m1.CloneMatrix()
   m3.MmulM(m1, m2)
 
-  if m3.At(0,0).GetValue() != 6 {
+  if m3.At(0,0).GetFloat64() != 6 {
     t.Error("Matrix multiplication failed!")
   }
 }
 
 func TestMatrixMdotV(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
-  v1 := NewVector(RealType, []float64{1, 2})
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4}, 2, 2)
+  v1 := NewDenseFloat64Vector([]float64{1, 2})
   v2 := v1.CloneVector()
   v2.MdotV(m1, v1)
-  v3 := NewVector(RealType, []float64{5, 11})
+  v3 := NewDenseFloat64Vector([]float64{5, 11})
 
-  r := NullReal()
+  r := NullFloat64()
 
-  if r.Vnorm(v2.VsubV(v2, v3)).GetValue() > 1e-8  {
+  if r.Vnorm(v2.VsubV(v2, v3)).GetFloat64() > 1e-8  {
     t.Error("Matrix/Vector multiplication failed!")
   }
 }
 
 func TestMatrixVdotM(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
-  v1 := NewVector(RealType, []float64{1, 2})
+  m1 := NewDenseFloat64Matrix([]float64{1,2,3,4}, 2, 2)
+  v1 := NewDenseFloat64Vector([]float64{1, 2})
   v2 := v1.CloneVector()
   v2.VdotM(v1, m1)
-  v3 := NewVector(RealType, []float64{7, 10})
+  v3 := NewDenseFloat64Vector([]float64{7, 10})
 
-  r := NullReal()
+  r := NullFloat64()
 
-  if r.Vnorm(v2.VsubV(v2, v3)).GetValue() > 1e-8  {
+  if r.Vnorm(v2.VsubV(v2, v3)).GetFloat64() > 1e-8  {
     t.Error("Matrix/Vector multiplication failed!")
   }
 }
 
 func TestMatrixMapReduce(t *testing.T) {
 
-  r1 := NewMatrix(RealType, 2, 2, []float64{2.718282e+00, 7.389056e+00, 2.008554e+01, 5.459815e+01})
+  r1 := NewDenseFloat64Matrix([]float64{2.718282e+00, 7.389056e+00, 2.008554e+01, 5.459815e+01}, 2, 2)
   r2 := 84.79103
-  t1 := NewReal(0.0)
-  m := NewMatrix(RealType, 2, 2, []float64{1, 2,3,4})
+  t1 := NewFloat64(0.0)
+  m := NewDenseFloat64Matrix([]float64{1, 2,3,4}, 2, 2)
   m.Map(func(x Scalar) { x.Exp(x) })
-  a := m.Reduce(func(x Scalar, y ConstScalar) Scalar { return x.Add(x, y) }, t1)
-  s := NullReal()
+  a := m.Reduce(func(x Scalar, y ConstScalar) Scalar { x.Add(x, y); return x }, t1)
+  s := NullFloat64()
 
-  if s.Mnorm(m.MsubM(m, r1)).GetValue() > 1e-8  {
+  if s.Mnorm(m.MsubM(m, r1)).GetFloat64() > 1e-8  {
     t.Error("Matrix/Vector multiplication failed!")
   }
-  if math.Abs(a.GetValue() - r2) > 1e-2 {
+  if math.Abs(a.GetFloat64() - r2) > 1e-2 {
     t.Error("Vector map/reduce failed!")
   }
 }
 
 func TestOuter(t *testing.T) {
-  a := NewVector(RealType, []float64{1,3,2})
-  b := NewVector(RealType, []float64{2,1,0,3})
-  r := NullMatrix(RealType, 3, 4)
+  a := NewDenseFloat64Vector([]float64{1,3,2})
+  b := NewDenseFloat64Vector([]float64{2,1,0,3})
+  r := NullDenseFloat64Matrix(3, 4)
   r.Outer(a,b)
-  m := NewMatrix(RealType, 3, 4, []float64{
+  m := NewDenseFloat64Matrix([]float64{
     2,1,0,3,
     6,3,0,9,
-    4,2,0,6 })
-  s := NullReal()
+    4,2,0,6 }, 3, 4)
+  s := NullFloat64()
 
-  if s.Mnorm(r.MsubM(r, m)).GetValue() > 1e-8  {
+  if s.Mnorm(r.MsubM(r, m)).GetFloat64() > 1e-8  {
     t.Error("Outer product multiplication failed!")
   }
 
-}
-
-func TestMatrixJacobian(t *testing.T) {
-
-  r1 := NullReal()
-  r2 := NullReal()
-
-  f := func(x ConstVector) ConstVector {
-    if x.Dim() != 2 {
-      panic("Invalid input vector!")
-    }
-    y := NullVector(RealType, 3)
-    // x1^2 + y^2 - 6
-    y.At(0).Sub(r1.Add(r1.Pow(x.ConstAt(0), NewBareReal(2)), r2.Pow(x.ConstAt(1), NewBareReal(2))), NewBareReal(6))
-    // x^3 - y^2
-    y.At(1).Sub(r1.Pow(x.ConstAt(0), NewBareReal(3)), r2.Pow(x.ConstAt(1), NewBareReal(2)))
-    y.At(2).SetValue(2)
-
-    return y
-  }
-
-  v1 := NewVector(RealType, []float64{1,1})
-  m1 := NullMatrix(RealType, 3, 2)
-  m2 := NewMatrix(RealType, 3, 2, []float64{2, 2, 3, -2, 0, 0})
-  s  := NullReal()
-
-  m1.Jacobian(f, v1)
-
-  if s.Mnorm(m1.MsubM(m1, m2)).GetValue() > 1e-8 {
-    t.Error("Jacobian test failed!")
-  }
-}
-
-func TestMatrixHessian(t *testing.T) {
-  x := NewVector(RealType, []float64{1.5, 2.5})
-  k := NewReal(3.0)
-
-  Variables(2, x.At(0), x.At(1))
-
-  t1 := NullReal()
-  t2 := NullReal()
-
-  // y = x^3 + y^3 + 3xy
-  f := func(x ConstVector) ConstScalar {
-    return t1.Sub(t1.Add(t1.Pow(x.ConstAt(0), k), t2.Pow(x.ConstAt(1), k)), t2.Mul(NewReal(3.0), t2.Mul(x.ConstAt(0), x.ConstAt(1))))
-  }
-  r1 := NullMatrix(RealType, 2, 2)
-  r2 :=  NewMatrix(RealType, 2, 2, []float64{
-     9, -3,
-    -3, 15})
-  s := NullReal()
-
-  r1.Hessian(f, x)
-
-  if s.Mnorm(r1.MsubM(r1, r2)).GetValue() > 1e-8 {
-    t.Error("Matrix Hessian test failed!")
-  }
 }
 
 func TestReadMatrix(t *testing.T) {
 
   filename := "matrix_dense_test.table"
 
-  m := &DenseRealMatrix{}
+  m := &DenseFloat64Matrix{}
   
   if err := m.Import(filename); err != nil {
     panic(err)
   }
-  r := NewMatrix(RealType, 2, 3, []float64{1,2,3,4,5,6})
-  s := NullReal()
+  r := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6}, 2, 3)
+  s := NullFloat64()
 
-  if s.Mnorm(m.MsubM(m, r)).GetValue() != 0.0 {
+  if s.Mnorm(m.MsubM(m, r)).GetFloat64() != 0.0 {
     t.Error("Read matrix failed!")
   }
 }
 
 func TestSymmetricPermutation(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 4, 4, []float64{
+  m1 := NewDenseFloat64Matrix([]float64{
      1,  2,  3,  4,
      5,  6,  7,  8,
      9, 10, 11, 12,
-    13, 14, 15, 16 })
+    13, 14, 15, 16 }, 4, 4)
   m2 := m1.CloneMatrix()
 
   // define permutation
@@ -312,33 +284,33 @@ func TestSymmetricPermutation(t *testing.T) {
   m2.SymmetricPermutation(pi)
   m2.SymmetricPermutation(pi)
 
-  s := NullReal()
+  s := NullFloat64()
 
-  if s.Mnorm(m1.MsubM(m1, m2)).GetValue() > 1e-20 {
+  if s.Mnorm(m1.MsubM(m1, m2)).GetFloat64() > 1e-20 {
     t.Error("SymmetricPermutation() failed")
   }
 }
 
 func TestMdotM(t *testing.T) {
-  r1 := NewMatrix(RealType, 3, 3, []float64{
+  r1 := NewDenseFloat64Matrix([]float64{
     1, 2, 3,
     4, 5, 6,
-    7, 8, 9 })
-  r2 := NewMatrix(RealType, 3, 3, []float64{
+    7, 8, 9 }, 3, 3)
+  r2 := NewDenseFloat64Matrix([]float64{
     1, 2, 3,
     4, 5, 6,
-    7, 8, 9 })
-  r3 := NullMatrix(RealType, 3, 3)
+    7, 8, 9 }, 3, 3)
+  r3 := NullDenseFloat64Matrix(3, 3)
   r3.MdotM(r1, r2)
-  s  := NullMatrix(RealType, 3, 3)
-  q  := NullReal()
+  s  := NullDenseFloat64Matrix(3, 3)
+  q  := NullFloat64()
 
   {
     r1 := r1.CloneMatrix()
     r2 := r1.CloneMatrix()
     r1.MdotM(r1, r2)
 
-    if q.Mnorm(s.MsubM(r1, r3)).GetValue() > 1e-8 {
+    if q.Mnorm(s.MsubM(r1, r3)).GetFloat64() > 1e-8 {
       t.Error("test failed")
     }
   }
@@ -347,7 +319,7 @@ func TestMdotM(t *testing.T) {
     r2 := r1.CloneMatrix()
     r2.MdotM(r1, r2)
 
-    if q.Mnorm(s.MsubM(r2, r3)).GetValue() > 1e-8 {
+    if q.Mnorm(s.MsubM(r2, r3)).GetFloat64() > 1e-8 {
       t.Error("test failed")
     }
   }
@@ -386,8 +358,8 @@ func TestMatrixJson(t *testing.T) {
   {
     filename := "matrix_dense_test.1.json"
 
-    r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
-    r2 := &DenseRealMatrix{}
+    r1 := NewDenseFloat64Matrix([]float64{1,2,3,4}, 2, 2)
+    r2 := &DenseFloat64Matrix{}
 
     if err := writeJson(filename, r1); err != nil {
       t.Error(err); return
@@ -395,29 +367,7 @@ func TestMatrixJson(t *testing.T) {
     if err := readJson(filename, r2); err != nil {
       t.Error(err); return
     }
-    if r1.At(0,0).GetValue() != r2.At(0,0).GetValue() {
-      t.Error("test failed")
-    }
-    os.Remove(filename)
-  }
-  {
-    filename := "matrix_dense_test.2.json"
-
-    r1 := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
-    r1.At(0,0).Alloc(1,2)
-    r1.At(0,0).SetDerivative(0, 2.3)
-    r2 := &DenseRealMatrix{}
-
-    if err := writeJson(filename, r1); err != nil {
-      t.Error(err); return
-    }
-    if err := readJson(filename, r2); err != nil {
-      t.Error(err); return
-    }
-    if r1.At(0,0).GetValue() != r2.At(0,0).GetValue() {
-      t.Error("test failed")
-    }
-    if r1.At(0,0).GetDerivative(0) != r2.At(0,0).GetDerivative(0) {
+    if r1.At(0,0).GetFloat64() != r2.At(0,0).GetFloat64() {
       t.Error("test failed")
     }
     os.Remove(filename)
@@ -426,13 +376,13 @@ func TestMatrixJson(t *testing.T) {
 
 func TestMatrixTransposeInPlace(t *testing.T) {
 
-  m1 := NewMatrix(RealType, 2, 4, []float64{11,12,13,14,21,22,23,24})
+  m1 := NewDenseFloat64Matrix([]float64{11,12,13,14,21,22,23,24}, 2, 4)
   m1.Tip()
-  m2 := NewMatrix(RealType, 4, 2, []float64{11,21,12,22,13,23,14,24})
+  m2 := NewDenseFloat64Matrix([]float64{11,21,12,22,13,23,14,24}, 4, 2)
 
-  s  := NullReal()
+  s  := NullFloat64()
 
-  if s.Mnorm(m1.MsubM(m1, m2)).GetValue() != 0.0 {
+  if s.Mnorm(m1.MsubM(m1, m2)).GetFloat64() != 0.0 {
     t.Error("test failed")
   }
 }

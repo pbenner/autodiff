@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,34 +28,34 @@ import . "github.com/pbenner/autodiff"
 
 /* -------------------------------------------------------------------------- */
 
-func TestScalarId(t *testing.T) {
+func TestScalarId(test *testing.T) {
 
-  d1, _ := scalarDistribution.NewGammaDistribution(NewReal(1.0), NewReal(2.0))
-  d2, _ := scalarDistribution.NewGammaDistribution(NewReal(2.0), NewReal(3.0))
+  d1, _ := scalarDistribution.NewGammaDistribution(NewFloat64(1.0), NewFloat64(2.0))
+  d2, _ := scalarDistribution.NewGammaDistribution(NewFloat64(2.0), NewFloat64(3.0))
 
   id, _ := NewScalarId(d1, d2)
 
   ExportDistribution("scalarId_test.json", id)
 
-  if d, err := ImportVectorPdf("scalarId_test.json", BareRealType); err != nil {
-    t.Error(err)
+  if d, err := ImportVectorPdf("scalarId_test.json", Float64Type); err != nil {
+    test.Error(err)
   } else {
     switch id := d.(type) {
     case *ScalarId:
       if len(id.Distributions) != 2 {
-        t.Error("test failed")
+        test.Error("test failed")
       } else {
         switch gamma := id.Distributions[0].(type) {
         case *scalarDistribution.GammaDistribution:
-          if gamma.Alpha.GetValue() != 1.0 {
-            t.Error("test failed")
+          if gamma.Alpha.GetFloat64() != 1.0 {
+            test.Error("test failed")
           }
         default:
-          t.Error("test failed")
+          test.Error("test failed")
         }
       }
     default:
-      t.Error("test failed")
+      test.Error("test failed")
     }
   }
 }

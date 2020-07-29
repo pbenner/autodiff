@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ func NewNormalIWishartDistribution(kappa, nu Scalar, mu Vector, lambda Matrix) (
     Mu    : mu,
     r1    : NullScalar(t),
     r2    : NullScalar(t),
-    sigmap: NullMatrix(t, n, n) }
+    sigmap: NullDenseMatrix(t, n, n) }
 
   return &result, nil
 
@@ -89,9 +89,9 @@ func (dist *NormalIWishartDistribution) MarginalMu() (*vectorDistribution.TDistr
   n := dist.Dim()
   d := NewScalar(dist.ScalarType(), float64(dist.Dim()))
   c := NewScalar(dist.ScalarType(), 0.0)
-  c.Add(c.Sub(dist.Nu, d), ConstReal(1.0)) // (nu - d + 1)
+  c.Add(c.Sub(dist.Nu, d), ConstFloat64(1.0)) // (nu - d + 1)
   c.Mul(c, dist.Kappa)                   // (nu - d + 1)kappa
-  lambda := NullMatrix(dist.ScalarType(), n, n)
+  lambda := NullDenseMatrix(dist.ScalarType(), n, n)
   lambda.MdivS(dist.S, c)
 
   r, err := vectorDistribution.NewTDistribution(dist.Nu, dist.Mu, lambda)
@@ -145,7 +145,7 @@ func (dist *NormalIWishartDistribution) LogPdf(r Scalar, mu Vector, sigma Matrix
   r1 := dist.r1
   r2 := dist.r2
   sigmap := dist.sigmap
-  sigmap.MmulS(sigma, r1.Div(ConstReal(1.0), dist.Kappa))
+  sigmap.MmulS(sigma, r1.Div(ConstFloat64(1.0), dist.Kappa))
   if normal, err := vectorDistribution.NewNormalDistribution(dist.Mu, sigmap); err != nil {
     return err
   } else {
@@ -171,7 +171,7 @@ func (dist *NormalIWishartDistribution) Pdf(r Scalar, mu Vector, sigma Matrix) e
 /* -------------------------------------------------------------------------- */
 
 func (obj *NormalIWishartDistribution) GetParameters() Vector {
-  p := NullVector(obj.ScalarType(), 0)
+  p := NullDenseVector(obj.ScalarType(), 0)
   p  = p.AppendScalar(obj.Kappa)
   p  = p.AppendScalar(obj.Nu)
   p  = p.AppendVector(obj.Mu)
@@ -234,11 +234,11 @@ func (obj *NormalIWishartDistribution) ExportConfig() ConfigDistribution {
     Mu    []float64
     Lambda []float64
     N       int }{}
-  config.Kappa  = obj.Kappa.GetValue ()
-  config.Nu     = obj.Nu   .GetValue ()
-  config.Mu     = obj.Mu   .GetValues()
-  config.Lambda = obj.InverseWishartDistribution.S.GetValues()
-  config.N     = n
+  config.Kappa  = obj.Kappa.GetFloat64()
+  config.Nu     = obj.Nu   .GetFloat64()
+  config.Mu     = AsDenseFloat64Vector(obj.Mu)
+  config.Lambda = AsDenseFloat64Vector(obj.InverseWishartDistribution.S.AsVector())
+  config.N      = n
 
   return NewConfigDistribution("matrix:normal inverse wishart distribtion", config)
 }

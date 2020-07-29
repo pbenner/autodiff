@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,10 +53,10 @@ func (dist *DeltaDistribution) ScalarType() ScalarType {
 }
 
 func (dist *DeltaDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() == dist.X.GetValue() {
-    r.SetValue(0.0)
+  if x.GetFloat64() == dist.X.GetFloat64() {
+    r.SetFloat64(0.0)
   } else {
-    r.SetValue(math.Inf(-1))
+    r.SetFloat64(math.Inf(-1))
   }
   return nil
 }
@@ -72,7 +72,7 @@ func (dist *DeltaDistribution) Pdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist *DeltaDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 1)
+  p := NullDenseVector(dist.ScalarType(), 1)
   p.At(0).Set(dist.X)
   return p
 }

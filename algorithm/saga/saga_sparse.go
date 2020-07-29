@@ -1,6 +1,6 @@
 /* -*- mode: go; -*-
  *
- * Copyright (C) 2019 Philipp Benner
+ * Copyright (C) 2019-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,55 +24,55 @@ import "math/rand"
 import . "github.com/pbenner/autodiff"
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-type Objective1Sparse func(int, DenseBareRealVector) (ConstReal, ConstReal, SparseConstRealVector, error)
-type Objective2Sparse func(int, DenseBareRealVector) (ConstReal, SparseConstRealVector, error)
+type Objective1Sparse func(int, DenseFloat64Vector) (float64, float64, SparseConstFloat64Vector, error)
+type Objective2Sparse func(int, DenseFloat64Vector) (float64, SparseConstFloat64Vector, error)
 /* -------------------------------------------------------------------------- */
 type ConstGradientSparse struct {
-  g SparseConstRealVector
-  w ConstReal
+  g SparseConstFloat64Vector
+  w float64
 }
-func (obj ConstGradientSparse) update(g2 ConstGradientSparse, v DenseBareRealVector) {
-  c := g2.w.GetValue() - obj.w.GetValue()
+func (obj ConstGradientSparse) update(g2 ConstGradientSparse, v DenseFloat64Vector) {
+  c := g2.w - obj.w
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() + c*s_b.GetValue())
+    s_a.SetFloat64(s_a.GetFloat64() + c*s_b.GetFloat64())
   }
 }
-func (obj ConstGradientSparse) add(v DenseBareRealVector) {
+func (obj ConstGradientSparse) add(v DenseFloat64Vector) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() + obj.w.GetValue()*s_b.GetValue())
+    s_a.SetFloat64(s_a.GetFloat64() + obj.w*s_b.GetFloat64())
   }
 }
-func (obj *ConstGradientSparse) set(w ConstReal, g SparseConstRealVector) {
+func (obj *ConstGradientSparse) set(w float64, g SparseConstFloat64Vector) {
   obj.g = g
   obj.w = w
 }
 /* -------------------------------------------------------------------------- */
 type GradientSparse struct {
-  g DenseBareRealVector
+  g DenseFloat64Vector
 }
-func (obj GradientSparse) add(v DenseBareRealVector) {
+func (obj GradientSparse) add(v DenseFloat64Vector) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() + s_b.GetValue())
+    s_a.SetFloat64(s_a.GetFloat64() + s_b.GetFloat64())
   }
 }
-func (obj GradientSparse) sub(v DenseBareRealVector) {
+func (obj GradientSparse) sub(v DenseFloat64Vector) {
   for it := obj.g.ITERATOR(); it.Ok(); it.Next() {
     s_a := v.AT(it.Index())
     s_b := it.GET()
-    s_a.SetValue(s_a.GetValue() - s_b.GetValue())
+    s_a.SetFloat64(s_a.GetFloat64() - s_b.GetFloat64())
   }
 }
 func (obj *GradientSparse) set(g ConstVector) {
   if obj.g != nil {
     obj.g.Set(g)
   } else {
-    obj.g = AsDenseBareRealVector(g)
+    obj.g = AsDenseFloat64Vector(g)
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -87,8 +87,8 @@ func saga1Sparse(
   hook Hook,
   seed Seed,
   inSitu *InSitu) (Vector, int64, error) {
-  xs := AsDenseBareRealVector(x)
-  x1 := AsDenseBareRealVector(x)
+  xs := AsDenseFloat64Vector(x)
+  x1 := AsDenseFloat64Vector(x)
   // length of gradient
   d := x.Dim()
   // gradient
@@ -96,19 +96,15 @@ func saga1Sparse(
   var g2 ConstGradientSparse
   // allocate temporary memory
   if inSitu.T1 == nil {
-    inSitu.T1 = NullDenseBareRealVector(d)
-  }
-  if inSitu.T2 == nil {
-    inSitu.T2 = NullBareReal()
+    inSitu.T1 = NullDenseFloat64Vector(d)
   }
   // temporary variables
   t1 := inSitu.T1
-  t2 := inSitu.T2
   // some constants
   t_n := float64(n)
   t_g := gamma.Value
   // sum of gradients
-  s := NullDenseBareRealVector(d)
+  s := NullDenseFloat64Vector(d)
   // initialize s and d
   dict := make([]ConstGradientSparse, n)
   for i := 0; i < n; i++ {
@@ -131,24 +127,24 @@ func saga1Sparse(
       } else {
         g2.set(w, gt)
       }
-      gw1 := g1.w.GetValue()
-      gw2 := g2.w.GetValue()
+      gw1 := g1.w
+      gw2 := g2.w
       c := gw2 - gw1
       if proxop == nil {
         for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          x1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
+          s_i := s.Float64At(i)
+          g1i := g1.g.Float64At(i)
+          x1i := x1.Float64At(i)
+          x1.AT(i).SetFloat64(x1i - t_g*(c*g1i + s_i/t_n))
         }
       } else {
         for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          t1.AT(i).SetValue(x1i - t_g*(c*g1i + s_i/t_n))
+          s_i := s.Float64At(i)
+          g1i := g1.g.Float64At(i)
+          x1i := x1.Float64At(i)
+          t1.AT(i).SetFloat64(x1i - t_g*(c*g1i + s_i/t_n))
         }
-        proxop.Eval(x1, t1, t2)
+        proxop.Eval(x1, t1)
       }
       // update gradient avarage
       g1.update(g2, s)
@@ -159,11 +155,11 @@ func saga1Sparse(
       return x1, g.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstFloat64(delta), ConstFloat64(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
         break
       }
     }
-    xs.SET(x1)
+    xs.Set(x1)
   }
   return x1, g.Int63(), nil
 }
@@ -178,8 +174,8 @@ func saga2Sparse(
   hook Hook,
   seed Seed,
   inSitu *InSitu) (Vector, int64, error) {
-  xs := AsDenseBareRealVector(x)
-  x1 := AsDenseBareRealVector(x)
+  xs := AsDenseFloat64Vector(x)
+  x1 := AsDenseFloat64Vector(x)
   // length of gradient
   d := x.Dim()
   // gradient
@@ -187,19 +183,15 @@ func saga2Sparse(
   var g2 GradientSparse
   // allocate temporary memory
   if inSitu.T1 == nil {
-    inSitu.T1 = NullDenseBareRealVector(d)
-  }
-  if inSitu.T2 == nil {
-    inSitu.T2 = NullBareReal()
+    inSitu.T1 = NullDenseFloat64Vector(d)
   }
   // temporary variables
   t1 := inSitu.T1
-  t2 := inSitu.T2
   // some constants
   t_n := float64(n)
   t_g := gamma.Value
   // sum of gradients
-  s := NullDenseBareRealVector(d)
+  s := NullDenseFloat64Vector(d)
   // initialize s and d
   dict := make([]GradientSparse, n)
   for i := 0; i < n; i++ {
@@ -224,21 +216,21 @@ func saga2Sparse(
       }
       if proxop == nil {
         for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          g2i := g2.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          x1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
+          s_i := s.Float64At(i)
+          g1i := g1.g.Float64At(i)
+          g2i := g2.g.Float64At(i)
+          x1i := x1.Float64At(i)
+          x1.AT(i).SetFloat64(x1i - t_g*(g2i - g1i + s_i/t_n))
         }
       } else {
         for i := 0; i < s.Dim(); i++ {
-          s_i := s.ValueAt(i)
-          g1i := g1.g.ValueAt(i)
-          g2i := g2.g.ValueAt(i)
-          x1i := x1.ValueAt(i)
-          t1.AT(i).SetValue(x1i - t_g*(g2i - g1i + s_i/t_n))
+          s_i := s.Float64At(i)
+          g1i := g1.g.Float64At(i)
+          g2i := g2.g.Float64At(i)
+          x1i := x1.Float64At(i)
+          t1.AT(i).SetFloat64(x1i - t_g*(g2i - g1i + s_i/t_n))
         }
-        proxop.Eval(x1, t1, t2)
+        proxop.Eval(x1, t1)
       }
       // update gradient avarage
       g1.sub(s)
@@ -250,11 +242,11 @@ func saga2Sparse(
       return x1, g.Int63(), err
     } else {
       // execute hook if available
-      if hook.Value != nil && hook.Value(x1, ConstReal(delta), ConstReal(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
+      if hook.Value != nil && hook.Value(x1, ConstFloat64(delta), ConstFloat64(float64(n)*proxop.GetLambda()/gamma.Value), epoch) {
         break
       }
     }
-    xs.SET(x1)
+    xs.Set(x1)
   }
   return x1, g.Int63(), nil
 }

@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ type MixtureStdDataSet struct {
 func NewMixtureStdDataSet(t ScalarType, x ConstVector, k int) (*MixtureStdDataSet, error) {
   r := MixtureStdDataSet{}
   r.values = x
-  r.p      = NullMatrix(t, k, x.Dim())
+  r.p      = NullDenseMatrix(t, k, x.Dim())
   r.n      = x.Dim()
   return &r, nil
 }
@@ -100,7 +100,7 @@ func (obj *MixtureStdDataSet) EvaluateLogPdf(edist []ScalarPdf, pool ThreadPool)
       if err := d[j].LogPdf(p.At(j, i), x.ConstAt(i)); err != nil {
         return err
       }
-      s = LogAdd(s, p.At(j, i).GetValue())
+      s = LogAdd(s, p.At(j, i).GetFloat64())
     }
     if math.IsInf(s, -1) {
       return fmt.Errorf("probability is zero for all models on observation `%v'", x.ConstAt(i))
@@ -128,7 +128,7 @@ func NewMixtureSummarizedDataSet(t ScalarType, x ConstVector, k int) (*MixtureSu
   values := []float64{}
   counts := []int{}
   for i := 0; i < x.Dim(); i++ {
-    v := x.ConstAt(i).GetValue()
+    v := x.ConstAt(i).GetFloat64()
     if idx, ok := xMap[v]; ok {
       counts[idx] += 1
     } else {
@@ -141,12 +141,12 @@ func NewMixtureSummarizedDataSet(t ScalarType, x ConstVector, k int) (*MixtureSu
   r := MixtureSummarizedDataSet{}
   r.values = values
   r.counts = counts
-  r.p      = NullMatrix(t, k, len(values))
+  r.p      = NullDenseMatrix(t, k, len(values))
   return &r, nil
 }
 
 func (obj *MixtureSummarizedDataSet) GetData() ConstVector {
-  return DenseConstRealVector(obj.values)
+  return DenseFloat64Vector(obj.values)
 }
 
 func (obj *MixtureSummarizedDataSet) GetCounts() []int {
@@ -190,10 +190,10 @@ func (obj *MixtureSummarizedDataSet) EvaluateLogPdf(edist []ScalarPdf, pool Thre
     s = math.Inf(-1)
     // loop over emission distributions
     for j := 0; j < m; j++ {
-      if err := d[j].LogPdf(p.At(j, i), ConstReal(x[i])); err != nil {
+      if err := d[j].LogPdf(p.At(j, i), ConstFloat64(x[i])); err != nil {
         return err
       }
-      s = LogAdd(s, p.At(j, i).GetValue())
+      s = LogAdd(s, p.At(j, i).GetFloat64())
     }
     if math.IsInf(s, -1) {
       return fmt.Errorf("probability is zero for all models on observation `%v'", x[i])

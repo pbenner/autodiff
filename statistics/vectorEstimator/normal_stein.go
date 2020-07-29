@@ -1,4 +1,4 @@
-/* Copyright (C) 2019 Philipp Benner
+/* Copyright (C) 2019-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ func NewNormalSteinEstimator(mu, sigma []float64, sigmaMin float64) (*NormalStei
 /* -------------------------------------------------------------------------- */
 
 func (obj NormalSteinEstimator) steinEigen(l ConstVector, n int) Vector {
-  r := NullVector(l.ElementType(), l.Dim())
+  r := NullDenseVector(l.ElementType(), l.Dim())
   t := NullScalar(l.ElementType())
   p := l.Dim()
   // k = min(p, n)
@@ -57,15 +57,15 @@ func (obj NormalSteinEstimator) steinEigen(l ConstVector, n int) Vector {
     for j := 0; j < k; j++ {
       if i != j {
         t.Sub(l.ConstAt(i), l.ConstAt(j))
-        t.Div(ConstReal(1.0), t)
+        t.Div(ConstFloat64(1.0), t)
         r.At(i).Add(r.ConstAt(i), t)
       }
     }
-    t.Mul(ConstReal(2.0), l.ConstAt(i))
+    t.Mul(ConstFloat64(2.0), l.ConstAt(i))
     r.At(i).Mul(r.ConstAt(i), t)
-    r.At(i).Add(r.ConstAt(i), ConstReal(1.0))
-    r.At(i).Add(r.ConstAt(i), ConstReal(math.Abs(float64(n) - float64(p))))
-    t.Mul(ConstReal(float64(n)), l.ConstAt(i))
+    r.At(i).Add(r.ConstAt(i), ConstFloat64(1.0))
+    r.At(i).Add(r.ConstAt(i), ConstFloat64(math.Abs(float64(n) - float64(p))))
+    t.Mul(ConstFloat64(float64(n)), l.ConstAt(i))
     r.At(i).Div(t, r.ConstAt(i))
   }
   r.Sort(true)

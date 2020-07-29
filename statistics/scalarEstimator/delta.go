@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ type DeltaEstimator struct {
 /* -------------------------------------------------------------------------- */
 
 func NewDeltaEstimator(x float64) (*DeltaEstimator, error) {
-  if dist, err := scalarDistribution.NewDeltaDistribution(NewBareReal(x)); err != nil {
+  if dist, err := scalarDistribution.NewDeltaDistribution(NewFloat64(x)); err != nil {
     return nil, err
   } else {
     r := DeltaEstimator{}

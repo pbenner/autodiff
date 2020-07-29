@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ type ExponentialDistribution struct {
 /* -------------------------------------------------------------------------- */
 
 func NewExponentialDistribution(lambda Scalar) (*ExponentialDistribution, error) {
-  if lambda.GetValue() <= 0.0 {
-    return nil, fmt.Errorf("invalid value for parameter lambda: %f", lambda.GetValue())
+  if lambda.GetFloat64() <= 0.0 {
+    return nil, fmt.Errorf("invalid value for parameter lambda: %f", lambda.GetFloat64())
   }
   // some constants
   l1 := lambda.CloneScalar()
@@ -69,8 +69,8 @@ func (dist *ExponentialDistribution) ScalarType() ScalarType {
 }
 
 func (dist *ExponentialDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() < 0 {
-    r.SetValue(math.Inf(-1))
+  if x.GetFloat64() < 0 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
 
@@ -90,8 +90,8 @@ func (dist *ExponentialDistribution) Pdf(r Scalar, x ConstScalar) error {
 }
 
 func (dist *ExponentialDistribution) LogCdf(r Scalar, x ConstScalar) error {
-  if x.GetValue() < 0 {
-    r.SetValue(math.Inf(-1))
+  if x.GetFloat64() < 0 {
+    r.SetFloat64(math.Inf(-1))
     return nil
   }
 
@@ -115,7 +115,7 @@ func (dist *ExponentialDistribution) Cdf(r Scalar, x ConstScalar) error {
 /* -------------------------------------------------------------------------- */
 
 func (dist ExponentialDistribution) GetParameters() Vector {
-  p := NullVector(dist.ScalarType(), 1)
+  p := NullDenseVector(dist.ScalarType(), 1)
   p.At(0).Set(dist.Lambda)
   return p
 }

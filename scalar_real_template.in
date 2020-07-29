@@ -1,0 +1,478 @@
+/* -*- mode: go; -*-
+ *
+ * Copyright (C) 2015-2020 Philipp Benner
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "macros.h"
+
+/* -------------------------------------------------------------------------- */
+
+package autodiff
+
+/* -------------------------------------------------------------------------- */
+
+import "fmt"
+import "encoding/json"
+import "math"
+import "reflect"
+
+/* -------------------------------------------------------------------------- */
+
+type SCALAR_NAME struct {
+  Value            SCALAR_TYPE
+  Order            int
+  Derivative     []SCALAR_TYPE
+  Hessian      [][]SCALAR_TYPE
+  N                int
+}
+
+/* register scalar type
+ * -------------------------------------------------------------------------- */
+
+var SCALAR_REFLECT_TYPE ScalarType = NEW_SCALAR(0.0).Type()
+
+func init() {
+  f := func(value float64) Scalar { return NEW_SCALAR(SCALAR_TYPE(value)) }
+  RegisterScalar(SCALAR_REFLECT_TYPE, f)
+}
+
+/* constructors
+ * -------------------------------------------------------------------------- */
+
+// Create a new real constant or variable.
+func NEW_SCALAR(v SCALAR_TYPE) *SCALAR_NAME {
+  s := SCALAR_NAME{}
+  s.Value = v
+  s.Order = 0
+  s.N     = 0
+  return &s
+}
+
+func NULL_SCALAR() *SCALAR_NAME {
+  return NEW_SCALAR(0.0)
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) Clone() *SCALAR_NAME {
+  r := NEW_SCALAR(0.0)
+  r.Set(a)
+  return r
+}
+
+func (a *SCALAR_NAME) CloneConstScalar() ConstScalar {
+  return a.Clone()
+}
+
+func (a *SCALAR_NAME) CloneScalar() Scalar {
+  return a.Clone()
+}
+
+func (a *SCALAR_NAME) CloneMagicScalar() MagicScalar {
+  return a.Clone()
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) Type() ScalarType {
+  return reflect.TypeOf(a)
+}
+
+/* type conversion
+ * -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) ConvertScalar(t ScalarType) Scalar {
+  switch t {
+  case SCALAR_REFLECT_TYPE:
+    return a
+  default:
+    r := NullScalar(t)
+    r.Set(a)
+    return a
+  }
+}
+
+func (a *SCALAR_NAME) ConvertMagicScalar(t ScalarType) MagicScalar {
+  switch t {
+  case SCALAR_REFLECT_TYPE:
+    return a
+  default:
+    r := NullScalar(t)
+    r.Set(a)
+    return a
+  }
+}
+
+func (a *SCALAR_NAME) ConvertConstScalar(t ScalarType) ConstScalar {
+  switch t {
+  case SCALAR_REFLECT_TYPE:
+    return a
+  default:
+    return NewConstScalar(t, a.GetFloat64())
+  }
+}
+
+/* stringer
+ * -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) String() string {
+  return fmt.Sprintf("%v", a.GET_METHOD_NAME())
+}
+
+/* -------------------------------------------------------------------------- */
+
+// Allocate memory for derivatives of n variables.
+func (a *SCALAR_NAME) Alloc(n, order int) {
+  if a.N != n || a.Order != order {
+    a.N          = n
+    a.Order      = order
+    // allocate gradient if requested
+    if a.Order >= 1 {
+      a.Derivative = make([]SCALAR_TYPE, n)
+      // allocate Hessian if requested
+      if a.Order >= 2 {
+        a.Hessian = make([][]SCALAR_TYPE, n)
+        for i := 0; i < n; i++ {
+          a.Hessian[i] = make([]SCALAR_TYPE, n)
+        }
+      } else {
+        a.Hessian = nil
+      }
+    } else {
+      a.Derivative = nil
+    }
+  }
+}
+
+// Allocate memory for the results of mathematical operations on
+// the given variables.
+func (c *SCALAR_NAME) AllocForOne(a ConstScalar) {
+  c.Alloc(a.GetN(), a.GetOrder())
+}
+func (c *SCALAR_NAME) AllocForTwo(a, b ConstScalar) {
+  c.Alloc(iMax(a.GetN(), b.GetN()), iMax(a.GetOrder(), b.GetOrder()))
+}
+
+/* read access
+ * -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) GetInt8() int8 {
+  return int8(a.Value)
+}
+
+func (a *SCALAR_NAME) GetInt16() int16 {
+  return int16(a.Value)
+}
+
+func (a *SCALAR_NAME) GetInt32() int32 {
+  return int32(a.Value)
+}
+
+func (a *SCALAR_NAME) GetInt64() int64 {
+  return int64(a.Value)
+}
+
+func (a *SCALAR_NAME) GetInt() int {
+  return int(a.Value)
+}
+
+func (a *SCALAR_NAME) GetFloat32() float32 {
+  return float32(a.Value)
+}
+
+func (a *SCALAR_NAME) GetFloat64() float64 {
+  return float64(a.Value)
+}
+
+// Indicates the maximal order of derivatives that are computed for this
+// variable. `0' means no derivatives, `1' only the first derivative, and
+// `2' the first and second derivative.
+func (a *SCALAR_NAME) GetOrder() int {
+  return a.Order
+}
+
+// Returns the value of the variable on log scale.
+func (a *SCALAR_NAME) GetLogValue() float64 {
+  return math.Log(float64(a.Value))
+}
+
+// Returns the derivative of the ith variable.
+func (a *SCALAR_NAME) GetDerivative(i int) float64 {
+  if a.Order >= 1 {
+    return float64(a.Derivative[i])
+  } else {
+    return 0.0
+  }
+}
+
+func (a *SCALAR_NAME) GetHessian(i, j int) float64 {
+  if a.Order >= 2 {
+    return float64(a.Hessian[i][j])
+  } else {
+    return 0.0
+  }
+}
+
+// Number of variables for which derivates are stored.
+func (a *SCALAR_NAME) GetN() int {
+  return a.N
+}
+
+/* write access
+ * -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) Reset() {
+  a.Value = 0.0
+  a.ResetDerivatives()
+}
+
+// Set the state to b. This includes the value and all derivatives.
+func (a *SCALAR_NAME) Set(b ConstScalar) {
+  a.Value = b.GET_METHOD_NAME()
+  a.Order = b.GetOrder()
+  a.Alloc(b.GetN(), b.GetOrder())
+  if a.Order >= 1 {
+    for i := 0; i < b.GetN(); i++ {
+      a.Derivative[i] = SCALAR_TYPE(b.GetDerivative(i))
+    }
+    if a.Order >= 2 {
+      for i := 0; i < b.GetN(); i++ {
+        for j := 0; j < b.GetN(); j++ {
+          a.Hessian[i][j] = SCALAR_TYPE(b.GetHessian(i, j))
+        }
+      }
+    }
+  }
+}
+
+func (a *SCALAR_NAME) SET(b *SCALAR_NAME) {
+  a.Value = b.GET_METHOD_NAME()
+  a.Order = b.GetOrder()
+  a.Alloc(b.GetN(), b.GetOrder())
+  if a.Order >= 1 {
+    for i := 0; i < b.GetN(); i++ {
+      a.Derivative[i] = SCALAR_TYPE(b.GetDerivative(i))
+    }
+    if a.Order >= 2 {
+      for i := 0; i < b.GetN(); i++ {
+        for j := 0; j < b.GetN(); j++ {
+          a.Hessian[i][j] = SCALAR_TYPE(b.GetHessian(i, j))
+        }
+      }
+    }
+  }
+}
+
+// Set the value of the variable. All derivatives are reset to zero.
+func (a *SCALAR_NAME) SetInt8(v int8) {
+  a.setInt8(v)
+  a.ResetDerivatives()
+}
+
+func (a *SCALAR_NAME) setInt8(v int8) {
+  a.Value = SCALAR_TYPE(v)
+}
+
+func (a *SCALAR_NAME) SetInt16(v int16) {
+  a.setInt16(v)
+  a.ResetDerivatives()
+}
+
+func (a *SCALAR_NAME) setInt16(v int16) {
+  a.Value = SCALAR_TYPE(v)
+}
+
+func (a *SCALAR_NAME) SetInt32(v int32) {
+  a.setInt32(v)
+  a.ResetDerivatives()
+}
+
+func (a *SCALAR_NAME) setInt32(v int32) {
+  a.Value = SCALAR_TYPE(v)
+}
+
+func (a *SCALAR_NAME) SetInt64(v int64) {
+  a.setInt64(v)
+  a.ResetDerivatives()
+}
+
+func (a *SCALAR_NAME) setInt64(v int64) {
+  a.Value = SCALAR_TYPE(v)
+}
+
+func (a *SCALAR_NAME) SetInt(v int) {
+  a.setInt(v)
+  a.ResetDerivatives()
+}
+
+func (a *SCALAR_NAME) setInt(v int) {
+  a.Value = SCALAR_TYPE(v)
+}
+
+func (a *SCALAR_NAME) SetFloat32(v float32) {
+  a.setFloat32(v)
+  a.ResetDerivatives()
+}
+
+func (a *SCALAR_NAME) setFloat32(v float32) {
+  a.Value = SCALAR_TYPE(v)
+}
+
+func (a *SCALAR_NAME) SetFloat64(v float64) {
+  a.setFloat64(v)
+  a.ResetDerivatives()
+}
+
+func (a *SCALAR_NAME) setFloat64(v float64) {
+  a.Value = SCALAR_TYPE(v)
+}
+
+/* magic write access
+ * -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) ResetDerivatives() {
+  if a.Order >= 1 {
+    for i := 0; i < a.N; i++ {
+      a.Derivative[i] = 0.0
+    }
+    if a.Order >= 2 {
+      for i := 0; i < a.N; i++ {
+        for j := 0; j < a.N; j++ {
+          a.Hessian[i][j] = 0.0
+        }
+      }
+    }
+  }
+}
+
+// Set the derivative of the ith variable to v.
+func (a *SCALAR_NAME) SetDerivative(i int, v float64) {
+  a.Derivative[i] = SCALAR_TYPE(v)
+}
+
+func (a *SCALAR_NAME) SetHessian(i, j int, v float64) {
+  a.Hessian[i][j] = SCALAR_TYPE(v)
+}
+
+// Allocate memory for n variables and set the derivative
+// of the ith variable to 1 (initial value).
+func (a *SCALAR_NAME) SetVariable(i, n, order int) error {
+  if order > 2 {
+    return fmt.Errorf("order `%d' not supported by this type", order)
+  }
+  a.Alloc(n, order)
+  if order > 0 {
+    a.Derivative[i] = 1
+  }
+  return nil
+}
+
+/* -------------------------------------------------------------------------- */
+
+func (a *SCALAR_NAME) nullScalar() bool {
+  if a == nil {
+    return true
+  }
+  if a.Value != 0 {
+    return false
+  }
+  if a.GetOrder() >= 1 {
+    for i := 0; i < a.GetN(); i++ {
+      if v := a.GetDerivative(i); v != 0.0 {
+        return false
+      }
+    }
+  }
+  if a.GetOrder() >= 2 {
+    for i := 0; i < a.GetN(); i++ {
+      for j := 0; j < a.GetN(); j++ {
+        if v := a.GetHessian(i, j); v != 0.0 {
+          return false
+        }
+      }
+    }
+  }
+  return true
+}
+
+/* json
+ * -------------------------------------------------------------------------- */
+
+func (obj *SCALAR_NAME) MarshalJSON() ([]byte, error) {
+  t1 := false
+  t2 := false
+  if obj.Order > 0 && obj.N > 0 {
+    // check for non-zero derivatives
+    for i := 0; !t1 && i < obj.GetN(); i++ {
+      if obj.Derivative[i] != 0.0 {
+        t1 = true
+      }
+    }
+    if obj.Order > 1 {
+      // check for non-zero second derivatives
+      for i := 0; !t2 && i < obj.GetN(); i++ {
+        for j := 0; !t2 && j < obj.GetN(); j++ {
+          if obj.GetHessian(i, j) != 0.0 {
+            t2 = true
+          }
+        }
+      }
+    }
+  }
+  if t1 && t2 {
+    r := struct{Value SCALAR_TYPE; Derivative []SCALAR_TYPE; Hessian [][]SCALAR_TYPE}{
+      obj.Value, obj.Derivative, obj.Hessian}
+    return json.Marshal(r)
+  } else
+  if t1 && !t2 {
+    r := struct{Value SCALAR_TYPE; Derivative []SCALAR_TYPE}{
+      obj.Value, obj.Derivative}
+    return json.Marshal(r)
+  } else
+  if !t1 && t2 {
+    r := struct{Value SCALAR_TYPE; Hessian [][]SCALAR_TYPE}{
+      obj.Value, obj.Hessian}
+    return json.Marshal(r)
+  } else {
+    return json.Marshal(obj.Value)
+  }
+}
+
+func (obj *SCALAR_NAME) UnmarshalJSON(data []byte) error {
+  r := struct{Value SCALAR_TYPE; Derivative []SCALAR_TYPE; Hessian [][]SCALAR_TYPE}{}
+  if err := json.Unmarshal(data, &r); err == nil {
+    obj.Value = r.Value
+    if len(r.Derivative) != 0 && len(r.Hessian) != 0 {
+      if len(r.Derivative) != len(r.Derivative) {
+        return fmt.Errorf("invalid json scalar representation")
+      }
+      obj.Alloc(len(r.Derivative), 2)
+      obj.Derivative = r.Derivative
+      obj.Hessian    = r.Hessian
+    } else
+    if len(r.Derivative) != 0 && len(r.Hessian) == 0 {
+      obj.Alloc(len(r.Derivative), 1)
+      obj.Derivative = r.Derivative
+    } else
+    if len(r.Derivative) == 0 && len(r.Hessian) != 0 {
+      obj.Alloc(len(r.Derivative), 2)
+      obj.Hessian    = r.Hessian
+    }
+    return nil
+  } else {
+    return json.Unmarshal(data, &obj.Value)
+  }
+}

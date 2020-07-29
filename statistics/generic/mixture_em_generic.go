@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,11 +28,9 @@ import . "github.com/pbenner/threadpool"
 /* -------------------------------------------------------------------------- */
 
 type EmTmp struct {
-  gammaTmp     DenseBareRealVector
-  gamma      []DenseBareRealVector
-  logWeights   DenseBareRealVector
-  t1          *BareReal
-  t2          *BareReal
+  gammaTmp     DenseFloat64Vector
+  gamma      []DenseFloat64Vector
+  logWeights   DenseFloat64Vector
   likelihood   float64
   init         bool
 }
@@ -91,7 +89,7 @@ type emCore interface {
   GetBasicMixture() BasicMixture
   Swap           ()
   Step           (meta    ConstVector, tmp []EmTmp, p ThreadPool) (float64, error)
-  Emissions      (gamma []DenseBareRealVector,      p ThreadPool) error
+  Emissions      (gamma []DenseFloat64Vector,      p ThreadPool) error
 }
 
 /* -------------------------------------------------------------------------- */
@@ -161,17 +159,15 @@ func EmAlgorithm(obj emCore, meta ConstVector, nData, nComponents int, epsilon f
   // allocate memory
   tmp := make([]EmTmp, threads)
   for threadIdx := 0; threadIdx < threads; threadIdx++ {
-    tmp[threadIdx].gammaTmp = NullDenseBareRealVector(m)
+    tmp[threadIdx].gammaTmp = NullDenseFloat64Vector(m)
     if optimizeWeights {
-      tmp[threadIdx].logWeights = NullDenseBareRealVector(m)
+      tmp[threadIdx].logWeights = NullDenseFloat64Vector(m)
     }
     // some temporary variables
-    tmp[threadIdx].t1 = NewBareReal(0.0)
-    tmp[threadIdx].t2 = NewBareReal(0.0)
     if optimizeEmissions {
-      tmp[threadIdx].gamma = make([]DenseBareRealVector, m)
+      tmp[threadIdx].gamma = make([]DenseFloat64Vector, m)
       for i := 0; i < m; i++ {
-        tmp[threadIdx].gamma[i] = NullDenseBareRealVector(n)
+        tmp[threadIdx].gamma[i] = NullDenseFloat64Vector(n)
       }
     }
   }

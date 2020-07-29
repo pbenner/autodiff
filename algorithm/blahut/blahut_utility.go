@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,5 +47,16 @@ func normalizeVector(p Vector) {
   }
   for i := 0; i < p.Dim(); i++ {
     p.At(i).Div(p.At(i), sum)
+  }
+}
+
+func normalizeMatrixRow(m Matrix, i int) {
+  sum  := NewScalar(m.ElementType(), 0.0)
+  _, n := m.Dims()
+  for j := 0; j < n; j++ {
+    sum.Add(sum, m.ConstAt(i, j))
+  }
+  for j := 0; j < n; j++ {
+    m.At(i, j).Div(m.ConstAt(i, j), sum)
   }
 }

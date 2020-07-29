@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,22 +27,22 @@ import   "github.com/pbenner/autodiff/statistics/scalarDistribution"
 import   "github.com/pbenner/autodiff/statistics/vectorDistribution"
 
 import . "github.com/pbenner/autodiff"
-import . "github.com/pbenner/autodiff/simple"
 
 /* -------------------------------------------------------------------------- */
 
-func TestShapeHmm1(t *testing.T) {
+func TestShapeHmm1(test *testing.T) {
 
   // ShapeHmm definition
   //////////////////////////////////////////////////////////////////////////////
-  pi := NewVector(RealType, []float64{0.6, 0.4})
-  tr := NewMatrix(RealType, 2, 2,
-    []float64{0.7, 0.3, 0.4, 0.6})
+  t  := NewFloat64(0.0)
+  pi := NewDenseFloat64Vector([]float64{0.6, 0.4})
+  tr := NewDenseFloat64Matrix(
+    []float64{0.7, 0.3, 0.4, 0.6}, 2, 2)
 
   c1, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.1, 0.9}))
+    NewDenseFloat64Vector([]float64{0.1, 0.9}))
   c2, _ := scalarDistribution.NewCategoricalDistribution(
-    NewVector(RealType, []float64{0.7, 0.3}))
+    NewDenseFloat64Vector([]float64{0.7, 0.3}))
 
   d1, _ := vectorDistribution.NewScalarId(c1, c1, c1, c1, c1)
   d2, _ := vectorDistribution.NewScalarId(c2, c2, c2, c2, c2)
@@ -52,7 +52,7 @@ func TestShapeHmm1(t *testing.T) {
 
   hmm1, err := NewShapeHmm(pi, tr, nil, []MatrixPdf{e1, e2})
   if err != nil {
-    t.Error(err)
+    test.Error(err)
   }
   // test export/import
   //////////////////////////////////////////////////////////////////////////////
@@ -61,18 +61,18 @@ func TestShapeHmm1(t *testing.T) {
   filename := "shapeHmm_test.json"
 
   if err := ExportDistribution(filename, hmm1); err != nil {
-    t.Error(err); return
+    test.Error(err); return
   }
-  if r, err := ImportMatrixPdf(filename, BareRealType); err != nil {
-    t.Error(err); return
+  if r, err := ImportMatrixPdf(filename, Float64Type); err != nil {
+    test.Error(err); return
   } else {
     hmm2 = r.(*ShapeHmm)
   }
   p1 := hmm1.GetParameters()
   p2 := hmm2.GetParameters()
 
-  if Vnorm(VsubV(p1, p2)).GetValue() > 1e-6 {
-    t.Error("test failed")
+  if t.Vnorm(p1.VsubV(p1, p2)).GetFloat64() > 1e-6 {
+    test.Error("test failed")
   }
   os.Remove(filename)
 }

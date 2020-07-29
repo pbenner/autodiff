@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Philipp Benner
+/* Copyright (C) 2015-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@ import "testing"
 
 func TestContainer(t *testing.T) {
 
-  v := NewVector(RealType, []float64{1,2,3,4})
-  m := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
+  v := NewDenseReal64Vector([]float64{1,2,3,4})
+  m := NewDenseReal64Matrix([]float64{1,2,3,4}, 2, 2)
 
   // test if container interface is implements
   var c1 ScalarContainer
@@ -37,10 +37,10 @@ func TestContainer(t *testing.T) {
   c1.Map(func(x Scalar) { x.Mul(x,x) })
   c2.Map(func(x Scalar) { x.Mul(x,x) })
 
-  if v.At(1).GetValue() != 4.0 {
+  if v.At(1).GetFloat64() != 4.0 {
     t.Error("Vector initialization failed!")
   }
-  if m.At(0, 1).GetValue() != 4.0 {
+  if m.At(0, 1).GetFloat64() != 4.0 {
     t.Error("Vector initialization failed!")
   }
 

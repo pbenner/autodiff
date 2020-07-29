@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Philipp Benner
+/* Copyright (C) 2016-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,10 +37,10 @@ func NewCategoricalDistribution(theta_ Vector) (*CategoricalDistribution, error)
     return nil, fmt.Errorf("theta has invalid length")
   }
   t     := theta_.ElementType()
-  theta := NullVector(t, theta_.Dim())
+  theta := NullDenseVector(t, theta_.Dim())
 
   for i := 0; i < theta.Dim(); i++ {
-    if theta_.At(i).GetValue() < 0 {
+    if theta_.At(i).GetFloat64() < 0 {
       return nil, fmt.Errorf("invalid negative probability")
     }
     theta.At(i).Log(theta_.At(i))
@@ -72,7 +72,7 @@ func (dist *CategoricalDistribution) ScalarType() ScalarType {
 }
 
 func (dist *CategoricalDistribution) LogPdf(r Scalar, x ConstScalar) error {
-  r.Set(dist.Theta.At(int(x.GetValue())))
+  r.Set(dist.Theta.At(int(x.GetFloat64())))
   return nil
 }
 
@@ -86,7 +86,7 @@ func (dist *CategoricalDistribution) Pdf(r Scalar, x ConstScalar) error {
 
 func (dist *CategoricalDistribution) LogCdf(r Scalar, x ConstScalar) error {
   r.Reset()
-  for i := 0; i <= int(x.GetValue()); i++ {
+  for i := 0; i <= int(x.GetFloat64()); i++ {
     r.LogAdd(r, dist.Theta.At(i), dist.t)
   }
   return nil
@@ -118,7 +118,7 @@ func (dist *CategoricalDistribution) ImportConfig(config ConfigDistribution, t S
   if parameters, ok := config.GetParametersAsFloats(); !ok {
     return fmt.Errorf("invalid config file")
   } else {
-    theta := NewVector(t, parameters)
+    theta := AsDenseVector(t, NewDenseFloat64Vector(parameters))
 
     if tmp, err := NewCategoricalDistribution(theta); err != nil {
       return err

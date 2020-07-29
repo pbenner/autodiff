@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ type MixtureStdDataSet struct {
 func NewMixtureStdDataSet(t ScalarType, x []ConstVector, k int) (*MixtureStdDataSet, error) {
   r := MixtureStdDataSet{}
   r.values = x
-  r.p      = NullMatrix(t, k, len(x))
+  r.p      = NullDenseMatrix(t, k, len(x))
   r.n      = len(x)
   return &r, nil
 }
@@ -65,7 +65,7 @@ func (obj *MixtureStdDataSet) GetN() int {
 }
 
 func (obj *MixtureStdDataSet) LogPdf(r Scalar, c, i int) error {
-  r.Set(obj.p.At(c, i))
+  r.Set(obj.p.ConstAt(c, i))
   return nil
 }
 
@@ -100,7 +100,7 @@ func (obj *MixtureStdDataSet) EvaluateLogPdf(edist []VectorPdf, pool ThreadPool)
       if err := d[j].LogPdf(p.At(j, i), x[i]); err != nil {
         return err
       }
-      s = LogAdd(s, p.At(j, i).GetValue())
+      s = LogAdd(s, p.At(j, i).GetFloat64())
     }
     if math.IsInf(s, -1) {
       return fmt.Errorf("probability is zero for all models on observation `%v'", x[i])

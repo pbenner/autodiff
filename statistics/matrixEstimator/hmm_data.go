@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Philipp Benner
+/* Copyright (C) 2017-2020 Philipp Benner
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ func NewHmmStdDataSet(t ScalarType, x []ConstMatrix, k int) (*HmmStdDataSet, err
   r := HmmStdDataSet{}
   r.values  = values
   r.offsets = offsets
-  r.p       = NullMatrix(t, k, len(values))
+  r.p       = NullDenseMatrix(t, k, len(values))
   r.n       = n
   return &r, nil
 }
@@ -148,7 +148,7 @@ func (obj *HmmStdDataSet) EvaluateLogPdf(edist []VectorPdf, pool ThreadPool) err
       if err := d[pool.GetThreadId()][j].LogPdf(p.At(j, i), x[i]); err != nil {
         return err
       }
-      s[pool.GetThreadId()] = LogAdd(s[pool.GetThreadId()], p.At(j, i).GetValue())
+      s[pool.GetThreadId()] = LogAdd(s[pool.GetThreadId()], p.At(j, i).GetFloat64())
     }
     if math.IsInf(s[pool.GetThreadId()], -1) {
       return fmt.Errorf("probability is zero for all models on observation `%v'", x[i])
