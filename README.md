@@ -403,15 +403,28 @@ Maximize the function *f(x, y) = x + y* subject to *x^2 + y^2 = 1* by finding th
   import   "github.com/pbenner/autodiff/algorithm/newton"
   import . "github.com/pbenner/autodiff/simple"
 
+  z := NullReal64()
+  t := NullReal64()
   // define the Lagrangian
-  f := func(x Vector) (Scalar, error) {
-    // x + y + lambda(x^2 + y^2 - 1)
-    y := Add(Add(x.At(0), x.At(1)), Mul(x.At(2), Sub(Add(Mul(x.At(0), x.At(0)), Mul(x.At(1), x.At(1))), NewReal(1))))
+  f := func(x_ ConstVector) (MagicScalar, error) {
+    // z = x + y + lambda(x^2 + y^2 - 1)
+    x      := x_.ConstAt(0)
+    y      := x_.ConstAt(1)
+    lambda := x_.ConstAt(2)
+    z.Reset()
+    t.Pow(x, ConstFloat64(2.0))
+    z.Add(z, t)
+    t.Pow(y, ConstFloat64(2.0))
+    z.Add(z, t)
+    z.Sub(z, ConstFloat64(1.0))
+    z.Mul(z, lambda)
+    z.Add(z, y)
+    z.Add(z, x)
 
-    return y, nil
+    return z, nil
   }
   // initial value
-  x0    := NewVector(RealType, []float64{3,  5, 1})
+  x0    := NewDenseFloat64Vector([]float64{3,  5, 1})
   // run Newton's method
   xn, _ := newton.RunCrit(
       f, x0,
