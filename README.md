@@ -242,11 +242,17 @@ Compare vanilla gradient descent with resilient backpropagation
   import   "github.com/pbenner/autodiff/algorithm/rprop"
   import . "github.com/pbenner/autodiff/simple"
 
-  f := func(x Vector) Scalar {
+  f := func(x_ ConstVector) MagicScalar {
+    x := x_.ConstAt(0)
     // x^4 - 3x^3 + 2
-    return Add(Sub(Pow(x.At(0), NewReal(4)), Mul(NewReal(3), Pow(x.At(0), NewReal(3)))), NewReal(2))
+    r := NewReal64()
+    s := NewReal64()
+    r.Pow(x.ConstAt(0), ConstFloat64(4.0)
+    s.Mul(ConstFloat64(3.0), s.Pow(x, ConstFloat64(3.0)))
+    r.Add(ConstFloat64(2.0), r.Add(r, s))
+    return r
   }
-  x0 := NewVector(RealType, []float64{8})
+  x0 := NewDenseFloat64Vector([]float64{8})
   // vanilla gradient descent
   xn1, _ := gradientDescent.Run(f, x0, 0.0001, gradientDescent.Epsilon{1e-8})
   // resilient backpropagation
