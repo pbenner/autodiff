@@ -64,7 +64,6 @@ func main() {
     return s, nil
   }
   hook_rprop := func(gradient, step []float64, x ConstVector, y ConstScalar) bool {
-    fmt.Fprintf(fp1, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
     fmt.Println("y       :", y)
@@ -72,7 +71,6 @@ func main() {
     return false
   }
   hook_bfgs := func(x, gradient ConstVector, y ConstScalar) bool {
-    fmt.Fprintf(fp2, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
     fmt.Println("y       :", y)
@@ -80,7 +78,6 @@ func main() {
     return false
   }
   hook_newton := func(x, gradient ConstVector, hessian ConstMatrix, y ConstScalar) bool {
-    fmt.Fprintf(fp3, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
     fmt.Println("y       :", y)
