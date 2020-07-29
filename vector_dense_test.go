@@ -101,6 +101,7 @@ func TestReadVector(t *testing.T) {
   if s.Vnorm(v.VsubV(v, r)).GetFloat64() != 0.0 {
     t.Error("Read vector failed!")
   }
+  os.Remove(filename)
 }
 
 func TestVectorMapReduce(t *testing.T) {

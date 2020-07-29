@@ -263,6 +263,7 @@ func TestReadMatrix(t *testing.T) {
   if s.Mnorm(m.MsubM(m, r)).GetFloat64() != 0.0 {
     t.Error("Read matrix failed!")
   }
+  os.Remove(filename)
 }
 
 func TestSymmetricPermutation(t *testing.T) {
