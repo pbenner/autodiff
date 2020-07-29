@@ -126,7 +126,7 @@ func TestImportExportVector(t *testing.T) {
 
   if w.Dim() != n {
     t.Error("test failed")
-  } else {    
+  } else {
     if s.Vnorm(v.VsubV(v, w)).GetFloat64() != 0.0 {
       t.Error("test failed")
     }

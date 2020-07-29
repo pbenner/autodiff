@@ -272,7 +272,7 @@ func TestImportExportMatrix(t *testing.T) {
 
   if n1, n2 := w.Dims(); n1 != 2 || n2 != n/2 {
     t.Error("test failed")
-  } else {    
+  } else {
     if s.Mnorm(v.MsubM(v, w)).GetFloat64() != 0.0 {
       t.Error("test failed")
     }

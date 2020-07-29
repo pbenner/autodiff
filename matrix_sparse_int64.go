@@ -19,14 +19,15 @@
 /* -------------------------------------------------------------------------- */
 package autodiff
 /* -------------------------------------------------------------------------- */
+import "fmt"
 import "bytes"
 import "bufio"
 import "compress/gzip"
 import "encoding/json"
-import "fmt"
+import "io"
+import "os"
 import "strconv"
 import "strings"
-import "os"
 import "unsafe"
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
@@ -512,8 +513,14 @@ func (m *SparseInt64Matrix) Export(filename string) error {
   defer f.Close()
   w := bufio.NewWriter(f)
   defer w.Flush()
-  if _, err := fmt.Fprintf(w, "%s\n", m.Table()); err != nil {
+  if _, err := fmt.Fprintf(w, "%d %d\n", m.rows, m.cols); err != nil {
     return err
+  }
+  for it := m.ITERATOR(); it.Ok(); it.Next() {
+    i, j := it.Index()
+    if _, err := fmt.Fprintf(w, "%d %d %v\n", i, j, it.GET()); err != nil {
+      return err
+    }
   }
   return nil
 }
@@ -523,7 +530,7 @@ func (m *SparseInt64Matrix) Import(filename string) error {
   rowIndices := []int{}
   colIndices := []int{}
   values := []int64{}
-  var scanner *bufio.Scanner
+  var reader *bufio.Reader
   // open file
   f, err := os.Open(filename)
   if err != nil {
@@ -541,13 +548,23 @@ func (m *SparseInt64Matrix) Import(filename string) error {
       return err
     }
     defer g.Close()
-    scanner = bufio.NewScanner(g)
+    reader = bufio.NewReader(g)
   } else {
-    scanner = bufio.NewScanner(f)
+    reader = bufio.NewReader(f)
   }
   // scan header
-  if scanner.Scan() {
-    fields := strings.Fields(scanner.Text())
+  for i_ := 1;; i_++ {
+    l, err := bufioReadLine(reader)
+    if err == io.EOF {
+      break
+    }
+    if err != nil {
+      return err
+    }
+    if len(l) == 0 {
+      continue
+    }
+    fields := strings.Fields(l)
     if len(fields) != 2 {
       return fmt.Errorf("invalid sparse matrix format")
     }
@@ -561,9 +578,20 @@ func (m *SparseInt64Matrix) Import(filename string) error {
     } else {
       cols = int(v)
     }
+    break
   }
-  for scanner.Scan() {
-    fields := strings.Fields(scanner.Text())
+  for i_ := 1;; i_++ {
+    l, err := bufioReadLine(reader)
+    if err == io.EOF {
+      break
+    }
+    if err != nil {
+      return err
+    }
+    if len(l) == 0 {
+      continue
+    }
+    fields := strings.Fields(l)
     if len(fields) != 3 {
       return fmt.Errorf("invalid sparse matrix format")
     }

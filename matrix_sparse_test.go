@@ -20,6 +20,7 @@ package autodiff
 
 //import "fmt"
 import "math/rand"
+import "os"
 import "testing"
 
 /* -------------------------------------------------------------------------- */
@@ -82,6 +83,38 @@ func TestSparseMatrixRowCol(t *testing.T) {
   if m.At(0, 1).GetFloat64() != 2.0 {
     t.Error("test failed")
   }
+}
+
+func TestSparseImportExportMatrix(t *testing.T) {
+
+  filename := "matrix_sparse_test.table"
+
+  n := 10
+  v := NullSparseFloat64Matrix(2, n/2)
+  w := NullSparseFloat64Matrix(0, 0)
+
+  // fill vector with values
+  for i := 0; i < 2; i++ {
+    for j := 0; j < n/2; j++ {
+      v.At(i, j).SetFloat64(float64(i*j))
+    }
+  }
+  if err := v.Export(filename); err != nil {
+    panic(err)
+  }
+  if err := w.Import(filename); err != nil {
+    panic(err)
+  }
+  s := NullFloat64()
+
+  if n1, n2 := w.Dims(); n1 != 2 || n2 != n/2 {
+    t.Error("test failed")
+  } else {
+    if s.Mnorm(v.MsubM(v, w)).GetFloat64() != 0.0 {
+      t.Error("test failed")
+    }
+  }
+  os.Remove(filename)
 }
 
 /* -------------------------------------------------------------------------- */
