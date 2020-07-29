@@ -167,11 +167,7 @@ A scalar holding the value *1.0* can be defined in several ways, i.e.
 ```go
   a.Add(a, b)
 ```
-which stores the result of adding *a* and *b* in *a*. If *autodiff/simple* is imported, one may also use
-```go
-  d := Add(a, b)
-```
-where the result is stored in a new variable *d*. The *ConstFloat64* type allows to define float64 constants without allocation of additional memory. For instance
+which stores the result of adding *a* and *b* in *a*. The *ConstFloat64* type allows to define float64 constants without allocation of additional memory. For instance
 ```go
   a.Add(a, ConstFloat64(1.0))
 ```
