@@ -24,7 +24,7 @@ import   "regexp"
 import   "strconv"
 import   "strings"
 import   "os"
-import   "code.google.com/p/getopt"
+import   "github.com/pborman/getopt"
 
 import . "github.com/pbenner/autodiff"
 import   "github.com/pbenner/autodiff/algorithm/blahut"
@@ -56,7 +56,7 @@ func parseVector(str string) Vector {
   if from != 1 || to != len(v){
     panic("parseVector(): Invalid vector!")
   }
-  return NewVector(ProbabilityType, v)
+  return DenseFloat64Vector(v)
 }
 
 func parseMatrix(str string) Matrix {
@@ -73,23 +73,25 @@ func parseMatrix(str string) Matrix {
     panic("parseMatrix(): Invalid matrix!")
   }
   v := parseRawVector(m[5])
+  t := DenseFloat64Vector(v)
 
-  return NewMatrix(ProbabilityType, rto, cto, v)
+  return t.AsMatrix(rto, cto)
 }
 
 func printVector(v Vector) {
   fmt.Print("c(")
-  for i, _ := range(v) {
+  for it := v.ConstIterator(); it.Ok(); it.Next() {
+    i := it.Index()
     if i != 0 {
       fmt.Print(", ")
     }
-    fmt.Print(v[i].Value())
+    fmt.Print(it.GetConst().GetFloat64())
   }
   fmt.Println(")")
 }
 
 func hook(px Vector, J Scalar) bool {
-  fmt.Fprintf(os.Stderr, "%s (J = %f)\n", px.String(), J.Value())
+  fmt.Fprintf(os.Stderr, "%s (J = %f)\n", px.String(), J.GetFloat64())
   return false
 }
 
@@ -136,7 +138,7 @@ func main() {
   }
 
   // check dimensions
-  if n, _ := channel.Dims(); len(px_init) != n {
+  if n, _ := channel.Dims(); px_init.Dim() != n {
     panic("Channel dimension does not match length of p_init!")
   }
   // convert lambda to float

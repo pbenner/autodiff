@@ -4,6 +4,7 @@ SUBDIRS = \
 	algorithm/backSubstitution \
 	algorithm/bfgs \
 	algorithm/blahut \
+	algorithm/blahut/blahut-R \
 	algorithm/cholesky \
 	algorithm/determinant \
 	algorithm/eigensystem \
