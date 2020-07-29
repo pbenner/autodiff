@@ -232,10 +232,8 @@ func (v DenseFloat32Vector) String() string {
 func (v DenseFloat32Vector) Table() string {
   var buffer bytes.Buffer
   for i, _ := range v {
-    if i != 0 {
-      buffer.WriteString(" ")
-    }
     buffer.WriteString(v.ConstAt(i).String())
+    buffer.WriteString("\n")
   }
   return buffer.String()
 }

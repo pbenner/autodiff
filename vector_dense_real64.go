@@ -322,10 +322,8 @@ func (v DenseReal64Vector) String() string {
 func (v DenseReal64Vector) Table() string {
   var buffer bytes.Buffer
   for i, _ := range v {
-    if i != 0 {
-      buffer.WriteString(" ")
-    }
     buffer.WriteString(v[i].String())
+    buffer.WriteString("\n")
   }
   return buffer.String()
 }

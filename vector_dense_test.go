@@ -86,24 +86,6 @@ func TestVmulV(t *testing.T) {
   }
 }
 
-func TestReadVector(t *testing.T) {
-
-  filename := "vector_dense_test.table"
-
-  v := DenseFloat64Vector{}
-
-  if err := v.Import(filename); err != nil {
-    panic(err)
-  }
-  r := NewDenseFloat64Vector([]float64{1,2,3,4,5,6})
-  s := NullFloat64()
-
-  if s.Vnorm(v.VsubV(v, r)).GetFloat64() != 0.0 {
-    t.Error("test failed")
-  }
-  os.Remove(filename)
-}
-
 func TestImportExportVector(t *testing.T) {
 
   filename := "vector_dense_test.table"
