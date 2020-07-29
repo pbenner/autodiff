@@ -52,16 +52,16 @@ func TestSparseMatrixRowCol(t *testing.T) {
   r := NullFloat64()
 
   if r.Vnorm(r1.VsubV(r1, r2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if r.Vnorm(r1.VsubV(c1, c2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if r.Vnorm(s1.VsubV(s1, s2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if r.Vnorm(s2.VsubV(d1, d2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
 
   m = NewDenseFloat64Matrix([]float64{
@@ -77,10 +77,10 @@ func TestSparseMatrixRowCol(t *testing.T) {
   r2.At(0).SetFloat64(100.0)
 
   if m.At(1, 0).GetFloat64() != 4.0 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if m.At(0, 1).GetFloat64() != 2.0 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
 }
 

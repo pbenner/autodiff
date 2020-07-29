@@ -32,13 +32,13 @@ func TestReal(t *testing.T) {
   a := NewReal64(1.0)
 
   if a.GetFloat64() != 1.0 {
-    t.Error("a.GetFloat64() should be 1.0")
+    t.Error("test failed")
   }
 
   a.Add(a, NewReal64(2.0))
 
   if a.GetFloat64() != 3.0 {
-    t.Error("a.GetFloat64() should be 3.0")
+    t.Error("test failed")
   }
 }
 
@@ -56,10 +56,10 @@ func TestDiff1(t *testing.T) {
   y := f(x)
 
   if y.GetDerivative(0) != 486 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
   if y.GetHessian(0, 0) != 108 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
 }
 
@@ -79,10 +79,10 @@ func TestDiff2(t *testing.T) {
   y := f(x)
 
   if y.GetDerivative(0) != 486 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
   if y.GetHessian(0, 0) != 108 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
 }
 
@@ -98,13 +98,13 @@ func TestMul(t *testing.T) {
   a.Mul(a, b) // a^4 b
 
   if math.Abs(a.GetFloat64() - 128149.4603376) > 1e-4 {
-    t.Error("Multiplication failed!")
+    t.Error("test failed")
   }
   if math.Abs(a.GetDerivative(0) - 39061.025783) > 1e-4 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
   if math.Abs(a.GetHessian(0, 0) - 8929.5951649) > 1e-4 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
 }
 
@@ -119,11 +119,11 @@ func TestPow1(t *testing.T) {
 
   if math.Abs(r.GetDerivative(0) - 182.124553) > 1e-4  ||
     (math.Abs(r.GetDerivative(1) - 184.826947) > 1e-4) {
-    t.Error("Pow failed!")
+    t.Error("test failed")
   }
   if math.Abs(r.GetHessian(0, 0) - 166.054739) > 1e-4  ||
     (math.Abs(r.GetHessian(1, 1) - 226.186676) > 1e-4) {
-    t.Error("Pow failed!")
+    t.Error("test failed")
   }
 }
 
@@ -138,11 +138,11 @@ func TestPow2(t *testing.T) {
 
   if math.Abs(r.GetDerivative(0) - -157.216) > 1e-4  ||
     (math.Abs(r.GetHessian(0, 0) -  138.720) > 1e-4) {
-    t.Error("Pow failed!")
+    t.Error("test failed")
   }
   if !math.IsNaN(r.GetDerivative(1))  ||
     (!math.IsNaN(r.GetDerivative(1))) {
-    t.Error("Pow failed!")
+    t.Error("test failed")
   }
 }
 
@@ -168,10 +168,10 @@ func TestTanh1(t *testing.T) {
   s.Tanh(a)
 
   if math.Abs(s.GetDerivative(0) -  0.00070588) > 0.0000001 {
-    t.Error("Incorrect derivative for Tanh()!")
+    t.Error("test failed")
   }
   if math.Abs(s.GetHessian(0, 0) - -0.00141127) > 0.0000001 {
-    t.Error("Incorrect derivative for Tanh()!")
+    t.Error("test failed")
   }
 }
 
@@ -183,10 +183,10 @@ func TestTanh2(t *testing.T) {
   a.Tanh(a)
 
   if math.Abs(a.GetDerivative(0) -  0.00070588) > 0.0000001 {
-    t.Error("Incorrect derivative for Tanh()!")
+    t.Error("test failed")
   }
   if math.Abs(a.GetHessian(0, 0) - -0.00141127) > 0.0000001 {
-    t.Error("Incorrect derivative for Tanh()!")
+    t.Error("test failed")
   }
 }
 
@@ -200,7 +200,7 @@ func TestErf(t *testing.T) {
 
   if math.Abs(s.GetDerivative(0) -  1.07023926) > 1e-6 ||
     (math.Abs(s.GetHessian(0, 0) - -0.49231006) > 1e-6) {
-    t.Error("Incorrect derivative for Erf()!")
+    t.Error("test failed")
   }
 }
 
@@ -214,7 +214,7 @@ func TestErfc(t *testing.T) {
 
   if math.Abs(s.GetDerivative(0) - -1.07023926) > 1e-6 ||
     (math.Abs(s.GetHessian(0, 0) -  0.49231006) > 1e-6) {
-    t.Error("Incorrect derivative for Erfc()!")
+    t.Error("test failed")
   }
 }
 
@@ -227,10 +227,10 @@ func TestLogErfc1(t *testing.T) {
   s.LogErfc(a)
 
   if math.Abs(s.GetDerivative(0) - -1.436606354) > 1e-6 {
-    t.Error("Incorrect derivative for LogErfc()!")
+    t.Error("test failed")
   }
   if math.Abs(s.GetHessian(0, 0) - -1.402998894) > 1e-6 {
-    t.Error("Incorrect derivative for LogErfc()!")
+    t.Error("test failed")
   }
 }
 
@@ -242,10 +242,10 @@ func TestLogErfc2(t *testing.T) {
   a.LogErfc(a)
 
   if math.Abs(a.GetDerivative(0) - -1.436606354) > 1e-6 {
-    t.Error("Incorrect derivative for LogErfc()!")
+    t.Error("test failed")
   }
   if math.Abs(a.GetHessian(0, 0) - -1.402998894) > 1e-6 {
-    t.Error("Incorrect derivative for LogErfc()!")
+    t.Error("test failed")
   }
 }
 
@@ -259,7 +259,7 @@ func TestGamma(t *testing.T) {
 
   if math.Abs(s.GetDerivative(0) - 12.2353264) > 1e-6 ||
     (math.Abs(s.GetHessian(0, 0) - 18.8065398) > 1e-6) {
-    t.Error("Incorrect derivative for Gamma()!")
+    t.Error("test failed")
   }
 }
 
@@ -274,7 +274,7 @@ func TestGammaP(t *testing.T) {
   if math.Abs(s.GetFloat64() - 0.029234) > 1e-6        ||
     (math.Abs(s.GetDerivative(0) - 0.036763) > 1e-6) ||
     (math.Abs(s.GetHessian(0, 0) - 0.032364) > 1e-6) {
-    t.Error("Incorrect derivative for Gamma()!")
+    t.Error("test failed")
   }
 }
 
@@ -289,13 +289,13 @@ func TestLogBessel(t *testing.T) {
   r.LogBesselI(v.GetFloat64(), x)
 
   if math.Abs(r.GetFloat64() - 15.0797) > 1e-4 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
   if math.Abs(r.GetDerivative(0) - 1.09804) > 1e-4 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
   if math.Abs(r.GetHessian(0, 0) - -0.0106002) > 1e-4 {
-    t.Error("Differentiation failed!")
+    t.Error("test failed")
   }
 
 }
@@ -317,7 +317,7 @@ func TestHessian(t *testing.T) {
     (math.Abs(z.GetHessian(0, 1) - -3) > 1e-6) ||
     (math.Abs(z.GetHessian(1, 0) - -3) > 1e-6) ||
     (math.Abs(z.GetHessian(1, 1) - 15) > 1e-6) {
-    t.Error("Hessian test failed!")
+    t.Error("test failed")
   }
 }
 

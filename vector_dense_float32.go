@@ -24,6 +24,7 @@ import "bufio"
 import "bytes"
 import "compress/gzip"
 import "encoding/json"
+import "io"
 import "os"
 import "sort"
 import "strconv"
@@ -252,7 +253,7 @@ func (v DenseFloat32Vector) Export(filename string) error {
   return nil
 }
 func (v *DenseFloat32Vector) Import(filename string) error {
-  var scanner *bufio.Scanner
+  var reader *bufio.Reader
   // open file
   f, err := os.Open(filename)
   if err != nil {
@@ -270,20 +271,24 @@ func (v *DenseFloat32Vector) Import(filename string) error {
       return err
     }
     defer g.Close()
-    scanner = bufio.NewScanner(g)
+    reader = bufio.NewReader(g)
   } else {
-    scanner = bufio.NewScanner(f)
+    reader = bufio.NewReader(f)
   }
   // reset vector
   *v = DenseFloat32Vector{}
-  for scanner.Scan() {
-    fields := strings.Fields(scanner.Text())
-    if len(fields) == 0 {
+  for i_ := 1;; i_++ {
+    l, err := bufioReadLine(reader)
+    if err == io.EOF {
+      break
+    }
+    if err != nil {
+      return err
+    }
+    if len(l) == 0 {
       continue
     }
-    if len(*v) != 0 {
-      return fmt.Errorf("invalid table")
-    }
+    fields := strings.Fields(l)
     for i := 0; i < len(fields); i++ {
       value, err := strconv.ParseFloat(fields[i], 64)
       if err != nil {

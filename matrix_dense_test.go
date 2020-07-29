@@ -54,7 +54,7 @@ func TestMatrix(t *testing.T) {
   m2 := m1.T()
 
   if m1.At(1,2).GetFloat64() != m2.At(2,1).GetFloat64() {
-    t.Error("Matrix transpose failed!")
+    t.Error("test failed")
   }
 }
 
@@ -85,16 +85,16 @@ func TestMatrixRowCol(t *testing.T) {
   r := NullFloat64()
 
   if r.Vnorm(r1.VsubV(r1, r2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if r.Vnorm(r1.VsubV(c1, c2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if r.Vnorm(s1.VsubV(s1, s2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if r.Vnorm(s2.VsubV(d1, d2)).GetFloat64() > 1e-8 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
 
   m = NewDenseFloat64Matrix([]float64{
@@ -109,10 +109,10 @@ func TestMatrixRowCol(t *testing.T) {
   r2.At(0).SetFloat64(100.0)
 
   if m.At(1, 0).GetFloat64() != 4.0 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
   if m.At(0, 1).GetFloat64() != 2.0 {
-    t.Error("Matrix Row/Col() test failed!")
+    t.Error("test failed")
   }
 }
 
@@ -124,7 +124,7 @@ func TestMatrixDiag(t *testing.T) {
   if v.At(0).GetFloat64() != 1 ||
      v.At(1).GetFloat64() != 5 ||
      v.At(2).GetFloat64() != 9 {
-    t.Error("Matrix diag failed!")
+    t.Error("test failed")
   }
 }
 
@@ -137,7 +137,7 @@ func TestMatrixReference(t *testing.T) {
   c.SetFloat64(400)
 
   if m.At(0,0).GetFloat64() != 163 {
-    t.Error("Matrix transpose failed!")
+    t.Error("test failed")
   }
 
   r := NullFloat64()
@@ -145,7 +145,7 @@ func TestMatrixReference(t *testing.T) {
   m.At(1, 2).Sub(m.At(1,2), r.Mul(m.At(1,1), m.At(1,2)))
 
   if m.At(1,2).GetFloat64() != -24 {
-    t.Error("Matrix transpose failed!")
+    t.Error("test failed")
   }
 }
 
@@ -155,7 +155,7 @@ func TestMatrixTrace(t *testing.T) {
   s := NullFloat64()
 
   if s.Mtrace(m1).GetFloat64() != 5 {
-    t.Error("Wrong matrix trace!")
+    t.Error("test failed")
   }
 }
 
@@ -167,7 +167,7 @@ func TestMatrixDot(t *testing.T) {
   m3.MdotM(m1, m2)
 
   if m3.At(0,0).GetFloat64() != 14 {
-    t.Error("Matrix multiplication failed!")
+    t.Error("test failed")
   }
 }
 
@@ -179,7 +179,7 @@ func TestMatrixMul(t *testing.T) {
   m3.MmulM(m1, m2)
 
   if m3.At(0,0).GetFloat64() != 6 {
-    t.Error("Matrix multiplication failed!")
+    t.Error("test failed")
   }
 }
 
@@ -194,7 +194,7 @@ func TestMatrixMdotV(t *testing.T) {
   r := NullFloat64()
 
   if r.Vnorm(v2.VsubV(v2, v3)).GetFloat64() > 1e-8  {
-    t.Error("Matrix/Vector multiplication failed!")
+    t.Error("test failed")
   }
 }
 
@@ -209,7 +209,7 @@ func TestMatrixVdotM(t *testing.T) {
   r := NullFloat64()
 
   if r.Vnorm(v2.VsubV(v2, v3)).GetFloat64() > 1e-8  {
-    t.Error("Matrix/Vector multiplication failed!")
+    t.Error("test failed")
   }
 }
 
@@ -224,10 +224,10 @@ func TestMatrixMapReduce(t *testing.T) {
   s := NullFloat64()
 
   if s.Mnorm(m.MsubM(m, r1)).GetFloat64() > 1e-8  {
-    t.Error("Matrix/Vector multiplication failed!")
+    t.Error("test failed")
   }
   if math.Abs(a.GetFloat64() - r2) > 1e-2 {
-    t.Error("Vector map/reduce failed!")
+    t.Error("test failed")
   }
 }
 
@@ -243,25 +243,39 @@ func TestOuter(t *testing.T) {
   s := NullFloat64()
 
   if s.Mnorm(r.MsubM(r, m)).GetFloat64() > 1e-8  {
-    t.Error("Outer product multiplication failed!")
+    t.Error("test failed")
   }
 
 }
 
-func TestReadMatrix(t *testing.T) {
+func TestImportExportMatrix(t *testing.T) {
 
   filename := "matrix_dense_test.table"
 
-  m := &DenseFloat64Matrix{}
-  
-  if err := m.Import(filename); err != nil {
+  n := 50000
+  v := NullDenseFloat64Matrix(2, n/2)
+  w := NullDenseFloat64Matrix(0, 0)
+
+  // fill vector with values
+  for i := 0; i < 2; i++ {
+    for j := 0; j < n/2; j++ {
+      v.At(i, j).SetFloat64(float64(i*j))
+    }
+  }
+  if err := v.Export(filename); err != nil {
     panic(err)
   }
-  r := NewDenseFloat64Matrix([]float64{1,2,3,4,5,6}, 2, 3)
+  if err := w.Import(filename); err != nil {
+    panic(err)
+  }
   s := NullFloat64()
 
-  if s.Mnorm(m.MsubM(m, r)).GetFloat64() != 0.0 {
-    t.Error("Read matrix failed!")
+  if n1, n2 := w.Dims(); n1 != 2 || n2 != n/2 {
+    t.Error("test failed")
+  } else {    
+    if s.Mnorm(v.MsubM(v, w)).GetFloat64() != 0.0 {
+      t.Error("test failed")
+    }
   }
   os.Remove(filename)
 }
@@ -288,7 +302,7 @@ func TestSymmetricPermutation(t *testing.T) {
   s := NullFloat64()
 
   if s.Mnorm(m1.MsubM(m1, m2)).GetFloat64() > 1e-20 {
-    t.Error("SymmetricPermutation() failed")
+    t.Error("test failed")
   }
 }
 

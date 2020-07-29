@@ -18,6 +18,8 @@ package autodiff
 
 /* -------------------------------------------------------------------------- */
 
+import "bufio"
+import "io"
 import "math"
 import "os"
 
@@ -205,4 +207,19 @@ func (obj sortIntConstInt) Swap(i, j int) {
 
 func (obj sortIntConstInt) Less(i, j int) bool {
   return obj.a[i] < obj.a[j]
+}
+
+/* -------------------------------------------------------------------------- */
+
+func bufioReadLine(reader *bufio.Reader) (string, error) {
+  l, err := reader.ReadString('\n')
+  if err != nil {
+    // ignore EOF errors if some bytes were read
+    if len(l) > 0 && err == io.EOF {
+      return l, nil
+    }
+    return l, err
+  }
+  // remove newline character
+  return l[0:len(l)-1], err
 }

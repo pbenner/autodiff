@@ -32,7 +32,7 @@ func TestVector(t *testing.T) {
   v := NewDenseFloat64Vector([]float64{1,2,3,4,5,6})
 
   if v.At(1).GetFloat64() != 2.0 {
-    t.Error("Vector initialization failed!")
+    t.Error("test failed")
   }
 }
 
@@ -45,10 +45,10 @@ func TestVectorSort(t *testing.T) {
   v2.Sort(true)
 
   if v1.At(6).GetFloat64() != 29.0 {
-    t.Error("Vector sorting failed!")
+    t.Error("test failed")
   }
   if v2.At(6).GetFloat64() != 1.0 {
-    t.Error("Vector sorting failed!")
+    t.Error("test failed")
   }
 }
 
@@ -58,7 +58,7 @@ func TestVectorAsMatrix(t *testing.T) {
   m := v.AsMatrix(2, 3)
 
   if m.At(1,0).GetFloat64() != 4 {
-    t.Error("Vector to matrix conversion failed!")
+    t.Error("test failed")
   }
 }
 
@@ -70,7 +70,7 @@ func TestVdotV(t *testing.T) {
   r.VdotV(a, b)
 
   if r.GetFloat64() != 31 {
-    t.Error("VmulV() failed!")
+    t.Error("test failed")
   }
 }
 
@@ -82,7 +82,7 @@ func TestVmulV(t *testing.T) {
   r.VmulV(a, b)
 
   if r.At(1).GetFloat64() != -2 {
-    t.Error("VmulV() failed!")
+    t.Error("test failed")
   }
 }
 
@@ -99,7 +99,37 @@ func TestReadVector(t *testing.T) {
   s := NullFloat64()
 
   if s.Vnorm(v.VsubV(v, r)).GetFloat64() != 0.0 {
-    t.Error("Read vector failed!")
+    t.Error("test failed")
+  }
+  os.Remove(filename)
+}
+
+func TestImportExportVector(t *testing.T) {
+
+  filename := "vector_dense_test.table"
+
+  n := 50000
+  v := NullDenseFloat64Vector(n)
+  w := DenseFloat64Vector{}
+
+  // fill vector with values
+  for i := 0; i < n; i++ {
+    v[i] = float64(i)
+  }
+  if err := v.Export(filename); err != nil {
+    panic(err)
+  }
+  if err := w.Import(filename); err != nil {
+    panic(err)
+  }
+  s := NullFloat64()
+
+  if w.Dim() != n {
+    t.Error("test failed")
+  } else {    
+    if s.Vnorm(v.VsubV(v, w)).GetFloat64() != 0.0 {
+      t.Error("test failed")
+    }
   }
   os.Remove(filename)
 }
@@ -115,10 +145,10 @@ func TestVectorMapReduce(t *testing.T) {
   s := NullFloat64()
 
   if s.Vnorm(a.VsubV(a,r1)).GetFloat64() > 1e-2 {
-    t.Error("Vector map/reduce failed!")
+    t.Error("test failed")
   }
   if math.Abs(b.GetFloat64() - r2) > 1e-2 {
-    t.Error("Vector map/reduce failed!")
+    t.Error("test failed")
   }
 }
 

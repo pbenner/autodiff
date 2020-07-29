@@ -24,9 +24,10 @@ import "bytes"
 import "bufio"
 import "compress/gzip"
 import "encoding/json"
+import "io"
+import "os"
 import "strconv"
 import "strings"
-import "os"
 import "unsafe"
 /* matrix type declaration
  * -------------------------------------------------------------------------- */
@@ -583,7 +584,7 @@ func (m *DenseReal64Matrix) Import(filename string) error {
   values := []float64{}
   rows := 0
   cols := 0
-  var scanner *bufio.Scanner
+  var reader *bufio.Reader
   // open file
   f, err := os.Open(filename)
   if err != nil {
@@ -601,15 +602,22 @@ func (m *DenseReal64Matrix) Import(filename string) error {
       return err
     }
     defer g.Close()
-    scanner = bufio.NewScanner(g)
+    reader = bufio.NewReader(g)
   } else {
-    scanner = bufio.NewScanner(f)
+    reader = bufio.NewReader(f)
   }
-  for scanner.Scan() {
-    fields := strings.Fields(scanner.Text())
-    if len(fields) == 0 {
+  for i_ := 1;; i_++ {
+    l, err := bufioReadLine(reader)
+    if err == io.EOF {
+      break
+    }
+    if err != nil {
+      return err
+    }
+    if len(l) == 0 {
       continue
     }
+    fields := strings.Fields(l)
     if cols == 0 {
       cols = len(fields)
     }

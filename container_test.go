@@ -38,10 +38,10 @@ func TestContainer(t *testing.T) {
   c2.Map(func(x Scalar) { x.Mul(x,x) })
 
   if v.At(1).GetFloat64() != 4.0 {
-    t.Error("Vector initialization failed!")
+    t.Error("test failed")
   }
   if m.At(0, 1).GetFloat64() != 4.0 {
-    t.Error("Vector initialization failed!")
+    t.Error("test failed")
   }
 
 }
