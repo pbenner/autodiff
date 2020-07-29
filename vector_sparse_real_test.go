@@ -21,6 +21,7 @@ package autodiff
 //import "fmt"
 import "encoding/json"
 import "math/rand"
+import "os"
 import "testing"
 
 /* -------------------------------------------------------------------------- */
@@ -222,6 +223,36 @@ func TestSparseRealVector9(test *testing.T) {
   if t.Vnorm(r.VsubV(r, v)); t.GetFloat64() > 0 {
     test.Errorf("test failed")
   }
+}
+
+func TestSparseRealImportExportVector(t *testing.T) {
+
+  filename := "vector_sparse_real_test.table"
+
+  n := 50000
+  v := NullSparseReal64Vector(n)
+  w := &SparseReal64Vector{}
+
+  // fill vector with values
+  for i := 0; i < n; i++ {
+    v.At(i).SetFloat64(float64(i))
+  }
+  if err := v.Export(filename); err != nil {
+    panic(err)
+  }
+  if err := w.Import(filename); err != nil {
+    panic(err)
+  }
+  s := NullFloat64()
+
+  if w.Dim() != n {
+    t.Error("test failed")
+  } else {
+    if s.Vnorm(v.VsubV(v, w)).GetFloat64() != 0.0 {
+      t.Error("test failed")
+    }
+  }
+  os.Remove(filename)
 }
 
 /* -------------------------------------------------------------------------- */

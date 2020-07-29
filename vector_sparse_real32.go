@@ -22,13 +22,14 @@ package autodiff
 import "fmt"
 import "bytes"
 import "bufio"
+import "compress/gzip"
 import "encoding/json"
 import "errors"
-import "compress/gzip"
+import "io"
+import "os"
 import "sort"
 import "strconv"
 import "strings"
-import "os"
 /* vector type declaration
  * -------------------------------------------------------------------------- */
 type SparseReal32Vector struct {
@@ -547,7 +548,7 @@ func (obj *SparseReal32Vector) Export(filename string) error {
   return nil
 }
 func (obj *SparseReal32Vector) Import(filename string) error {
-  var scanner *bufio.Scanner
+  var reader *bufio.Reader
   // open file
   f, err := os.Open(filename)
   if err != nil {
@@ -565,21 +566,25 @@ func (obj *SparseReal32Vector) Import(filename string) error {
       return err
     }
     defer g.Close()
-    scanner = bufio.NewScanner(g)
+    reader = bufio.NewReader(g)
   } else {
-    scanner = bufio.NewScanner(f)
+    reader = bufio.NewReader(f)
   }
   values := []float32{}
   indices := []int{}
   n := 0
-  for scanner.Scan() {
-    fields := strings.Fields(scanner.Text())
-    if len(fields) == 0 {
+  for i_ := 1;; i_++ {
+    l, err := bufioReadLine(reader)
+    if err == io.EOF {
+      break
+    }
+    if err != nil {
+      return err
+    }
+    if len(l) == 0 {
       continue
     }
-    if len(obj.values) != 0 {
-      return fmt.Errorf("invalid sparse table")
-    }
+    fields := strings.Fields(l)
     for i := 0; i < len(fields); i++ {
       split := strings.Split(fields[i], ":")
       if len(split) != 2 {
@@ -666,10 +671,12 @@ func (obj *SparseReal32Vector) ConstJointIterator(b ConstVector) VectorConstJoin
 }
 func (obj *SparseReal32Vector) ITERATOR() *SparseReal32VectorIterator {
   r := SparseReal32VectorIterator{obj.indexIterator(), obj}
+  r.skip()
   return &r
 }
 func (obj *SparseReal32Vector) ITERATOR_FROM(i int) *SparseReal32VectorIterator {
   r := SparseReal32VectorIterator{obj.indexIteratorFrom(i), obj}
+  r.skip()
   return &r
 }
 func (obj *SparseReal32Vector) JOINT_ITERATOR(b ConstVector) *SparseReal32VectorJointIterator {
@@ -728,6 +735,9 @@ func (obj *SparseReal32VectorIterator) GET() *Real32 {
 }
 func (obj *SparseReal32VectorIterator) Next() {
   obj.vectorSparseIndexIterator.Next()
+  obj.skip()
+}
+func (obj *SparseReal32VectorIterator) skip() {
   for obj.Ok() && obj.GET().nullScalar() {
     i := obj.Index()
     obj.vectorSparseIndexIterator.Next()
