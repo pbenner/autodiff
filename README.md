@@ -158,11 +158,12 @@ Import the autodiff library with
 ```
 A scalar holding the value *1.0* can be defined in several ways, i.e.
 ```go
-  a := NewScalar(RealType, 1.0)
-  b := NewReal(1.0)
-  c := NewBareReal(1.0)
+  a := NullScalar(Real64Type)
+  a.SetFloat64(1.0)
+  b := NewReal64(1.0)
+  c := NewFloat64(1.0)
 ```
-*a* and *b* are both *Real*s, however *a* has type *Scalar* whereas *b* has type **Real* which implements a *Scalar*. Variable *c* is of type **BareReal* which cannot carry any derivatives. Basic operations such as additions are defined on all Scalars, i.e.
+*a* and *b* are both *MagicScalar*s, however *a* has type *Scalar* whereas *b* has type **Real64* which implements the *Scalar* interface. Variable *c* is of type *Float64* which cannot carry any derivatives. Basic operations such as additions are defined on all Scalars, i.e.
 ```go
   a.Add(a, b)
 ```
@@ -170,16 +171,21 @@ which stores the result of adding *a* and *b* in *a*. If *autodiff/simple* is im
 ```go
   d := Add(a, b)
 ```
-where the result is stored in a new variable *d*. The *ConstReal* type allows to define real constants without allocation of additional memory. For instance
+where the result is stored in a new variable *d*. The *ConstFloat64* type allows to define float64 constants without allocation of additional memory. For instance
 ```go
-  a.Add(a, ConstReal(1.0))
+  a.Add(a, ConstFloat64(1.0))
 ```
 adds a constant value to *a* where a type cast is used to define the constant *1.0*.
 
 To differentiate a function
 ```go
-  f := func(x, y Scalar) Scalar {
-    return Add(Mul(x, Pow(y, NewReal(3))), NewReal(4))
+  f := func(x, y ConstScalar) MagicScalar {
+    // compute f(x,y) = x*y^3 + 4
+    r := NewReal64()
+    r.Pow(y, ConstFloat64(3.0))
+    r.Mul(r, x)
+    r.Add(r, ConstFloat64(4.0))
+    return r
   }
 ```
 first two reals are defined
@@ -195,7 +201,7 @@ where the first argument says that derivatives up to second order should be comp
 ```go
   z := f(x, y)
 ```
-the function value at *(x,y) = (2, 4)* can be retrieved with *z.GetValue()*. The first and second partial derivatives can be accessed with *z.GetDerivative(i)* and *z.GetHessian(i, j)*, where the arguments specify the index of the variable. For instance, the derivative of *f* with respect to *x* is returned by *z.GetDerivative(0)*, whereas the derivative with respect to *y* by *z.GetDerivative(1)*.
+the function value at *(x,y) = (2, 4)* can be retrieved with *z.GetFloat64()*. The first and second partial derivatives can be accessed with *z.GetDerivative(i)* and *z.GetHessian(i, j)*, where the arguments specify the index of the variable. For instance, the derivative of *f* with respect to *x* is returned by *z.GetDerivative(0)*, whereas the derivative with respect to *y* by *z.GetDerivative(1)*.
 
 ## Basic linear algebra
 
