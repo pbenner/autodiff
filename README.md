@@ -7,7 +7,7 @@ Autodiff is a numerical optimization and linear algebra library for the Go / Gol
 Autodiff defines three different scalar types. A *Scalar* contains a single mutable value that can be the result of a mathematical operation, whereas the value of a *ConstScalar* is constant and fixed when the scalar is created. Automatic differentiation is implemented by *MagicScalar* types and allow to compute first and second order derivatives. Autodiff implements the following scalars:
 
 | Scalar       | Implemented interfaces
----------------------------------------------------------------------- |
+|--------------|------------------------------------------------------ |
 | ConstInt8    | ConstScalar                                           |
 | ConstInt16   | ConstScalar                                           |
 | ConstInt32   | ConstScalar                                           |
@@ -28,7 +28,7 @@ Autodiff defines three different scalar types. A *Scalar* contains a single muta
 The *ConstScalar*, *Scalar* and *MagicScalar* interfaces define the following operations:
 
 | Function     | Description                                           |
----------------------------------------------------------------------- |
+|--------------|------------------------------------------------------ |
 | GetInt8      | Get value as int8                                     |
 | GetInt16     | Get value as int16                                    |
 | GetInt32     | Get value as int32                                    |
@@ -44,7 +44,7 @@ The *ConstScalar*, *Scalar* and *MagicScalar* interfaces define the following op
 The *Scalar* and *MagicScalar* interfaces define the following operations:
 
 | Function     | Description                                           |
----------------------------------------------------------------------- |
+|--------------|------------------------------------------------------ |
 | SetInt8      | Set value by passing an int8 variable                 |
 | SetInt16     | Set value by passing an int16 variable                |
 | SetInt32     | Set value by passing an int32 variable                |
