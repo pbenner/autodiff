@@ -269,18 +269,22 @@ Compute the inverse *r* of a matrix *m* by minimizing the Frobenius norm *||mb -
   import   "github.com/pbenner/autodiff/algorithm/rprop"
   import . "github.com/pbenner/autodiff/simple"
 
-  m := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
+  // define matrix r
+  m := NewDenseFloat64Matrix([]float64{1,2,3,4}, 2, 2)
+  // create identity matrix I
+  I := NullDenseFloat64Matrix(2, 2)
+  I.SetIdentity()
 
-  I := IdentityMatrix(RealType, 2)
-  r := m.Clone()
+  // magic variables for computing the Frobenius norm and its derivative
+  t := NewDenseReal64Matrix(2, 2)
+  s := NewReal64()
   // objective function
-  f := func(x Vector) Scalar {
-    r.SetValues(x)
-    s := Mnorm(MsubM(MmulM(m, r), I))
+  f := func(x ConstVector) MagicScalar {
+    t.Set(x)
+    s.Mnorm(t.MsubM(t.MmulM(m, t), I))
     return s
   }
-  x, _ := rprop.Run(f, r.GetValues(), 0.01, 0.1, rprop.Epsilon{1e-12})
-  r.SetValues(x)
+  r, _ := rprop.Run(f, r.GetValues(), 0.01, 0.1, rprop.Epsilon{1e-12})
 ```
 
 ### Newton's method
