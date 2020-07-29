@@ -207,21 +207,24 @@ the function value at *(x,y) = (2, 4)* can be retrieved with *z.GetFloat64()*. T
 
 Vectors and matrices can be created with
 ```go
-  v := NewVector(RealType, []float64{1,2})
-  m := NewMatrix(RealType, 2, 2, []float64{1,2,3,4})
+  v := NewDenseFloat64Vector([]float64{1,2})
+  m := NewDenseFloat64Matrix([]float64{1,2,3,4}, 2, 2)
+
+  v_ := NewDenseReal64Vector([]float64{1,2})
+  m_ := NewDenseReal64Matrix([]float64{1,2,3,4}, 2, 2)
 ```
 where *v* has length 2 and *m* is a 2x2 matrix. With
 ```go
-  v := NullVector(RealType, 2)
-  m := NullMatrix(RealType, 2, 2)
+  v := NullDenseFloat64Vector(2)
+  m := NullDenseFloat64Matrix(2, 2)
 ```
-all values are initially set to zero. Vector and matrix elements can be accessed with the *At* method, which returns a reference to the Scalar, i.e.
+all values are initially set to zero. Vector and matrix elements can be accessed with the *At*, *MagicAt* or *ConstAt* methods, which return a reference to the scalar implementing either a *Scalar*, *MagicScalar* or *ConstScalar*, i.e.
 ```go
-  m.At(1,1).Add(v.At(0), v.At(1))
+  m.At(1,1).Add(v.ConstAt(0), v.ConstAt(1))
 ```
 adds the first two values in *v* and stores the result in the lower right element of the matrix *m*. Autodiff supports basic linear algebra operations, for instance, the vector matrix product can be computed with
 ```go
-  w := NullVector(RealType, 2)
+  w := NullDenseFloat64Vector(2)
   w.MdotV(m, v)
 ```
 where the result is stored in w. Other operations, such as computing the eigenvalues and eigenvectors of a matrix, require importing the respective package from the algorithm library, i.e.
