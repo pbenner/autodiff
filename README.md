@@ -299,17 +299,30 @@ Find the root of a function *f* with initial value *x0 = (1,1)*
   import   "github.com/pbenner/autodiff/algorithm/newton"
   import . "github.com/pbenner/autodiff/simple"
 
-  f := func(x Vector) Vector {
-    y := NilVector(2)
+  t := NullReal64()
+
+  f := func(x ConstVector) MagicVector {
+    x1 := x.ConstAt(0)
+    x2 := x.ConstAt(1)
+    y  := NullDenseReal64Vector(2)
+    y1 := y.At(0)
+    y2 := y.At(1)
     // y1 = x1^2 + x2^2 - 6
+    t .Pow(x1, ConstFloat64(2.0))
+    y1.Add(y1, t)
+    t .Pow(x2, ConstFloat64(2.0))
+    y1.Add(y1, t)
+    y1.Sub(y1, ConstFloat64(6.0))
     // y2 = x1^3 - x2^2
-    y.At(0).Sub(Add(Pow(x.At(0), NewReal(2)), Pow(x.At(1), NewReal(2))), NewReal(6))
-    y.At(1).Sub(Pow(x.At(0), NewReal(3)), Pow(x.At(1), NewReal(2)))
+    t .Pow(x1, ConstFloat64(3.0))
+    y2.Add(y2, t)
+    t .Pow(x2, ConstFloat64(2.0))
+    y2.Sub(y2, t)
 
     return y
   }
 
-  x0    := NewVector(RealType, []float64{1,1})
+  x0    := NewDenseFloat64Vector([]float64{1,1})
   xn, _ := newton.RunRoot(f, x0, newton.Epsilon{1e-8})
 ```
 
