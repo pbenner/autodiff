@@ -516,21 +516,10 @@ func (obj *SparseReal32Vector) String() string {
 }
 func (obj *SparseReal32Vector) Table() string {
   var buffer bytes.Buffer
-  first := true
-  for it := obj.ConstIterator(); it.Ok(); it.Next() {
-    if !first {
-      buffer.WriteString(" ")
-    } else {
-      first = false
-    }
-    buffer.WriteString(fmt.Sprintf("%d:%s", it.Index(), it.GetConst()))
-  }
-  if _, ok := obj.values[obj.n-1]; !ok {
-    i := obj.n-1
-    if i != 0 {
-      buffer.WriteString(" ")
-    }
-    buffer.WriteString(fmt.Sprintf("%d:%s", i, ConstFloat32(0.0)))
+  n := obj.Dim()
+  for i := 0; i < n; i++ {
+    buffer.WriteString(obj.ConstAt(i).String())
+    buffer.WriteString("\n")
   }
   return buffer.String()
 }
@@ -542,12 +531,21 @@ func (obj *SparseReal32Vector) Export(filename string) error {
   defer f.Close()
   w := bufio.NewWriter(f)
   defer w.Flush()
-  if _, err := fmt.Fprintf(w, "%s\n", obj.Table()); err != nil {
+  if _, err := fmt.Fprintf(w, "%d\n", obj.Dim()); err != nil {
     return err
+  }
+  for it := obj.ITERATOR(); it.Ok(); it.Next() {
+    i := it.Index()
+    if _, err := fmt.Fprintf(w, "%d %v\n", i, it.GET()); err != nil {
+      return err
+    }
   }
   return nil
 }
 func (obj *SparseReal32Vector) Import(filename string) error {
+  values := []float32{}
+  indices := []int{}
+  n := 0
   var reader *bufio.Reader
   // open file
   f, err := os.Open(filename)
@@ -570,9 +568,7 @@ func (obj *SparseReal32Vector) Import(filename string) error {
   } else {
     reader = bufio.NewReader(f)
   }
-  values := []float32{}
-  indices := []int{}
-  n := 0
+  // scan header
   for i_ := 1;; i_++ {
     l, err := bufioReadLine(reader)
     if err == io.EOF {
@@ -585,27 +581,40 @@ func (obj *SparseReal32Vector) Import(filename string) error {
       continue
     }
     fields := strings.Fields(l)
-    for i := 0; i < len(fields); i++ {
-      split := strings.Split(fields[i], ":")
-      if len(split) != 2 {
-        return fmt.Errorf("invalid sparse table")
-      }
-      // parse index
-      if k, err := strconv.ParseInt(split[0], 10, 64); err != nil {
-        return fmt.Errorf("invalid sparse table")
-      } else {
-        indices = append(indices, int(k))
-        // update vector length length
-        if int(k)+1 > n {
-          n = int(k)+1
-        }
-      }
-      // parse value
-      if v, err := strconv.ParseFloat(split[1], 64); err != nil {
-        return fmt.Errorf("invalid sparse table")
-      } else {
-        values = append(values, float32(v))
-      }
+    if len(fields) != 1 {
+      return fmt.Errorf("invalid sparse vector format")
+    }
+    if v, err := strconv.ParseInt(fields[0], 10, 64); err != nil {
+      return err
+    } else {
+      n = int(v)
+    }
+    break
+  }
+  for i_ := 1;; i_++ {
+    l, err := bufioReadLine(reader)
+    if err == io.EOF {
+      break
+    }
+    if err != nil {
+      return err
+    }
+    if len(l) == 0 {
+      continue
+    }
+    fields := strings.Fields(l)
+    if len(fields) != 2 {
+      return fmt.Errorf("invalid sparse vector format")
+    }
+    if v, err := strconv.ParseInt(fields[0], 10, 64); err != nil {
+      return err
+    } else {
+      indices = append(indices, int(v))
+    }
+    if v, err := strconv.ParseFloat(fields[1], 64); err != nil {
+      return err
+    } else {
+      values = append(values, float32(v))
     }
   }
   *obj = *NewSparseReal32Vector(indices, values, n)
