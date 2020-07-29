@@ -18,8 +18,8 @@ package rprop
 
 /* -------------------------------------------------------------------------- */
 
-import   "fmt"
-import   "os"
+//import   "fmt"
+//import   "os"
 import   "testing"
 
 import . "github.com/pbenner/autodiff"
@@ -57,11 +57,11 @@ func TestRProp(t *testing.T) {
 
 func TestRPropRosenbrock(t *testing.T) {
 
-  fp, err := os.Create("rprop_test.table")
-  if err != nil {
-    panic(err)
-  }
-  defer fp.Close()
+  // fp, err := os.Create("rprop_test.table")
+  // if err != nil {
+  //   panic(err)
+  // }
+  // defer fp.Close()
 
   f := func(x ConstVector) (MagicScalar, error) {
     // f(x1, x2) = (a - x1)^2 + b(x2 - x1^2)^2
@@ -81,16 +81,16 @@ func TestRPropRosenbrock(t *testing.T) {
     s.Add(s, t)
     return s, nil
   }
-  hook := func(gradient []float64, step []float64, x ConstVector, value ConstScalar) bool {
-    fmt.Fprintf(fp, "%s\n", x.Table())
-    return false
-  }
+  // hook := func(gradient []float64, step []float64, x ConstVector, value ConstScalar) bool {
+  //   fmt.Fprintf(fp, "%s\n", x.Table())
+  //   return false
+  // }
 
   x0 := NewDenseFloat64Vector([]float64{-10,10})
   xr := NewDenseFloat64Vector([]float64{  1, 1})
   s  := NewFloat64(0.0)
   xn, _ := Run(f, x0, 0.01, []float64{1.2, 0.8},
-    Hook{hook},
+    //Hook{hook},
     Epsilon{1e-10})
 
   if s.Vnorm(xr.VsubV(xr, xn)).GetFloat64() > 1e-8 {
