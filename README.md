@@ -4,7 +4,56 @@ Autodiff is a numerical optimization and linear algebra library for the Go / Gol
 
 ## Scalars
 
-Autodiff has two different scalar types. The *Real* type allows to store first and second derivatives for the current value, whereas the *BareReal* type is a simple *float64* which cannot store any information other than its value. Every scalar supports the following set of functions:
+Autodiff defines three different scalar types. A *Scalar* contains a single mutable value that can be the result of a mathematical operation, whereas the value of a *ConstScalar* is constant and fixed when the scalar is created. Automatic differentiation is implemented by *MagicScalar* types and allow to compute first and second order derivatives. Autodiff implements the following scalars:
+
+| Scalar       | Implemented interfaces
+---------------------------------------------------------------------- |
+| ConstInt8    | ConstScalar                                           |
+| ConstInt16   | ConstScalar                                           |
+| ConstInt32   | ConstScalar                                           |
+| ConstInt64   | ConstScalar                                           |
+| ConstInt     | ConstScalar                                           |
+| ConstFloat32 | ConstScalar                                           |
+| ConstFloat64 | ConstScalar                                           |
+| Int8         | ConstScalar, Scalar                                   |
+| Int16        | ConstScalar, Scalar                                   |
+| Int32        | ConstScalar, Scalar                                   |
+| Int64        | ConstScalar, Scalar                                   |
+| Int          | ConstScalar, Scalar                                   |
+| Float32      | ConstScalar, Scalar                                   |
+| Float64      | ConstScalar, Scalar                                   |
+| Real32       | ConstScalar, Scalar, MagicScalar                      |
+| Real64       | ConstScalar, Scalar, MagicScalar                      |
+
+The *ConstScalar*, *Scalar* and *MagicScalar* interfaces define the following operations:
+
+| Function     | Description                                           |
+---------------------------------------------------------------------- |
+| GetInt8      | Get value as int8                                     |
+| GetInt16     | Get value as int16                                    |
+| GetInt32     | Get value as int32                                    |
+| GetInt64     | Get value as int64                                    |
+| GetInt       | Get value as int                                      |
+| GetFloat32   | Get value as float32                                  |
+| GetFloat64   | Get value as float64                                  |
+| Equals       | Check if two constants are equal                      |
+| Greater      | True if first constant is greater                     |
+| Smaller      | True if first constant is smaller                     |
+| Sign         | Returns the sign of the scalar                        |
+
+The *Scalar* and *MagicScalar* interfaces define the following operations:
+
+| Function     | Description                                           |
+---------------------------------------------------------------------- |
+| SetInt8      | Set value by passing an int8 variable                 |
+| SetInt16     | Set value by passing an int16 variable                |
+| SetInt32     | Set value by passing an int32 variable                |
+| SetInt64     | Set value by passing an int64 variable                |
+| SetInt       | Set value by passing an int variable                  |
+| SetFloat32   | Set value by passing an float32 variable              |
+| SetFloat64   | Set value by passing an float64 variable              |
+
+The *Scalar* and *MagicScalar* interfaces define the following mathematical operations:
 
 | Function     | Description                                           |
 | ------------ | ----------------------------------------------------- |
