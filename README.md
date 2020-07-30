@@ -313,7 +313,7 @@ which stores the result of adding *a* and *b* in *a*. The *ConstFloat64* type al
 ```
 adds a constant value to *a* where a type cast is used to define the constant *1.0*.
 
-To differentiate a function *f(x,y) = x*y^3 + 4*, we define
+To differentiate a function *f(x,y) = x y^3 + 4*, we define
 ```go
   f := func(x, y ConstScalar) MagicScalar {
     // compute f(x,y) = x*y^3 + 4
