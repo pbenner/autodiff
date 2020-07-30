@@ -4,7 +4,7 @@ Autodiff is a numerical optimization and linear algebra library for the Go / Gol
 
 ## Scalars
 
-Autodiff defines three different scalar types. A *Scalar* contains a single mutable value that can be the result of a mathematical operation, whereas the value of a *ConstScalar* is constant and fixed when the scalar is created. Automatic differentiation is implemented by *MagicScalar* types and allow to compute first and second order derivatives. Autodiff implements the following scalars:
+Autodiff defines three different scalar types. A *Scalar* contains a single mutable value that can be the result of a mathematical operation, whereas the value of a *ConstScalar* is constant and fixed when the scalar is created. Automatic differentiation is implemented by *MagicScalar* types that allow to compute first and second order derivatives. Autodiff supports the following scalars types:
 
 | Scalar       | Implemented interfaces
 |--------------|------------------------------------------------------ |
@@ -96,7 +96,55 @@ The *Scalar* and *MagicScalar* interfaces define the following mathematical oper
 
 ## Vectors and Matrices
 
-Autodiff supports vectors and matrices including basic linear algebra operations. Vectors support the following linear algebra operations:
+Autodiff implements dense and sparse vectors and matrices that support basic linear algebra operations. The following vector and matrix types are provided by autodiff:
+
+| Type                     | Scalar       | Description                            |
+|--------------------------|--------------|----------------------------------------|
+| DenseInt8Vector          | Int8         | Dense vector of Int8 scalars           |
+| DenseInt16Vector         | Int16        | Dense vector of Int16 scalars          |
+| DenseInt32Vector         | Int32        | Dense vector of Int32 scalars          |
+| DenseInt64Vector         | Int64        | Dense vector of Int64 scalars          |
+| DenseIntVector           | Int          | Dense vector of Int scalars            |
+| DenseFloat32Vector       | Float32      | Dense vector of Float32 scalars        |
+| DenseFloat64Vector       | Float64      | Dense vector of Float64 scalars        |
+| DenseReal32Vector        | Real32       | Dense vector of Real32 scalars         |
+| DenseReal64Vector        | Real64       | Dense vector of Real64 scalars         |
+| SparseInt8Vector         | Int8         | Sparse vector of Int8 scalars          |
+| SparseInt16Vector        | Int16        | Sparse vector of Int16 scalars         |
+| SparseInt32Vector        | Int32        | Sparse vector of Int32 scalars         |
+| SparseInt64Vector        | Int64        | Sparse vector of Int64 scalars         |
+| SparseIntVector          | Int          | Sparse vector of Int scalars           |
+| SparseFloat32Vector      | Float32      | Sparse vector of Float32 scalars       |
+| SparseFloat64Vector      | Float64      | Sparse vector of Float64 scalars       |
+| SparseReal32Vector       | Real32       | Sparse vector of Real32 scalars        |
+| SparseReal64Vector       | Real64       | Sparse vector of Real64 scalars        |
+| SparseConstInt8Vector    | ConstInt8    | Sparse vector of ConstInt8 scalars     |
+| SparseConstInt16Vector   | ConstInt16   | Sparse vector of ConstInt16 scalars    |
+| SparseConstInt32Vector   | ConstInt32   | Sparse vector of ConstInt32 scalars    |
+| SparseConstInt64Vector   | ConstInt64   | Sparse vector of ConstInt64 scalars    |
+| SparseConstIntVector     | ConstInt     | Sparse vector of ConstInt scalars      |
+| SparseConstFloat32Vector | ConstFloat32 | Sparse vector of ConstFloat32 scalars  |
+| SparseConstFloat64Vector | ConstFloat64 | Sparse vector of ConstFloat64 scalars  |
+| DenseInt8Matrix          | Int8         | Dense matrix of Int8 scalars           |
+| DenseInt16Matrix         | Int16        | Dense matrix of Int16 scalars          |
+| DenseInt32Matrix         | Int32        | Dense matrix of Int32 scalars          |
+| DenseInt64Matrix         | Int64        | Dense matrix of Int64 scalars          |
+| DenseIntMatrix           | Int          | Dense matrix of Int scalars            |
+| DenseFloat32Matrix       | Float32      | Dense matrix of Float32 scalars        |
+| DenseFloat64Matrix       | Float64      | Dense matrix of Float64 scalars        |
+| DenseReal32Matrix        | Real32       | Dense matrix of Real32 scalars         |
+| DenseReal64Matrix        | Real64       | Dense matrix of Real64 scalars         |
+| SparseInt8Matrix         | Int8         | Sparse matrix of Int8 scalars          |
+| SparseInt16Matrix        | Int16        | Sparse matrix of Int16 scalars         |
+| SparseInt32Matrix        | Int32        | Sparse matrix of Int32 scalars         |
+| SparseInt64Matrix        | Int64        | Sparse matrix of Int64 scalars         |
+| SparseIntMatrix          | Int          | Sparse matrix of Int scalars           |
+| SparseFloat32Matrix      | Float32      | Sparse matrix of Float32 scalars       |
+| SparseFloat64Matrix      | Float64      | Sparse matrix of Float64 scalars       |
+| SparseReal32Matrix       | Real32       | Sparse matrix of Real32 scalars        |
+| SparseReal64Matrix       | Real64       | Sparse matrix of Real64 scalars        |
+
+Vectors support the following operations:
 
 | Function | Description                      |
 | -------- | -------------------------------- |
