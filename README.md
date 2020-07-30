@@ -163,7 +163,6 @@ Autodiff defines the following three vector interfaces:
 | MagicVector | AsConstMatrix     | Convert vector to a matrix of type *ConstMatrix*          |
 | ConstVector | ConstIterator     | Returns a constant iterator                               |
 | ConstVector | CloneConstVector  | Return a deep copy of the vector as *ConstVector*         |
-|-------------|-------------------|-----------------------------------------------------------|
 | Vector      | At                | Return the scalar the given index                         |
 | Vector      | Reset             | Set all scalars to zero                                   |
 | Vector      | Set               | Set the value and derivatives of a scalar                 |
@@ -178,7 +177,6 @@ Autodiff defines the following three vector interfaces:
 | Vector      | AsMatrix          | Convert vector to a matrix                                |
 | Vector      | Iterator          | Returns an iterator                                       |
 | Vector      | CloneVector       | Return a deep copy of the vector as *Vector*              |
-|-------------|-------------------|-----------------------------------------------------------|
 | MagicVector | MagicAt           | Returns the scalar at the given position as *MagicScalar* |
 | MagicVector | MagicSlice        | Resutns a slice as a magic vector (*MagicVector*)         |
 | MagicVector | AppendMagicScalar | Append a single magic scalar                              |
@@ -219,9 +217,8 @@ Autodiff defines the following three matrix interfaces:
 | ConstMatrix | ConstRow          | Returns the ith row as a *ConstVector*                    |
 | ConstMatrix | ConstCol          | Returns the jth column as a *ConstVector*                 |
 | ConstMatrix | ConstIterator     | Returns a constant iterator                               |
-| Matrix      | AsConstVector     | Convert matrix to a vector of type *ConstVector*          |
+| ConstMatrix | AsConstVector     | Convert matrix to a vector of type *ConstVector*          |
 | ConstMatrix | CloneConstMatrix  | Return a deep copy of the matrix as *ConstMatrix*         |
-|-------------|-------------------|-----------------------------------------------------------|
 | Matrix      | At                | Return the scalar the given index                         |
 | Matrix      | Reset             | Set all scalars to zero                                   |
 | Matrix      | Set               | Set the value and derivatives of a scalar                 |
@@ -242,7 +239,6 @@ Autodiff defines the following three matrix interfaces:
 | Matrix      | AsVector          | Convert matrix to a vector of type *Vector*               |
 | Matrix      | Iterator          | Returns an iterator                                       |
 | Matrix      | CloneMatrix       | Return a deep copy of the matrix as *Matrix*              |
-|-------------|-------------------|-----------------------------------------------------------|
 | MagicMatrix | MagicAt           | Returns the scalar at the given position as *MagicScalar* |
 | MagicMatrix | MagicSlice        | Resutns a slice as a magic matrix (*MagicMatrix*)         |
 | MagicMatrix | AppendMagicScalar | Append a single magic scalar                              |
