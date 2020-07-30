@@ -261,17 +261,7 @@ func (matrix *DenseReal32Matrix) Swap(i1, j1, i2, j2 int) {
   matrix.values[k1], matrix.values[k2] = matrix.values[k2], matrix.values[k1]
 }
 func (matrix *DenseReal32Matrix) T() Matrix {
-  return &DenseReal32Matrix{
-    values : matrix.values,
-    rows : matrix.cols,
-    cols : matrix.rows,
-    transposed: !matrix.transposed,
-    rowOffset : matrix.colOffset,
-    rowMax : matrix.colMax,
-    colOffset : matrix.rowOffset,
-    colMax : matrix.rowMax,
-    tmp1 : matrix.tmp2,
-    tmp2 : matrix.tmp1 }
+  return matrix.MagicT()
 }
 func (matrix *DenseReal32Matrix) Tip() {
   mn := len(matrix.values)
@@ -411,6 +401,19 @@ func (matrix *DenseReal32Matrix) MagicAt(i, j int) MagicScalar {
 }
 func (matrix *DenseReal32Matrix) MagicSlice(rfrom, rto, cfrom, cto int) MagicMatrix {
   return matrix.SLICE(rfrom, rto, cfrom, cto)
+}
+func (matrix *DenseReal32Matrix) MagicT() MagicMatrix {
+  return &DenseReal32Matrix{
+    values : matrix.values,
+    rows : matrix.cols,
+    cols : matrix.rows,
+    transposed: !matrix.transposed,
+    rowOffset : matrix.colOffset,
+    rowMax : matrix.colMax,
+    colOffset : matrix.rowOffset,
+    colMax : matrix.rowMax,
+    tmp1 : matrix.tmp2,
+    tmp2 : matrix.tmp1 }
 }
 func (matrix *DenseReal32Matrix) ResetDerivatives() {
   for i := 0; i < len(matrix.values); i++ {

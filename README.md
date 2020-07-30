@@ -236,11 +236,14 @@ Autodiff defines the following three matrix interfaces:
 | Matrix      | PermuteCols       | Permute columns                                           |
 | Matrix      | Row               | Returns a copy of the ith row as a *Vector*               |
 | Matrix      | Col               | Returns a copy of the jth column a *Vector*               |
+| Matrix      | T                 | Returns a transposed matrix                               |
+| Matrix      | Tip               | Transpose in-place                                        |
 | Matrix      | AsVector          | Convert matrix to a vector of type *Vector*               |
 | Matrix      | Iterator          | Returns an iterator                                       |
 | Matrix      | CloneMatrix       | Return a deep copy of the matrix as *Matrix*              |
 | MagicMatrix | MagicAt           | Returns the scalar at the given position as *MagicScalar* |
 | MagicMatrix | MagicSlice        | Resutns a slice as a magic matrix (*MagicMatrix*)         |
+| MagicMatrix | MagicT            | Returns a transposed matrix of type *MagicMatrix*         |
 | MagicMatrix | AppendMagicScalar | Append a single magic scalar                              |
 | MagicMatrix | AppendMagicMatrix | Append a magic matrix                                     |
 | MagicMatrix | CloneMagicMatrix  | Return a deep copy of the matrix as *MagicMatrix*         |

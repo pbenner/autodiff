@@ -249,24 +249,7 @@ func (matrix *SparseReal32Matrix) Swap(i1, j1, i2, j2 int) {
   matrix.values.Swap(k1, k2)
 }
 func (matrix *SparseReal32Matrix) T() Matrix {
-  m := &SparseReal32Matrix{
-    values : NullSparseReal32Vector(matrix.values.Dim()),
-    rows : matrix.cols,
-    cols : matrix.rows,
-    rowOffset : matrix.colOffset,
-    rowMax : matrix.colMax,
-    colOffset : matrix.rowOffset,
-    colMax : matrix.rowMax,
-    tmp1 : matrix.tmp2,
-    tmp2 : matrix.tmp1 }
-  for k1, value := range matrix.values.values {
-    // transform indices so that iterators operate correctly
-    i1, j1 := matrix.ij(k1)
-    k2 := m.index(j1, i1)
-    m.values.values[k2] = value
-    m.values.indexInsert(k2)
-  }
-  return m
+  return matrix.MagicT()
 }
 func (matrix *SparseReal32Matrix) Tip() {
   mn := matrix.values.Dim()
@@ -376,6 +359,26 @@ func (matrix *SparseReal32Matrix) MagicAt(i, j int) MagicScalar {
 }
 func (matrix *SparseReal32Matrix) MagicSlice(rfrom, rto, cfrom, cto int) MagicMatrix {
   return matrix.SLICE(rfrom, rto, cfrom, cto)
+}
+func (matrix *SparseReal32Matrix) MagicT() MagicMatrix {
+  m := &SparseReal32Matrix{
+    values : NullSparseReal32Vector(matrix.values.Dim()),
+    rows : matrix.cols,
+    cols : matrix.rows,
+    rowOffset : matrix.colOffset,
+    rowMax : matrix.colMax,
+    colOffset : matrix.rowOffset,
+    colMax : matrix.rowMax,
+    tmp1 : matrix.tmp2,
+    tmp2 : matrix.tmp1 }
+  for k1, value := range matrix.values.values {
+    // transform indices so that iterators operate correctly
+    i1, j1 := matrix.ij(k1)
+    k2 := m.index(j1, i1)
+    m.values.values[k2] = value
+    m.values.indexInsert(k2)
+  }
+  return m
 }
 func (matrix *SparseReal32Matrix) ResetDerivatives() {
   for it := matrix.MagicIterator(); it.Ok(); it.Next() {

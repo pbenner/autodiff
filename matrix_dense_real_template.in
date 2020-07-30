@@ -327,17 +327,7 @@ func (matrix MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
 }
 
 func (matrix MATRIX_TYPE) T() Matrix {
-  return &MATRIX_NAME{
-    values    :  matrix.values,
-    rows      :  matrix.cols,
-    cols      :  matrix.rows,
-    transposed: !matrix.transposed,
-    rowOffset :  matrix.colOffset,
-    rowMax    :  matrix.colMax,
-    colOffset :  matrix.rowOffset,
-    colMax    :  matrix.rowMax,
-    tmp1      :  matrix.tmp2,
-    tmp2      :  matrix.tmp1 }
+  return matrix.MagicT()
 }
 
 func (matrix MATRIX_TYPE) Tip() {
@@ -504,6 +494,20 @@ func (matrix MATRIX_TYPE) MagicAt(i, j int) MagicScalar {
 
 func (matrix MATRIX_TYPE) MagicSlice(rfrom, rto, cfrom, cto int) MagicMatrix {
   return matrix.SLICE(rfrom, rto, cfrom, cto)
+}
+
+func (matrix MATRIX_TYPE) MagicT() MagicMatrix {
+  return &MATRIX_NAME{
+    values    :  matrix.values,
+    rows      :  matrix.cols,
+    cols      :  matrix.rows,
+    transposed: !matrix.transposed,
+    rowOffset :  matrix.colOffset,
+    rowMax    :  matrix.colMax,
+    colOffset :  matrix.rowOffset,
+    colMax    :  matrix.rowMax,
+    tmp1      :  matrix.tmp2,
+    tmp2      :  matrix.tmp1 }
 }
 
 func (matrix MATRIX_TYPE) ResetDerivatives() {

@@ -155,6 +155,7 @@ type MagicMatrix interface {
   CloneMagicMatrix    ()                           MagicMatrix
   MagicAt             (i, j int)                   MagicScalar
   MagicSlice          (rfrom, rto, cfrom, cto int) MagicMatrix
+  MagicT              ()                           MagicMatrix
   ResetDerivatives    ()
   AsMagicVector       ()                           MagicVector
   MagicIterator       ()                           MatrixMagicIterator

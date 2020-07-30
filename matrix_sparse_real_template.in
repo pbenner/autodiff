@@ -291,24 +291,7 @@ func (matrix MATRIX_TYPE) Swap(i1, j1, i2, j2 int) {
 }
 
 func (matrix MATRIX_TYPE) T() Matrix {
-  m := &MATRIX_NAME{
-    values    :  NULL_VECTOR(matrix.values.Dim()),
-    rows      :  matrix.cols,
-    cols      :  matrix.rows,
-    rowOffset :  matrix.colOffset,
-    rowMax    :  matrix.colMax,
-    colOffset :  matrix.rowOffset,
-    colMax    :  matrix.rowMax,
-    tmp1      :  matrix.tmp2,
-    tmp2      :  matrix.tmp1 }
-  for k1, value := range matrix.values.values {
-    // transform indices so that iterators operate correctly
-    i1, j1 := matrix.ij(k1)
-    k2     := m.index(j1, i1)
-    m.values.values[k2] = value
-    m.values.indexInsert(k2)
-  }
-  return m
+  return matrix.MagicT()
 }
 
 func (matrix MATRIX_TYPE) Tip() {
@@ -444,6 +427,27 @@ func (matrix MATRIX_TYPE) MagicAt(i, j int) MagicScalar {
 
 func (matrix MATRIX_TYPE) MagicSlice(rfrom, rto, cfrom, cto int) MagicMatrix {
   return matrix.SLICE(rfrom, rto, cfrom, cto)
+}
+
+func (matrix MATRIX_TYPE) MagicT() MagicMatrix {
+  m := &MATRIX_NAME{
+    values    :  NULL_VECTOR(matrix.values.Dim()),
+    rows      :  matrix.cols,
+    cols      :  matrix.rows,
+    rowOffset :  matrix.colOffset,
+    rowMax    :  matrix.colMax,
+    colOffset :  matrix.rowOffset,
+    colMax    :  matrix.rowMax,
+    tmp1      :  matrix.tmp2,
+    tmp2      :  matrix.tmp1 }
+  for k1, value := range matrix.values.values {
+    // transform indices so that iterators operate correctly
+    i1, j1 := matrix.ij(k1)
+    k2     := m.index(j1, i1)
+    m.values.values[k2] = value
+    m.values.indexInsert(k2)
+  }
+  return m
 }
 
 func (matrix MATRIX_TYPE) ResetDerivatives() {
