@@ -221,27 +221,27 @@ which stores the result of adding *a* and *b* in *a*. The *ConstFloat64* type al
 ```
 adds a constant value to *a* where a type cast is used to define the constant *1.0*.
 
-To differentiate a function
+To differentiate a function *f(x,y) = x*y^3 + 4*, we define
 ```go
   f := func(x, y ConstScalar) MagicScalar {
     // compute f(x,y) = x*y^3 + 4
-    r := NewReal64()
-    r.Pow(y, ConstFloat64(3.0))
-    r.Mul(r, x)
-    r.Add(r, ConstFloat64(4.0))
-    return r
+    z := NewReal64()
+    z.Pow(y, ConstFloat64(3.0))
+    z.Mul(z, x)
+    z.Add(z, ConstFloat64(4.0))
+    return z
   }
 ```
-first two reals are defined
+that accepts as arguments two *ConstScalar* variables and returns a *MagicScalar*. We first define two *MagicReal* variables
 ```go
-  x := NewReal(2)
-  y := NewReal(4)
+  x := NewReal64(2)
+  y := NewReal64(4)
 ```
-that store the value at which the derivative of *f* should be evaluated. Afterwards, *x* and *y* must be defined as variables with
+that store the value at which the derivatives should be evaluated. Afterwards, *x* and *y* must be activated with
 ```go
   Variables(2, x, y)
 ```
-where the first argument says that derivatives up to second order should be computed. After evaluating *f*, i.e.
+where the first argument sets the order of the derivatives. In this case, derivatives up to second order are computed. After evaluating *f*, i.e.
 ```go
   z := f(x, y)
 ```
