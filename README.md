@@ -260,6 +260,8 @@ Matrices support the following linear algebra operations:
 | MdotM    | Matrix product                   |
 | Outer    | Outer product                    |
 
+Methods, such as *VaddV* and *MaddM*, are generic and accept vector or matrix types that implement the respective *ConstVector* or *ConstMatrix* interface. However, opertions on interface types are much slower than on concrete types, which is why most vector and matrix types in *autodiff* also implement methods that operate on concrete types. For instance, *DenseFloat64Vector* implements a method called *VADDV* that takes as arguments two objects of type *DenseFloat64Vector*. Methods that operate on concrete types are always named in capital letters.
+
 ## Algorithms
 
 The algorithms package contains more complex linear algebra and optimization routines:
