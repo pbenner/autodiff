@@ -70,6 +70,7 @@ type VectorJointIterator interface {
  * -------------------------------------------------------------------------- */
 
 type constVector interface {
+  CloneConstVector  ()                     ConstVector
   Dim               ()                     int
   Equals            (ConstVector, float64) bool
   Table             ()                     string

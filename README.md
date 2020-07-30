@@ -144,6 +144,46 @@ Autodiff implements dense and sparse vectors and matrices that support basic lin
 | SparseReal32Matrix       | Real32       | Sparse matrix of Real32 scalars        |
 | SparseReal64Matrix       | Real64       | Sparse matrix of Real64 scalars        |
 
+Autodiff defines the following three vector interfaces:
+
+| Function          | Description                                               |
+|-------------------|-----------------------------------------------------------|
+| Dim               | Return the length of the vector                           |
+| Equals            | Returns true if the two vectors are equal                 |
+| Table             | Converts vector to a string                               |
+| Int8At            | Returns the scalar at the given position as int8          |
+| Int16At           | Returns the scalar at the given position as int16         |
+| Int32At           | Returns the scalar at the given position as int32         |
+| Int64At           | Returns the scalar at the given position as int64         |
+| IntAt             | Returns the scalar at the given position as int           |
+| Float32At         | Returns the scalar at the given position as Float32       |
+| Float64At         | Returns the scalar at the given position as Float64       |
+| ConstAt           | Returns the scalar at the given position as *ConstScalar* |
+| ConstSlice        | Returns a slice as a constant vector (*ConstVector*)      |
+| ConstIterator     | Returns a constant iterator                               |
+| CloneConstVector  | Return a deep copy of the vector as *ConstVector*         |
+|-------------------|-----------------------------------------------------------|
+| At                | Return the scalar the given index                         |
+| Reset             | Set all scalars to zero                                   |
+| Set               | Set the value and derivatives of a scalar                 |
+| Slice             | Return a slice of the vector                              |
+| Export            | Export vector to file                                     |
+| Permute           | Permute elements of the vector                            |
+| ReverseOrder      | Reverse the order of vector elements                      |
+| Sort              | Sort vector elements                                      |
+| AppendScalar      | Append a single scalar to the vector                      |
+| AppendVector      | Append another vector                                     |
+| Swap              | Swap two elements of the vector                           |
+| AsMatrix          | Convert vector to a matrix                                |
+| Iterator          | Returns an iterator                                       |
+| CloneVector       | Return a deep copy of the vector as *Vector*              |
+|-------------------|-----------------------------------------------------------|
+| MagicAt           | Returns the scalar at the given position as *MagicScalar* |
+| MagicSlice        | Resutns a slice as a magic vector (*MagicVector*)         |
+| AppendMagicScalar | Append a single magic scalar                              |
+| AppendMagicVector | Append a magic vector                                     |
+| CloneMagicVector  | Return a deep copy of the vector as *MagicVector*         |
+
 Vectors support the following operations:
 
 | Function | Description                      |
