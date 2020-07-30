@@ -345,6 +345,9 @@ func (obj *SparseReal64Vector) ConstAt(i int) ConstScalar {
 func (obj *SparseReal64Vector) ConstSlice(i, j int) ConstVector {
   return obj.SLICE(i, j)
 }
+func (v *SparseReal64Vector) AsConstMatrix(n, m int) ConstMatrix {
+  return v.ToSparseReal64Matrix(n, m)
+}
 /* magic interface
  * -------------------------------------------------------------------------- */
 func (obj *SparseReal64Vector) CloneMagicVector() MagicVector {
@@ -388,6 +391,9 @@ func (obj *SparseReal64Vector) AppendMagicVector(w_ MagicVector) MagicVector {
     }
     return r
   }
+}
+func (v *SparseReal64Vector) AsMagicMatrix(n, m int) MagicMatrix {
+  return v.ToSparseReal64Matrix(n, m)
 }
 /* imlement MagicScalarContainer
  * -------------------------------------------------------------------------- */

@@ -291,6 +291,10 @@ func (v VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
 
+func (v VECTOR_TYPE) AsConstMatrix(n, m int) ConstMatrix {
+  return v.STR_CONCAT(To, MATRIX_NAME)(n, m)
+}
+
 /* magic interface
  * -------------------------------------------------------------------------- */
 
@@ -346,6 +350,10 @@ func (v VECTOR_TYPE) AppendMagicVector(w_ MagicVector) MagicVector {
     }
     return v
   }
+}
+
+func (v VECTOR_TYPE) AsMagicMatrix(n, m int) MagicMatrix {
+  return v.STR_CONCAT(To, MATRIX_NAME)(n, m)
 }
 
 /* imlement MagicScalarContainer

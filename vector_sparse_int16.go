@@ -345,6 +345,9 @@ func (obj *SparseInt16Vector) ConstAt(i int) ConstScalar {
 func (obj *SparseInt16Vector) ConstSlice(i, j int) ConstVector {
   return obj.SLICE(i, j)
 }
+func (v *SparseInt16Vector) AsConstMatrix(n, m int) ConstMatrix {
+  return v.ToSparseInt16Matrix(n, m)
+}
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 func (obj *SparseInt16Vector) Map(f func(Scalar)) {

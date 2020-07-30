@@ -86,6 +86,8 @@ type constVector interface {
   ConstIterator     ()                     VectorConstIterator
   ConstIteratorFrom (i int)                VectorConstIterator
   ConstJointIterator(ConstVector)          VectorConstJointIterator
+  // type conversions
+  AsConstMatrix     (n, m int)             ConstMatrix
   // json
   json.Marshaler
 }
@@ -144,6 +146,8 @@ type MagicVector interface {
   MagicSlice       (i, j int)       MagicVector
   AppendMagicScalar(...MagicScalar) MagicVector
   AppendMagicVector(MagicVector)    MagicVector
+  // type conversions
+  AsMagicMatrix    (n, m int)       MagicMatrix
   // iterators
   MagicIterator    ()               VectorMagicIterator
   MagicIteratorFrom(i int)          VectorMagicIterator

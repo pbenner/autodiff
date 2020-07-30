@@ -163,6 +163,9 @@ func (v DenseFloat32Vector) ConstAt(i int) ConstScalar {
 func (v DenseFloat32Vector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
+func (v DenseFloat32Vector) AsConstMatrix(n, m int) ConstMatrix {
+  return v.ToDenseFloat32Matrix(n, m)
+}
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 func (v DenseFloat32Vector) Map(f func(Scalar)) {

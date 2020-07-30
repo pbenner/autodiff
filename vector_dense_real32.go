@@ -207,6 +207,9 @@ func (v DenseReal32Vector) ConstAt(i int) ConstScalar {
 func (v DenseReal32Vector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
+func (v DenseReal32Vector) AsConstMatrix(n, m int) ConstMatrix {
+  return v.ToDenseReal32Matrix(n, m)
+}
 /* magic interface
  * -------------------------------------------------------------------------- */
 func (v DenseReal32Vector) CloneMagicVector() MagicVector {
@@ -244,6 +247,9 @@ func (v DenseReal32Vector) AppendMagicVector(w_ MagicVector) MagicVector {
     }
     return v
   }
+}
+func (v DenseReal32Vector) AsMagicMatrix(n, m int) MagicMatrix {
+  return v.ToDenseReal32Matrix(n, m)
 }
 /* imlement MagicScalarContainer
  * -------------------------------------------------------------------------- */

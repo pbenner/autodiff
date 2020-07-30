@@ -219,6 +219,9 @@ func (obj SparseConstInt16Vector) ConstSlice(i, j int) ConstVector {
     return r
   }
 }
+func (obj SparseConstInt16Vector) AsConstMatrix(n, m int) ConstMatrix {
+  panic("not implemented")
+}
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 func (obj SparseConstInt16Vector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {

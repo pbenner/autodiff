@@ -29,23 +29,30 @@ type DenseGradient struct {
   S Scalar
 }
 
-/* -------------------------------------------------------------------------- */
-
-func (obj DenseGradient) Dim() int {
-  return obj.S.GetN()
-}
-
-/* -------------------------------------------------------------------------- */
+/* cloning
+ * -------------------------------------------------------------------------- */
 
 func (obj DenseGradient) Clone() DenseGradient {
   return DenseGradient{obj.S.CloneScalar()}
 }
 
+/* native vector methods
+ * -------------------------------------------------------------------------- */
+
+func (obj DenseGradient) AT(i int) ConstFloat64 {
+  return ConstFloat64(obj.S.GetDerivative(i))
+}
+
+/* const interface
+ * -------------------------------------------------------------------------- */
+
 func (obj DenseGradient) CloneConstVector() ConstVector {
   return obj.Clone()
 }
 
-/* -------------------------------------------------------------------------- */
+func (obj DenseGradient) Dim() int {
+  return obj.S.GetN()
+}
 
 func (obj DenseGradient) Int8At(i int) int8 {
   return int8(obj.S.GetDerivative(i))
@@ -79,10 +86,6 @@ func (obj DenseGradient) ConstAt(i int) ConstScalar {
   return ConstFloat64(obj.S.GetDerivative(i))
 }
 
-func (obj DenseGradient) AT(i int) ConstFloat64 {
-  return ConstFloat64(obj.S.GetDerivative(i))
-}
-
 func (obj DenseGradient) ConstSlice(i, j int) ConstVector {
   x := make([]float64, j-i)
   for k := i; k < j; k++ {
@@ -90,6 +93,74 @@ func (obj DenseGradient) ConstSlice(i, j int) ConstVector {
   }
   return NewDenseFloat64Vector(x)
 }
+
+func (obj DenseGradient) AsConstMatrix(n, m int) ConstMatrix {
+  if n*m != obj.Dim() {
+    panic("Matrix dimension does not fit input vector!")
+  }
+  r := NullDenseFloat64Vector(obj.Dim())
+  r.Set(obj)
+  return r.AsConstMatrix(n, m)
+}
+
+/* imlement ConstScalarContainer
+ * -------------------------------------------------------------------------- */
+
+func (obj DenseGradient) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
+  for i := 0; i < obj.Dim(); i++ {
+    r = f(r, obj.ConstAt(i))
+  }
+  return r
+}
+
+func (obj DenseGradient) ElementType() ScalarType {
+  return ConstFloat64Type
+}
+
+/* type conversion
+ * -------------------------------------------------------------------------- */
+
+func (obj DenseGradient) String() string {
+  var buffer bytes.Buffer
+
+  buffer.WriteString("[")
+  for i := 0; i < obj.Dim(); i++ {
+    if i != 0 {
+      buffer.WriteString(", ")
+    }
+    buffer.WriteString(obj.ConstAt(i).String())
+  }
+  buffer.WriteString("]")
+
+  return buffer.String()
+}
+
+func (obj DenseGradient) Table() string {
+  var buffer bytes.Buffer
+
+  for i := 0; i < obj.Dim(); i++ {
+    if i != 0 {
+      buffer.WriteString(" ")
+    }
+    buffer.WriteString(obj.ConstAt(i).String())
+  }
+
+  return buffer.String()
+}
+
+/* json
+ * -------------------------------------------------------------------------- */
+
+func (obj DenseGradient) MarshalJSON() ([]byte, error) {
+  r := make([]float64, obj.Dim())
+  for it := obj.ConstIterator(); it.Ok(); it.Next() {
+    r[it.Index()] = it.GetConst().GetFloat64()
+  }
+  return json.MarshalIndent(r, "", "  ")
+}
+
+/* iterator methods
+ * -------------------------------------------------------------------------- */
 
 func (obj DenseGradient) ConstIterator() VectorConstIterator {
   return obj.ITERATOR()
@@ -122,48 +193,6 @@ func (obj DenseGradient) JOINT_ITERATOR(b ConstVector) *DenseGradientJointIterat
   r.idx = -1
   r.Next()
   return &r
-}
-
-func (obj DenseGradient) ElementType() ScalarType {
-  return ConstFloat64Type
-}
-
-/* -------------------------------------------------------------------------- */
-
-func (obj DenseGradient) String() string {
-  var buffer bytes.Buffer
-
-  buffer.WriteString("[")
-  for i := 0; i < obj.Dim(); i++ {
-    if i != 0 {
-      buffer.WriteString(", ")
-    }
-    buffer.WriteString(obj.ConstAt(i).String())
-  }
-  buffer.WriteString("]")
-
-  return buffer.String()
-}
-
-func (obj DenseGradient) Table() string {
-  var buffer bytes.Buffer
-
-  for i := 0; i < obj.Dim(); i++ {
-    if i != 0 {
-      buffer.WriteString(" ")
-    }
-    buffer.WriteString(obj.ConstAt(i).String())
-  }
-
-  return buffer.String()
-}
-
-func (obj DenseGradient) MarshalJSON() ([]byte, error) {
-  r := make([]float64, obj.Dim())
-  for it := obj.ConstIterator(); it.Ok(); it.Next() {
-    r[it.Index()] = it.GetConst().GetFloat64()
-  }
-  return json.MarshalIndent(r, "", "  ")
 }
 
 /* const iterator
@@ -260,17 +289,8 @@ func (obj *DenseGradientJointIterator) CloneConstJointIterator() VectorConstJoin
   return &r
 }
 
-/* imlement ConstScalarContainer
+/* math
  * -------------------------------------------------------------------------- */
-
-func (obj DenseGradient) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) Scalar {
-  for i := 0; i < obj.Dim(); i++ {
-    r = f(r, obj.ConstAt(i))
-  }
-  return r
-}
-
-/* -------------------------------------------------------------------------- */
 
 // Test if elements in a equal elements in b.
 func (a DenseGradient) Equals(b ConstVector, epsilon float64) bool {

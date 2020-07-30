@@ -262,6 +262,10 @@ func (obj VECTOR_TYPE) ConstSlice(i, j int) ConstVector {
   }
 }
 
+func (obj VECTOR_TYPE) AsConstMatrix(n, m int) ConstMatrix {
+  panic("not implemented")
+}
+
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 

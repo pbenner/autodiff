@@ -163,6 +163,9 @@ func (v DenseInt16Vector) ConstAt(i int) ConstScalar {
 func (v DenseInt16Vector) ConstSlice(i, j int) ConstVector {
   return v[i:j]
 }
+func (v DenseInt16Vector) AsConstMatrix(n, m int) ConstMatrix {
+  return v.ToDenseInt16Matrix(n, m)
+}
 /* imlement ScalarContainer
  * -------------------------------------------------------------------------- */
 func (v DenseInt16Vector) Map(f func(Scalar)) {
