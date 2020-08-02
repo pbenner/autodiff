@@ -144,45 +144,45 @@ Autodiff implements dense and sparse vectors and matrices that support basic lin
 | SparseReal32Matrix       | Real32       | Sparse matrix of Real32 scalars        |
 | SparseReal64Matrix       | Real64       | Sparse matrix of Real64 scalars        |
 
-Autodiff defines the following three vector interfaces:
+Autodiff defines three vector interfaces *ConstVector*, *Vector*, and *MagicVector*:
 
-| Interface   | Function          | Description                                               |
-|-------------|-------------------|-----------------------------------------------------------|
-| ConstVector | Dim               | Return the length of the vector                           |
-| ConstVector | Equals            | Returns true if the two vectors are equal                 |
-| ConstVector | Table             | Converts vector to a string                               |
-| ConstVector | Int8At            | Returns the scalar at the given position as int8          |
-| ConstVector | Int16At           | Returns the scalar at the given position as int16         |
-| ConstVector | Int32At           | Returns the scalar at the given position as int32         |
-| ConstVector | Int64At           | Returns the scalar at the given position as int64         |
-| ConstVector | IntAt             | Returns the scalar at the given position as int           |
-| ConstVector | Float32At         | Returns the scalar at the given position as Float32       |
-| ConstVector | Float64At         | Returns the scalar at the given position as Float64       |
-| ConstVector | ConstAt           | Returns the scalar at the given position as *ConstScalar* |
-| ConstVector | ConstSlice        | Returns a slice as a constant vector (*ConstVector*)      |
-| MagicVector | AsConstMatrix     | Convert vector to a matrix of type *ConstMatrix*          |
-| ConstVector | ConstIterator     | Returns a constant iterator                               |
-| ConstVector | CloneConstVector  | Return a deep copy of the vector as *ConstVector*         |
-| Vector      | At                | Return the scalar the given index                         |
-| Vector      | Reset             | Set all scalars to zero                                   |
-| Vector      | Set               | Set the value and derivatives of a scalar                 |
-| Vector      | Slice             | Return a slice of the vector                              |
-| Vector      | Export            | Export vector to file                                     |
-| Vector      | Permute           | Permute elements of the vector                            |
-| Vector      | ReverseOrder      | Reverse the order of vector elements                      |
-| Vector      | Sort              | Sort vector elements                                      |
-| Vector      | AppendScalar      | Append a single scalar to the vector                      |
-| Vector      | AppendVector      | Append another vector                                     |
-| Vector      | Swap              | Swap two elements of the vector                           |
-| Vector      | AsMatrix          | Convert vector to a matrix                                |
-| Vector      | Iterator          | Returns an iterator                                       |
-| Vector      | CloneVector       | Return a deep copy of the vector as *Vector*              |
-| MagicVector | MagicAt           | Returns the scalar at the given position as *MagicScalar* |
-| MagicVector | MagicSlice        | Resutns a slice as a magic vector (*MagicVector*)         |
-| MagicVector | AppendMagicScalar | Append a single magic scalar                              |
-| MagicVector | AppendMagicVector | Append a magic vector                                     |
-| MagicVector | AsMagicMatrix     | Convert vector to a matrix of type *MagicMatrix*          |
-| MagicVector | CloneMagicVector  | Return a deep copy of the vector as *MagicVector*         |
+| Interface                        | Function          | Description                                               |
+|----------------------------------|-------------------|-----------------------------------------------------------|
+| ConstVector                      | Dim               | Return the length of the vector                           |
+| ConstVector                      | Equals            | Returns true if the two vectors are equal                 |
+| ConstVector                      | Table             | Converts vector to a string                               |
+| ConstVector                      | Int8At            | Returns the scalar at the given position as int8          |
+| ConstVector                      | Int16At           | Returns the scalar at the given position as int16         |
+| ConstVector                      | Int32At           | Returns the scalar at the given position as int32         |
+| ConstVector                      | Int64At           | Returns the scalar at the given position as int64         |
+| ConstVector                      | IntAt             | Returns the scalar at the given position as int           |
+| ConstVector                      | Float32At         | Returns the scalar at the given position as Float32       |
+| ConstVector                      | Float64At         | Returns the scalar at the given position as Float64       |
+| ConstVector                      | ConstAt           | Returns the scalar at the given position as *ConstScalar* |
+| ConstVector                      | ConstSlice        | Returns a slice as a constant vector (*ConstVector*)      |
+| ConstVector                      | AsConstMatrix     | Convert vector to a matrix of type *ConstMatrix*          |
+| ConstVector                      | ConstIterator     | Returns a constant iterator                               |
+| ConstVector                      | CloneConstVector  | Return a deep copy of the vector as *ConstVector*         |
+| ConstVector, Vector              | At                | Return the scalar the given index                         |
+| ConstVector, Vector              | Reset             | Set all scalars to zero                                   |
+| ConstVector, Vector              | Set               | Set the value and derivatives of a scalar                 |
+| ConstVector, Vector              | Slice             | Return a slice of the vector                              |
+| ConstVector, Vector              | Export            | Export vector to file                                     |
+| ConstVector, Vector              | Permute           | Permute elements of the vector                            |
+| ConstVector, Vector              | ReverseOrder      | Reverse the order of vector elements                      |
+| ConstVector, Vector              | Sort              | Sort vector elements                                      |
+| ConstVector, Vector              | AppendScalar      | Append a single scalar to the vector                      |
+| ConstVector, Vector              | AppendVector      | Append another vector                                     |
+| ConstVector, Vector              | Swap              | Swap two elements of the vector                           |
+| ConstVector, Vector              | AsMatrix          | Convert vector to a matrix                                |
+| ConstVector, Vector              | Iterator          | Returns an iterator                                       |
+| ConstVector, Vector              | CloneVector       | Return a deep copy of the vector as *Vector*              |
+| ConstVector, Vector, MagicVector | MagicAt           | Returns the scalar at the given position as *MagicScalar* |
+| ConstVector, Vector, MagicVector | MagicSlice        | Resutns a slice as a magic vector (*MagicVector*)         |
+| ConstVector, Vector, MagicVector | AppendMagicScalar | Append a single magic scalar                              |
+| ConstVector, Vector, MagicVector | AppendMagicVector | Append a magic vector                                     |
+| ConstVector, Vector, MagicVector | AsMagicMatrix     | Convert vector to a matrix of type *MagicMatrix*          |
+| ConstVector, Vector, MagicVector | CloneMagicVector  | Return a deep copy of the vector as *MagicVector*         |
 
 Vectors support the following mathematical operations:
 
@@ -198,55 +198,55 @@ Vectors support the following mathematical operations:
 | VdivS    | Division by a scalar             |
 | VdotV    | Dot product                      |
 
-Autodiff defines the following three matrix interfaces:
+Autodiff defines three matrix interfaces *ConstMatrix*, *Matrix*, and *MagicMatrix*:
 
-| Interface   | Function          | Description                                               |
-|-------------|-------------------|-----------------------------------------------------------|
-| ConstMatrix | Dims              | Return the number of rows and columns of the matrix       |
-| ConstMatrix | Equals            | Returns true if the two matrixs are equal                 |
-| ConstMatrix | Table             | Converts matrix to a string                               |
-| ConstMatrix | Int8At            | Returns the scalar at the given position as int8          |
-| ConstMatrix | Int16At           | Returns the scalar at the given position as int16         |
-| ConstMatrix | Int32At           | Returns the scalar at the given position as int32         |
-| ConstMatrix | Int64At           | Returns the scalar at the given position as int64         |
-| ConstMatrix | IntAt             | Returns the scalar at the given position as int           |
-| ConstMatrix | Float32At         | Returns the scalar at the given position as Float32       |
-| ConstMatrix | Float64At         | Returns the scalar at the given position as Float64       |
-| ConstMatrix | ConstAt           | Returns the scalar at the given position as *ConstScalar* |
-| ConstMatrix | ConstSlice        | Returns a slice as a constant matrix (*ConstMatrix*)      |
-| ConstMatrix | ConstRow          | Returns the ith row as a *ConstVector*                    |
-| ConstMatrix | ConstCol          | Returns the jth column as a *ConstVector*                 |
-| ConstMatrix | ConstIterator     | Returns a constant iterator                               |
-| ConstMatrix | AsConstVector     | Convert matrix to a vector of type *ConstVector*          |
-| ConstMatrix | CloneConstMatrix  | Return a deep copy of the matrix as *ConstMatrix*         |
-| Matrix      | At                | Return the scalar the given index                         |
-| Matrix      | Reset             | Set all scalars to zero                                   |
-| Matrix      | Set               | Set the value and derivatives of a scalar                 |
-| Matrix      | Slice             | Return a slice of the matrix                              |
-| Matrix      | Export            | Export matrix to file                                     |
-| Matrix      | Permute           | Permute elements of the matrix                            |
-| Matrix      | ReverseOrder      | Reverse the order of matrix elements                      |
-| Matrix      | Sort              | Sort matrix elements                                      |
-| Matrix      | AppendScalar      | Append a single scalar to the matrix                      |
-| Matrix      | AppendMatrix      | Append another matrix                                     |
-| Matrix      | Swap              | Swap two elements of the matrix                           |
-| Matrix      | SwapRows          | Swap two rows                                             |
-| Matrix      | SwapCols          | Swap two columns                                          |
-| Matrix      | PermuteRows       | Permute rows                                              |
-| Matrix      | PermuteCols       | Permute columns                                           |
-| Matrix      | Row               | Returns a copy of the ith row as a *Vector*               |
-| Matrix      | Col               | Returns a copy of the jth column a *Vector*               |
-| Matrix      | T                 | Returns a transposed matrix                               |
-| Matrix      | Tip               | Transpose in-place                                        |
-| Matrix      | AsVector          | Convert matrix to a vector of type *Vector*               |
-| Matrix      | Iterator          | Returns an iterator                                       |
-| Matrix      | CloneMatrix       | Return a deep copy of the matrix as *Matrix*              |
-| MagicMatrix | MagicAt           | Returns the scalar at the given position as *MagicScalar* |
-| MagicMatrix | MagicSlice        | Resutns a slice as a magic matrix (*MagicMatrix*)         |
-| MagicMatrix | MagicT            | Returns a transposed matrix of type *MagicMatrix*         |
-| MagicMatrix | AppendMagicScalar | Append a single magic scalar                              |
-| MagicMatrix | AppendMagicMatrix | Append a magic matrix                                     |
-| MagicMatrix | CloneMagicMatrix  | Return a deep copy of the matrix as *MagicMatrix*         |
+| Interface                        | Function          | Description                                               |
+|----------------------------------|-------------------|-----------------------------------------------------------|
+| ConstMatrix                      | Dims              | Return the number of rows and columns of the matrix       |
+| ConstMatrix                      | Equals            | Returns true if the two matrixs are equal                 |
+| ConstMatrix                      | Table             | Converts matrix to a string                               |
+| ConstMatrix                      | Int8At            | Returns the scalar at the given position as int8          |
+| ConstMatrix                      | Int16At           | Returns the scalar at the given position as int16         |
+| ConstMatrix                      | Int32At           | Returns the scalar at the given position as int32         |
+| ConstMatrix                      | Int64At           | Returns the scalar at the given position as int64         |
+| ConstMatrix                      | IntAt             | Returns the scalar at the given position as int           |
+| ConstMatrix                      | Float32At         | Returns the scalar at the given position as Float32       |
+| ConstMatrix                      | Float64At         | Returns the scalar at the given position as Float64       |
+| ConstMatrix                      | ConstAt           | Returns the scalar at the given position as *ConstScalar* |
+| ConstMatrix                      | ConstSlice        | Returns a slice as a constant matrix (*ConstMatrix*)      |
+| ConstMatrix                      | ConstRow          | Returns the ith row as a *ConstVector*                    |
+| ConstMatrix                      | ConstCol          | Returns the jth column as a *ConstVector*                 |
+| ConstMatrix                      | ConstIterator     | Returns a constant iterator                               |
+| ConstMatrix                      | AsConstVector     | Convert matrix to a vector of type *ConstVector*          |
+| ConstMatrix                      | CloneConstMatrix  | Return a deep copy of the matrix as *ConstMatrix*         |
+| ConstMatrix, Matrix              | At                | Return the scalar the given index                         |
+| ConstMatrix, Matrix              | Reset             | Set all scalars to zero                                   |
+| ConstMatrix, Matrix              | Set               | Set the value and derivatives of a scalar                 |
+| ConstMatrix, Matrix              | Slice             | Return a slice of the matrix                              |
+| ConstMatrix, Matrix              | Export            | Export matrix to file                                     |
+| ConstMatrix, Matrix              | Permute           | Permute elements of the matrix                            |
+| ConstMatrix, Matrix              | ReverseOrder      | Reverse the order of matrix elements                      |
+| ConstMatrix, Matrix              | Sort              | Sort matrix elements                                      |
+| ConstMatrix, Matrix              | AppendScalar      | Append a single scalar to the matrix                      |
+| ConstMatrix, Matrix              | AppendMatrix      | Append another matrix                                     |
+| ConstMatrix, Matrix              | Swap              | Swap two elements of the matrix                           |
+| ConstMatrix, Matrix              | SwapRows          | Swap two rows                                             |
+| ConstMatrix, Matrix              | SwapCols          | Swap two columns                                          |
+| ConstMatrix, Matrix              | PermuteRows       | Permute rows                                              |
+| ConstMatrix, Matrix              | PermuteCols       | Permute columns                                           |
+| ConstMatrix, Matrix              | Row               | Returns a copy of the ith row as a *Vector*               |
+| ConstMatrix, Matrix              | Col               | Returns a copy of the jth column a *Vector*               |
+| ConstMatrix, Matrix              | T                 | Returns a transposed matrix                               |
+| ConstMatrix, Matrix              | Tip               | Transpose in-place                                        |
+| ConstMatrix, Matrix              | AsVector          | Convert matrix to a vector of type *Vector*               |
+| ConstMatrix, Matrix              | Iterator          | Returns an iterator                                       |
+| ConstMatrix, Matrix              | CloneMatrix       | Return a deep copy of the matrix as *Matrix*              |
+| ConstMatrix, Matrix, MagicMatrix | MagicAt           | Returns the scalar at the given position as *MagicScalar* |
+| ConstMatrix, Matrix, MagicMatrix | MagicSlice        | Resutns a slice as a magic matrix (*MagicMatrix*)         |
+| ConstMatrix, Matrix, MagicMatrix | MagicT            | Returns a transposed matrix of type *MagicMatrix*         |
+| ConstMatrix, Matrix, MagicMatrix | AppendMagicScalar | Append a single magic scalar                              |
+| ConstMatrix, Matrix, MagicMatrix | AppendMagicMatrix | Append a magic matrix                                     |
+| ConstMatrix, Matrix, MagicMatrix | CloneMagicMatrix  | Return a deep copy of the matrix as *MagicMatrix*         |
 
 Matrices support the following linear algebra operations:
 
