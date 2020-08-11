@@ -379,7 +379,6 @@ Compare vanilla gradient descent with resilient backpropagation
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/gradientDescent"
   import   "github.com/pbenner/autodiff/algorithm/rprop"
-  import . "github.com/pbenner/autodiff/simple"
 
   f := func(x_ ConstVector) MagicScalar {
     x := x_.ConstAt(0)
@@ -406,7 +405,6 @@ Compute the inverse *r* of a matrix *m* by minimizing the Frobenius norm *||mb -
 ```go
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/rprop"
-  import . "github.com/pbenner/autodiff/simple"
 
   // define matrix r
   m := NewDenseFloat64Matrix([]float64{1,2,3,4}, 2, 2)
@@ -433,7 +431,6 @@ Find the root of a function *f* with initial value *x0 = (1,1)*
 ```go
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/newton"
-  import . "github.com/pbenner/autodiff/simple"
 
   t := NullReal64()
 
@@ -537,7 +534,6 @@ Maximize the function *f(x, y) = x + y* subject to *x^2 + y^2 = 1* by finding th
 ```go
   import . "github.com/pbenner/autodiff"
   import   "github.com/pbenner/autodiff/algorithm/newton"
-  import . "github.com/pbenner/autodiff/simple"
 
   z := NullReal64()
   t := NullReal64()
