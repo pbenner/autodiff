@@ -162,6 +162,8 @@ func objective_f(channel ConstMatrix, variables ConstVector) MagicScalar {
       }
     }
   }
+  // take logarithm for numerical reasons
+  result.Log(result)
   // negate objective function to compute its maximum
   result.Neg(result)
   // add constraint
@@ -187,7 +189,7 @@ func channel_capacity(channel [][]float64, pxstar, px0 []float64) ([][]float64) 
   // copy variables for automatic differentation
   channelm := NewDenseFloat64Matrix(flatten(channel), n, m)
   // add 1 lagrange multipliers
-  px0m     := NewDenseFloat64Vector(append(px0, 1.0))
+  px0m     := NewDenseFloat64Vector(append(px0, 2.5))
 
   // keep track of the path of an algorithm
   trace := make([][]float64, 3)
@@ -229,15 +231,11 @@ func channel_capacity(channel [][]float64, pxstar, px0 []float64) ([][]float64) 
 
 func main() {
 
-  // channel := [][]float64{
-  //   {2.0/3.0, 1.0/3.0,     0.0},
-  //   {1.0/3.0, 1.0/3.0, 1.0/3.0},
-  //   {    0.0, 1.0/3.0, 2.0/3.0} }
   channel := [][]float64{
     {0.60, 0.30, 0.10},
     {0.70, 0.10, 0.20},
     {0.50, 0.05, 0.45} }
-  pxstar  := []float64{0.501735, 0.0, 0.498265}
+  pxstar  := []float64{5.017355e-01, 0.0, 4.982645e-01}
 
   // initial value
   px0 := []float64{1.0/3.0, 1.0/3.0, 1.0/3.0}
