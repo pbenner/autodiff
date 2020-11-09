@@ -128,6 +128,9 @@ func (c *Real32) realMonadicLazy(a *Real32, v0 float64, f1, f2 func() float64) *
 func (c *Real32) dyadic(a, b ConstScalar, v0, v10, v01, v11, v20, v02 float64) *Real32 {
   c.AllocForTwo(a, b)
   if c.Order >= 1 {
+    if a.GetOrder() >= 1 && b.GetOrder() >= 1 && a.GetN() != b.GetN() {
+      panic("automatic differentiation failed: magic variables store different number of partial derivatives; this can be caused by a wrong usage of SetVariable() or by multiple calls of Variables()")
+    }
     if c.Order >= 2 {
       // compute hessian
       for i := 0; i < c.GetN(); i++ {
@@ -155,6 +158,9 @@ func (c *Real32) dyadic(a, b ConstScalar, v0, v10, v01, v11, v20, v02 float64) *
 func (c *Real32) dyadicLazy(a, b ConstScalar, v0 float64, f1 func() (float64, float64), f2 func() (float64, float64, float64)) *Real32 {
   c.AllocForTwo(a, b)
   if c.Order >= 1 {
+    if a.GetOrder() >= 1 && b.GetOrder() >= 1 && a.GetN() != b.GetN() {
+      panic("automatic differentiation failed: magic variables store different number of partial derivatives; this can be caused by a wrong usage of SetVariable() or by multiple calls of Variables()")
+    }
     v10, v01 := f1()
     if c.Order >= 2 {
       v11, v20, v02 := f2()
@@ -184,6 +190,9 @@ func (c *Real32) dyadicLazy(a, b ConstScalar, v0 float64, f1 func() (float64, fl
 func (c *Real32) realDyadic(a, b *Real32, v0, v10, v01, v11, v20, v02 float64) *Real32 {
   c.AllocForTwo(a, b)
   if c.Order >= 1 {
+    if a.GetOrder() >= 1 && b.GetOrder() >= 1 && a.GetN() != b.GetN() {
+      panic("automatic differentiation failed: magic variables store different number of partial derivatives; this can be caused by a wrong usage of SetVariable() or by multiple calls of Variables()")
+    }
     if c.Order >= 2 {
       // compute hessian
       for i := 0; i < c.GetN(); i++ {
@@ -211,6 +220,9 @@ func (c *Real32) realDyadic(a, b *Real32, v0, v10, v01, v11, v20, v02 float64) *
 func (c *Real32) realDyadicLazy(a, b ConstScalar, v0 float64, f1 func() (float64, float64), f2 func() (float64, float64, float64)) *Real32 {
   c.AllocForTwo(a, b)
   if c.Order >= 1 {
+    if a.GetOrder() >= 1 && b.GetOrder() >= 1 && a.GetN() != b.GetN() {
+      panic("automatic differentiation failed: magic variables store different number of partial derivatives; this can be caused by a wrong usage of SetVariable() or by multiple calls of Variables()")
+    }
     v10, v01 := f1()
     if c.Order >= 2 {
       v11, v20, v02 := f2()

@@ -416,6 +416,7 @@ func (obj *SparseReal32Vector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scal
 func (obj *SparseReal32Vector) ElementType() ScalarType {
   return Real32Type
 }
+// Treat all elements as variables for automatic differentiation. This method should only be called on a single vector or matrix. If multiple vectors should be treated as variables, then a single vector must be allocated first and sliced after calling this method.
 func (obj *SparseReal32Vector) Variables(order int) error {
   for i, v := range obj.values {
     if err := v.SetVariable(i, obj.n, order); err != nil {

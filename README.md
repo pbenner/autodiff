@@ -333,7 +333,7 @@ that store the value at which the derivatives should be evaluated. Afterwards, *
 ```go
   Variables(2, x, y)
 ```
-where the first argument sets the order of the derivatives. In this case, derivatives up to second order are computed. After evaluating *f*, i.e.
+where the first argument sets the order of the derivatives. *Variables()* should only be called once, as it allocates memory for the given magic variables. In this case, derivatives up to second order are computed. After evaluating *f*, i.e.
 ```go
   z := f(x, y)
 ```

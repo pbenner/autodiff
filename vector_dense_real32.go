@@ -272,6 +272,7 @@ func (v DenseReal32Vector) Reduce(f func(Scalar, ConstScalar) Scalar, r Scalar) 
 func (v DenseReal32Vector) ElementType() ScalarType {
   return Real32Type
 }
+// Treat all elements as variables for automatic differentiation. This method should only be called on a single vector or matrix. If multiple vectors should be treated as variables, then a single vector must be allocated first and sliced after calling this method.
 func (v DenseReal32Vector) Variables(order int) error {
   for i, _ := range v {
     if err := v[i].SetVariable(i, len(v), order); err != nil {

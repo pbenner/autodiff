@@ -453,6 +453,7 @@ func (matrix *DenseReal32Matrix) Reduce(f func(Scalar, ConstScalar) Scalar, r Sc
 func (matrix *DenseReal32Matrix) ElementType() ScalarType {
   return Real32Type
 }
+// Treat all elements as variables for automatic differentiation. This method should only be called on a single vector or matrix. If multiple matrices should be treated as variables, then a single matrix must be allocated first and sliced after calling this method.
 func (matrix *DenseReal32Matrix) Variables(order int) error {
   for i, _ := range matrix.values {
     if err := matrix.values[i].SetVariable(i, len(matrix.values), order); err != nil {
