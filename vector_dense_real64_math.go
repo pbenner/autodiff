@@ -241,6 +241,27 @@ func (r DenseReal64Vector) MdotV(a ConstMatrix, b ConstVector) Vector {
   }
   return r
 }
+func (r DenseReal64Vector) MDOTV(a *DenseReal64Matrix, b DenseReal64Vector) Vector {
+  n, m := a.Dims()
+  if r.Dim() != n || b.Dim() != m {
+    panic("matrix/vector dimensions do not match!")
+  }
+  if n == 0 || m == 0 {
+    return r
+  }
+  if r.AT(0) == b.ConstAt(0) {
+    panic("result and argument must be different vectors")
+  }
+  t := NullReal64()
+  for i := 0; i < n; i++ {
+    r.AT(i).Reset()
+    for j := 0; j < m; j++ {
+      t.MUL(a.AT(i, j), b.AT(j))
+      r.AT(i).ADD(r.AT(i), t)
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Vector matrix product of a and b. The result is stored in r.
 func (r DenseReal64Vector) VdotM(a ConstVector, b ConstMatrix) Vector {
@@ -259,6 +280,27 @@ func (r DenseReal64Vector) VdotM(a ConstVector, b ConstMatrix) Vector {
     r.AT(i).Reset()
     for j := 0; j < n; j++ {
       t.Mul(a.ConstAt(j), b.ConstAt(j, i))
+      r.AT(i).ADD(r.AT(i), t)
+    }
+  }
+  return r
+}
+func (r DenseReal64Vector) VDOTM(a DenseReal64Vector, b *DenseReal64Matrix) Vector {
+  n, m := b.Dims()
+  if r.Dim() != m || a.Dim() != n {
+    panic("matrix/vector dimensions do not match!")
+  }
+  if n == 0 || m == 0 {
+    return r
+  }
+  if r.AT(0) == a.ConstAt(0) {
+    panic("result and argument must be different vectors")
+  }
+  t := NullReal64()
+  for i := 0; i < m; i++ {
+    r.AT(i).Reset()
+    for j := 0; j < n; j++ {
+      t.MUL(a.AT(j), b.AT(j, i))
       r.AT(i).ADD(r.AT(i), t)
     }
   }

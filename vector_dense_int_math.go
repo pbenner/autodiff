@@ -31,6 +31,17 @@ func (a DenseIntVector) Equals(b ConstVector, epsilon float64) bool {
   }
   return true
 }
+func (a DenseIntVector) EQUALS(b DenseIntVector, epsilon float64) bool {
+  if a.Dim() != b.Dim() {
+    panic("VEqual(): Vector dimensions do not match!")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    if !a.AT(i).EQUALS(b.AT(i), epsilon) {
+      return false
+    }
+  }
+  return true
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of two vectors. The result is stored in r.
 func (r DenseIntVector) VaddV(a, b ConstVector) Vector {
@@ -40,6 +51,16 @@ func (r DenseIntVector) VaddV(a, b ConstVector) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Add(a.ConstAt(i), b.ConstAt(i))
+  }
+  return r
+}
+func (r DenseIntVector) VADDV(a, b DenseIntVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).ADD(a.AT(i), b.AT(i))
   }
   return r
 }
@@ -55,6 +76,16 @@ func (r DenseIntVector) VaddS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
+func (r DenseIntVector) VADDS(a DenseIntVector, b Int) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).ADD(a.AT(i), b)
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise substraction of two vectors. The result is stored in r.
 func (r DenseIntVector) VsubV(a, b ConstVector) Vector {
@@ -64,6 +95,16 @@ func (r DenseIntVector) VsubV(a, b ConstVector) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Sub(a.ConstAt(i), b.ConstAt(i))
+  }
+  return r
+}
+func (r DenseIntVector) VSUBV(a, b DenseIntVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).SUB(a.AT(i), b.AT(i))
   }
   return r
 }
@@ -79,6 +120,16 @@ func (r DenseIntVector) VsubS(a ConstVector, b ConstScalar) Vector {
   }
   return r
 }
+func (r DenseIntVector) VSUBS(a DenseIntVector, b Int) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).SUB(a.AT(i), b)
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise multiplication of two vectors. The result is stored in r.
 func (r DenseIntVector) VmulV(a, b ConstVector) Vector {
@@ -88,6 +139,16 @@ func (r DenseIntVector) VmulV(a, b ConstVector) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Mul(a.ConstAt(i), b.ConstAt(i))
+  }
+  return r
+}
+func (r DenseIntVector) VMULV(a, b DenseIntVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).MUL(a.AT(i), b.AT(i))
   }
   return r
 }
@@ -103,6 +164,16 @@ func (r DenseIntVector) VmulS(a ConstVector, s ConstScalar) Vector {
   }
   return r
 }
+func (r DenseIntVector) VMULS(a DenseIntVector, s Int) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).MUL(a.AT(i), s)
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise division of two vectors. The result is stored in r.
 func (r DenseIntVector) VdivV(a, b ConstVector) Vector {
@@ -115,6 +186,16 @@ func (r DenseIntVector) VdivV(a, b ConstVector) Vector {
   }
   return r
 }
+func (r DenseIntVector) VDIVV(a, b DenseIntVector) Vector {
+  n := r.Dim()
+  if a.Dim() != n || b.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).DIV(a.AT(i), b.AT(i))
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise division of a vector and a scalar. The result is stored in r.
 func (r DenseIntVector) VdivS(a ConstVector, s ConstScalar) Vector {
@@ -124,6 +205,16 @@ func (r DenseIntVector) VdivS(a ConstVector, s ConstScalar) Vector {
   }
   for i := 0; i < a.Dim(); i++ {
     r.AT(i).Div(a.ConstAt(i), s)
+  }
+  return r
+}
+func (r DenseIntVector) VDIVS(a DenseIntVector, s Int) Vector {
+  n := r.Dim()
+  if a.Dim() != n {
+    panic("vector dimensions do not match")
+  }
+  for i := 0; i < a.Dim(); i++ {
+    r.AT(i).DIV(a.AT(i), s)
   }
   return r
 }
@@ -150,6 +241,27 @@ func (r DenseIntVector) MdotV(a ConstMatrix, b ConstVector) Vector {
   }
   return r
 }
+func (r DenseIntVector) MDOTV(a *DenseIntMatrix, b DenseIntVector) Vector {
+  n, m := a.Dims()
+  if r.Dim() != n || b.Dim() != m {
+    panic("matrix/vector dimensions do not match!")
+  }
+  if n == 0 || m == 0 {
+    return r
+  }
+  if r.AT(0) == b.AT(0) {
+    panic("result and argument must be different vectors")
+  }
+  t := NullInt()
+  for i := 0; i < n; i++ {
+    r.AT(i).Reset()
+    for j := 0; j < m; j++ {
+      t.MUL(a.AT(i, j), b.AT(j))
+      r.AT(i).ADD(r.AT(i), t)
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Vector matrix product of a and b. The result is stored in r.
 func (r DenseIntVector) VdotM(a ConstVector, b ConstMatrix) Vector {
@@ -169,6 +281,27 @@ func (r DenseIntVector) VdotM(a ConstVector, b ConstMatrix) Vector {
     for j := 0; j < n; j++ {
       t = a.Float64At(j)*b.Float64At(j, i)
       r.AT(i).Add(r.AT(i), ConstFloat64(t))
+    }
+  }
+  return r
+}
+func (r DenseIntVector) VDOTM(a DenseIntVector, b *DenseIntMatrix) Vector {
+  n, m := b.Dims()
+  if r.Dim() != m || a.Dim() != n {
+    panic("matrix/vector dimensions do not match!")
+  }
+  if n == 0 || m == 0 {
+    return r
+  }
+  if r.AT(0) == a.ConstAt(0) {
+    panic("result and argument must be different vectors")
+  }
+  t := NullInt()
+  for i := 0; i < m; i++ {
+    r.AT(i).Reset()
+    for j := 0; j < n; j++ {
+      t.MUL(a.AT(j), b.AT(j, i))
+      r.AT(i).ADD(r.AT(i), t)
     }
   }
   return r
