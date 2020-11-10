@@ -37,6 +37,21 @@ func (a *DenseReal32Matrix) Equals(b ConstMatrix, epsilon float64) bool {
   }
   return true
 }
+func (a *DenseReal32Matrix) EQUALS(b *DenseReal32Matrix, epsilon float64) bool {
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n2 || m1 != m2 {
+    panic("MEqual(): matrix dimensions do not match!")
+  }
+  for i := 0; i < n1; i++ {
+    for j := 0; j < m1; j++ {
+      if !a.AT(i, j).EQUALS(b.AT(i, j), epsilon) {
+        return false
+      }
+    }
+  }
+  return true
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of two matrices. The result is stored in r.
 func (r *DenseReal32Matrix) MaddM(a, b ConstMatrix) Matrix {
@@ -53,6 +68,20 @@ func (r *DenseReal32Matrix) MaddM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseReal32Matrix) MADDM(a, b *DenseReal32Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).ADD(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Add scalar b to all elements of a. The result is stored in r.
 func (r *DenseReal32Matrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
@@ -64,6 +93,19 @@ func (r *DenseReal32Matrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Add(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseReal32Matrix) MADDS(a *DenseReal32Matrix, b *Real32) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).ADD(a.AT(i, j), b)
     }
   }
   return r
@@ -84,6 +126,20 @@ func (r *DenseReal32Matrix) MsubM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseReal32Matrix) MSUBM(a, b *DenseReal32Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).SUB(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Substract b from all elements of a. The result is stored in r.
 func (r *DenseReal32Matrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
@@ -95,6 +151,19 @@ func (r *DenseReal32Matrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Sub(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseReal32Matrix) MSUBS(a *DenseReal32Matrix, b *Real32) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).SUB(a.AT(i, j), b)
     }
   }
   return r
@@ -115,6 +184,20 @@ func (r *DenseReal32Matrix) MmulM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseReal32Matrix) MMULM(a, b *DenseReal32Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).MUL(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Multiply all elements of a with b. The result is stored in r.
 func (r *DenseReal32Matrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
@@ -126,6 +209,19 @@ func (r *DenseReal32Matrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Mul(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseReal32Matrix) MMULS(a *DenseReal32Matrix, b *Real32) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).MUL(a.AT(i, j), b)
     }
   }
   return r
@@ -146,6 +242,20 @@ func (r *DenseReal32Matrix) MdivM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseReal32Matrix) MDIVM(a, b *DenseReal32Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).DIV(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Divide all elements of a by b. The result is stored in r.
 func (r *DenseReal32Matrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
@@ -157,6 +267,19 @@ func (r *DenseReal32Matrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Div(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseReal32Matrix) MDIVS(a *DenseReal32Matrix, b *Real32) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).DIV(a.AT(i, j), b)
     }
   }
   return r
@@ -205,6 +328,48 @@ func (r *DenseReal32Matrix) MdotM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseReal32Matrix) MDOTM(a, b *DenseReal32Matrix) Matrix {
+  n , m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m2 != m || m1 != n2 {
+    panic("matrix dimensions do not match!")
+  }
+  t1 := NewReal32(0.0)
+  t2 := NewReal32(0.0)
+  if r.storageLocation() == b.storageLocation() {
+    t3 := r.tmp1[0:n]
+    for j := 0; j < m; j++ {
+      for i := 0; i < n; i++ {
+        t2.Reset()
+        for k := 0; k < m1; k++ {
+          t1.MUL(a.AT(i, k), b.AT(k, j))
+          t2.ADD(t2, t1)
+        }
+        t3[i].SET(t2)
+      }
+      for i := 0; i < n; i++ {
+        r.AT(i, j).SET(t3.AT(i))
+      }
+    }
+  } else {
+    t3 := r.tmp2[0:m]
+    for i := 0; i < n; i++ {
+      for j := 0; j < m; j++ {
+        t2.Reset()
+        for k := 0; k < m1; k++ {
+          t1.MUL(a.AT(i, k), b.AT(k, j))
+          t2.ADD(t2, t1)
+        }
+        t3[j].SET(t2)
+      }
+      for j := 0; j < m; j++ {
+        r.AT(i, j).SET(t3.AT(j))
+      }
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Outer product of two vectors. The result is stored in r.
 func (r *DenseReal32Matrix) Outer(a, b ConstVector) Matrix {
@@ -215,6 +380,18 @@ func (r *DenseReal32Matrix) Outer(a, b ConstVector) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Mul(a.ConstAt(i), b.ConstAt(j))
+    }
+  }
+  return r
+}
+func (r *DenseReal32Matrix) OUTER(a, b DenseReal32Vector) Matrix {
+  n, m := r.Dims()
+  if a.Dim() != n || b.Dim() != m {
+    panic("matrix/vector dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).MUL(a.AT(i), b.AT(j))
     }
   }
   return r

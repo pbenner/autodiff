@@ -37,6 +37,21 @@ func (a *DenseFloat64Matrix) Equals(b ConstMatrix, epsilon float64) bool {
   }
   return true
 }
+func (a *DenseFloat64Matrix) EQUALS(b *DenseFloat64Matrix, epsilon float64) bool {
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n2 || m1 != m2 {
+    panic("MEqual(): matrix dimensions do not match!")
+  }
+  for i := 0; i < n1; i++ {
+    for j := 0; j < m1; j++ {
+      if !a.AT(i, j).EQUALS(b.AT(i, j), epsilon) {
+        return false
+      }
+    }
+  }
+  return true
+}
 /* -------------------------------------------------------------------------- */
 // Element-wise addition of two matrices. The result is stored in r.
 func (r *DenseFloat64Matrix) MaddM(a, b ConstMatrix) Matrix {
@@ -53,6 +68,20 @@ func (r *DenseFloat64Matrix) MaddM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseFloat64Matrix) MADDM(a, b *DenseFloat64Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).ADD(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Add scalar b to all elements of a. The result is stored in r.
 func (r *DenseFloat64Matrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
@@ -64,6 +93,19 @@ func (r *DenseFloat64Matrix) MaddS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Add(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseFloat64Matrix) MADDS(a *DenseFloat64Matrix, b Float64) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).ADD(a.AT(i, j), b)
     }
   }
   return r
@@ -84,6 +126,20 @@ func (r *DenseFloat64Matrix) MsubM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseFloat64Matrix) MSUBM(a, b *DenseFloat64Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).SUB(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Substract b from all elements of a. The result is stored in r.
 func (r *DenseFloat64Matrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
@@ -95,6 +151,19 @@ func (r *DenseFloat64Matrix) MsubS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Sub(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseFloat64Matrix) MSUBS(a *DenseFloat64Matrix, b Float64) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).SUB(a.AT(i, j), b)
     }
   }
   return r
@@ -115,6 +184,20 @@ func (r *DenseFloat64Matrix) MmulM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseFloat64Matrix) MMULM(a, b *DenseFloat64Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).MUL(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Multiply all elements of a with b. The result is stored in r.
 func (r *DenseFloat64Matrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
@@ -126,6 +209,19 @@ func (r *DenseFloat64Matrix) MmulS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Mul(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseFloat64Matrix) MMULS(a *DenseFloat64Matrix, b Float64) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).MUL(a.AT(i, j), b)
     }
   }
   return r
@@ -146,6 +242,20 @@ func (r *DenseFloat64Matrix) MdivM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseFloat64Matrix) MDIVM(a, b *DenseFloat64Matrix) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m1 != m || n2 != n || m2 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).DIV(a.AT(i, j), b.AT(i, j))
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Divide all elements of a by b. The result is stored in r.
 func (r *DenseFloat64Matrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
@@ -157,6 +267,19 @@ func (r *DenseFloat64Matrix) MdivS(a ConstMatrix, b ConstScalar) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Div(a.ConstAt(i, j), b)
+    }
+  }
+  return r
+}
+func (r *DenseFloat64Matrix) MDIVS(a *DenseFloat64Matrix, b Float64) Matrix {
+  n, m := r.Dims()
+  n1, m1 := a.Dims()
+  if n1 != n || m1 != m {
+    panic("matrix dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).DIV(a.AT(i, j), b)
     }
   }
   return r
@@ -205,6 +328,48 @@ func (r *DenseFloat64Matrix) MdotM(a, b ConstMatrix) Matrix {
   }
   return r
 }
+func (r *DenseFloat64Matrix) MDOTM(a, b *DenseFloat64Matrix) Matrix {
+  n , m := r.Dims()
+  n1, m1 := a.Dims()
+  n2, m2 := b.Dims()
+  if n1 != n || m2 != m || m1 != n2 {
+    panic("matrix dimensions do not match!")
+  }
+  t1 := float64(0)
+  t2 := float64(0)
+  if r.storageLocation() == b.storageLocation() {
+    t3 := make([]float64, n)
+    for j := 0; j < m; j++ {
+      for i := 0; i < n; i++ {
+        t2 = 0.0
+        for k := 0; k < m1; k++ {
+          t1 = a.AT(i, k).GetFloat64()*b.AT(k, j).GetFloat64()
+          t2 = t2 + t1
+        }
+        t3[i] = t2
+      }
+      for i := 0; i < n; i++ {
+        r.AT(i, j).SetFloat64(t3[i])
+      }
+    }
+  } else {
+    t3 := make([]float64, m)
+    for i := 0; i < n; i++ {
+      for j := 0; j < m; j++ {
+        t2 = float64(0)
+        for k := 0; k < m1; k++ {
+          t1 = a.AT(i, k).GetFloat64()*b.AT(k, j).GetFloat64()
+          t2 = t2 + t1
+        }
+        t3[j] = t2
+      }
+      for j := 0; j < m; j++ {
+        r.AT(i, j).SetFloat64(t3[j])
+      }
+    }
+  }
+  return r
+}
 /* -------------------------------------------------------------------------- */
 // Outer product of two vectors. The result is stored in r.
 func (r *DenseFloat64Matrix) Outer(a, b ConstVector) Matrix {
@@ -215,6 +380,18 @@ func (r *DenseFloat64Matrix) Outer(a, b ConstVector) Matrix {
   for i := 0; i < n; i++ {
     for j := 0; j < m; j++ {
       r.At(i, j).Mul(a.ConstAt(i), b.ConstAt(j))
+    }
+  }
+  return r
+}
+func (r *DenseFloat64Matrix) OUTER(a, b DenseFloat64Vector) Matrix {
+  n, m := r.Dims()
+  if a.Dim() != n || b.Dim() != m {
+    panic("matrix/vector dimensions do not match!")
+  }
+  for i := 0; i < n; i++ {
+    for j := 0; j < m; j++ {
+      r.AT(i, j).MUL(a.AT(i), b.AT(j))
     }
   }
   return r
