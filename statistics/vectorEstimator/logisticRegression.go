@@ -90,7 +90,7 @@ type LogisticRegression struct {
   TiReg            float64
   StepSizeFactor   float64
   MaxIterations    int
-   ClassWeights [2]float64
+  ClassWeights  [2]float64
   Seed             int64
   Hook             func(x ConstVector, step, lambda ConstScalar, i int) bool
   sagaLogisticRegressionL1
