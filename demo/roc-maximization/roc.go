@@ -304,9 +304,9 @@ func main() {
     return objective(variables, x0, x1, &i)
   }
   // initial value
-  v0 := NewDenseFloat64Vector([]float64{-2, 0, 1, 0, 0.5, 0.5, 0, 0.5, 0.5, 0})
+  v0 := NewDenseFloat64Vector([]float64{-5, 0, -1, 3, 0.5, 0.5, 0, 0.5, 0.5, 0})
   // run rprop
-  vn, _ := rprop.Run(f, v0, 0.0005, []float64{1.1, 0.1},
+  vn, _ := rprop.Run(f, v0, 0.0001, []float64{1.1, 0.1},
     rprop.Hook{hook},
     rprop.Epsilon{1e-8})
   // save trace

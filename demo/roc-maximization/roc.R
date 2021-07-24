@@ -64,7 +64,7 @@ plot.mixture <- function(i, x0, x1, main="", cex.main=1.0, ...) {
     # threshold
     tp <- c(0.2, -0.8)
     t <- dmvnorm(tp, mean=mu1h, sigma=sigma1h, log=TRUE) -
-        dmvnorm(tp, mean=mu0h, sigma=sigma0h, log=TRUE)
+         dmvnorm(tp, mean=mu0h, sigma=sigma0h, log=TRUE)
     # resolution
     n <- 50
 
@@ -74,8 +74,8 @@ plot.mixture <- function(i, x0, x1, main="", cex.main=1.0, ...) {
         dmvnorm(v, mean=mu1h, sigma=sigma1h, log=TRUE) -
             dmvnorm(v, mean=mu0h, sigma=sigma0h, log=TRUE) - t
     }
-    xp <- seq(-2.5, 2.5, length=n)
-    yp <- seq(-2.5, 2.5, length=n)
+    xp <- seq(-4.5, 4.5, length=n)
+    yp <- seq(-4.5, 4.5, length=n)
     zp <- outer(xp, yp, function(x,y) apply(cbind(x,y), 1, f))
 
     # densities
@@ -88,8 +88,8 @@ plot.mixture <- function(i, x0, x1, main="", cex.main=1.0, ...) {
     contour(xp, yp, density1, nlevels = 5, drawlabels = FALSE, add = TRUE, lty=3)
     points(x0, pch=1)
     points(x1, pch=19)
-    mtext(side=1, text="$X_i$", line=1, las=0)
-    mtext(side=2, text="$X_j$", line=1, las=0)
+    mtext(side=1, text=expression('X'['i']), line=3.0, las=0)
+    mtext(side=2, text=expression('X'['j']), line=2.5, las=0)
 
 }
 
@@ -114,9 +114,9 @@ plot.fpr <- function(i, type="l", ...) {
     plot(thr, fpr, type=type, ...)
 }
 
-# plot
+# plot latex
 # ------------------------------------------------------------------------------
-if (TRUE) {
+if (FALSE) {
     x0 <- read.table("roc.x0.table")
     x1 <- read.table("roc.x1.table")
 
@@ -136,6 +136,12 @@ if (TRUE) {
             mtext(side = 2, text = "True Positive Rate", line = 4, las=3)
         }, bareBones=TRUE, width=4, height=3.5, mar=c(5, 6, 1, 1))
     }
+}
+# plot gif
+# ------------------------------------------------------------------------------
+if (TRUE) {
+    x0 <- read.table("roc.x0.table")
+    x1 <- read.table("roc.x1.table")
 
     for (i in 0:99) {
         filename <- sprintf("roc.plots/plot.%03d.png", i)
@@ -151,5 +157,5 @@ if (TRUE) {
         dev.off()
     }
     # convert to gif:
-    # convert -delay 5 -loop 0 plot.???.png plot.gif
+    system("convert -delay 5 -loop 0 roc.plots/plot.???.png roc.plots/plot.gif")
 }
