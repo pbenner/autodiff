@@ -88,8 +88,8 @@ plot.mixture <- function(i, x0, x1, main="", cex.main=1.0, ...) {
     contour(xp, yp, density1, nlevels = 5, drawlabels = FALSE, add = TRUE, lty=3)
     points(x0, pch=1)
     points(x1, pch=19)
-    mtext(side=1, text=expression('X'['i']), line=3.0, las=0)
-    mtext(side=2, text=expression('X'['j']), line=2.5, las=0)
+    mtext(side=1, text=expression('X'['1']), line=3.0, las=0)
+    mtext(side=2, text=expression('X'['2']), line=2.5, las=0)
 
 }
 
