@@ -1,11 +1,11 @@
 
 Maximize the ROC curve of quadratic discriminant analysis. The objective function is:
 $$
-f(\theta)
+f(x)
 =
 \int_t
-TPR_\theta(t) \mathrm{d} FPR_\theta(t)
+TPR_x \mathrm{d} FPR_x
 $$
-where $TPR$ denotes the true positive rate and FPR the false positive rate of the classifier. The parameters of the quadratic discriminant analysis is denoted by $\theta$ and includes the means and covariance matrices of both normal distributions. Gradient ascent is used to maximize $f$ with respect to $\theta$.
+where TPR denotes the true positive rate and FPR the false positive rate of the classifier, both as a function of the threshold t. The parameters of the quadratic discriminant analysis given by the vector $x$, which includes the means and covariance matrices of both normal distributions. Gradient ascent is used to maximize f with respect to x.
 
 ![Optimization](roc.plots/plot.gif)
