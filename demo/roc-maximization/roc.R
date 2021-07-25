@@ -80,8 +80,8 @@ plot.mixture <- function(i, x0, x1, main="", cex.main=1.0, ...) {
 
     # densities
     xy.grid <- expand.grid(xp, yp)
-    density0 <- matrix(dmvnorm(xy.grid, mean = mu0h, sigma = sigma0h), ncol = n)
-    density1 <- matrix(dmvnorm(xy.grid, mean = mu1h, sigma = sigma1h), ncol = n)
+    density0 <- matrix(apply(xy.grid, 1, function(x) dmvnorm(x, mean = mu0h, sigma = sigma0h)), ncol = n)
+    density1 <- matrix(apply(xy.grid, 1, function(x) dmvnorm(x, mean = mu1h, sigma = sigma1h)), ncol = n)
 
     contour(xp, yp, zp, levels=0, drawlabels = FALSE, lwd = 2, lty = 2, main=main, cex.main=cex.main, ...)
     contour(xp, yp, density0, nlevels = 5, drawlabels = FALSE, add = TRUE)

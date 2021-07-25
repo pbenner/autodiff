@@ -208,7 +208,7 @@ func evalModel(d0, d1 *NormalDistribution, x0, x1 ConstMatrix) (Vector, Vector) 
 
 /* -------------------------------------------------------------------------- */
 
-func createDistributions(variables ConstVector) (*NormalDistribution, *NormalDistribution, error) {
+func createDistributions(variables ConstVector, opt_variance bool) (*NormalDistribution, *NormalDistribution, error) {
   var err error
   var normal0 *NormalDistribution
   var normal1 *NormalDistribution
@@ -220,19 +220,33 @@ func createDistributions(variables ConstVector) (*NormalDistribution, *NormalDis
   }
   // extract parameters
   mu0 := NullDenseReal64Vector(2)
-  mu0.Set(variables.ConstSlice(0, 2))
   mu1 := NullDenseReal64Vector(2)
+
+  mu0.Set(variables.ConstSlice(0, 2))
   mu1.Set(variables.ConstSlice(2, 4))
+
   sigma0 := NullDenseReal64Matrix(2, 2)
-  sigma0.At(0,0).Set(variables.ConstAt(4))
-  sigma0.At(1,1).Set(variables.ConstAt(5))
-  sigma0.At(0,1).Set(variables.ConstAt(6))
-  sigma0.At(1,0).Set(variables.ConstAt(6))
   sigma1 := NullDenseReal64Matrix(2, 2)
-  sigma1.At(0,0).Set(variables.ConstAt(7))
-  sigma1.At(1,1).Set(variables.ConstAt(8))
-  sigma1.At(0,1).Set(variables.ConstAt(9))
-  sigma1.At(1,0).Set(variables.ConstAt(9))
+
+  if opt_variance {
+    sigma0.At(0,0).Set(variables.ConstAt(4))
+    sigma0.At(1,1).Set(variables.ConstAt(5))
+    sigma0.At(0,1).Set(variables.ConstAt(6))
+    sigma0.At(1,0).Set(variables.ConstAt(6))
+    sigma1.At(0,0).Set(variables.ConstAt(7))
+    sigma1.At(1,1).Set(variables.ConstAt(8))
+    sigma1.At(0,1).Set(variables.ConstAt(9))
+    sigma1.At(1,0).Set(variables.ConstAt(9))
+  } else {
+    sigma0.At(0,0).SetFloat64(variables.Float64At(4))
+    sigma0.At(1,1).SetFloat64(variables.Float64At(5))
+    sigma0.At(0,1).SetFloat64(variables.Float64At(6))
+    sigma0.At(1,0).SetFloat64(variables.Float64At(6))
+    sigma1.At(0,0).SetFloat64(variables.Float64At(7))
+    sigma1.At(1,1).SetFloat64(variables.Float64At(8))
+    sigma1.At(0,1).SetFloat64(variables.Float64At(9))
+    sigma1.At(1,0).SetFloat64(variables.Float64At(9))
+  }
 
   // create normal distributions
   normal0, err = NewNormalDistribution(mu0, sigma0)
@@ -246,8 +260,8 @@ func createDistributions(variables ConstVector) (*NormalDistribution, *NormalDis
   return normal0, normal1, nil
 }
 
-func objective(variables ConstVector, x0, x1 Matrix, i *int) (MagicScalar, error) {
-  normal0, normal1, err := createDistributions(variables)
+func objective(variables ConstVector, x0, x1 Matrix, i *int, opt_variance bool) (MagicScalar, error) {
+  normal0, normal1, err := createDistributions(variables, opt_variance)
   if err != nil {
     return nil, err
   }
@@ -301,16 +315,23 @@ func main() {
     return false
   }
   f := func(variables ConstVector) (MagicScalar, error) {
-    return objective(variables, x0, x1, &i)
+    return objective(variables, x0, x1, &i, false)
+  }
+  g := func(variables ConstVector) (MagicScalar, error) {
+    return objective(variables, x0, x1, &i, true)
   }
   // initial value
-  v0 := NewDenseFloat64Vector([]float64{-5, 0, -1, 3, 0.5, 0.5, 0, 0.5, 0.5, 0})
+  v0 := NewDenseFloat64Vector([]float64{3, 1, -1, -1, 0.5, 0.5, 0, 0.5, 0.5, 0})
   // run rprop
-  vn, _ := rprop.Run(f, v0, 0.0001, []float64{1.1, 0.1},
+  vn, _ := rprop.Run(f, v0, 0.01, []float64{1.1, 0.1},
+    rprop.Hook{hook},
+    rprop.Epsilon{1e-2})
+  vm, _ := rprop.Run(g, vn, 0.01, []float64{1.1, 0.1},
     rprop.Hook{hook},
     rprop.Epsilon{1e-8})
   // save trace
   writeTable("roc.result/roc.table", x_i, y_i)
 
   fmt.Println(vn)
+  fmt.Println(vm)
 }
