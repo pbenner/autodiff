@@ -96,6 +96,9 @@ func adam(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_size, b
   }
   for i_ := 0; i_ < maxIterations.Value; i_++ {
     // evaluate objective function
+    if err := x2.Variables(1); err != nil {
+      return nil, err
+    }
     s, err := f(x2)
     if err != nil {
       return x1, err
