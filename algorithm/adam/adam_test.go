@@ -81,7 +81,7 @@ func TestAdamRosenbrock(t *testing.T) {
     s.Add(s, t)
     return s, nil
   }
-  // hook := func(gradient []float64, x ConstVector, value ConstScalar) bool {
+  // hook := func(x, gradient ConstVector, value ConstScalar) bool {
   //   fmt.Fprintf(fp, "%s\n", x.Table())
   //   return false
   // }
@@ -115,7 +115,7 @@ func TestAdamRosenbrockGradient(t *testing.T) {
     gradient[1] = 2*b*(x2 - x1*x1)
     return nil
   }
-  // hook := func(gradient []float64, step []float64, x ConstVector, value Scalar) bool {
+  // hook := func(x, gradient ConstVector, value Scalar) bool {
   //   fmt.Printf("%s\n", x.Table())
   //   return false
   // }

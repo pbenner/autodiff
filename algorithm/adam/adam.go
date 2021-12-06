@@ -47,7 +47,7 @@ type MaxIterations struct {
 }
 
 type Hook struct {
-  Value func([]float64, ConstVector, ConstScalar) bool
+  Value func(ConstVector, ConstVector, ConstScalar) bool
 }
 
 type Constraints struct {
@@ -114,7 +114,7 @@ func adam(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_size, b
       return x1, fmt.Errorf("Constraints voilated")
     }
     // execute hook if available
-    if hook.Value != nil && hook.Value(gradient, x1, s) {
+    if hook.Value != nil && hook.Value(x1, gradient, s) {
       break
     }
     // evaluate stop criterion

@@ -1,6 +1,7 @@
-t.rprop  <- read.table("rosenbrock.rprop.table", header=FALSE)
-t.bfgs   <- read.table("rosenbrock.bfgs.table", header=FALSE)
+t.rprop  <- read.table("rosenbrock.rprop.table" , header=FALSE)
+t.bfgs   <- read.table("rosenbrock.bfgs.table"  , header=FALSE)
 t.newton <- read.table("rosenbrock.newton.table", header=FALSE)
+t.adam   <- read.table("rosenbrock.adam.table"  , header=FALSE)
 
 # ------------------------------------------------------------------------------
 
@@ -14,8 +15,8 @@ z <- outer(x, y, f)
 
 # ------------------------------------------------------------------------------
 
-png("rosenbrock.png", height=350, width=900)
-par(mfrow=c(1,3), cex=0.9)
+png("rosenbrock.png", height=350, width=1200)
+par(mfrow=c(1,4), cex=0.9)
 
 image(x, y, z, col=heat.colors(200)[40:200], main="Rprop")
 contour(x, y, z, add=T, col="white", nlevels=20)
@@ -28,13 +29,17 @@ points(t.bfgs,  type="b")
 image(x, y, z, col=heat.colors(200)[40:200], main="Modified Newton")
 contour(x, y, z, add=T, col="white", nlevels=20)
 points(t.newton,  type="b")
+
+image(x, y, z, col=heat.colors(200)[40:200], main="Adam")
+contour(x, y, z, add=T, col="white", nlevels=20)
+points(t.adam,  type="b")
 
 dev.off()
 
 # ------------------------------------------------------------------------------
 
 pdf("rosenbrock.pdf", height=7, width=18)
-par(mfrow=c(1,3), cex=1.5)
+par(mfrow=c(1,4), cex=1.5)
 
 image(x, y, z, col=heat.colors(200)[40:200], main="Rprop")
 contour(x, y, z, add=T, col="white", nlevels=20)
@@ -47,5 +52,9 @@ points(t.bfgs,  type="b")
 image(x, y, z, col=heat.colors(200)[40:200], main="Modified Newton")
 contour(x, y, z, add=T, col="white", nlevels=20)
 points(t.newton,  type="b")
+
+image(x, y, z, col=heat.colors(200)[40:200], main="Adam")
+contour(x, y, z, add=T, col="white", nlevels=20)
+points(t.adam,  type="b")
 
 dev.off()

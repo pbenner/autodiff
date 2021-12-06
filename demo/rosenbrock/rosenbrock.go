@@ -22,6 +22,7 @@ import   "fmt"
 import   "os"
 
 import . "github.com/pbenner/autodiff"
+import   "github.com/pbenner/autodiff/algorithm/adam"
 import   "github.com/pbenner/autodiff/algorithm/rprop"
 import   "github.com/pbenner/autodiff/algorithm/bfgs"
 import   "github.com/pbenner/autodiff/algorithm/newton"
@@ -48,6 +49,12 @@ func main() {
   }
   defer fp3.Close()
 
+  fp4, err := os.Create("rosenbrock.adam.table")
+  if err != nil {
+    panic(err)
+  }
+  defer fp4.Close()
+
   f := func(x ConstVector) (MagicScalar, error) {
     // f(x1, x2) = (a - x1)^2 + b(x2 - x1^2)^2
     // a = 1
@@ -64,24 +71,19 @@ func main() {
     return s, nil
   }
   hook_rprop := func(gradient, step []float64, x ConstVector, y ConstScalar) bool {
-    fmt.Println("x       :", x)
-    fmt.Println("gradient:", gradient)
-    fmt.Println("y       :", y)
-    fmt.Println()
+    fmt.Fprintf(fp1, "%v %v\n", x.ConstAt(0), x.ConstAt(1))
     return false
   }
   hook_bfgs := func(x, gradient ConstVector, y ConstScalar) bool {
-    fmt.Println("x       :", x)
-    fmt.Println("gradient:", gradient)
-    fmt.Println("y       :", y)
-    fmt.Println()
+    fmt.Fprintf(fp2, "%v %v\n", x.ConstAt(0), x.ConstAt(1))
     return false
   }
   hook_newton := func(x, gradient ConstVector, hessian ConstMatrix, y ConstScalar) bool {
-    fmt.Println("x       :", x)
-    fmt.Println("gradient:", gradient)
-    fmt.Println("y       :", y)
-    fmt.Println()
+    fmt.Fprintf(fp3, "%v %v\n", x.ConstAt(0), x.ConstAt(1))
+    return false
+  }
+  hook_adam := func(x, gradient ConstVector, y ConstScalar) bool {
+    fmt.Fprintf(fp4, "%v %v\n", x.ConstAt(0), x.ConstAt(1))
     return false
   }
 
@@ -99,5 +101,10 @@ func main() {
     newton.HookMin{hook_newton},
     newton.Epsilon{1e-8},
     newton.HessianModification{"LDL"})
+
+  adam.Run(f, x0,
+    adam.StepSize{0.1},
+    adam.Hook{hook_adam},
+    adam.Epsilon{1e-10})
 
 }

@@ -71,7 +71,7 @@ func adam_dense_with_gradient(evalGradient DenseGradientF, x0 DenseFloat64Vector
       return x1, fmt.Errorf("Constraints voilated")
     }
     // execute hook if available
-    if hook.Value != nil && hook.Value(gradient, x1, nil) {
+    if hook.Value != nil && hook.Value(x1, gradient, nil) {
       break
     }
     // evaluate stop criterion
