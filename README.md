@@ -460,12 +460,13 @@ Find the root of a function *f* with initial value *x0 = (1,1)*
 ```
 
 ### Minimize Rosenbrock's function
-Compare Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
+Compare Adam, Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
 
 ```go
   import   "fmt"
 
   import . "github.com/pbenner/autodiff"
+  import   "github.com/pbenner/autodiff/algorithm/adam"
   import   "github.com/pbenner/autodiff/algorithm/rprop"
   import   "github.com/pbenner/autodiff/algorithm/bfgs"
   import   "github.com/pbenner/autodiff/algorithm/newton"
@@ -485,8 +486,14 @@ Compare Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
     s.Add(s, t)
     return s, nil
   }
+  hook_adam := func(x, gradient ConstVector, hessian ConstMatrix, y ConstScalar) bool {
+    fmt.Println("x       :", x)
+    fmt.Println("gradient:", gradient)
+    fmt.Println("y       :", y)
+    fmt.Println()
+    return false
+  }
   hook_rprop := func(gradient, step []float64, x ConstVector, y ConstScalar) bool {
-    fmt.Fprintf(fp1, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
     fmt.Println("y       :", y)
@@ -494,7 +501,6 @@ Compare Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
     return false
   }
   hook_bfgs := func(x, gradient ConstVector, y ConstScalar) bool {
-    fmt.Fprintf(fp2, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
     fmt.Println("y       :", y)
@@ -502,7 +508,6 @@ Compare Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
     return false
   }
   hook_newton := func(x, gradient ConstVector, hessian ConstMatrix, y ConstScalar) bool {
-    fmt.Fprintf(fp3, "%s\n", x.Table())
     fmt.Println("x       :", x)
     fmt.Println("gradient:", gradient)
     fmt.Println("y       :", y)
@@ -511,6 +516,11 @@ Compare Newton's method, BFGS and Rprop for minimizing Rosenbrock's function
   }
 
   x0 := NewDenseFloat64Vector([]float64{-0.5, 2})
+
+  adam.Run(f, x0,
+    adam.StepSize{0.1},
+    adam.Hook{hook_adam},
+    adam.Epsilon{1e-10})
 
   rprop.Run(f, x0, 0.05, []float64{1.2, 0.8},
     rprop.Hook{hook_rprop},
