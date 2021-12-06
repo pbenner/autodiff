@@ -86,7 +86,7 @@ func adam_dense_with_gradient(evalGradient DenseGradientF, x0 DenseFloat64Vector
       v_hat := moment_v[i]/(1.0 - beta2_t)
       x2[i] = x1[i] - step_size*m_hat/(math.Sqrt(v_hat) + 1e-8)
       if math.IsNaN(x2[i]) {
-        return x2, fmt.Errorf("NaN value detected")
+        return x1, fmt.Errorf("NaN value detected")
       }
       beta1_t *= beta1
       beta2_t *= beta2

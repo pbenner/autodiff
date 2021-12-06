@@ -129,7 +129,7 @@ func adam(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_size, b
       v_hat := moment_v[i]/(1.0 - beta2_t)
       x2.At(i).SetFloat64(x1.Float64At(i) - step_size*m_hat/(math.Sqrt(v_hat) + 1e-8))
       if math.IsNaN(x2.Float64At(i)) {
-        return x2, fmt.Errorf("NaN value detected")
+        return x1, fmt.Errorf("NaN value detected")
       }
       beta1_t *= beta1
       beta2_t *= beta2
@@ -141,7 +141,7 @@ func adam(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_size, b
 
 /* -------------------------------------------------------------------------- */
 
-func Run(f interface{}, x0 Vector, step_init float64, eta []float64, args ...interface{}) (Vector, error) {
+func Run(f interface{}, x0 Vector, args ...interface{}) (Vector, error) {
 
   hook          := Hook         {nil  }
   step_size     := StepSize     {0.001}
@@ -151,9 +151,6 @@ func Run(f interface{}, x0 Vector, step_init float64, eta []float64, args ...int
   constraints   := Constraints  {nil  }
   maxIterations := MaxIterations{int(^uint(0) >> 1)}
 
-  if len(eta) != 2 {
-    panic("Adam(): Argument eta must have length two!")
-  }
   for _, arg := range args {
     switch a := arg.(type) {
     case Hook:
@@ -182,7 +179,7 @@ func Run(f interface{}, x0 Vector, step_init float64, eta []float64, args ...int
   }
 }
 
-func RunGradient(f interface{}, x0 ConstVector, step_init float64, eta []float64, args ...interface{}) (ConstVector, error) {
+func RunGradient(f interface{}, x0 ConstVector, args ...interface{}) (ConstVector, error) {
 
   hook          := Hook            {nil  }
   step_size     := StepSize        {0.001}
@@ -192,9 +189,6 @@ func RunGradient(f interface{}, x0 ConstVector, step_init float64, eta []float64
   constraints   := ConstConstraints{nil  }
   maxIterations := MaxIterations   {int(^uint(0) >> 1)}
 
-  if len(eta) != 2 {
-    panic("Adam(): Argument eta must have length two!")
-  }
   for _, arg := range args {
     switch a := arg.(type) {
     case Hook:
