@@ -124,16 +124,16 @@ func adam(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_size, b
     // update x
     for i := 0; i < n; i++ {
       moment_m[i] = beta1*moment_m[i] + (1.0-beta1)*gradient[i]
-      moment_v[i] = beta2*moment_m[i] + (1.0-beta2)*gradient[i]*gradient[i]
+      moment_v[i] = beta2*moment_v[i] + (1.0-beta2)*gradient[i]*gradient[i]
       m_hat := moment_m[i]/(1.0 - beta1_t)
       v_hat := moment_v[i]/(1.0 - beta2_t)
       x2.At(i).SetFloat64(x1.Float64At(i) - step_size*m_hat/(math.Sqrt(v_hat) + 1e-8))
       if math.IsNaN(x2.Float64At(i)) {
         return x1, fmt.Errorf("NaN value detected")
       }
-      beta1_t *= beta1
-      beta2_t *= beta2
     }
+    beta1_t *= beta1
+    beta2_t *= beta2
     x1.Set(x2)
   }
   return x1, nil

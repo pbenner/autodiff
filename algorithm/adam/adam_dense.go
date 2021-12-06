@@ -81,16 +81,16 @@ func adam_dense_with_gradient(evalGradient DenseGradientF, x0 DenseFloat64Vector
     // update x
     for i := 0; i < n; i++ {
       moment_m[i] = beta1*moment_m[i] + (1.0-beta1)*gradient[i]
-      moment_v[i] = beta2*moment_m[i] + (1.0-beta2)*gradient[i]*gradient[i]
+      moment_v[i] = beta2*moment_v[i] + (1.0-beta2)*gradient[i]*gradient[i]
       m_hat := moment_m[i]/(1.0 - beta1_t)
       v_hat := moment_v[i]/(1.0 - beta2_t)
       x2[i] = x1[i] - step_size*m_hat/(math.Sqrt(v_hat) + 1e-8)
       if math.IsNaN(x2[i]) {
         return x1, fmt.Errorf("NaN value detected")
       }
-      beta1_t *= beta1
-      beta2_t *= beta2
     }
+    beta1_t *= beta1
+    beta2_t *= beta2
     copy(x1, x2)
   }
   return x1, nil
