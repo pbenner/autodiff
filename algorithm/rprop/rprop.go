@@ -60,7 +60,6 @@ func rprop(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_init f
   constraints Constraints) (Vector, error) {
 
   n := x0.Dim()
-  t := x0.ElementType()
   // copy variables
   x1 := AsDenseReal64Vector(x0)
   x2 := AsDenseReal64Vector(x0)
@@ -109,11 +108,11 @@ func rprop(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_init f
     }
     // execute hook if available
     if hook.Value != nil && hook.Value(gradient_new, step, x1, s) {
-      break;
+      break
     }
     // evaluate stop criterion
     if (Norm(gradient_new) < epsilon.Value) {
-      break;
+      break
     }
     // update step size
     for i := 0; i < x1.Dim(); i++ {
@@ -131,9 +130,9 @@ func rprop(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_init f
       for i := 0; i < x1.Dim(); i++ {
         if gradient_new[i] != 0.0 {
           if gradient_new[i] > 0.0 {
-            x2.At(i).Sub(x1.At(i), NewScalar(t, step[i]))
+            x2.At(i).SetFloat64(x1.Float64At(i) - step[i])
           } else {
-            x2.At(i).Add(x1.At(i), NewScalar(t, step[i]))
+            x2.At(i).SetFloat64(x1.Float64At(i) + step[i])
           }
         }
         if math.IsNaN(x2.At(i).GetFloat64()) {
