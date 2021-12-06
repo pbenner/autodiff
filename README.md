@@ -271,6 +271,7 @@ The algorithms package contains more complex linear algebra and optimization rou
 
 | Package             | Description                                             |
 | ------------------- | ------------------------------------------------------- |
+| Adam                | Adam stochastic gradient method                         |
 | bfgs                | Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm       |
 | blahut              | Blahut algorithm (channel capacity)                     |
 | cholesky            | Cholesky and LDL factorization                          |
