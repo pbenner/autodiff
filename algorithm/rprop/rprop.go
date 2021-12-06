@@ -74,9 +74,6 @@ func rprop(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_init f
     gradient_new[i] = 1
     gradient_old[i] = 1
   }
-  if err := x1.Variables(1); err != nil {
-    return nil, err
-  }
   gradient_is_nan := func(s Scalar) bool {
     for i := 0; i < s.GetN(); i++ {
       if math.IsNaN(s.GetDerivative(i)) {
@@ -90,6 +87,9 @@ func rprop(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_init f
     return x1, fmt.Errorf("invalid initial value: %v", x1)
   }
   // evaluate objective function
+  if err := x1.Variables(1); err != nil {
+    return nil, err
+  }
   s, err := f(x1)
   if err != nil {
     return x1, fmt.Errorf("invalid initial value: %v", x1)
@@ -140,6 +140,9 @@ func rprop(f func(ConstVector) (MagicScalar, error), x0 ConstVector, step_init f
         }
       }
       // evaluate objective function
+      if err := x2.Variables(1); err != nil {
+        return nil, err
+      }
       s, err = f(x2)
       if err != nil || gradient_is_nan(s) ||
         (constraints.Value != nil && !constraints.Value(x2)) {
