@@ -47,10 +47,10 @@ def test():
         loss = loss_function(y_hat, y)
         loss.backward()
         optimizer.step()
-    print(list(net.parameters()))
 
 ## -----------------------------------------------------------------------------
 
 elapsed=measure_time(test)
 
+print(list(net.parameters()))
 print(f'{elapsed}s')
