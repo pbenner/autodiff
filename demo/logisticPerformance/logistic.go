@@ -87,7 +87,7 @@ func main() {
   z := NullDenseFloat64Vector(n)
   t := NullFloat64()
   f := func(theta, gradient DenseFloat64Vector) error {
-    z.MdotV(&X, theta)
+    z.MDOTV(&X, theta)
     for i := 0; i < n; i++ {
       z.AT(i).Sigmoid(z.AT(i), t)
       z.AT(i).Sub(z.AT(i), y.AT(i))
