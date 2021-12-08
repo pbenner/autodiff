@@ -93,6 +93,7 @@ func main() {
       z.AT(i).Sub(z.AT(i), y.AT(i))
     }
     for j := 0; j < m; j++ {
+      // gradient.VDOTM(z, &X)
       gradient[j] = 0.0
       for i := 0; i < n; i++ {
         gradient[j] += z[i]*X.Float64At(i, j)
