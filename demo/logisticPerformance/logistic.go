@@ -26,7 +26,7 @@ import . "github.com/pbenner/autodiff/algorithm/adam"
 
 /* -------------------------------------------------------------------------- */
 
-func main() {
+func main_autodiff() {
 
   X := DenseFloat64Matrix{}
   y := DenseFloat64Vector{}
@@ -65,7 +65,49 @@ func main() {
   thetan, _ := Run(f, theta0,
     Epsilon{0.0},
     MaxIterations{1000},
-    Epsilon{1e-10})
+    Epsilon{0.0})
+  elapsed := time.Since(start)
+
+  fmt.Printf("%s\n", thetan)
+  fmt.Printf("%s\n", elapsed)
+}
+
+func main() {
+
+  X := DenseFloat64Matrix{}
+  y := DenseFloat64Vector{}
+  if err := X.Import("logisticData.X.table"); err != nil {
+    panic(err)
+  }
+  if err := y.Import("logisticData.y.table"); err != nil {
+    panic(err)
+  }
+  n, m := X.Dims()
+
+  z := NullDenseFloat64Vector(n)
+  t := NullFloat64()
+  f := func(theta, gradient DenseFloat64Vector) error {
+    z.MdotV(&X, theta)
+    for i := 0; i < n; i++ {
+      z.AT(i).Sigmoid(z.AT(i), t)
+      z.AT(i).Sub(z.AT(i), y.AT(i))
+    }
+    for j := 0; j < m; j++ {
+      gradient[j] = 0.0
+      for i := 0; i < n; i++ {
+        gradient[j] += z[i]*X.Float64At(i, j)
+      }
+    }
+    return nil
+  }
+
+  theta0 := NullDenseFloat64Vector(m)
+
+  start := time.Now()
+  thetan, _ := RunGradient(DenseGradientF(f), theta0,
+    Epsilon{0.0},
+    MaxIterations{1000},
+    Epsilon{0.0})
   elapsed := time.Since(start)
 
   fmt.Printf("%s\n", thetan)

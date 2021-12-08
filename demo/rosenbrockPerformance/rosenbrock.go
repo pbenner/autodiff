@@ -53,7 +53,7 @@ func main() {
   xn, _ := Run(f, x0,
     Epsilon{0.0},
     MaxIterations{10000},
-    Epsilon{1e-10})
+    Epsilon{0.0})
   elapsed := time.Since(start)
 
   fmt.Printf("%v\n", xn)
